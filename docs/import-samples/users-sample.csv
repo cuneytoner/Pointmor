@@ -1,0 +1,4 @@
+email,name,role
+gov.owner@demo.local,Governance Owner,tenant_operator
+gov.reviewer@demo.local,Policy Reviewer,viewer
+steward@demo.local,Data Steward,tenant_operator

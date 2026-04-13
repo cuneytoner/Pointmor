@@ -1,0 +1,7 @@
+---
+description: Admin UI — follow docs/42-design-admin-ui.md; eylemler admin-primary-btn / admin-secondary-btn, açık zeminde düz renkli Link metni yok (sidebar nav hariç).
+globs: apps/admin-web/**/*
+alwaysApply: false
+---
+
+`apps/admin-web` için **[docs/42-design-admin-ui.md](docs/42-design-admin-ui.md)** belgesine uy: birincil eylem `admin-primary-btn`, ikincil veya sayfa içi navigasyon `admin-secondary-btn`; “Yönetişim / Git / Detay” gibi kontroller düz `<Link>` metni olarak verilmez.

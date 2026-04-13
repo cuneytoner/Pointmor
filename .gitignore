@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE / editor
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+
+# Prisma (generated client — apps/api içinde de tutulabilir)
+**/generated/prisma/
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# Vite
+*.local
+
+# Local DB files (SQLite dev artifacts)
+*.db
+*.db-journal
+
+# Misc
+.cache/
+.turbo/
+*.pem

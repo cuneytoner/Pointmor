@@ -1,0 +1,20 @@
+{
+  "name": "pointmor",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:admin": "npm run dev --workspace admin-web",
+    "dev:portal": "npm run dev --workspace admin-web",
+    "dev:api": "npm run dev --workspace api",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "ssh2": "^1.17.0"
+  }
+}

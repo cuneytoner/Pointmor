@@ -1,0 +1,635 @@
+{
+  "common": {
+    "appName": "Pointmor",
+    "actions": {
+      "create": "Crear",
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "ellipsis": "…",
+    "email": "Correo",
+    "loadingBody": "Cargando datos…",
+    "slug": "Slug",
+    "id": "ID"
+  },
+  "auth": {
+    "login": {
+      "title": "Pointmor",
+      "subtitle": "Inicia sesión para continuar",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "workspaceCode": "Código del espacio de trabajo (opcional)",
+      "workspaceHint": "Déjalo vacío si eres administrador de la plataforma.",
+      "submit": "Continuar",
+      "submitting": "Iniciando sesión…",
+      "forgot": "Olvidé mi contraseña",
+      "register": "Crear cuenta",
+      "error": "Error al iniciar sesión. Revisa tus datos.",
+      "sessionInvalid": "Sesión caducada. Vuelve a iniciar sesión.",
+      "passwordPlaceholder": "••••••••"
+    }
+  },
+  "app": {
+    "verifyingSession": "Verificando sesión…"
+  },
+  "shell": {
+    "brandAria": "Navegación principal",
+    "topbarTitle": "Espacio de trabajo",
+    "platformConsole": "Consola de plataforma",
+    "tenantApp": "App del espacio",
+    "statusOnline": "En línea",
+    "language": "Idioma",
+    "signOut": "Cerrar sesión",
+    "envBanner": "Desarrollo: los datos pueden ser de ejemplo o estar vacíos.",
+    "sessionAria": "Sesión",
+    "workspaceLine": "Espacio de trabajo: {{name}} ({{slug}})",
+    "platformSession": "Sesión de administrador de plataforma"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "platformDashboard": "Panel",
+    "tenantDashboard": "Panel",
+    "dataHealth": "Salud de datos",
+    "governance": "Gobernanza",
+    "workspaces": "Espacios de trabajo",
+    "users": "Usuarios",
+    "usersGlobal": "Usuarios (global)",
+    "team": "Equipo",
+    "import": "Importar",
+    "plans": "Planes",
+    "subscriptions": "Suscripciones",
+    "billing": "Facturación",
+    "tenantSettings": "Ajustes",
+    "platformAdmin": "Admin de plataforma"
+  },
+  "dashboardPlatform": {
+    "eyebrow": "Operaciones",
+    "title": "Resumen de plataforma",
+    "description": "Métricas multi-inquilino del bootstrap; la tabla es demo.",
+    "hero": {
+      "title": "Instantánea de operaciones SaaS",
+      "subtitle": "Espacios, facturación y auditoría — alcance operador."
+    }
+  },
+  "tenantDashboard": {
+    "eyebrow": "Su espacio",
+    "title": "{{name}} — resumen",
+    "description": "Tamaño del equipo y suscripción de este espacio.",
+    "onboardingHint": "Use la barra lateral para facturación y ajustes.",
+    "hero": {
+      "title": "Instantánea del espacio",
+      "subtitle": "Fidelización para su local — más funciones próximamente."
+    },
+    "badgeTrialing": "Prueba",
+    "metrics": {
+      "team": "Miembros",
+      "teamHint": "Usuarios en este espacio",
+      "plan": "Plan",
+      "planHint": "Desde la suscripción",
+      "subscription": "Estado",
+      "subscriptionHint": "Ciclo de vida"
+    },
+    "linkDataHealth": "Abrir salud de datos →"
+  },
+  "onboarding": {
+    "progressLabel": "Paso {{current}} de {{total}}",
+    "step1Title": "Bienvenido",
+    "step1Body": "En unos minutos añadirá un origen de datos (o probará la demo integrada), ejecutará un escaneo, revisará señales de salud y realizará una primera acción en el espacio de trabajo.",
+    "step1Cta": "Continuar",
+    "step2Title": "Conectar un origen de datos",
+    "step2Body": "Use el almacén de demostración para explorar sin base de datos real, o conecte el suyo desde Salud de datos cuando esté listo.",
+    "step2DemoCta": "Crear origen de datos demo",
+    "step2OwnLink": "Conectaré mi propio origen",
+    "step3Title": "Ejecutar un escaneo",
+    "step3Body": "Inicie un escaneo de metadatos en la demo, o ejecute un escaneo desde Salud de datos tras conectar un origen real.",
+    "step3RunCta": "Ejecutar escaneo demo",
+    "step3OpenDh": "Abrir Salud de datos",
+    "step3SkipAdvance": "Omitir — ya escaneé",
+    "step4Title": "Revisar información",
+    "step4Body": "El último escaneo produjo una puntuación de salud y cobertura. Abra Salud de datos para perfilado y reglas.",
+    "step4ScoreLine": "Puntuación del último escaneo: {{score}}",
+    "step4NextCta": "Continuar",
+    "step5Title": "Primera acción",
+    "step5Body": "Abra Gobernanza para un activo, o permanezca en Salud de datos para revisar señales de calidad.",
+    "step5GovLink": "Abrir Gobernanza",
+    "step5DhLink": "Revisar Salud de datos",
+    "step5DoneCta": "Finalizar configuración",
+    "skip": "Omitir por ahora",
+    "demoBusy": "Trabajando…",
+    "errorGeneric": "No se pudo cargar el estado de incorporación. Actualice la página o reintente.",
+    "dhBannerTitle": "Configuración guiada",
+    "needsSourceCta": "Añada un origen de datos para desbloquear escaneos y señales de salud.",
+    "needsScanCta": "Ejecute un escaneo en un origen para generar información y puntuaciones.",
+    "continueHint": "Continúe la configuración guiada desde el panel.",
+    "openSetup": "Abrir configuración guiada",
+    "activationTitle": "Activación",
+    "activationScan": "Escaneo completado",
+    "activationInsight": "Información vista",
+    "activationAction": "Acción en el producto",
+    "activationDone": "Activado — valor completo desbloqueado."
+  },
+  "usage": {
+    "title": "Uso y límites",
+    "meterDataSources": "Orígenes de datos: {{current}} / {{limit}}",
+    "meterAssets": "Activos de datos: {{current}} / {{limit}}",
+    "meterScans": "Escaneos hoy (UTC): {{current}} / {{limit}}",
+    "upgradeCta": "Ver planes y mejorar",
+    "limitExceededScan": "Límite diario de escaneos alcanzado. Mejore el plan o inténtelo mañana."
+  },
+  "billing": {
+    "eyebrow": "Facturación",
+    "title": "Facturación y plan",
+    "description": "Resumen de suscripción desde bootstrap.",
+    "empty": "Sin fila de suscripción para este espacio en bootstrap.",
+    "plan": "Plan",
+    "status": "Estado",
+    "renews": "Renovación",
+    "renewsUnknown": "—",
+    "planLimitsHint": "Su plan incluye las cuotas siguientes."
+  },
+  "tenantSettings": {
+    "eyebrow": "Espacio",
+    "title": "Ajustes",
+    "description": "Preferencias del espacio (próximamente)."
+  },
+  "team": {
+    "eyebrow": "Personas",
+    "title": "Equipo",
+    "description": "Equipos de organización y usuarios del espacio de trabajo.",
+    "orgTeamsHeading": "Equipos",
+    "orgTeamsDescription": "Cree equipos y asigne miembros. La propiedad de activos sigue siendo por usuario; más adelante se podrá añadir propiedad por equipo.",
+    "orgTeamsEmptyTitle": "Aún no hay equipos",
+    "orgTeamsEmptyDescription": "Cree un equipo con el formulario superior.",
+    "orgTeamsColName": "Nombre",
+    "orgTeamsColCode": "Código",
+    "orgTeamsColMembers": "Miembros",
+    "openTeamDetail": "Gestionar",
+    "orgTeamsDetailTitle": "Equipo",
+    "backToTeams": "Volver a equipos",
+    "codeLabel": "Código",
+    "membersHeading": "Miembros",
+    "membersEmptyTitle": "Sin miembros",
+    "membersEmptyDescription": "Añada un usuario del espacio abajo.",
+    "memberRoleColumn": "Rol en el equipo",
+    "memberRole": {
+      "member": "Miembro",
+      "lead": "Líder"
+    },
+    "removeMember": "Quitar",
+    "addMemberHeading": "Añadir miembro",
+    "addMemberUserLabel": "Usuario",
+    "addMemberUserPlaceholder": "Seleccionar usuario",
+    "addMemberRoleLabel": "Rol en el equipo",
+    "addMemberSubmit": "Añadir al equipo",
+    "noUsersToAdd": "Todos los usuarios del espacio ya están en este equipo.",
+    "createNamePlaceholder": "Nombre del equipo",
+    "createCodePlaceholder": "Código (p. ej. data-platform)",
+    "createDescriptionPlaceholder": "Descripción (opcional)",
+    "createSubmit": "Crear equipo",
+    "tenantUsersHeading": "Usuarios del espacio",
+    "tenantUsersDescription": "Usuarios vinculados a este espacio (directorio).",
+    "filterAria": "Filtrar por rol",
+    "filterAll": "Todos",
+    "emptyTitle": "Sin miembros",
+    "emptyDescription": "Sin usuarios para este espacio en bootstrap.",
+    "columns": {
+      "name": "Nombre",
+      "role": "Rol"
+    }
+  },
+  "import": {
+    "eyebrow": "Masivo",
+    "title": "Importación CSV",
+    "description": "Vista previa y aplicación para usuarios, equipos o clasificaciones (por espacio).",
+    "kindLabel": "Tipo",
+    "kindUser": "Usuarios",
+    "kindTeam": "Equipos",
+    "kindClassification": "Clasificaciones",
+    "hintUser": "Obligatorio: email, name. Opcional: role (viewer | tenant_operator).",
+    "hintTeam": "Obligatorio: name, code. Opcional: description.",
+    "hintClassification": "Obligatorio: key, label. Opcional: color, sort_order, is_active (true por defecto).",
+    "csvAria": "Contenido CSV",
+    "loadSample": "Cargar ejemplo",
+    "preview": "Vista previa (validar)",
+    "apply": "Aplicar",
+    "working": "Trabajando…",
+    "parseErrors": "Errores de análisis/validación:",
+    "previewStats": "OK: {{ok}}, con errores: {{err}} · crear {{c}}, actualizar {{u}}, sin cambios {{n}}.",
+    "applyStats": "Aplicado — creados {{c}}, actualizados {{u}}, omitidos {{s}}, errores de fila {{e}}.",
+    "colLine": "Línea",
+    "colOk": "OK",
+    "colAction": "Acción",
+    "colErrors": "Errores",
+    "colStatus": "Estado",
+    "colMessage": "Mensaje"
+  },
+  "dataHealth": {
+    "title": "Salud de datos",
+    "eyebrow": "Calidad",
+    "description": "Instantáneas de perfil, reglas de calidad y puntuaciones (por espacio de trabajo).",
+    "noFeatureTitle": "Data Health no está habilitado",
+    "noFeatureDescription": "El plan no incluye la función data_health.",
+    "tenantLabel": "Espacio de trabajo",
+    "sourceLabel": "Fuente de datos",
+    "assetLabel": "Activo",
+    "noSources": "Sin fuentes",
+    "noAssets": "Sin activos",
+    "summaryHeading": "Resumen",
+    "profilingHeading": "Perfilado",
+    "rulesHeading": "Reglas de calidad",
+    "scoreHeading": "Puntuaciones",
+    "emptyProfiling": "Sin instantáneas de perfilado.",
+    "emptyRules": "Sin reglas de calidad.",
+    "emptyScores": "Sin evaluaciones de calidad.",
+    "rows": "{{n}} filas",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "featureForbidden": "La función data_health no está disponible.",
+    "fetchError": "No se pudieron cargar los datos.",
+    "connectionUrlPlaceholder": "URL PostgreSQL para el escaneo",
+    "connectionUrlDisabledProd": "En producción no se introduce la cadena de conexión en el navegador. Use connectionSecretRef en el origen y ROYALTY_DATASOURCE_SECRETS_JSON en el host de la API.",
+    "scan": "Escanear",
+    "scanNow": "Escanear ahora",
+    "scanning": "Escaneando…",
+    "scanningSubtext": "Escaneando fuentes de datos…",
+    "scanCompleted": "Escaneo completado",
+    "scanResultScore": "Puntuación: {{score}}",
+    "scanResultProcessed": "Activos procesados: {{n}}",
+    "scanResultDuration": "Duración: {{ms}} ms",
+    "lastScan": "Último escaneo: {{relative}}",
+    "lastScanNever": "Aún no hay escaneo para esta fuente.",
+    "scanFailedSimple": "El escaneo falló. Inténtelo de nuevo.",
+    "scanSuccess": "Listo: {{processed}} tablas ({{created}} nuevas, {{updated}} actualizadas), puntuación agregada {{score}} (media por activo), {{ms}} ms. Job {{jobId}}.",
+    "scanError": "Error de escaneo.",
+    "scanHistoryHeading": "Historial de escaneos",
+    "scanHistoryLoading": "Cargando historial…",
+    "scanHistoryEmpty": "Aún no hay escaneos",
+    "scanHistoryError": "No se pudo cargar el historial de escaneos.",
+    "scanHistoryScore": "Puntuación: {{score}}",
+    "scanHistoryProcessed": "{{n}} activos",
+    "scanHistoryProcessedUnknown": "Activos: —",
+    "scanHistoryDuration": "{{ms}} ms",
+    "scanHistoryDurationUnknown": "Duración: —",
+    "scanHistoryStatusSuccess": "Completado",
+    "scanHistoryStatusError": "Fallido",
+    "scanHistoryStatusRunning": "En curso"
+  },
+  "governance": {
+    "eyebrow": "Gobernanza",
+    "title": "Gobernanza de datos",
+    "description": "Propiedad, clasificación y etiquetas por activo (ámbito del inquilino).",
+    "noFeatureTitle": "Gobernanza no habilitada",
+    "noFeatureDescription": "Su plan no incluye data_governance.",
+    "featureForbidden": "Acción no disponible para este espacio de trabajo.",
+    "fetchError": "No se pudieron cargar los datos de gobernanza.",
+    "saveError": "No se pudo guardar.",
+    "unownedTitle": "Activos sin propietario",
+    "unownedDescription": "Activos sin propietario asignado.",
+    "unownedEmpty": "No hay activos sin propietario.",
+    "backToDataHealth": "Salud de datos",
+    "assetTitle": "Gobernanza del activo",
+    "assetDescription": "Asigne propietario, clasificación y etiquetas.",
+    "ownerLabel": "Propietario",
+    "ownerNone": "Sin asignar",
+    "classificationLabel": "Clasificación",
+    "tagsLabel": "Etiquetas",
+    "tagsPlaceholder": "Separadas por comas",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "manageAsset": "Gobernanza",
+    "class": {
+      "public": "Público",
+      "pii": "PII",
+      "sensitive": "Sensible",
+      "unknown": "Desconocido"
+    }
+  },
+  "gov": {
+    "eyebrow": "Gobernanza de datos",
+    "feedback": {
+      "OK": "OK",
+      "UNOWNED": "Sin propietario",
+      "UNCLASSIFIED": "Sin clasificar",
+      "CRITICAL": "Crítico"
+    },
+    "overview": {
+      "title": "Resumen de gobernanza",
+      "subtitle": "Centro de control — cobertura, propiedad y riesgo de un vistazo.",
+      "openCatalog": "Abrir catálogo de activos →",
+      "metricUnowned": "Sin propietario",
+      "metricUnclassified": "Sin clasificar",
+      "metricCritical": "Crítico / alta criticidad",
+      "metricPolicy": "Cobertura de políticas",
+      "policyPlaceholder": "Planificado — fase posterior",
+      "needsActionTitle": "Activos que requieren acción",
+      "needsActionEmpty": "No hay elementos en esta vista.",
+      "viewBacklog": "Ver backlog completo →",
+      "recentTitle": "Actividad reciente de gobernanza",
+      "recentPlaceholder": "El feed de actividad llegará en una fase posterior.",
+      "violationsTitle": "Infracciones recientes",
+      "violationsPlaceholder": "No activo en esta fase.",
+      "kpiGroupLabel": "KPI de gobernanza",
+      "kpiOpenFiltered": "Abrir catálogo — {{filter}}"
+    },
+    "riskTable": {
+      "title": "Activos de mayor riesgo",
+      "subtitle": "Ordenados por brechas de propiedad, criticidad y puntuación de salud.",
+      "empty": "Aún no hay activos que clasificar.",
+      "colAsset": "Activo",
+      "colSource": "Origen",
+      "colStatus": "Estado de gobernanza",
+      "colCriticality": "Criticidad",
+      "colHealth": "Salud"
+    },
+    "badges": {
+      "classificationMissing": "Sin clasificar",
+      "criticalityUnset": "Sin definir",
+      "noTags": "—"
+    },
+    "catalog": {
+      "title": "Catálogo de gobernanza",
+      "subtitle": "Vista densa del registro — filtre el backlog.",
+      "backOverview": "← Resumen",
+      "searchPlaceholder": "Buscar por nombre de activo…",
+      "filterClass": "Clasificación",
+      "filterStatus": "Estado de gobernanza",
+      "allStatuses": "Todos los estados",
+      "filterOwner": "Propietario",
+      "allClassifications": "Todas las clases",
+      "allOwners": "Todos los propietarios",
+      "needsActionOnly": "Solo requieren acción",
+      "quickFilters": "Rápido",
+      "quickUnowned": "Sin propietario",
+      "quickUnclassified": "Sin clasificar",
+      "quickNeedsAction": "Requieren acción",
+      "emptyTitle": "Sin activos coincidentes",
+      "empty": "Sin resultados con los filtros actuales.",
+      "bulkActions": "Acciones masivas",
+      "bulkPlaceholderHint": "Etiquetado masivo y reasignación en una fase posterior."
+    },
+    "table": {
+      "asset": "Activo",
+      "source": "Origen",
+      "schema": "Esquema",
+      "owner": "Propietario",
+      "classification": "Clasificación",
+      "tags": "Etiquetas",
+      "criticality": "Criticidad",
+      "lastScan": "Último escaneo",
+      "health": "Salud",
+      "status": "Estado",
+      "governanceStatus": "Estado de gobernanza",
+      "action": "Acción",
+      "openDetail": "Abrir"
+    },
+    "status": {
+      "unclassified": "Sin clasificar",
+      "needs_owner": "Falta propietario",
+      "elevated": "Riesgo elevado",
+      "current": "OK"
+    },
+    "criticality": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta",
+      "critical": "Crítica"
+    },
+    "violation": {
+      "reason": {
+        "ownerRequired": "Se requiere un propietario para este activo.",
+        "classificationRequired": "Debe establecerse la clasificación de datos.",
+        "tagsRequired": "Se requiere al menos una etiqueta.",
+        "classificationNotIn": "La clasificación no está en el conjunto permitido.",
+        "minTagCount": "No se cumple el número mínimo de etiquetas.",
+        "ownerRequiredIfCritical": "Los activos críticos deben tener propietario.",
+        "ownerRequiredIfClassification": "Se requiere propietario para esta clasificación.",
+        "tagsRequiredIfClassification": "Se requieren etiquetas para esta clasificación."
+      },
+      "fix": {
+        "assignOwner": "Asigne un responsable.",
+        "setClassification": "Elija una clasificación (no desconocida).",
+        "addTag": "Añada una etiqueta que describa el activo."
+      },
+      "quick": {
+        "assign_owner": "Ir a propiedad",
+        "set_classification": "Establecer clasificación",
+        "add_tag": "Añadir etiquetas"
+      }
+    },
+    "lineage": {
+      "sectionTitle": "Linaje",
+      "sectionHint": "Enlaces manuales a nivel de activo: el flujo va de origen → destino.",
+      "tabListLabel": "Vistas de linaje",
+      "tabOverview": "Resumen",
+      "tabGraph": "Grafo",
+      "upstream": "Ascendente (hacia este activo)",
+      "downstream": "Descendente (desde este activo)",
+      "emptyUpstream": "Sin aristas entrantes.",
+      "emptyDownstream": "Sin aristas salientes.",
+      "impactSummary": "Impacto descendente (BFS, profundidad {{depth}}): {{n}} activo(s), {{c}} con criticidad alta/crítica.",
+      "impactTruncated": "Se alcanzó el límite de nodos: algunos activos descendentes pueden faltar.",
+      "impactTableTitle": "Activos descendentes afectados (ordenados)",
+      "impactColAsset": "Activo",
+      "impactColDepth": "Profundidad",
+      "impactColRisk": "Puntuación de riesgo",
+      "impactColCritical": "Criticidad",
+      "criticalBadge": "Crítico",
+      "direction": "Dirección",
+      "directionOut": "Este activo → otro",
+      "directionIn": "Otro → este activo",
+      "otherAsset": "Otro activo",
+      "pickAsset": "Seleccionar activo…",
+      "relationType": "Tipo de relación",
+      "relation": {
+        "feeds": "feeds",
+        "derives_from": "derives_from",
+        "copies_to": "copies_to",
+        "aggregates_from": "aggregates_from"
+      },
+      "addEdge": "Añadir enlace",
+      "graphDepthLabel": "Profundidad",
+      "graphDepth1": "1 salto",
+      "graphDepth2": "2 saltos",
+      "graphHint": "Vista de solo lectura; edite enlaces en Resumen.",
+      "graphTruncated": "Algunos nodos ocultos — límite por columna.",
+      "graphCenterBadge": "Activo actual",
+      "graphLaneUpstream": "Ascendente",
+      "graphLaneDownstream": "Descendente",
+      "graphHopMeta": "{{lane}} · salto {{hop}}",
+      "graphSoloHint": "Solo este activo — añada enlaces en Resumen para ver vecinos.",
+      "graphOpenDetail": "Abrir detalle",
+      "error": {
+        "fetch": "No se pudo cargar el linaje.",
+        "save": "No se pudo añadir el enlace."
+      }
+    },
+    "detail": {
+      "title": "Activo",
+      "subtitle": "Espacio de trabajo de gobernanza",
+      "backOverview": "Resumen",
+      "healthScore": "Puntuación de salud",
+      "sectionOwnership": "Propiedad",
+      "sectionOwnershipHint": "Persona responsable de este activo.",
+      "sectionClassification": "Clasificación de datos",
+      "sectionClassificationHint": "Nivel de sensibilidad para retención y acceso.",
+      "sectionCriticality": "Criticidad del negocio",
+      "sectionCriticalityHint": "Impacto si los datos son incorrectos o no están disponibles.",
+      "sectionTags": "Etiquetas",
+      "sectionDescription": "Descripción",
+      "descriptionPlaceholder": "Definición de negocio en una fase posterior.",
+      "sectionScan": "Último escaneo del entorno",
+      "scanHint": "Perfilado en Salud de datos.",
+      "saveDecisions": "Guardar decisiones",
+      "railLabel": "Señales",
+      "railActivity": "Actividad reciente",
+      "railPlaceholder": "Aún no hay entradas.",
+      "railViolations": "Infracciones",
+      "railViolationsClear": "No hay infracciones abiertas para este activo.",
+      "quickStatusLabel": "Señales de gobernanza",
+      "violationHint": "Incumplimiento de política"
+    }
+  },
+  "dashboard": {
+    "title": "Resumen",
+    "eyebrow": "Operaciones",
+    "description": "Métricas clave desde el bootstrap de la API; la tabla es de ejemplo.",
+    "hero": {
+      "title": "Instantánea de operaciones",
+      "subtitle": "API REST, Prisma y controles de rol."
+    },
+    "badgeLive": "API en vivo",
+    "metrics": {
+      "workspaces": "Espacios de trabajo",
+      "workspacesHint": "Registros",
+      "users": "Usuarios",
+      "usersHint": "Lista visible",
+      "subscriptions": "Suscripciones",
+      "subscriptionsHint": "Todos los estados",
+      "trialing": "En prueba",
+      "trialingHint": "estado = trialing"
+    },
+    "activity": {
+      "title": "Actividad de ejemplo del espacio de trabajo",
+      "badgeDemo": "Demo",
+      "columns": {
+        "workspace": "Espacio de trabajo",
+        "event": "Evento",
+        "time": "Hora",
+        "status": "Estado"
+      },
+      "statusBadge": {
+        "success": "OK",
+        "warning": "Atención",
+        "info": "Info"
+      },
+      "demo": {
+        "row1": {
+          "workspace": "Pointmor Demo Cafe",
+          "when": "Hace 12 min"
+        },
+        "row2": {
+          "workspace": "Bistro Calle del Puerto",
+          "when": "Hace 1 h"
+        },
+        "row3": {
+          "workspace": "Campus Coffee",
+          "when": "Ayer"
+        }
+      }
+    },
+    "events": {
+      "provision": "Aprovisionado",
+      "invite_sent": "Invitación enviada",
+      "subscription_hold": "En pausa"
+    }
+  },
+  "workspaces": {
+    "eyebrow": "Directorio",
+    "title": "Espacios de trabajo",
+    "description": "Desde `GET /tenants` y el bootstrap.",
+    "searchPlaceholder": "Buscar por nombre o slug…",
+    "searchAria": "Buscar espacios de trabajo",
+    "emptyTitle": "Sin espacios de trabajo",
+    "emptyDescription": "Sin datos o sin coincidencias.",
+    "columns": {
+      "name": "Nombre",
+      "status": "Estado"
+    },
+    "statusActive": "Activo"
+  },
+  "users": {
+    "eyebrow": "Acceso",
+    "title": "Usuarios",
+    "description": "Desde `GET /users`.",
+    "filterAria": "Filtrar por rol",
+    "filterAll": "Todos",
+    "emptyTitle": "Sin usuarios",
+    "emptyDescription": "No hay filas para este filtro.",
+    "columns": {
+      "name": "Nombre",
+      "role": "Rol",
+      "workspace": "Espacio de trabajo"
+    },
+    "roles": {
+      "platform_admin": "Plataforma",
+      "tenant_operator": "Operador",
+      "viewer": "Lector"
+    }
+  },
+  "plans": {
+    "eyebrow": "Catálogo",
+    "title": "Planes",
+    "description": "Desde `GET /plans`. Cuota semanal frente a facturación mensual.",
+    "featured": "Destacado",
+    "planType": {
+      "free": "Gratis",
+      "pro": "Pro",
+      "team": "Equipo"
+    },
+    "cadence": {
+      "weekQuota": "/ semana (cuota)",
+      "month": "/ mes"
+    }
+  },
+  "subscriptions": {
+    "eyebrow": "Ciclo de vida",
+    "title": "Suscripciones",
+    "description": "Desde `GET /subscriptions`: espacio de trabajo y plan.",
+    "columns": {
+      "workspace": "Espacio de trabajo",
+      "plan": "Plan",
+      "status": "Estado",
+      "renews": "Renueva"
+    },
+    "status": {
+      "active": "Activa",
+      "trialing": "En prueba",
+      "past_due": "Vencida"
+    }
+  },
+  "platform": {
+    "eyebrow": "Seguridad",
+    "title": "Administración de plataforma",
+    "description": "Registro de auditoría: bootstrap y `GET /admin/audit-logs`.",
+    "cardTitle": "Registro de auditoría",
+    "badgeSource": "Base de datos",
+    "columns": {
+      "time": "Hora",
+      "actor": "Actor",
+      "action": "Acción",
+      "detail": "Detalle"
+    }
+  },
+  "pricing": {
+    "title": "Precios",
+    "description": "No requiere sesión. Los planes aparecerán aquí.",
+    "ctaLogin": "Acceso operador"
+  },
+  "lang": {
+    "en": "English",
+    "tr": "Türkçe",
+    "es": "Español",
+    "de": "Deutsch",
+    "zh": "简体中文"
+  }
+}

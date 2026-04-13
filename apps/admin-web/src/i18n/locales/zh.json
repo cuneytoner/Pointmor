@@ -1,0 +1,635 @@
+{
+  "common": {
+    "appName": "Pointmor",
+    "actions": {
+      "create": "创建",
+      "edit": "编辑",
+      "delete": "删除"
+    },
+    "ellipsis": "…",
+    "email": "邮箱",
+    "loadingBody": "正在加载数据…",
+    "slug": "短标识",
+    "id": "ID"
+  },
+  "auth": {
+    "login": {
+      "title": "Pointmor",
+      "subtitle": "登录以继续",
+      "email": "邮箱",
+      "password": "密码",
+      "workspaceCode": "工作区代码（可选）",
+      "workspaceHint": "平台管理员请留空。",
+      "submit": "继续",
+      "submitting": "正在登录…",
+      "forgot": "忘记密码",
+      "register": "创建账户",
+      "error": "登录失败，请检查凭据。",
+      "sessionInvalid": "会话已过期，请重新登录。",
+      "passwordPlaceholder": "••••••••"
+    }
+  },
+  "app": {
+    "verifyingSession": "正在验证会话…"
+  },
+  "shell": {
+    "brandAria": "主导航",
+    "topbarTitle": "工作区",
+    "platformConsole": "平台控制台",
+    "tenantApp": "工作区应用",
+    "statusOnline": "在线",
+    "language": "语言",
+    "signOut": "退出登录",
+    "envBanner": "开发环境 — 数据可能为示例或为空。",
+    "sessionAria": "会话",
+    "workspaceLine": "工作区：{{name}}（{{slug}}）",
+    "platformSession": "平台管理员会话"
+  },
+  "nav": {
+    "dashboard": "仪表盘",
+    "platformDashboard": "仪表盘",
+    "tenantDashboard": "仪表盘",
+    "dataHealth": "数据健康",
+    "governance": "治理",
+    "workspaces": "工作区",
+    "users": "用户",
+    "usersGlobal": "用户（全局）",
+    "team": "团队",
+    "import": "导入",
+    "plans": "套餐",
+    "subscriptions": "订阅",
+    "billing": "账单",
+    "tenantSettings": "设置",
+    "platformAdmin": "平台管理"
+  },
+  "dashboardPlatform": {
+    "eyebrow": "运营",
+    "title": "平台概览",
+    "description": "来自 API 引导的全局指标；下方活动为示例。",
+    "hero": {
+      "title": "SaaS 运营快照",
+      "subtitle": "工作区、计费与审计 — 运营视角。"
+    }
+  },
+  "tenantDashboard": {
+    "eyebrow": "您的工作区",
+    "title": "{{name}} — 概览",
+    "description": "本工作区的团队规模与订阅摘要。",
+    "onboardingHint": "请从侧栏进入账单与设置。",
+    "hero": {
+      "title": "工作区快照",
+      "subtitle": "门店会员忠诚计划 — 更多功能即将推出。"
+    },
+    "badgeTrialing": "试用",
+    "metrics": {
+      "team": "成员",
+      "teamHint": "本工作区用户",
+      "plan": "套餐",
+      "planHint": "来自订阅",
+      "subscription": "状态",
+      "subscriptionHint": "生命周期"
+    },
+    "linkDataHealth": "打开数据健康 →"
+  },
+  "onboarding": {
+    "progressLabel": "第 {{current}} 步，共 {{total}} 步",
+    "step1Title": "欢迎",
+    "step1Body": "接下来几分钟内，您将添加数据源（或使用内置演示）、运行扫描、查看健康信号并在工作区完成首个操作。",
+    "step1Cta": "继续",
+    "step2Title": "连接数据源",
+    "step2Body": "使用示例演示仓库在无需真实数据库的情况下体验；准备好后可从数据健康连接自有数据源。",
+    "step2DemoCta": "创建演示数据源",
+    "step2OwnLink": "我将连接自己的数据源",
+    "step3Title": "运行扫描",
+    "step3Body": "对演示源启动元数据扫描，或在连接真实数据源后从数据健康运行扫描。",
+    "step3RunCta": "运行演示扫描",
+    "step3OpenDh": "打开数据健康",
+    "step3SkipAdvance": "跳过 — 我已扫描",
+    "step4Title": "查看洞察",
+    "step4Body": "最近一次扫描生成了健康分数与资产覆盖。可随时打开数据健康查看画像与规则。",
+    "step4ScoreLine": "最近扫描分数：{{score}}",
+    "step4NextCta": "继续",
+    "step5Title": "首个操作",
+    "step5Body": "打开治理查看资产，或留在数据健康查看画像与质量信号。",
+    "step5GovLink": "打开治理",
+    "step5DhLink": "查看数据健康",
+    "step5DoneCta": "完成设置",
+    "skip": "暂时跳过",
+    "demoBusy": "处理中…",
+    "errorGeneric": "无法加载入门状态。请刷新页面或重试。",
+    "dhBannerTitle": "引导式设置",
+    "needsSourceCta": "添加数据源以解锁扫描与健康信号。",
+    "needsScanCta": "在数据源上运行扫描以生成洞察与分数。",
+    "continueHint": "从仪表板继续引导式设置。",
+    "openSetup": "打开引导式设置",
+    "activationTitle": "激活进度",
+    "activationScan": "已完成扫描",
+    "activationInsight": "已查看洞察",
+    "activationAction": "已执行产品操作",
+    "activationDone": "已激活 — 完整价值已解锁。"
+  },
+  "usage": {
+    "title": "用量与限额",
+    "meterDataSources": "数据源：{{current}} / {{limit}}",
+    "meterAssets": "数据资产：{{current}} / {{limit}}",
+    "meterScans": "今日扫描（UTC）：{{current}} / {{limit}}",
+    "upgradeCta": "查看套餐并升级",
+    "limitExceededScan": "已达每日扫描限额。请升级套餐或明日再试。"
+  },
+  "billing": {
+    "eyebrow": "账单",
+    "title": "账单与套餐",
+    "description": "来自引导数据的订阅摘要。",
+    "empty": "引导中无此工作区订阅行。",
+    "plan": "套餐",
+    "status": "状态",
+    "renews": "续费",
+    "renewsUnknown": "—",
+    "planLimitsHint": "您的套餐包含以下配额。"
+  },
+  "tenantSettings": {
+    "eyebrow": "工作区",
+    "title": "设置",
+    "description": "工作区偏好将在此配置（即将推出）。"
+  },
+  "team": {
+    "eyebrow": "人员",
+    "title": "团队",
+    "description": "组织团队与工作区用户。",
+    "orgTeamsHeading": "团队",
+    "orgTeamsDescription": "创建团队并分配成员。数据资产所有权目前仍以用户为主；未来可扩展为团队所有权。",
+    "orgTeamsEmptyTitle": "暂无团队",
+    "orgTeamsEmptyDescription": "请使用上方表单创建团队。",
+    "orgTeamsColName": "名称",
+    "orgTeamsColCode": "代码",
+    "orgTeamsColMembers": "成员",
+    "openTeamDetail": "管理",
+    "orgTeamsDetailTitle": "团队",
+    "backToTeams": "返回团队列表",
+    "codeLabel": "代码",
+    "membersHeading": "成员",
+    "membersEmptyTitle": "无成员",
+    "membersEmptyDescription": "请在下方添加工作区用户。",
+    "memberRoleColumn": "团队角色",
+    "memberRole": {
+      "member": "成员",
+      "lead": "负责人"
+    },
+    "removeMember": "移除",
+    "addMemberHeading": "添加成员",
+    "addMemberUserLabel": "用户",
+    "addMemberUserPlaceholder": "选择用户",
+    "addMemberRoleLabel": "团队内角色",
+    "addMemberSubmit": "加入团队",
+    "noUsersToAdd": "所有工作区用户已在该团队中。",
+    "createNamePlaceholder": "团队名称",
+    "createCodePlaceholder": "代码（如 data-platform）",
+    "createDescriptionPlaceholder": "描述（可选）",
+    "createSubmit": "创建团队",
+    "tenantUsersHeading": "工作区用户",
+    "tenantUsersDescription": "关联到此工作区的用户（目录）。",
+    "filterAria": "按角色筛选",
+    "filterAll": "全部",
+    "emptyTitle": "无成员",
+    "emptyDescription": "引导中无此工作区用户。",
+    "columns": {
+      "name": "姓名",
+      "role": "角色"
+    }
+  },
+  "import": {
+    "eyebrow": "批量",
+    "title": "CSV 导入",
+    "description": "为用户、团队或分类定义预览并应用 CSV（按工作区）。",
+    "kindLabel": "导入类型",
+    "kindUser": "用户",
+    "kindTeam": "团队",
+    "kindClassification": "分类",
+    "hintUser": "必填：email、name。可选：role（viewer | tenant_operator）。",
+    "hintTeam": "必填：name、code。可选：description。",
+    "hintClassification": "必填：key、label。可选：color、sort_order、is_active（默认 true）。",
+    "csvAria": "CSV 内容",
+    "loadSample": "加载示例",
+    "preview": "预览（校验）",
+    "apply": "应用",
+    "working": "处理中…",
+    "parseErrors": "解析/校验错误：",
+    "previewStats": "有效 {{ok}} 行，错误 {{err}} 行 · 将创建 {{c}}，更新 {{u}}，不变 {{n}}。",
+    "applyStats": "已应用 — 创建 {{c}}，更新 {{u}}，跳过 {{s}}，行级错误 {{e}}。",
+    "colLine": "行",
+    "colOk": "OK",
+    "colAction": "操作",
+    "colErrors": "错误",
+    "colStatus": "状态",
+    "colMessage": "消息"
+  },
+  "dataHealth": {
+    "title": "数据健康",
+    "eyebrow": "质量",
+    "description": "注册资产的画像快照、质量规则与评分（按租户）。",
+    "noFeatureTitle": "未启用数据健康",
+    "noFeatureDescription": "当前套餐不包含 data_health 功能。",
+    "tenantLabel": "工作区",
+    "sourceLabel": "数据源",
+    "assetLabel": "资产",
+    "noSources": "无数据源",
+    "noAssets": "无资产",
+    "summaryHeading": "摘要",
+    "profilingHeading": "画像",
+    "rulesHeading": "质量规则",
+    "scoreHeading": "评分",
+    "emptyProfiling": "暂无画像快照。",
+    "emptyRules": "暂无质量规则。",
+    "emptyScores": "暂无质量评估。",
+    "rows": "{{n}} 行",
+    "active": "启用",
+    "inactive": "停用",
+    "featureForbidden": "此工作区不可用 data_health。",
+    "fetchError": "无法从 API 加载数据。",
+    "connectionUrlPlaceholder": "扫描用 PostgreSQL 连接 URL",
+    "connectionUrlDisabledProd": "生产环境不在浏览器中输入连接串。请在数据源上设置 connectionSecretRef，并在 API 主机上配置 ROYALTY_DATASOURCE_SECRETS_JSON。",
+    "scan": "扫描",
+    "scanNow": "立即扫描",
+    "scanning": "扫描中…",
+    "scanningSubtext": "正在扫描数据源…",
+    "scanCompleted": "扫描完成",
+    "scanResultScore": "分数：{{score}}",
+    "scanResultProcessed": "已处理资产：{{n}}",
+    "scanResultDuration": "耗时：{{ms}} ms",
+    "lastScan": "上次扫描：{{relative}}",
+    "lastScanNever": "该数据源尚未扫描。",
+    "scanFailedSimple": "扫描失败，请重试。",
+    "scanSuccess": "完成：处理 {{processed}} 张表（新建 {{created}}，更新 {{updated}}），综合分 {{score}}（按资产均值），{{ms}} 毫秒。作业 {{jobId}}。",
+    "scanError": "扫描失败。",
+    "scanHistoryHeading": "扫描历史",
+    "scanHistoryLoading": "正在加载扫描历史…",
+    "scanHistoryEmpty": "尚无扫描",
+    "scanHistoryError": "无法加载扫描历史。",
+    "scanHistoryScore": "得分：{{score}}",
+    "scanHistoryProcessed": "{{n}} 个资产",
+    "scanHistoryProcessedUnknown": "资产：—",
+    "scanHistoryDuration": "{{ms}} 毫秒",
+    "scanHistoryDurationUnknown": "耗时：—",
+    "scanHistoryStatusSuccess": "已完成",
+    "scanHistoryStatusError": "失败",
+    "scanHistoryStatusRunning": "进行中"
+  },
+  "governance": {
+    "eyebrow": "治理",
+    "title": "数据治理",
+    "description": "按数据资产设置所有者、分类与标签（租户范围）。",
+    "noFeatureTitle": "未启用数据治理",
+    "noFeatureDescription": "您的计划不包含 data_governance。",
+    "featureForbidden": "当前工作区无法执行此操作。",
+    "fetchError": "无法加载治理数据。",
+    "saveError": "保存失败。",
+    "unownedTitle": "未指定所有者的资产",
+    "unownedDescription": "尚未分配所有者的资产。",
+    "unownedEmpty": "没有未指定所有者的资产。",
+    "backToDataHealth": "数据健康",
+    "assetTitle": "资产治理",
+    "assetDescription": "分配所有者、分类与标签。",
+    "ownerLabel": "所有者",
+    "ownerNone": "未分配",
+    "classificationLabel": "分类",
+    "tagsLabel": "标签",
+    "tagsPlaceholder": "逗号分隔",
+    "save": "保存",
+    "saving": "正在保存…",
+    "manageAsset": "治理",
+    "class": {
+      "public": "公开",
+      "pii": "个人身份信息",
+      "sensitive": "敏感",
+      "unknown": "未知"
+    }
+  },
+  "gov": {
+    "eyebrow": "数据治理",
+    "feedback": {
+      "OK": "正常",
+      "UNOWNED": "无负责人",
+      "UNCLASSIFIED": "未分类",
+      "CRITICAL": "关键"
+    },
+    "overview": {
+      "title": "治理概览",
+      "subtitle": "控制中心 — 一览覆盖、所有权与风险。",
+      "openCatalog": "打开资产目录 →",
+      "metricUnowned": "无负责人",
+      "metricUnclassified": "未分类",
+      "metricCritical": "关键 / 高业务关键度",
+      "metricPolicy": "策略覆盖",
+      "policyPlaceholder": "规划中 — 后续阶段",
+      "needsActionTitle": "需要处理的资产",
+      "needsActionEmpty": "此视图暂无条目。",
+      "viewBacklog": "查看完整待办 →",
+      "recentTitle": "最近治理活动",
+      "recentPlaceholder": "活动流将在后续阶段提供。",
+      "violationsTitle": "最近违规",
+      "violationsPlaceholder": "本阶段未启用。",
+      "kpiGroupLabel": "治理 KPI",
+      "kpiOpenFiltered": "打开目录 — {{filter}}"
+    },
+    "riskTable": {
+      "title": "高风险资产",
+      "subtitle": "按所有权缺口、关键度与健康分排序。",
+      "empty": "暂无可排序资产。",
+      "colAsset": "资产",
+      "colSource": "来源",
+      "colStatus": "治理状态",
+      "colCriticality": "关键度",
+      "colHealth": "健康"
+    },
+    "badges": {
+      "classificationMissing": "未分类",
+      "criticalityUnset": "未设置",
+      "noTags": "—"
+    },
+    "catalog": {
+      "title": "治理目录",
+      "subtitle": "高密度注册表视图 — 筛选待办。",
+      "backOverview": "← 概览",
+      "searchPlaceholder": "按资产名称搜索…",
+      "filterClass": "分类",
+      "filterStatus": "治理状态",
+      "allStatuses": "全部状态",
+      "filterOwner": "负责人",
+      "allClassifications": "全部分类",
+      "allOwners": "全部负责人",
+      "needsActionOnly": "仅需要处理",
+      "quickFilters": "快捷",
+      "quickUnowned": "无负责人",
+      "quickUnclassified": "未分类",
+      "quickNeedsAction": "需要处理",
+      "emptyTitle": "无匹配资产",
+      "empty": "当前筛选无结果。",
+      "bulkActions": "批量操作",
+      "bulkPlaceholderHint": "批量打标与重新分配将在后续阶段提供。"
+    },
+    "table": {
+      "asset": "资产",
+      "source": "来源",
+      "schema": "模式",
+      "owner": "负责人",
+      "classification": "分类",
+      "tags": "标签",
+      "criticality": "关键度",
+      "lastScan": "最近扫描",
+      "health": "健康",
+      "status": "状态",
+      "governanceStatus": "治理状态",
+      "action": "操作",
+      "openDetail": "打开"
+    },
+    "status": {
+      "unclassified": "未分类",
+      "needs_owner": "缺少负责人",
+      "elevated": "风险升高",
+      "current": "正常"
+    },
+    "criticality": {
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "critical": "关键"
+    },
+    "violation": {
+      "reason": {
+        "ownerRequired": "此资产需要指定负责人。",
+        "classificationRequired": "必须设置数据分类。",
+        "tagsRequired": "至少需要一个标签。",
+        "classificationNotIn": "分类不在允许范围内。",
+        "minTagCount": "未达到标签最低数量。",
+        "ownerRequiredIfCritical": "关键资产必须有负责人。",
+        "ownerRequiredIfClassification": "此分类需要负责人。",
+        "tagsRequiredIfClassification": "此分类需要标签。"
+      },
+      "fix": {
+        "assignOwner": "指定负责的所有人。",
+        "setClassification": "选择分类（不能为未知）。",
+        "addTag": "添加用于描述资产的标签。"
+      },
+      "quick": {
+        "assign_owner": "前往所有权",
+        "set_classification": "设置分类",
+        "add_tag": "添加标签"
+      }
+    },
+    "lineage": {
+      "sectionTitle": "血缘",
+      "sectionHint": "手动资产级链接：数据沿 来源 → 目标 流动。",
+      "tabListLabel": "血缘视图",
+      "tabOverview": "概览",
+      "tabGraph": "关系图",
+      "upstream": "上游（流入本资产）",
+      "downstream": "下游（从本资产流出）",
+      "emptyUpstream": "无入边。",
+      "emptyDownstream": "无出边。",
+      "impactSummary": "下游影响（BFS，深度 {{depth}}）：{{n}} 个资产，其中 {{c}} 个为高/关键关键性。",
+      "impactTruncated": "已达到节点安全上限 — 部分下游资产可能未列出。",
+      "impactTableTitle": "受影响的下游资产（排序）",
+      "impactColAsset": "资产",
+      "impactColDepth": "深度",
+      "impactColRisk": "风险分",
+      "impactColCritical": "关键性",
+      "criticalBadge": "关键",
+      "direction": "方向",
+      "directionOut": "本资产 → 其他",
+      "directionIn": "其他 → 本资产",
+      "otherAsset": "其他资产",
+      "pickAsset": "选择资产…",
+      "relationType": "关系类型",
+      "relation": {
+        "feeds": "feeds",
+        "derives_from": "derives_from",
+        "copies_to": "copies_to",
+        "aggregates_from": "aggregates_from"
+      },
+      "addEdge": "添加链接",
+      "graphDepthLabel": "深度",
+      "graphDepth1": "1 跳",
+      "graphDepth2": "2 跳",
+      "graphHint": "只读快照；请在概览编辑链接。",
+      "graphTruncated": "部分节点已隐藏（每列上限）。",
+      "graphCenterBadge": "当前资产",
+      "graphLaneUpstream": "上游",
+      "graphLaneDownstream": "下游",
+      "graphHopMeta": "{{lane}} · 第 {{hop}} 跳",
+      "graphSoloHint": "仅显示本资产 — 请在概览添加链接以查看邻居。",
+      "graphOpenDetail": "打开详情",
+      "error": {
+        "fetch": "无法加载血缘。",
+        "save": "无法添加链接。"
+      }
+    },
+    "detail": {
+      "title": "资产",
+      "subtitle": "治理工作区",
+      "backOverview": "概览",
+      "healthScore": "健康分数",
+      "sectionOwnership": "所有权",
+      "sectionOwnershipHint": "对此资产负责的人员。",
+      "sectionClassification": "数据分类",
+      "sectionClassificationHint": "用于保留与访问的敏感级别。",
+      "sectionCriticality": "业务关键度",
+      "sectionCriticalityHint": "数据错误或不可用时的影响。",
+      "sectionTags": "标签",
+      "sectionDescription": "描述",
+      "descriptionPlaceholder": "业务定义将在后续阶段提供。",
+      "sectionScan": "最近环境扫描",
+      "scanHint": "在数据健康中进行分析。",
+      "saveDecisions": "保存决策",
+      "railLabel": "信号",
+      "railActivity": "最近活动",
+      "railPlaceholder": "暂无记录。",
+      "railViolations": "违规",
+      "railViolationsClear": "该资产没有未解决的违规。",
+      "quickStatusLabel": "治理信号",
+      "violationHint": "策略违规"
+    }
+  },
+  "dashboard": {
+    "title": "概览",
+    "eyebrow": "运营",
+    "description": "关键指标来自 API 引导数据；下表示例数据。",
+    "hero": {
+      "title": "运营快照",
+      "subtitle": "REST API、Prisma 与角色权限。"
+    },
+    "badgeLive": "实时 API",
+    "metrics": {
+      "workspaces": "工作区",
+      "workspacesHint": "记录数",
+      "users": "用户",
+      "usersHint": "可见列表",
+      "subscriptions": "订阅",
+      "subscriptionsHint": "全部状态",
+      "trialing": "试用中",
+      "trialingHint": "状态 = trialing"
+    },
+    "activity": {
+      "title": "示例工作区活动",
+      "badgeDemo": "演示",
+      "columns": {
+        "workspace": "工作区",
+        "event": "事件",
+        "time": "时间",
+        "status": "状态"
+      },
+      "statusBadge": {
+        "success": "正常",
+        "warning": "注意",
+        "info": "信息"
+      },
+      "demo": {
+        "row1": {
+          "workspace": "Pointmor 演示咖啡馆",
+          "when": "12 分钟前"
+        },
+        "row2": {
+          "workspace": "港湾街小餐馆",
+          "when": "1 小时前"
+        },
+        "row3": {
+          "workspace": "校园咖啡",
+          "when": "昨天"
+        }
+      }
+    },
+    "events": {
+      "provision": "已开通",
+      "invite_sent": "邀请已发送",
+      "subscription_hold": "已暂停"
+    }
+  },
+  "workspaces": {
+    "eyebrow": "目录",
+    "title": "工作区",
+    "description": "来自 `GET /tenants` 与引导数据。",
+    "searchPlaceholder": "搜索名称或短标识…",
+    "searchAria": "搜索工作区",
+    "emptyTitle": "暂无工作区",
+    "emptyDescription": "无数据或无匹配项。",
+    "columns": {
+      "name": "名称",
+      "status": "状态"
+    },
+    "statusActive": "活跃"
+  },
+  "users": {
+    "eyebrow": "访问",
+    "title": "用户",
+    "description": "来自 `GET /users`。",
+    "filterAria": "按角色筛选",
+    "filterAll": "全部",
+    "emptyTitle": "暂无用户",
+    "emptyDescription": "此筛选条件下无记录。",
+    "columns": {
+      "name": "姓名",
+      "role": "角色",
+      "workspace": "工作区"
+    },
+    "roles": {
+      "platform_admin": "平台",
+      "tenant_operator": "运营",
+      "viewer": "访客"
+    }
+  },
+  "plans": {
+    "eyebrow": "目录",
+    "title": "套餐",
+    "description": "来自 `GET /plans`。周配额与按月计费。",
+    "featured": "推荐",
+    "planType": {
+      "free": "免费",
+      "pro": "专业版",
+      "team": "团队版"
+    },
+    "cadence": {
+      "weekQuota": "/ 周（配额）",
+      "month": "/ 月"
+    }
+  },
+  "subscriptions": {
+    "eyebrow": "生命周期",
+    "title": "订阅",
+    "description": "来自 `GET /subscriptions` — 工作区与套餐。",
+    "columns": {
+      "workspace": "工作区",
+      "plan": "套餐",
+      "status": "状态",
+      "renews": "续订"
+    },
+    "status": {
+      "active": "生效",
+      "trialing": "试用",
+      "past_due": "逾期"
+    }
+  },
+  "platform": {
+    "eyebrow": "安全",
+    "title": "平台管理",
+    "description": "审计日志：引导数据与 `GET /admin/audit-logs`。",
+    "cardTitle": "审计日志",
+    "badgeSource": "数据库",
+    "columns": {
+      "time": "时间",
+      "actor": "操作者",
+      "action": "操作",
+      "detail": "详情"
+    }
+  },
+  "pricing": {
+    "title": "定价",
+    "description": "无需登录。套餐将在此展示。",
+    "ctaLogin": "运营登录"
+  },
+  "lang": {
+    "en": "English",
+    "tr": "Türkçe",
+    "es": "Español",
+    "de": "Deutsch",
+    "zh": "简体中文"
+  }
+}

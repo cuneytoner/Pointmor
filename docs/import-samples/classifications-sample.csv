@@ -1,0 +1,4 @@
+key,label,color,sort_order,is_active
+internal_use,Internal use only,#6366f1,25,true
+regulatory,Regulatory / legal hold,#7c3aed,35,true
+public,Public datasets,#22c55e,10,true

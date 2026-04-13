@@ -1,0 +1,195 @@
+// Pointmor — çekirdek SaaS (loyalty ürün alanı sonraki fazda)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PlanType {
+  free
+  pro
+  team
+}
+
+model Tenant {
+  id                      String    @id @default(cuid())
+  slug                    String    @unique
+  name                    String
+  onboardingStep          Int       @default(1)
+  onboardingCompletedAt  DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  users          User[]
+  subscriptions  Subscription[]
+  customers         Customer[]
+  loyaltyAccounts   LoyaltyAccount[]
+  pointsLedgers     PointsLedger[]
+  visits            Visit[]
+  rewards           Reward[]
+  redemptions       Redemption[]
+}
+
+// --- Loyalty (Phase 1) ---
+
+model Customer {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  loyaltyAccount LoyaltyAccount?
+  visits           Visit[]
+  pointsLedgers    PointsLedger[]
+  redemptions      Redemption[]
+
+  @@unique([tenantId, phone])
+  @@index([tenantId])
+}
+
+model LoyaltyAccount {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customerId    String   @unique
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  pointsBalance Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+enum PointsLedgerType {
+  earn
+  redeem
+  adjust
+}
+
+enum PointsLedgerSource {
+  visit
+  redemption
+  manual
+}
+
+model PointsLedger {
+  id          String               @id @default(cuid())
+  tenantId    String
+  tenant      Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customerId  String
+  customer    Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type        PointsLedgerType
+  points      Int
+  source      PointsLedgerSource
+  referenceId String?
+  createdAt   DateTime             @default(now())
+
+  @@index([tenantId, customerId])
+  @@index([tenantId, createdAt])
+}
+
+model Visit {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customerId   String
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  amount       Int
+  pointsEarned Int
+  createdAt    DateTime @default(now())
+
+  @@index([tenantId, customerId])
+}
+
+model Reward {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  pointsCost  Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  redemptions Redemption[]
+
+  @@index([tenantId])
+}
+
+model Redemption {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  rewardId    String
+  reward      Reward   @relation(fields: [rewardId], references: [id], onDelete: Restrict)
+  pointsSpent Int
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId, customerId])
+  @@index([rewardId])
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  passwordHash   String
+  platformAdmin  Boolean  @default(false)
+  tenantId       String?
+  tenant         Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  role           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model Plan {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  priceCents  Int
+  currency    String   @default("EUR")
+  interval    String
+  planType    PlanType @default(free)
+  featureTags String[] @default([])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id        String    @id @default(cuid())
+  tenantId  String
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  planId    String
+  plan      Plan      @relation(fields: [planId], references: [id], onDelete: Restrict)
+  status    String
+  renewsAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([planId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorEmail String?
+  action     String
+  detail     String?
+  createdAt  DateTime @default(now())
+}

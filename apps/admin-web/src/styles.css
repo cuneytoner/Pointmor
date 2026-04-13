@@ -1,0 +1,18 @@
+/* Global temel; Plus Admin görünümü yalnızca plus-shell.css içinde .admin-app altında. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}

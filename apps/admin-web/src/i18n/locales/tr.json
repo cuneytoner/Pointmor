@@ -1,0 +1,635 @@
+{
+  "common": {
+    "appName": "Pointmor",
+    "actions": {
+      "create": "Oluştur",
+      "edit": "Düzenle",
+      "delete": "Sil"
+    },
+    "ellipsis": "…",
+    "email": "E-posta",
+    "loadingBody": "Veriler yükleniyor…",
+    "slug": "Kısa ad",
+    "id": "Kimlik"
+  },
+  "auth": {
+    "login": {
+      "title": "Pointmor",
+      "subtitle": "Devam etmek için giriş yapın",
+      "email": "E-posta",
+      "password": "Şifre",
+      "workspaceCode": "Çalışma alanı kodu (isteğe bağlı)",
+      "workspaceHint": "Platform yöneticisiyseniz boş bırakın.",
+      "submit": "Devam",
+      "submitting": "Giriş yapılıyor…",
+      "forgot": "Şifremi unuttum",
+      "register": "Hesap oluştur",
+      "error": "Giriş başarısız. Bilgileri kontrol edin.",
+      "sessionInvalid": "Oturum sona erdi. Yeniden giriş yapın.",
+      "passwordPlaceholder": "••••••••"
+    }
+  },
+  "app": {
+    "verifyingSession": "Oturum doğrulanıyor…"
+  },
+  "shell": {
+    "brandAria": "Ana gezinme",
+    "topbarTitle": "Çalışma alanı",
+    "platformConsole": "Platform konsolu",
+    "tenantApp": "Çalışma alanı uygulaması",
+    "statusOnline": "Çevrimiçi",
+    "language": "Dil",
+    "signOut": "Çıkış",
+    "envBanner": "Geliştirme — örnek veriler.",
+    "sessionAria": "Oturum",
+    "workspaceLine": "Çalışma alanı: {{name}} ({{slug}})",
+    "platformSession": "Platform yöneticisi oturumu"
+  },
+  "nav": {
+    "dashboard": "Özet",
+    "platformDashboard": "Özet",
+    "tenantDashboard": "Özet",
+    "dataHealth": "Veri sağlığı",
+    "governance": "Yönetişim",
+    "workspaces": "Çalışma alanları",
+    "users": "Kullanıcılar",
+    "usersGlobal": "Kullanıcılar (global)",
+    "team": "Ekip",
+    "import": "İçe aktar",
+    "plans": "Planlar",
+    "subscriptions": "Abonelikler",
+    "billing": "Faturalama",
+    "tenantSettings": "Ayarlar",
+    "platformAdmin": "Platform yönetimi"
+  },
+  "dashboardPlatform": {
+    "eyebrow": "Operasyon",
+    "title": "Platform özeti",
+    "description": "API bootstrap’tan kiracılar arası metrikler; aşağıdaki tablo örnek veridir.",
+    "hero": {
+      "title": "SaaS operasyon özeti",
+      "subtitle": "Çalışma alanları, faturalama ve denetim — operatör kapsamı."
+    }
+  },
+  "tenantDashboard": {
+    "eyebrow": "Çalışma alanınız",
+    "title": "{{name}} — özet",
+    "description": "Bu çalışma alanı için ekip boyutu ve abonelik özeti.",
+    "onboardingHint": "Hazır olduğunuzda kenar çubuktan faturalama ve ayarlara gidebilirsiniz.",
+    "hero": {
+      "title": "Çalışma alanı özeti",
+      "subtitle": "İşletmeniz için sadakat yönetimi — yeni özellikler yakında."
+    },
+    "badgeTrialing": "Deneme",
+    "metrics": {
+      "team": "Ekip üyeleri",
+      "teamHint": "Bu çalışma alanındaki kullanıcılar",
+      "plan": "Plan",
+      "planHint": "Abonelikten",
+      "subscription": "Durum",
+      "subscriptionHint": "Yaşam döngüsü"
+    },
+    "linkDataHealth": "Veri sağlığına git →"
+  },
+  "onboarding": {
+    "progressLabel": "Adım {{current}} / {{total}}",
+    "step1Title": "Hoş geldiniz",
+    "step1Body": "Birkaç dakika içinde veri kaynağı ekleyecek (veya yerleşik demoyu deneyecek), tarama çalıştıracak, sağlık sinyallerine bakacak ve çalışma alanında ilk aksiyonunuzu alacaksınız.",
+    "step1Cta": "Devam",
+    "step2Title": "Veri kaynağı",
+    "step2Body": "Gerçek veritabanı olmadan keşfetmek için örnek demo ambarını kullanın veya hazır olduğunuzda Veri sağlığından kendi kaynağınızı bağlayın.",
+    "step2DemoCta": "Demo veri kaynağı oluştur",
+    "step2OwnLink": "Kendi kaynağımı bağlayacağım",
+    "step3Title": "Tarama",
+    "step3Body": "Demo kaynakta meta veri taraması başlatın veya gerçek kaynak bağladıktan sonra Veri sağlığından tarama çalıştırın.",
+    "step3RunCta": "Demo taramayı çalıştır",
+    "step3OpenDh": "Veri sağlığını aç",
+    "step3SkipAdvance": "Atla — zaten tarama yaptım",
+    "step4Title": "Öngörüler",
+    "step4Body": "Son tarama bir sağlık skoru ve varlık kapsamı üretti. Profil ve kurallar için istediğiniz zaman Veri sağlığına gidin.",
+    "step4ScoreLine": "Son tarama skoru: {{score}}",
+    "step4NextCta": "Devam",
+    "step5Title": "İlk aksiyon",
+    "step5Body": "Bir varlık için yönetişime gidin veya profil ve kalite sinyalleri için Veri sağlığında kalın.",
+    "step5GovLink": "Yönetişimi aç",
+    "step5DhLink": "Veri sağlığını incele",
+    "step5DoneCta": "Kurulumu bitir",
+    "skip": "Şimdilik atla",
+    "demoBusy": "İşleniyor…",
+    "errorGeneric": "Onboarding durumu yüklenemedi. Sayfayı yenileyin veya tekrar deneyin.",
+    "dhBannerTitle": "Yönlendirmeli kurulum",
+    "needsSourceCta": "Tarama ve sağlık sinyalleri için bir veri kaynağı ekleyin.",
+    "needsScanCta": "Öngörü ve skorlar için bir kaynakta tarama çalıştırın.",
+    "continueHint": "Yönlendirmeli kuruluma panodan devam edin.",
+    "openSetup": "Kuruluma git",
+    "activationTitle": "Aktivasyon",
+    "activationScan": "Tarama tamamlandı",
+    "activationInsight": "Öngörü görüntülendi",
+    "activationAction": "Ürün aksiyonu alındı",
+    "activationDone": "Aktivasyon tamam — tam değer açıldı."
+  },
+  "usage": {
+    "title": "Kullanım ve limitler",
+    "meterDataSources": "Veri kaynakları: {{current}} / {{limit}}",
+    "meterAssets": "Veri varlıkları: {{current}} / {{limit}}",
+    "meterScans": "Bugünkü taramalar (UTC): {{current}} / {{limit}}",
+    "upgradeCta": "Planları gör ve yükselt",
+    "limitExceededScan": "Günlük tarama kotası doldu. Plan yükseltin veya yarın tekrar deneyin."
+  },
+  "billing": {
+    "eyebrow": "Faturalama",
+    "title": "Faturalama ve plan",
+    "description": "Bootstrap verisinden abonelik özeti.",
+    "empty": "Bu çalışma alanı için bootstrap’ta abonelik satırı yok.",
+    "plan": "Plan",
+    "status": "Durum",
+    "renews": "Yenileme",
+    "renewsUnknown": "—",
+    "planLimitsHint": "Planınıza dahil kotalar aşağıdadır."
+  },
+  "tenantSettings": {
+    "eyebrow": "Çalışma alanı",
+    "title": "Ayarlar",
+    "description": "Çalışma alanı tercihleri burada yapılandırılacak (yakında)."
+  },
+  "team": {
+    "eyebrow": "Kişiler",
+    "title": "Ekip",
+    "description": "Organizasyon takımları ve çalışma alanı kullanıcıları.",
+    "orgTeamsHeading": "Takımlar",
+    "orgTeamsDescription": "Takım oluşturun ve üye atayın. Veri varlığı sahipliği şimdilik kullanıcı bazlıdır; ileride ekip sahipliği eklenebilir.",
+    "orgTeamsEmptyTitle": "Henüz takım yok",
+    "orgTeamsEmptyDescription": "Yukarıdaki formdan takım oluşturun.",
+    "orgTeamsColName": "Ad",
+    "orgTeamsColCode": "Kod",
+    "orgTeamsColMembers": "Üye",
+    "openTeamDetail": "Yönet",
+    "orgTeamsDetailTitle": "Takım",
+    "backToTeams": "Takımlara dön",
+    "codeLabel": "Kod",
+    "membersHeading": "Üyeler",
+    "membersEmptyTitle": "Üye yok",
+    "membersEmptyDescription": "Aşağıdan çalışma alanı kullanıcısı ekleyin.",
+    "memberRoleColumn": "Takım rolü",
+    "memberRole": {
+      "member": "Üye",
+      "lead": "Lider"
+    },
+    "removeMember": "Çıkar",
+    "addMemberHeading": "Üye ekle",
+    "addMemberUserLabel": "Kullanıcı",
+    "addMemberUserPlaceholder": "Kullanıcı seçin",
+    "addMemberRoleLabel": "Takımdaki rol",
+    "addMemberSubmit": "Takıma ekle",
+    "noUsersToAdd": "Tüm çalışma alanı kullanıcıları zaten bu takımda.",
+    "createNamePlaceholder": "Takım adı",
+    "createCodePlaceholder": "Kod (ör. data-platform)",
+    "createDescriptionPlaceholder": "Açıklama (isteğe bağlı)",
+    "createSubmit": "Takım oluştur",
+    "tenantUsersHeading": "Çalışma alanı kullanıcıları",
+    "tenantUsersDescription": "Bu çalışma alanına bağlı kullanıcılar (dizin).",
+    "filterAria": "Role göre filtre",
+    "filterAll": "Tümü",
+    "emptyTitle": "Üye yok",
+    "emptyDescription": "Bootstrap’ta bu çalışma alanı için kullanıcı yok.",
+    "columns": {
+      "name": "Ad",
+      "role": "Rol"
+    }
+  },
+  "import": {
+    "eyebrow": "Toplu",
+    "title": "CSV içe aktarma",
+    "description": "Kullanıcı, takım veya sınıflandırma tanımları için CSV önizleme ve uygulama (kiracı kapsamında).",
+    "kindLabel": "İçe aktarma türü",
+    "kindUser": "Kullanıcılar",
+    "kindTeam": "Takımlar",
+    "kindClassification": "Sınıflandırmalar",
+    "hintUser": "Zorunlu sütunlar: email, name. İsteğe bağlı: role (viewer | tenant_operator). Yeni kullanıcılar rastgele parola alır — kimlik akışınızdan sıfırlayın.",
+    "hintTeam": "Zorunlu: name, code. İsteğe bağlı: description. Kodlar çalışma alanında benzersizdir; yeniden içe aktarma ad/açıklamayı günceller (idempotent).",
+    "hintClassification": "Zorunlu: key, label. İsteğe bağlı: color, sort_order, is_active (varsayılan true). Anahtarlar katalog kuralına uymalı; sistem anahtarları yalnızca metadata günceller.",
+    "csvAria": "CSV içeriği",
+    "loadSample": "Örnek yükle",
+    "preview": "Önizle (doğrula)",
+    "apply": "Uygula",
+    "working": "Çalışıyor…",
+    "parseErrors": "Ayrıştırma / doğrulama hataları:",
+    "previewStats": "Geçerli satır: {{ok}}, hatalı: {{err}} · oluşturulacak {{c}}, güncellenecek {{u}}, değişmeyecek {{n}}.",
+    "applyStats": "Uygulandı — oluşturulan {{c}}, güncellenen {{u}}, atlanan {{s}}, satır hatası {{e}}.",
+    "colLine": "Satır",
+    "colOk": "Tamam",
+    "colAction": "Eylem",
+    "colErrors": "Hatalar",
+    "colStatus": "Durum",
+    "colMessage": "Mesaj"
+  },
+  "dataHealth": {
+    "title": "Veri sağlığı",
+    "eyebrow": "Kalite",
+    "description": "Kayıtlı varlıklar için profil, kalite kuralları ve skor özeti (kiracı kapsamında).",
+    "noFeatureTitle": "Veri sağlığı etkin değil",
+    "noFeatureDescription": "Çalışma alanı planınızda data_health özelliği yok. Aboneliği yükseltin veya bu özelliği içeren bir çalışma alanı kullanın.",
+    "tenantLabel": "Çalışma alanı",
+    "sourceLabel": "Veri kaynağı",
+    "assetLabel": "Varlık",
+    "noSources": "Veri kaynağı yok",
+    "noAssets": "Varlık yok",
+    "summaryHeading": "Özet",
+    "profilingHeading": "Profil",
+    "rulesHeading": "Kalite kuralları",
+    "scoreHeading": "Skorlar",
+    "emptyProfiling": "Henüz profil anlık görüntüsü yok.",
+    "emptyRules": "Henüz kalite kuralı yok.",
+    "emptyScores": "Henüz kalite değerlendirmesi yok.",
+    "rows": "{{n}} satır",
+    "active": "Aktif",
+    "inactive": "Pasif",
+    "featureForbidden": "Bu çalışma alanı için data_health özelliği kullanılamıyor.",
+    "fetchError": "API’den veri alınamadı.",
+    "connectionUrlPlaceholder": "Tarama için PostgreSQL URL (geliştirme / izinli üretim)",
+    "connectionUrlDisabledProd": "Üretimde bağlantı dizesi tarayıcıda girilmez. Veri kaynağında connectionSecretRef ve API sunucusunda ROYALTY_DATASOURCE_SECRETS_JSON tanımlayın.",
+    "scan": "Tara",
+    "scanNow": "Şimdi tara",
+    "scanning": "Taranıyor…",
+    "scanningSubtext": "Veri kaynakları taranıyor…",
+    "scanCompleted": "Tarama tamamlandı",
+    "scanResultScore": "Skor: {{score}}",
+    "scanResultProcessed": "İşlenen varlık: {{n}}",
+    "scanResultDuration": "Süre: {{ms}} ms",
+    "lastScan": "Son tarama: {{relative}}",
+    "lastScanNever": "Bu veri kaynağı için henüz tarama yok.",
+    "scanFailedSimple": "Tarama başarısız. Lütfen tekrar deneyin.",
+    "scanSuccess": "Tarama bitti: {{processed}} tablo işlendi ({{created}} yeni, {{updated}} güncelleme), toplam skor {{score}} (varlık başına ortalama), {{ms}} ms. İş {{jobId}}.",
+    "scanError": "Tarama başarısız.",
+    "scanHistoryHeading": "Tarama geçmişi",
+    "scanHistoryLoading": "Tarama geçmişi yükleniyor…",
+    "scanHistoryEmpty": "Henüz tarama yok",
+    "scanHistoryError": "Tarama geçmişi yüklenemedi.",
+    "scanHistoryScore": "Skor: {{score}}",
+    "scanHistoryProcessed": "{{n}} varlık",
+    "scanHistoryProcessedUnknown": "Varlık: —",
+    "scanHistoryDuration": "{{ms}} ms",
+    "scanHistoryDurationUnknown": "Süre: —",
+    "scanHistoryStatusSuccess": "Tamamlandı",
+    "scanHistoryStatusError": "Başarısız",
+    "scanHistoryStatusRunning": "Çalışıyor"
+  },
+  "governance": {
+    "eyebrow": "Yönetişim",
+    "title": "Veri yönetişimi",
+    "description": "Varlık bazında sahip, sınıflandırma ve etiketler (kiracı kapsamında).",
+    "noFeatureTitle": "Veri yönetişimi etkin değil",
+    "noFeatureDescription": "Planınızda data_governance özelliği yok.",
+    "featureForbidden": "Bu işlem bu çalışma alanı için kullanılamıyor.",
+    "fetchError": "Yönetişim verisi yüklenemedi.",
+    "saveError": "Kaydedilemedi.",
+    "unownedTitle": "Sahipsiz varlıklar",
+    "unownedDescription": "Atanmış sahibi olmayan varlıklar.",
+    "unownedEmpty": "Sahipsiz varlık yok.",
+    "backToDataHealth": "Veri sağlığı",
+    "assetTitle": "Varlık yönetişimi",
+    "assetDescription": "Sahip atayın, sınıflandırma ve etiketleri düzenleyin.",
+    "ownerLabel": "Sahip",
+    "ownerNone": "Atanmadı",
+    "classificationLabel": "Sınıflandırma",
+    "tagsLabel": "Etiketler",
+    "tagsPlaceholder": "Virgülle ayrılmış",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor…",
+    "manageAsset": "Yönetişim",
+    "class": {
+      "public": "Genel",
+      "pii": "PII",
+      "sensitive": "Hassas",
+      "unknown": "Bilinmiyor"
+    }
+  },
+  "gov": {
+    "eyebrow": "Veri yönetişimi",
+    "feedback": {
+      "OK": "Tamam",
+      "UNOWNED": "Sahipsiz",
+      "UNCLASSIFIED": "Sınıflandırılmamış",
+      "CRITICAL": "Kritik"
+    },
+    "overview": {
+      "title": "Yönetişim özeti",
+      "subtitle": "Katalog kontrol merkezi — kapsama, sahiplik ve risk bir bakışta.",
+      "openCatalog": "Varlık kataloğunu aç →",
+      "metricUnowned": "Sahipsiz",
+      "metricUnclassified": "Sınıflandırılmamış",
+      "metricCritical": "Kritik / yüksek kritiklik",
+      "metricPolicy": "Politika kapsamı",
+      "policyPlaceholder": "Planlı — sonraki dilimde politika bağlanacak",
+      "needsActionTitle": "İlgi gerektiren varlıklar",
+      "needsActionEmpty": "Bu görünümde bekleyen yok.",
+      "viewBacklog": "Tam backlog’u gör →",
+      "recentTitle": "Son yönetişim hareketleri",
+      "recentPlaceholder": "Akış sonraki dilimde denetime bağlanacak.",
+      "violationsTitle": "Son ihlaller",
+      "violationsPlaceholder": "Bu dilimde ihlal merkezi yok.",
+      "kpiGroupLabel": "Yönetişim KPI’ları",
+      "kpiOpenFiltered": "Kataloğu aç — {{filter}}"
+    },
+    "riskTable": {
+      "title": "En riskli varlıklar",
+      "subtitle": "Sahiplik boşlukları, kritiklik ve sağlık skoruna göre sıralı.",
+      "empty": "Henüz sıralanacak varlık yok.",
+      "colAsset": "Varlık",
+      "colSource": "Kaynak",
+      "colStatus": "Yönetişim durumu",
+      "colCriticality": "Kritiklik",
+      "colHealth": "Sağlık"
+    },
+    "badges": {
+      "classificationMissing": "Sınıflandırılmamış",
+      "criticalityUnset": "Belirtilmemiş",
+      "noTags": "—"
+    },
+    "catalog": {
+      "title": "Yönetişim kataloğu",
+      "subtitle": "Yoğun kayıt görünümü — backlog’u filtreleyin.",
+      "backOverview": "← Özet",
+      "searchPlaceholder": "Varlık adına göre ara…",
+      "filterClass": "Sınıflandırma",
+      "filterStatus": "Yönetişim durumu",
+      "allStatuses": "Tüm durumlar",
+      "filterOwner": "Sahip",
+      "allClassifications": "Tüm sınıflandırmalar",
+      "allOwners": "Tüm sahipler",
+      "needsActionOnly": "Yalnızca aksiyon gerekenler",
+      "quickFilters": "Hızlı",
+      "quickUnowned": "Sahipsiz",
+      "quickUnclassified": "Sınıflandırılmamış",
+      "quickNeedsAction": "Aksiyon gerekli",
+      "emptyTitle": "Eşleşen varlık yok",
+      "empty": "Filtrelere uyan varlık yok.",
+      "bulkActions": "Toplu işlemler",
+      "bulkPlaceholderHint": "Toplu etiketleme ve yeniden atama sonraki dilimde."
+    },
+    "table": {
+      "asset": "Varlık",
+      "source": "Kaynak",
+      "schema": "Şema",
+      "owner": "Sahip",
+      "classification": "Sınıflandırma",
+      "tags": "Etiketler",
+      "criticality": "Kritiklik",
+      "lastScan": "Son tarama",
+      "health": "Sağlık",
+      "status": "Durum",
+      "governanceStatus": "Yönetişim durumu",
+      "action": "İşlem",
+      "openDetail": "Aç"
+    },
+    "status": {
+      "unclassified": "Sınıflandırılmadı",
+      "needs_owner": "Sahip gerekli",
+      "elevated": "Yüksek risk",
+      "current": "Güncel"
+    },
+    "criticality": {
+      "low": "Düşük",
+      "medium": "Orta",
+      "high": "Yüksek",
+      "critical": "Kritik"
+    },
+    "violation": {
+      "reason": {
+        "ownerRequired": "Bu varlık için sahip atanması gerekir.",
+        "classificationRequired": "Veri sınıflandırması belirtilmeli.",
+        "tagsRequired": "En az bir etiket gerekli.",
+        "classificationNotIn": "Sınıflandırma izin verilen kümede değil.",
+        "minTagCount": "Minimum etiket sayısı sağlanmadı.",
+        "ownerRequiredIfCritical": "Kritik varlıklarda sahip zorunludur.",
+        "ownerRequiredIfClassification": "Bu sınıflandırma için sahip gerekli.",
+        "tagsRequiredIfClassification": "Bu sınıflandırma için etiket gerekli."
+      },
+      "fix": {
+        "assignOwner": "Sorumlu bir sahip atayın.",
+        "setClassification": "Sınıflandırma seçin (bilinmiyor olmasın).",
+        "addTag": "Varlığı tanımlamak için etiket ekleyin."
+      },
+      "quick": {
+        "assign_owner": "Sahiplik bölümüne git",
+        "set_classification": "Sınıflandırma ayarla",
+        "add_tag": "Etiket ekle"
+      }
+    },
+    "lineage": {
+      "sectionTitle": "Köken (lineage)",
+      "sectionHint": "Manuel varlık bağlantıları: akış from → to yönündedir.",
+      "tabListLabel": "Köken görünümleri",
+      "tabOverview": "Özet",
+      "tabGraph": "Graf",
+      "upstream": "Yukarı akış (bu varlığa giren)",
+      "downstream": "Aşağı akış (bu varlıktan çıkan)",
+      "emptyUpstream": "Gelen kenar yok.",
+      "emptyDownstream": "Giden kenar yok.",
+      "impactSummary": "Aşağı akış etkisi (BFS, derinlik {{depth}}): {{n}} varlık; bunlardan {{c}} tanesi yüksek/kritik kritiklikte.",
+      "impactTruncated": "Güvenlik düğüm sınırına ulaşıldı — bazı aşağı akış varlıkları listelenmemiş olabilir.",
+      "impactTableTitle": "Etkilenen aşağı akış varlıkları (sıralı)",
+      "impactColAsset": "Varlık",
+      "impactColDepth": "Derinlik",
+      "impactColRisk": "Risk skoru",
+      "impactColCritical": "Kritiklik",
+      "criticalBadge": "Kritik",
+      "direction": "Yön",
+      "directionOut": "Bu varlık → diğeri",
+      "directionIn": "Diğeri → bu varlık",
+      "otherAsset": "Diğer varlık",
+      "pickAsset": "Varlık seçin…",
+      "relationType": "İlişki tipi",
+      "relation": {
+        "feeds": "feeds",
+        "derives_from": "derives_from",
+        "copies_to": "copies_to",
+        "aggregates_from": "aggregates_from"
+      },
+      "addEdge": "Bağlantı ekle",
+      "graphDepthLabel": "Derinlik",
+      "graphDepth1": "1 atlama",
+      "graphDepth2": "2 atlama",
+      "graphHint": "Salt okunur görünüm; bağlantıları Özet’te düzenleyin.",
+      "graphTruncated": "Bazı düğümler gizlendi — sütun başına sınır.",
+      "graphCenterBadge": "Geçerli varlık",
+      "graphLaneUpstream": "Yukarı akış",
+      "graphLaneDownstream": "Aşağı akış",
+      "graphHopMeta": "{{lane}} · atlama {{hop}}",
+      "graphSoloHint": "Yalnızca bu varlık görünüyor — komşular için Özet’ten bağlantı ekleyin.",
+      "graphOpenDetail": "Detayı aç",
+      "error": {
+        "fetch": "Köken verisi yüklenemedi.",
+        "save": "Bağlantı eklenemedi."
+      }
+    },
+    "detail": {
+      "title": "Varlık",
+      "subtitle": "Yönetişim çalışma alanı",
+      "backOverview": "Özet",
+      "healthScore": "Sağlık skoru",
+      "sectionOwnership": "Sahiplik",
+      "sectionOwnershipHint": "Kuruluşunuzda bu varlıktan sorumlu kişi.",
+      "sectionClassification": "Veri sınıflandırması",
+      "sectionClassificationHint": "Hassasiyet katmanı — saklama ve erişim politikasıyla hizalı.",
+      "sectionCriticality": "İş kritikliği",
+      "sectionCriticalityHint": "Bu varlık hatalı veya kullanılamazsa operasyonel etki.",
+      "sectionTags": "Etiketler",
+      "sectionDescription": "Açıklama",
+      "descriptionPlaceholder": "İş tanımı ve sorumluluk notları sonraki dilimde burada olacak.",
+      "sectionScan": "Son ortam taraması",
+      "scanHint": "Profil ve tarama geçmişi için Veri sağlığı’na bakın.",
+      "saveDecisions": "Kararları kaydet",
+      "railLabel": "Sinyaller",
+      "railActivity": "Son hareketler",
+      "railPlaceholder": "Henüz kayıt yok.",
+      "railViolations": "İhlaller",
+      "railViolationsClear": "Bu varlık için açık ihlal yok.",
+      "quickStatusLabel": "Yönetişim sinyalleri",
+      "violationHint": "Politika ihlali"
+    }
+  },
+  "dashboard": {
+    "title": "Özet",
+    "eyebrow": "Operasyon",
+    "description": "Özet metrikler API bootstrap’tan; aşağıdaki tablo örnek veridir.",
+    "hero": {
+      "title": "Operasyon özeti",
+      "subtitle": "REST API, Prisma ve rol korumaları."
+    },
+    "badgeLive": "Canlı API",
+    "metrics": {
+      "workspaces": "Çalışma alanları",
+      "workspacesHint": "Kayıtlar",
+      "users": "Kullanıcılar",
+      "usersHint": "Görünür liste",
+      "subscriptions": "Abonelikler",
+      "subscriptionsHint": "Tüm durumlar",
+      "trialing": "Deneme",
+      "trialingHint": "durum = trialing"
+    },
+    "activity": {
+      "title": "Örnek çalışma alanı aktivitesi",
+      "badgeDemo": "Demo",
+      "columns": {
+        "workspace": "Çalışma alanı",
+        "event": "Olay",
+        "time": "Zaman",
+        "status": "Durum"
+      },
+      "statusBadge": {
+        "success": "Tamam",
+        "warning": "Dikkat",
+        "info": "Bilgi"
+      },
+      "demo": {
+        "row1": {
+          "workspace": "Pointmor Demo Cafe",
+          "when": "12 dk önce"
+        },
+        "row2": {
+          "workspace": "Liman Sokak Bistro",
+          "when": "1 saat önce"
+        },
+        "row3": {
+          "workspace": "Kampüs Kahve",
+          "when": "Dün"
+        }
+      }
+    },
+    "events": {
+      "provision": "Sağlandı",
+      "invite_sent": "Davet gönderildi",
+      "subscription_hold": "Beklemede"
+    }
+  },
+  "workspaces": {
+    "eyebrow": "Dizin",
+    "title": "Çalışma alanları",
+    "description": "`GET /tenants` ve bootstrap verisinden.",
+    "searchPlaceholder": "Ad veya kısa ad ara…",
+    "searchAria": "Çalışma alanı ara",
+    "emptyTitle": "Çalışma alanı yok",
+    "emptyDescription": "Veri yok veya filtreye uymadı.",
+    "columns": {
+      "name": "Ad",
+      "status": "Durum"
+    },
+    "statusActive": "Aktif"
+  },
+  "users": {
+    "eyebrow": "Erişim",
+    "title": "Kullanıcılar",
+    "description": "`GET /users` üzerinden.",
+    "filterAria": "Role göre filtre",
+    "filterAll": "Tümü",
+    "emptyTitle": "Kullanıcı yok",
+    "emptyDescription": "Bu filtre için kayıt yok.",
+    "columns": {
+      "name": "Ad",
+      "role": "Rol",
+      "workspace": "Çalışma alanı"
+    },
+    "roles": {
+      "platform_admin": "Platform",
+      "tenant_operator": "Operatör",
+      "viewer": "İzleyici"
+    }
+  },
+  "plans": {
+    "eyebrow": "Katalog",
+    "title": "Planlar",
+    "description": "`GET /plans`. Haftalık kota ve aylık ücret.",
+    "featured": "Öne çıkan",
+    "planType": {
+      "free": "Ücretsiz",
+      "pro": "Pro",
+      "team": "Takım"
+    },
+    "cadence": {
+      "weekQuota": "/ hafta (kota)",
+      "month": "/ ay"
+    }
+  },
+  "subscriptions": {
+    "eyebrow": "Yaşam döngüsü",
+    "title": "Abonelikler",
+    "description": "`GET /subscriptions` — çalışma alanı ve plan.",
+    "columns": {
+      "workspace": "Çalışma alanı",
+      "plan": "Plan",
+      "status": "Durum",
+      "renews": "Yenileme"
+    },
+    "status": {
+      "active": "Aktif",
+      "trialing": "Deneme",
+      "past_due": "Gecikmiş"
+    }
+  },
+  "platform": {
+    "eyebrow": "Güvenlik",
+    "title": "Platform yönetimi",
+    "description": "Denetim izi: bootstrap ve `GET /admin/audit-logs`.",
+    "cardTitle": "Denetim günlüğü",
+    "badgeSource": "Veritabanı",
+    "columns": {
+      "time": "Zaman",
+      "actor": "Aktör",
+      "action": "Eylem",
+      "detail": "Ayrıntı"
+    }
+  },
+  "pricing": {
+    "title": "Fiyatlandırma",
+    "description": "Oturum gerekmez. Planlar burada listelenecek.",
+    "ctaLogin": "Operatör girişi"
+  },
+  "lang": {
+    "en": "English",
+    "tr": "Türkçe",
+    "es": "Español",
+    "de": "Deutsch",
+    "zh": "简体中文"
+  }
+}
