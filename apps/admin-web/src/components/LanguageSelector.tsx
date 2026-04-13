@@ -12,11 +12,9 @@ const LOCALE_FLAGS: Record<LocaleCode, string> = {
   tr: "🇹🇷",
   es: "🇪🇸",
   de: "🇩🇪",
-  zh: "🇨🇳",
 };
 
 function shortLabel(code: LocaleCode): string {
-  if (code === "zh") return "中文";
   return code.toUpperCase();
 }
 

@@ -1,6 +1,6 @@
 # Pointmor — proje özeti
 
-**Bu dosya, eski “Royalty / veri platformu” anlatımını taşımaz.** Kod ve Prisma şeması **Pointmor loyalty SaaS çekirdeği** ile hizalanmıştır.
+**Bu dosya, eski veri platformu çizgisine ait anlatımı taşımaz.** Kod ve Prisma şeması **Pointmor loyalty SaaS çekirdeği** ile hizalanmıştır.
 
 ## Ürün
 

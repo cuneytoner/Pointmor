@@ -6,7 +6,6 @@ export const LOCALE_BCP47: Record<LocaleCode, string> = {
   tr: "tr-TR",
   es: "es-ES",
   de: "de-DE",
-  zh: "zh-CN",
 };
 
 export function toIntlLocale(locale: LocaleCode): string {

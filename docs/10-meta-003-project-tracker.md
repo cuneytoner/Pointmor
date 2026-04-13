@@ -2,7 +2,7 @@
 
 Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md). Genel bakış: [`10-meta-002-project-overview.md`](./10-meta-002-project-overview.md).
 
-Eski “Royalty / veri platformu” faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor loyalty SaaS çekirdeği** ile uyumludur.
+Eski veri platformu faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor loyalty SaaS çekirdeği** ile uyumludur.
 
 ---
 

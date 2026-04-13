@@ -62,7 +62,7 @@ export function LoginPage({ sessionInvalid }: LoginPageProps) {
         <div className="login-standalone__form-col">
           <div className="login-card">
             <div className="login-card__brand">
-              <img src="/brand/royalty-mark.svg" width={52} height={52} alt="" />
+              <img src="/brand/pointmor-mark.svg" width={52} height={52} alt="" />
               <div>
                 <h1 className="login-card__title">{t("auth.login.title")}</h1>
                 <p className="login-card__subtitle">{t("auth.login.subtitle")}</p>

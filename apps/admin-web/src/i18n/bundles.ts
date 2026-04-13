@@ -3,7 +3,6 @@ import de from "./locales/de.json";
 import en from "./locales/en.json";
 import es from "./locales/es.json";
 import tr from "./locales/tr.json";
-import zh from "./locales/zh.json";
 import type { LocaleCode } from "./locale";
 import { getMessage, interpolate } from "./resolve";
 
@@ -12,7 +11,6 @@ export const bundles: Record<LocaleCode, MessageTree> = {
   tr: tr as MessageTree,
   es: es as MessageTree,
   de: de as MessageTree,
-  zh: zh as MessageTree,
 };
 
 export function translate(

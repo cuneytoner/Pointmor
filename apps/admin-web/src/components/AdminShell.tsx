@@ -42,7 +42,7 @@ export function AdminShell({ auth }: AdminShellProps) {
         <div className="admin-app__brand-row">
           <img
             className="admin-app__brand-mark"
-            src="/brand/royalty-mark.svg"
+            src="/brand/pointmor-mark.svg"
             width={40}
             height={40}
             alt=""
