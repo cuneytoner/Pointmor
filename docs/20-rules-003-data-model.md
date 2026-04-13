@@ -2,6 +2,8 @@
 
 **Amaç:** Domain’e sadık, migration dostu, revizyon güvenli ve API’den bağımsız iç model.
 
+> **Pointmor (güncel):** Prisma’da **Tenant, User, Plan, Subscription** ve **loyalty** tabloları (Customer, LoyaltyAccount, PointsLedger, Visit, Reward, Redemption) tanımlıdır. Aşağıdaki **Document / DocumentRevision** bölümleri **eski document-Saaş şablonu**dur; yeni özellik eklerken **mevcut şema** ve [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md) önceliklidir.
+
 ---
 
 ## Özet kararlar

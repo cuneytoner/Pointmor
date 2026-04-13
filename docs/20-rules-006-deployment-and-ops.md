@@ -56,9 +56,9 @@
 - **Rollback:** Mümkünse forward-fix; geri migration nadiren ve bilinçli.
 - **Şema kuralları, revision, soft delete:** [20-rules-003-data-model.md](./20-rules-003-data-model.md) — bu dosya *ne zaman* deploy edileceğini ve pipeline’ı tanımlar; veri anlamı `rules-003-data-model` ile uyumlu olmalıdır.
 
-<a id="royalty-local-db-migrate-deploy"></a>
+<a id="pointmor-local-db-migrate-deploy"></a>
 
-### Royalty local DB migrate deploy (apps/api)
+### Pointmor local DB migrate deploy (apps/api)
 
 **Kural:** Repoda yeni migration dosyası varken veya `schema.prisma` güncellendiyse, bağlı geliştirme veritabanı **güncel şema ile uyumlu** olmalıdır. Aksi halde API çalışırken Prisma `P2021` (tablo yok) vb. ile **500** üretebilir.
 

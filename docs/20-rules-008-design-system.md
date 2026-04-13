@@ -1,6 +1,8 @@
 # Tasarım sistemi kuralları
 
-**Kapsam:** Admin UI, hosted document sayfaları, editör ekranları ve **PDF çıktısı** — tek görsel ve tipografik dil.
+**Kapsam:** Öncelikle **`apps/admin-web`** (Platform Console + Tenant App). İleride ayrı pazarlama sitesi veya PDF çıktısı eklenirse aynı token/typography disiplini korunur.
+
+> **Pointmor:** Aşağıdaki tablolarda geçen **Data Health / Governance / Lineage** örnekleri eski ürün çizgisindendir; yeni ekranlarda **loyalty** (müşteri, ödül, puan) ve genel **tenant** metaforları kullanılır (`Gift`, `Users`, `CreditCard`, `Store` vb.).
 
 ---
 
@@ -76,7 +78,7 @@
 
 ---
 
-## Icon sistemi (Royalty Admin + ileride web portal)
+## Icon sistemi (Pointmor Admin + ileride web portal)
 
 **Amaç:** Tek görsel dil; rastgele ikon karışımı ve çözünürlük drift’i yok.
 
@@ -93,11 +95,11 @@
 
 | Alan | Önerilen metafor | Örnek (Lucide) |
 |------|------------------|----------------|
-| **Data Health** | ölçüm, nabız, veri kaynağı | `Activity`, `Database` |
-| **Governance** | sahiplik, politika, uyum | `Shield`, `Users` |
-| **Lineage** | akış, köken, bağlantı | `GitBranch`, `Share2` |
-| **Policy** | kural metni, kontrol listesi | `FileText`, `ListChecks` |
-| **Violation** | uyarı, risk | `AlertTriangle`, `OctagonAlert` |
+| **Loyalty / müşteri** | sadakat, kişi | `Heart`, `UserCircle` |
+| **Ödül / kampanya** | hediye, rozet | `Gift`, `Sparkles` |
+| **Puan / bakiye** | bakiye, kredi | `Coins`, `Wallet` |
+| **Tenant / işletme** | mağaza, ayar | `Store`, `Building2` |
+| **Uyarı / hata** | risk | `AlertTriangle`, `OctagonAlert` |
 
 **Kural:** Aynı anlam iki farklı ikonla temsil edilmez (ör. ihlal için hem `AlertCircle` hem `AlertTriangle` kullanılmaz).
 
@@ -115,7 +117,7 @@
 | **Uyarı** | Dikkat, SLA yaklaşıyor | Amber / turuncu |
 | **Kritik / hata** | İhlal açık, bloklayıcı | Kırmızı; metin kontrastı WCAG |
 
-**Kural:** Tenant App’te `gov-*` ve `admin-*` badge sınıfları **önce** kullanılır; yeni durum gerekiyorsa token + bu tabloya satır eklenir (`42-design-admin-ui.md` ile çakışma kontrolü).
+**Kural:** Tenant App’te mevcut `Badge` / `admin-*` sınıfları **önce** kullanılır; yeni durum gerekiyorsa token + bu tabloya satır eklenir (`42-design-admin-ui.md` ile çakışma kontrolü).
 
 ---
 
@@ -128,7 +130,7 @@
 | **Yoğunluk** | Satır yüksekliği **kompakt** (enterprise); padding tablo hücresinde tutarlı; gereksiz büyük satır aralığı yok. |
 | **Karışım** | Aynı ekranda tablo + kart: **üstte özet kartları**, altta tablo **veya** sol rail kart + ana tablo — hiyerarşi net olmalı. |
 
-**Kural:** Pazarlama / landing sayfalarında (`web-portal`) kart/grid daha ferah olabilir; **Tenant App** yoğunluğu referans alınır ve portal ile karıştırılmaz (`plan-007`).
+**Kural:** İleride ayrı pazarlama sitesi eklenirse kart/grid daha ferah olabilir; **Tenant App** yoğunluğu referans alınır.
 
 ---
 
@@ -138,27 +140,26 @@
 
 | Alan | Semantik | Uygulama |
 |------|----------|----------|
-| **Data Health** | Güvenilirlik, ölçüm | Soğuk mavi / teal vurgu (mevcut health vurgusu ile hizalı) |
-| **Governance** | Politika, organizasyon | İndigo / slate |
-| **Lineage** | Bağlantı, akış | Morumsu veya çelik mavi — **çizgi grafik** ile aynı aile |
-| **Policy** | Kurallar, metin | Nötr + ince border |
-| **Violation** | Risk | Uyarı kırmızısı / amber; **kritik** ile **uyarı** ayrımı badge tablosundan |
+| **Loyalty** | Ödül, sıcaklık | Turuncu / amber vurgu (dikkatli doygunluk) |
+| **Ödeme / plan** | Güven, netlik | Soğuk mavi / slate |
+| **Ayarlar** | Nötr işlem | Gri / indigo sınır |
+| **Uyarı** | Risk | Amber / kırmızı — badge tablosu ile tutarlı |
 
 **Kural:** Domain rengi **dekoratif gradient** veya tam sayfa arka plan boyaması için kullanılmaz; ürün ciddiyeti korunur.
 
 ---
 
-## Tenant App — enterprise yoğunluk ve UI guard (Royalty Admin)
+## Tenant App — enterprise yoğunluk ve UI guard (Pointmor Admin)
 
-**Kapsam:** `apps/admin-web` içindeki **Tenant App** rotaları (`/app/*`): Data Health, Governance, ekip, faturalama. **Platform Console** (`/platform/*`) aynı kabukta fakat operatör odaklıdır; tenant ekranları **daha sıkı grid**, daha az “pazarlama ferahlığı” kullanır.
+**Kapsam:** `apps/admin-web` içindeki **Tenant App** (`/app/*`): dashboard, faturalama, ayarlar ve ileride **loyalty** ekranları. **Platform Console** (`/platform/*`) operatör odaklıdır; tenant ekranları **daha sıkı grid** kullanır.
 
 | Konu | Standart |
 |------|-----------|
 | **İkon seti** | **Lucide** tek kaynak; boyut **16 / 20 / 24**; stroke **1.5–2**; bu dosyadaki **Icon sistemi** ve alan→metafor tablosu. Yeni ekranda rastgele ikon paketi **yok**. |
-| **Status / badge** | Önce mevcut `Badge` / `gov-*` / tema tonları; yeni durum = önce **Badge ve durum renk eşlemesi** tablosuna satır eklenir. |
+| **Status / badge** | Önce mevcut `Badge` / tema tonları; yeni durum = önce **Badge ve durum renk eşlemesi** tablosuna satır eklenir. |
 | **Density / spacing** | **8px tabanlı** scale (`plus-shell` / kartlar); tablolarda kompakt satır; aynı ekranda kart+tablo karışımında **hiyerarşi** (özet üstte, detay altta). |
 | **Enterprise görünüm** | Sakin nötr zemin, tek vurgu rengi (mavi ailesi); neon / tam sayfa gradient **yok**; metin kontrastı okunabilir. |
-| **Cursor / AI “UI guard”** | Yeni tenant ekranı veya bileşen eklerken: **önce** [`42-design-admin-ui.md`](./42-design-admin-ui.md) (`admin-primary-btn`, `admin-secondary-btn`, `gov-card` vb.); rastgele Tailwind/inline stil **yok**; ikon+badge bu dosyadaki tablolarla hizalı. Platform Console’a **governance ürün yüzeyi ekleme** (operatörden tenant ihlal yönetimi) — ürün kuralı: [`meta-002`](./10-meta-002-project-overview.md), [`meta-003`](./10-meta-003-project-tracker.md). **Data Lineage** (Phase 3) tenant ekranları aynı yoğunluk ve bileşen disiplinini izler; güncel faz/slice özeti: [`meta-003`](./10-meta-003-project-tracker.md). |
+| **Cursor / AI “UI guard”** | Yeni tenant ekranı veya bileşen eklerken: **önce** [`42-design-admin-ui.md`](./42-design-admin-ui.md) (`admin-primary-btn`, `admin-secondary-btn`, kart desenleri); rastgele Tailwind/inline stil **yok**. Ürün özeti: [`10-meta-002`](./10-meta-002-project-overview.md), [`10-meta-003`](./10-meta-003-project-tracker.md). |
 
 ---
 
@@ -223,5 +224,4 @@ Anlamlı isimler ve tek sorumluluk:
 - **Template vs tema vs blok modeli** (iş kuralları tasarımda değil): [20-rules-009-content-and-template.md](./20-rules-009-content-and-template.md).
 - **Çok dilli UI metinleri ve PDF `lang`**: [20-rules-010-i18n.md](./20-rules-010-i18n.md).
 - **Merkez indeks ve terminoloji**: [10-meta-001-rules-index.md](./10-meta-001-rules-index.md).
-- **Royalty Admin kabuğu (`gov-*`, butonlar)**: [42-design-admin-ui.md](./42-design-admin-ui.md).
-- **Phase 0.5 — public portal + GTM**: [10-plan-007-phase-0-5-product-surface-gtm.md](./10-plan-007-phase-0-5-product-surface-gtm.md).
+- **Pointmor Admin kabuğu (butonlar, kartlar)**: [42-design-admin-ui.md](./42-design-admin-ui.md).

@@ -2,7 +2,7 @@
 
 PowerShell’de `npm` bazen `npm.ps1` ile çalışır ve execution policy engeline takılır. Aşağıdaki komutlarda **`npm.cmd`** kullanın (veya `cmd.exe` içinde klasik `npm`).
 
-Tüm yollar repo kökü `Royalty` varsayılarak yazılmıştır.
+Tüm yollar repo kökü `Pointmor` (ör. `d:\Projects\Pointmor`) varsayılarak yazılmıştır.
 
 ## Ortam dosyaları
 
@@ -17,7 +17,7 @@ Tüm yollar repo kökü `Royalty` varsayılarak yazılmıştır.
 ## Tek seferlik: bağımlılıklar
 
 ```powershell
-cd d:\Projects\Royalty
+cd d:\Projects\Pointmor
 npm.cmd install
 ```
 
@@ -28,14 +28,14 @@ npm.cmd install
 **Terminal 1 — API (varsayılan port 3000)**
 
 ```powershell
-cd d:\Projects\Royalty
+cd d:\Projects\Pointmor
 npm.cmd run dev:api
 ```
 
 **Terminal 2 — Admin web (Vite, port 5173)**
 
 ```powershell
-cd d:\Projects\Royalty
+cd d:\Projects\Pointmor
 npm.cmd run dev:admin
 ```
 
@@ -61,7 +61,7 @@ npm.cmd run lint
 Komutları **`apps\api`** dizininden çalıştırın:
 
 ```powershell
-cd d:\Projects\Royalty\apps\api
+cd d:\Projects\Pointmor\apps\api
 ```
 
 | Komut | Ne işe yarar |
@@ -83,7 +83,7 @@ cd d:\Projects\Royalty\apps\api
 **İlk kurulum veya şema güncellemesi (tipik geliştirici akışı)**
 
 ```powershell
-cd d:\Projects\Royalty\apps\api
+cd d:\Projects\Pointmor\apps\api
 npm.cmd run db:generate
 npm.cmd run db:migrate
 ```
@@ -115,7 +115,7 @@ Repoda `schema.prisma` güncellendi veya `prisma/migrations/` altına yeni klas�
 **Asistanın yapması (PowerShell, repo kökünden):**
 
 ```powershell
-cd d:\Projects\Royalty\apps\api
+cd d:\Projects\Pointmor\apps\api
 npm.cmd run db:deploy
 ```
 
@@ -129,7 +129,7 @@ npm.cmd run db:deploy
 Kökte `scripts/fetch-vm-postgre-sh.mjs` ve `ssh2` kullanılır; host / kullanıcı / şifre ortam değişkenleri ile:
 
 ```powershell
-cd d:\Projects\Royalty
+cd d:\Projects\Pointmor
 $env:VM_HOST="192.168.1.20"
 $env:VM_USER="cc"
 $env:VM_PASSWORD="..."

@@ -1,6 +1,6 @@
-# Royalty Admin — UI tasarım rehberi
+# Pointmor Admin — UI tasarım rehberi
 
-**Kapsam:** `apps/admin-web` — **Plus shell** kabuğu (`admin-app`), **Platform Console** (`/platform/*`) ve **Tenant App** (`/app/*`) aynı bileşen ve stil disiplinini paylaşır. Tenant ürün yüzeyleri (Data Health, Governance, Lineage vb.) özellikle **`gov-*`** ve sıkı kart/grid düzenine dayanır.
+**Kapsam:** `apps/admin-web` — **Plus shell** kabuğu (`admin-app`), **Platform Console** (`/platform/*`) ve **Tenant App** (`/app/*`) aynı bileşen ve stil disiplinini paylaşır. Yeni ekranlar **`admin-primary-btn`**, **`admin-secondary-btn`**, `admin-app__card` ve mevcut `plus-shell.css` önekleriyle uyumlu olmalıdır.
 
 **İlgili:** [`20-rules-008-design-system.md`](./20-rules-008-design-system.md) (genel token / ikon), [`10-meta-001-rules-index.md`](./10-meta-001-rules-index.md).
 

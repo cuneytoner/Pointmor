@@ -33,7 +33,7 @@
 
 - **Authorization Code** + **PKCE** (public client); `state` parametresi **CSRF** için zorunlu; callback URL’ler ortam başına (`staging` / `prod`) ayrı kayıtlı.
 - **Token’lar** (access/refresh) loglanmaz; gerekiyorsa DB’de şifreli veya kısa ömürlü saklama.
-- **Account linking:** Aynı e-posta ile şifreli hesap + OAuth — ürün politikası net olmalı (doğrulanmış e-posta birleştirme veya kullanıcıya açık adım); özet: [`10-plan-002-auth-identity-roadmap.md`](./10-plan-002-auth-identity-roadmap.md).
+- **Account linking:** Aynı e-posta ile şifreli hesap + OAuth — ürün politikası net olmalı (doğrulanmış e-posta birleştirme veya kullanıcıya açık adım); ayrıntı ileride ayrı plan dokümanında toplanır.
 - Her yeni provider: ayrı smoke test (ilk giriş, tekrar giriş, hata mesajları).
 
 ---

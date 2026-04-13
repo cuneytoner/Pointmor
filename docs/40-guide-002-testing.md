@@ -1,4 +1,4 @@
-# Genel test stratejisi (Royalty)
+# Genel test stratejisi (Pointmor)
 
 Bu doküman, projeye ölçeklenebilir test katmanlarını tanımlar. Henüz otomatik test paketi kurulmamış olabilir; aşağıdaki liste hedef çerçevedir.
 

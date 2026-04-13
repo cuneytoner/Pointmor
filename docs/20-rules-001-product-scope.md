@@ -8,7 +8,7 @@
 
 **Pointmor**, çok kiracılı **sadakat (loyalty) SaaS** ürünüdür; birincil kullanıcılar **restoran / kafe işletmeleri** ve operasyonlarını yöneten **SaaS operatörü** (platform) rolleridir.
 
-**Şu anki repoda** (temizlik sonrası) **ürün özelliği olarak** yalnızca çekirdek SaaS bulunur: kimlik, kiracı, kullanıcı, plan, abonelik, temel admin UI. **Sadakat iş kuralları** (puan, ödül, kampanya, müşteri kartı vb.) **henüz uygulanmamıştır** — sonraki fazda eklenecektir.
+**Şu anki repoda** çekirdek SaaS (kimlik, kiracı, kullanıcı, plan, abonelik, admin UI) ve **loyalty faz 1** (müşteri, ziyaret, ödül, kullanım — Prisma + tenant kapsamlı API) bulunur. Kampanya motoru, zengin Tenant loyalty UI ve ödeme entegrasyonu **henüz tamamlanmış sayılmaz** — sonraki fazlarda genişletilir.
 
 ---
 
@@ -19,7 +19,7 @@ Aşağıdaki alanlar **aktif ürün parçası değildir** ve kod tabanından ç�
 - Veri sağlığı (Data Health), veri yönetişimi (data governance), köken (lineage)
 - Veri kaynağı bağlantıları, tarama, profil çıkarma, kalite kuralları, registry import akışları
 
-Tarihsel plan/spec dosyaları referans için durabilir; **güncel kapsam** bu dosya ve [`meta-002-project-overview.md`](./meta-002-project-overview.md) ile tanımlıdır.
+Eski plan/spec dosyaları repodan kaldırılmıştır (gerekirse git geçmişi). **Güncel kapsam** bu dosya ve [`10-meta-002-project-overview.md`](./10-meta-002-project-overview.md) ile tanımlıdır.
 
 ---
 

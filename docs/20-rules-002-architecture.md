@@ -2,6 +2,8 @@
 
 **Amaç:** Monorepo içinde sınırları net, değişime açık ama gereksiz soyutlamasız bir yapı.
 
+> **Pointmor (güncel):** Ürün **loyalty SaaS** (`apps/api` + `apps/admin-web`). Aşağıdaki diyagram ve örneklerde geçen **document / connector / PDF** hattı **eski şablon** anlatımıdır; bağlayıcı prensip olarak **katman ayrımı** ve **UI ↔ DB** ayrımı geçerlidir.
+
 ---
 
 ## Özet kararlar

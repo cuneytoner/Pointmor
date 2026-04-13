@@ -87,7 +87,7 @@
 - [ ] Build geçiyor.
 - [ ] İlgili smoke veya test eklendi/güncellendi.
 - [ ] API veya model değiştiyse ilgili `docs/` veya OpenAPI notu.
-- [ ] **Prisma:** `schema.prisma` veya `prisma/migrations` altında yeni/değişen migration varsa, geliştirme veritabanına `npx prisma migrate deploy` uygulandı (veya ekip sürecinde eşdeğeri doğrulandı) — ayrıntı [20-rules-006-deployment-and-ops.md](./20-rules-006-deployment-and-ops.md#royalty-local-db-migrate-deploy).
+- [ ] **Prisma:** `schema.prisma` veya `prisma/migrations` altında yeni/değişen migration varsa, geliştirme veritabanına `npx prisma migrate deploy` uygulandı (veya ekip sürecinde eşdeğeri doğrulandı) — ayrıntı [20-rules-006-deployment-and-ops.md](./20-rules-006-deployment-and-ops.md#pointmor-local-db-migrate-deploy).
 - [ ] Güvenlik yüzeyi değiştiyse `20-rules-005-security.md` kontrolü.
 
 ---
