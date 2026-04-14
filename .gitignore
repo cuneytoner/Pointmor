@@ -10,6 +10,8 @@ build/
 .env
 .env.*
 !.env.example
+# Commit env templates like infra/docker/.env.demo.example; real secrets stay under .env.* above
+!.env.*.example
 
 # Logs
 logs/
