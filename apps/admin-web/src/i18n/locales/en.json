@@ -310,6 +310,7 @@
   "tenantLoyalty": {
     "nav": {
       "dashboard": "Dashboard",
+      "growth": "Growth",
       "customers": "Customers",
       "visits": "Visits",
       "rewards": "Rewards",
@@ -430,6 +431,42 @@
         "active": "Active",
         "paused": "Paused",
         "archived": "Archived"
+      }
+    },
+    "growth": {
+      "eyebrow": "Analytics",
+      "title": "Growth & retention",
+      "description": "Funnel conversion, cohort retention (D1/D3/D7), and reward engagement — from product events stored in your workspace.",
+      "periodNote": "Funnel: last {{funnelDays}} days. Retention cohort uses first recorded visit in the window below. Reward metrics: last {{rewardDays}} days.",
+      "funnelTitle": "Funnel (unique customers per step)",
+      "transitionsTitle": "Step transitions (sequential)",
+      "columns": {
+        "step": "Step",
+        "uniqueCustomers": "Unique customers",
+        "eventsApprox": "Events (approx.)",
+        "transition": "Transition",
+        "sequentialUsers": "Sequential users",
+        "conversion": "Conversion",
+        "dropOff": "Drop-off"
+      },
+      "biggestDropOff": "Largest drop-off:",
+      "retentionTitle": "Retention (D1 / D3 / D7)",
+      "cohortSize": "Cohort size",
+      "rewardTitle": "Reward usage",
+      "redemptionCompleted": "Completed redemptions (DB)",
+      "rewardClaimedEvents": "reward_claimed events",
+      "rewardViewedEvents": "reward_viewed events",
+      "claimPerView": "Claims per view (approx.)",
+      "insightsTitle": "Insights",
+      "loadError": "Could not load growth analytics.",
+      "stepLabels": {
+        "qr_opened": "QR opened",
+        "customer_viewed_home": "Home viewed",
+        "visit_recorded": "Visit recorded",
+        "points_awarded": "Points awarded",
+        "reward_viewed": "Reward viewed",
+        "reward_claimed": "Reward claimed",
+        "redemption_completed": "Redemption completed"
       }
     },
     "redemptions": {

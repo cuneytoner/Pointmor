@@ -34,6 +34,9 @@ model Tenant {
   redemptions              Redemption[]
   campaigns                Campaign[]
   visitCampaignApplications VisitCampaignApplication[]
+  loyaltyDomainEvents       LoyaltyDomainEvent[]
+  customerActions           CustomerAction[]
+  productAnalyticsEvents    ProductAnalyticsEvent[]
 }
 
 // --- Loyalty (Phase 1) ---
@@ -45,6 +48,12 @@ model Customer {
   name      String
   phone     String
   email     String?
+  /// Son ziyaret zamanı (growth / inactivity kuralları)
+  lastVisitAt DateTime?
+  /// Toplam ziyaret sayısı (otomasyon MVP)
+  visitCount  Int      @default(0)
+  /// Son anlamlı etkileşim (ziyaret veya ödül talebi)
+  lastActiveAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -52,9 +61,13 @@ model Customer {
   visits           Visit[]
   pointsLedgers    PointsLedger[]
   redemptions      Redemption[]
+  loyaltyDomainEvents LoyaltyDomainEvent[]
+  customerActions     CustomerAction[]
+  productAnalyticsEvents ProductAnalyticsEvent[]
 
   @@unique([tenantId, phone])
   @@index([tenantId])
+  @@index([tenantId, lastVisitAt])
 }
 
 model LoyaltyAccount {
@@ -227,6 +240,78 @@ model Redemption {
   @@index([tenantId, customerId])
   @@index([rewardId])
   @@index([tenantId, status])
+}
+
+// --- Growth & automation (Phase 4) ---
+
+enum LoyaltyDomainEventType {
+  visit_created
+  reward_claimed
+  inactivity_detected
+}
+
+/// Domain event (audit + rule tetikleyici)
+model LoyaltyDomainEvent {
+  id         String                 @id @default(cuid())
+  tenantId   String
+  tenant     Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   Customer               @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type       LoyaltyDomainEventType
+  payload    Json                   @default("{}")
+  createdAt  DateTime               @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, customerId])
+}
+
+enum CustomerActionStatus {
+  pending
+  sent
+  failed
+}
+
+/// Otomasyon çıktısı — bildirim kanalı ileride eklenebilir; şimdilik log/simulate
+model CustomerAction {
+  id         String               @id @default(cuid())
+  tenantId   String
+  tenant     Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type       String
+  message    String
+  status     CustomerActionStatus @default(pending)
+  createdAt  DateTime             @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, customerId])
+}
+
+// --- Phase 4.5 — ürün analitiği (davranış / funnel / retention; harici araç yok) ---
+
+enum ProductAnalyticsEventType {
+  qr_opened
+  customer_viewed_home
+  visit_recorded
+  points_awarded
+  reward_viewed
+  reward_claimed
+  redemption_completed
+}
+
+model ProductAnalyticsEvent {
+  id         String                   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  /// Anonim QR yüklemelerinde null olabilir
+  customerId String?
+  customer   Customer?                @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type       ProductAnalyticsEventType
+  payload    Json                     @default("{}")
+  createdAt  DateTime                 @default(now())
+
+  @@index([tenantId, type, createdAt])
+  @@index([tenantId, customerId, createdAt])
 }
 
 model User {

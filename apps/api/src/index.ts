@@ -13,6 +13,7 @@ import { registerTenantRoutes } from "./routes/tenants.js";
 import { registerUserRoutes } from "./routes/users.js";
 import { registerWebhookRoutes } from "./routes/webhooks.js";
 import { registerLoyaltyRoutes } from "./routes/loyalty.js";
+import { registerProductAnalyticsRoutes } from "./routes/product-analytics.js";
 import { registerPublicLoyaltyRoutes } from "./routes/public-loyalty.js";
 import { registerPublicTenantRoutes } from "./routes/public-tenants.js";
 
@@ -55,6 +56,7 @@ await registerWebhookRoutes(app);
 await registerPublicLoyaltyRoutes(app);
 await registerPublicTenantRoutes(app);
 await registerLoyaltyRoutes(app);
+await registerProductAnalyticsRoutes(app);
 
 const address = await app.listen({ port, host: "0.0.0.0" });
 app.log.info(`API listening at ${address}`);

@@ -18,6 +18,11 @@ import {
   evaluateCampaignBonus,
   isCampaignRunnable,
 } from "./loyalty-campaign-eval.js";
+import {
+  processRewardClaimedAutomation,
+  processVisitCreatedAutomation,
+} from "./automation-engine.js";
+import { recordProductAnalyticsEvent } from "./product-analytics-service.js";
 
 function utcDayRange(): { start: Date; end: Date } {
   const start = new Date();
@@ -85,6 +90,8 @@ export type RecordVisitResult = {
   /** Faz 1 uyumu: toplam kazanılan puan (totalPointsAwarded ile aynı). */
   pointsEarned: number;
   appliedCampaigns: AppliedCampaignDto[];
+  /** Bu ziyaret öncesi kayıtlı ziyaret sayısı (otomasyon: ilk ziyaret tespiti) */
+  priorVisitCount: number;
 };
 
 export async function recordVisit(
@@ -100,7 +107,7 @@ export async function recordVisit(
   const basePoints = visitAmountToPointsEarned(amountMinor);
   const now = new Date();
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const customer = await tx.customer.findFirst({
       where: { id: customerId, tenantId },
     });
@@ -206,6 +213,15 @@ export async function recordVisit(
       });
     }
 
+    await tx.customer.update({
+      where: { id: customerId },
+      data: {
+        lastVisitAt: visit.createdAt,
+        lastActiveAt: visit.createdAt,
+        visitCount: { increment: 1 },
+      },
+    });
+
     return {
       visitId: visit.id,
       basePoints,
@@ -213,8 +229,35 @@ export async function recordVisit(
       totalPointsAwarded: total,
       pointsEarned: total,
       appliedCampaigns,
+      priorVisitCount,
     };
   });
+
+  await processVisitCreatedAutomation({
+    tenantId,
+    customerId,
+    visitId: result.visitId,
+    priorVisitCount: result.priorVisitCount,
+    pointsEarned: result.pointsEarned,
+  });
+
+  await recordProductAnalyticsEvent({
+    tenantId,
+    customerId,
+    type: "visit_recorded",
+    payload: { visitId: result.visitId },
+  });
+  await recordProductAnalyticsEvent({
+    tenantId,
+    customerId,
+    type: "points_awarded",
+    payload: {
+      visitId: result.visitId,
+      points: result.pointsEarned,
+    },
+  });
+
+  return result;
 }
 
 function validateRewardShape(input: {
@@ -459,7 +502,7 @@ export async function redeemReward(
   customerId: string,
   rewardId: string,
 ) {
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const reward = await tx.reward.findFirst({
       where: { id: rewardId, tenantId, isActive: true },
     });
@@ -514,8 +557,35 @@ export async function redeemReward(
       },
     });
 
-    return redemption;
+    await tx.customer.update({
+      where: { id: customerId },
+      data: { lastActiveAt: new Date() },
+    });
+
+    return { redemption, rewardName: reward.name };
   });
+
+  await processRewardClaimedAutomation({
+    tenantId,
+    customerId,
+    rewardId,
+    rewardName: result.rewardName,
+    source: "staff_redeem",
+    redemptionId: result.redemption.id,
+  });
+
+  await recordProductAnalyticsEvent({
+    tenantId,
+    customerId,
+    type: "redemption_completed",
+    payload: {
+      redemptionId: result.redemption.id,
+      rewardId,
+      channel: "staff_instant",
+    },
+  });
+
+  return result.redemption;
 }
 
 export async function getPublicCampaignsCatalog(tenantId: string) {
@@ -696,7 +766,7 @@ export async function createRedemptionClaim(
   customerId: string,
   rewardId: string,
 ) {
-  return prisma.$transaction(async (tx) => {
+  const row = await prisma.$transaction(async (tx) => {
     const reward = await tx.reward.findFirst({
       where: { id: rewardId, tenantId, isActive: true },
     });
@@ -728,7 +798,7 @@ export async function createRedemptionClaim(
       });
       throw err;
     }
-    return tx.redemption.create({
+    const created = await tx.redemption.create({
       data: {
         tenantId,
         customerId,
@@ -740,11 +810,39 @@ export async function createRedemptionClaim(
         reward: { select: { id: true, name: true, pointsCost: true } },
       },
     });
+    await tx.customer.update({
+      where: { id: customerId },
+      data: { lastActiveAt: new Date() },
+    });
+    return created;
   });
+
+  if (row.reward) {
+    await processRewardClaimedAutomation({
+      tenantId,
+      customerId,
+      rewardId: row.reward.id,
+      rewardName: row.reward.name,
+      source: "customer_claim",
+      redemptionId: row.id,
+    });
+    await recordProductAnalyticsEvent({
+      tenantId,
+      customerId,
+      type: "reward_claimed",
+      payload: {
+        redemptionId: row.id,
+        rewardId: row.reward.id,
+        status: "pending",
+      },
+    });
+  }
+
+  return row;
 }
 
 export async function finalizePendingRedemption(tenantId: string, redemptionId: string) {
-  return prisma.$transaction(async (tx) => {
+  const out = await prisma.$transaction(async (tx) => {
     const row = await tx.redemption.findFirst({
       where: { id: redemptionId, tenantId, status: "pending" },
     });
@@ -781,19 +879,32 @@ export async function finalizePendingRedemption(tenantId: string, redemptionId: 
         referenceId: redemptionId,
       },
     });
-    const out = await tx.redemption.findFirst({
+    const result = await tx.redemption.findFirst({
       where: { id: redemptionId },
       include: {
         customer: { select: { id: true, name: true, phone: true } },
         reward: { select: { id: true, name: true } },
       },
     });
-    if (!out) {
+    if (!result) {
       const err = Object.assign(new Error("not_found"), { statusCode: 404 });
       throw err;
     }
-    return out;
+    return result;
   });
+
+  await recordProductAnalyticsEvent({
+    tenantId,
+    customerId: out.customer.id,
+    type: "redemption_completed",
+    payload: {
+      redemptionId: out.id,
+      rewardId: out.reward.id,
+      channel: "staff_approved",
+    },
+  });
+
+  return out;
 }
 
 export async function rejectPendingRedemption(tenantId: string, redemptionId: string) {

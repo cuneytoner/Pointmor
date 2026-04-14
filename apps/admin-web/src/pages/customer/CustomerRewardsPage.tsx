@@ -1,10 +1,29 @@
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useCustomerPwa } from "../../customer-pwa/CustomerPwaContext";
+import { postCustomerProductAnalyticsEvent } from "../../lib/customer-portal-api";
 
 export function CustomerRewardsPage() {
   const { t } = useTranslation();
-  const { tenantSlug, data, claimReward, claimingId } = useCustomerPwa();
+  const { tenantSlug, data, token, claimReward, claimingId } = useCustomerPwa();
+  const viewedMark = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!data) return;
+    const tok = token?.trim();
+    if (!tok) return;
+    const mark = `${tenantSlug}:${data.customer.id}`;
+    if (viewedMark.current === mark) return;
+    viewedMark.current = mark;
+    postCustomerProductAnalyticsEvent(tenantSlug, tok, {
+      type: "reward_viewed",
+      payload: { surface: "rewards_catalog" },
+    }).catch(() => {
+      /* best-effort */
+    });
+  }, [tenantSlug, data, token]);
+
   if (!data) return null;
 
   const base = `/c/${encodeURIComponent(tenantSlug)}`;

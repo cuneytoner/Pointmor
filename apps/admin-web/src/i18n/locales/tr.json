@@ -310,6 +310,7 @@
   "tenantLoyalty": {
     "nav": {
       "dashboard": "Özet",
+      "growth": "Büyüme",
       "customers": "Müşteriler",
       "visits": "Ziyaretler",
       "rewards": "Ödüller",
@@ -430,6 +431,42 @@
         "active": "Aktif",
         "paused": "Duraklatıldı",
         "archived": "Arşiv"
+      }
+    },
+    "growth": {
+      "eyebrow": "Analitik",
+      "title": "Büyüme ve tutma",
+      "description": "Huni dönüşümü, kohort tutması (D1/D3/D7) ve ödül etkileşimi — çalışma alanınıza kaydedilen ürün olaylarından.",
+      "periodNote": "Huni: son {{funnelDays}} gün. Tutma kohortu, aşağıdaki pencerede ilk kayıtlı ziyareti kullanır. Ödül metrikleri: son {{rewardDays}} gün.",
+      "funnelTitle": "Huni (adım başına benzersiz müşteri)",
+      "transitionsTitle": "Adım geçişleri (sıralı)",
+      "columns": {
+        "step": "Adım",
+        "uniqueCustomers": "Benzersiz müşteri",
+        "eventsApprox": "Olay (yaklaşık)",
+        "transition": "Geçiş",
+        "sequentialUsers": "Sıralı kullanıcı",
+        "conversion": "Dönüşüm",
+        "dropOff": "Kayıp"
+      },
+      "biggestDropOff": "En büyük düşüş:",
+      "retentionTitle": "Tutma (D1 / D3 / D7)",
+      "cohortSize": "Kohort büyüklüğü",
+      "rewardTitle": "Ödül kullanımı",
+      "redemptionCompleted": "Tamamlanan kullanımlar (veritabanı)",
+      "rewardClaimedEvents": "reward_claimed olayları",
+      "rewardViewedEvents": "reward_viewed olayları",
+      "claimPerView": "Görüntüleme başına talep (yaklaşık)",
+      "insightsTitle": "Öngörüler",
+      "loadError": "Büyüme analitiği yüklenemedi.",
+      "stepLabels": {
+        "qr_opened": "QR açıldı",
+        "customer_viewed_home": "Ana sayfa görüntülendi",
+        "visit_recorded": "Ziyaret kaydedildi",
+        "points_awarded": "Puan verildi",
+        "reward_viewed": "Ödül görüntülendi",
+        "reward_claimed": "Ödül talep edildi",
+        "redemption_completed": "Kullanım tamamlandı"
       }
     },
     "redemptions": {

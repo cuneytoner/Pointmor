@@ -304,6 +304,7 @@
   "tenantLoyalty": {
     "nav": {
       "dashboard": "Übersicht",
+      "growth": "Wachstum",
       "customers": "Kunden",
       "visits": "Besuche",
       "rewards": "Prämien",
@@ -424,6 +425,42 @@
         "active": "Aktiv",
         "paused": "Pausiert",
         "archived": "Archiviert"
+      }
+    },
+    "growth": {
+      "eyebrow": "Analytik",
+      "title": "Wachstum & Retention",
+      "description": "Trichter, Kohorten-Retention (D1/D3/D7) und Prämien-Engagement — aus in Ihrem Workspace gespeicherten Produkt-Events.",
+      "periodNote": "Trichter: letzte {{funnelDays}} Tage. Retention-Kohorte nutzt den ersten erfassten Besuch im unten beschriebenen Fenster. Prämien: letzte {{rewardDays}} Tage.",
+      "funnelTitle": "Trichter (eindeutige Kunden pro Schritt)",
+      "transitionsTitle": "Schritt-Übergänge (sequenziell)",
+      "columns": {
+        "step": "Schritt",
+        "uniqueCustomers": "Eindeutige Kunden",
+        "eventsApprox": "Ereignisse (ca.)",
+        "transition": "Übergang",
+        "sequentialUsers": "Sequenzielle Nutzer",
+        "conversion": "Conversion",
+        "dropOff": "Abbruch"
+      },
+      "biggestDropOff": "Größter Abbruch:",
+      "retentionTitle": "Retention (D1 / D3 / D7)",
+      "cohortSize": "Kohortengröße",
+      "rewardTitle": "Prämien-Nutzung",
+      "redemptionCompleted": "Abgeschlossene Einlösungen (DB)",
+      "rewardClaimedEvents": "reward_claimed-Ereignisse",
+      "rewardViewedEvents": "reward_viewed-Ereignisse",
+      "claimPerView": "Claims pro Ansicht (ca.)",
+      "insightsTitle": "Insights",
+      "loadError": "Wachstums-Analytik konnte nicht geladen werden.",
+      "stepLabels": {
+        "qr_opened": "QR geöffnet",
+        "customer_viewed_home": "Startseite angesehen",
+        "visit_recorded": "Besuch erfasst",
+        "points_awarded": "Punkte gutgeschrieben",
+        "reward_viewed": "Prämie angesehen",
+        "reward_claimed": "Prämie beansprucht",
+        "redemption_completed": "Einlösung abgeschlossen"
       }
     },
     "redemptions": {

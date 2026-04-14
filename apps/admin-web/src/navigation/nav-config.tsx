@@ -4,6 +4,7 @@ import {
   IconCredit,
   IconDashboard,
   IconGift,
+  IconGrowth,
   IconLayers,
   IconShield,
   IconUsers,
@@ -90,6 +91,12 @@ export const TENANT_NAV: NavItemConfig[] = [
     Icon: IconDashboard,
     tenant: true,
     end: true,
+  },
+  {
+    to: "/app/growth",
+    labelKey: "tenantLoyalty.nav.growth",
+    Icon: IconGrowth,
+    tenant: true,
   },
   {
     to: "/app/customers",

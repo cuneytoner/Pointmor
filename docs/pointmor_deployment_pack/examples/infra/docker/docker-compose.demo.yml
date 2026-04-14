@@ -1,0 +1,83 @@
+version: "3.9"
+
+name: pointmor-demo
+
+services:
+  postgres-demo:
+    image: postgres:16-alpine
+    container_name: pointmor-postgres-demo
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pointmor_demo}
+      POSTGRES_USER: ${POSTGRES_USER:-pointmor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pointmor_demo_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pointmor} -d ${POSTGRES_DB:-pointmor_demo}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - pointmor-demo-net
+
+  api-demo:
+    image: ghcr.io/your-org/pointmor-api:${IMAGE_TAG:-demo-latest}
+    container_name: pointmor-api-demo
+    restart: unless-stopped
+    depends_on:
+      postgres-demo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 8080
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pointmor}:${POSTGRES_PASSWORD}@postgres-demo:5432/${POSTGRES_DB:-pointmor_demo}?schema=public
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      CUSTOMER_PORTAL_JWT_SECRET: ${CUSTOMER_PORTAL_JWT_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
+      RATE_LIMIT_TIME_WINDOW: ${RATE_LIMIT_TIME_WINDOW:-1 minute}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - pointmor-demo-net
+
+  admin-web-demo:
+    image: ghcr.io/your-org/pointmor-admin-web:${IMAGE_TAG:-demo-latest}
+    container_name: pointmor-admin-web-demo
+    restart: unless-stopped
+    depends_on:
+      api-demo:
+        condition: service_healthy
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+    expose:
+      - "8080"
+    networks:
+      - pointmor-demo-net
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: pointmor-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      admin-web-demo:
+        condition: service_started
+    networks:
+      - pointmor-demo-net
+
+volumes:
+  pointmor_demo_postgres_data:
+
+networks:
+  pointmor-demo-net:
+    driver: bridge

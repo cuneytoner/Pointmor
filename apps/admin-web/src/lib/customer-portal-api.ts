@@ -139,6 +139,24 @@ export function postCustomerClaim(
   );
 }
 
+export function postCustomerProductAnalyticsEvent(
+  tenantSlug: string,
+  token: string | null,
+  body: { type: string; payload?: Record<string, unknown> },
+) {
+  return publicFetch<{ ok: boolean }>(
+    `/public/loyalty/${encodeURIComponent(tenantSlug)}/analytics/events`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        type: body.type,
+        ...(body.payload ? { payload: body.payload } : {}),
+        ...(token ? { token } : {}),
+      }),
+    },
+  );
+}
+
 export function customerTokenStorageKey(tenantSlug: string) {
   return `pointmor_customer_token_${tenantSlug}`;
 }

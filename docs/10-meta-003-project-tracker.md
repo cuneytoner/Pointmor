@@ -20,6 +20,19 @@ Eski veri platformu faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor loya
 
 **Bilinen teknik borç (kısa fix):** Müşteri PWA’da `409` yanıtı hem yetersiz puan hem **duplicate pending claim** için aynı metinle gösterilebilir; istemci gövde (`error`) ayrımı veya toast ile netleştirilmeli. İstemci hâlâ legacy path kullanıyor; istenirse taban URL **`/public/tenants/...`** ile hizalanır.
 
+### Phase 4 — Growth & automation (MVP)
+
+**Durum:** **Uygulandı (backend).** `LoyaltyDomainEvent` (visit_created, reward_claimed, inactivity_detected), `CustomerAction` (pending/sent/failed), müşteri alanları `lastVisitAt`, `visitCount`, `lastActiveAt`. Ziyaret ve ödül talebi sonrası kurallar tetiklenir; bildirim katmanı **simulate/log** (`notification-provider`). Tenant API: `GET /actions`, `GET /customers/:id/actions`, `POST /automation/scan-inactivity` (cron yerine manuel/dış tetik). Kuyruk yok.
+
+### Phase 4.5 — Ürün analitiği (retention / huni)
+
+**Durum:** **Uygulandı.** Harici analitik aracı yok; olaylar DB’de toplanıyor.
+
+- **Model:** `ProductAnalyticsEvent` + enum (`qr_opened`, `customer_viewed_home`, `visit_recorded`, `points_awarded`, `reward_viewed`, `reward_claimed`, `redemption_completed`).
+- **API (tenant oturumu):** `GET /analytics/funnel`, `/analytics/retention`, `/analytics/overview`, `/analytics/reward-usage` — huni adım/düşüş, kohort D1/D3/D7, ödül kullanım özeti.
+- **Yüzey:** Tenant admin → **Büyüme** (`/app/growth`): huni, tutma, ödül metrikleri, sunucu üretimi kısa öngörüler.
+- **PWA:** Ödül listesi açılışında `reward_viewed` (best-effort); bootstrap/me ve loyalty servisi diğer olayları yazar.
+
 ---
 
 ## Sıradaki anlamlı adımlar

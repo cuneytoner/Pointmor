@@ -222,3 +222,24 @@ export function IconShield(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+/** Basit çizgi grafik — büyüme / funnel */
+export function IconGrowth(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      {...props}
+    >
+      <path d="M3 3v18h18" />
+      <path d="M7 16l4-6 4 3 5-8" />
+    </svg>
+  );
+}

@@ -27,6 +27,11 @@ import {
   updateCampaign,
   updateReward,
 } from "../lib/loyalty-service.js";
+import {
+  listCustomerActionsForCustomer,
+  listTenantCustomerActions,
+  scanInactivityAndAct,
+} from "../lib/automation-engine.js";
 
 const CAMPAIGN_TYPES: CampaignType[] = [
   "BONUS_POINTS",
@@ -119,6 +124,47 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
     if (!tenantId) return;
     return listCustomers(tenantId);
   });
+
+  app.get<{ Querystring: { limit?: string } }>(
+    "/actions",
+    { preHandler: [authPreHandler] },
+    async (req, reply) => {
+      const tenantId = requireTenantSession(req, reply);
+      if (!tenantId) return;
+      const lim = req.query.limit ? Number.parseInt(req.query.limit, 10) : 100;
+      const take = Number.isFinite(lim) && lim > 0 && lim <= 500 ? lim : 100;
+      return listTenantCustomerActions(tenantId, take);
+    },
+  );
+
+  app.get<{ Params: { customerId: string }; Querystring: { limit?: string } }>(
+    "/customers/:customerId/actions",
+    { preHandler: [authPreHandler] },
+    async (req, reply) => {
+      const tenantId = requireTenantSession(req, reply);
+      if (!tenantId) return;
+      const lim = req.query.limit ? Number.parseInt(req.query.limit, 10) : 50;
+      const take = Number.isFinite(lim) && lim > 0 && lim <= 200 ? lim : 50;
+      return listCustomerActionsForCustomer(
+        tenantId,
+        req.params.customerId,
+        take,
+      );
+    },
+  );
+
+  app.post(
+    "/automation/scan-inactivity",
+    { preHandler: [authPreHandler] },
+    async (req, reply) => {
+      const tenantId = requireTenantSession(req, reply);
+      if (!tenantId) return;
+      const s = req.authSession as SessionPayload;
+      const out = await scanInactivityAndAct(tenantId);
+      await writeAudit(s.user.email, "loyalty.automation.scan_inactivity", String(out.actionsCreated));
+      return out;
+    },
+  );
 
   app.get<{ Params: { customerId: string } }>(
     "/customers/:customerId/detail",
