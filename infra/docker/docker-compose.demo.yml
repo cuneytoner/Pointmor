@@ -15,7 +15,7 @@ services:
     volumes:
       - postgres_demo_data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:${POSTGRES_DEMO_PORT:-55432}:5432"
+      - "${POSTGRES_DEMO_PORT:-55432}:5432"
     networks: [demo]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
