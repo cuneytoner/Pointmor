@@ -607,7 +607,7 @@
   display: flex;
   gap: 1rem;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .login-card__title {
@@ -646,7 +646,7 @@
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.125rem;
 }
 
 .login-form__label {
@@ -680,7 +680,7 @@
 }
 
 .login-form__submit {
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
   font: inherit;
   font-weight: 600;
   padding: 0.75rem 1rem;
@@ -2295,4 +2295,300 @@ a.admin-secondary-btn:hover {
   font-size: 0.6875rem;
   color: #64748b;
   margin-top: 0.15rem;
+}
+
+/* Tenant loyalty — form stack + modal */
+.loyalty-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 28rem;
+}
+
+.loyalty-form-stack label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.loyalty-modal {
+  border: none;
+  padding: 0;
+  border-radius: 12px;
+  max-width: 520px;
+  width: calc(100vw - 2rem);
+  background: transparent;
+}
+
+.loyalty-modal::backdrop {
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.loyalty-modal__panel {
+  padding: 1.25rem 1.35rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+.loyalty-redemption-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.tenant-portal-share {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.tenant-portal-share__url {
+  display: block;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  font-size: 0.875rem;
+  word-break: break-all;
+}
+
+.tenant-portal-share__qr {
+  padding: 0.75rem;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  display: inline-block;
+}
+
+/* Müşteri portalı — /c/:tenantSlug, mobil öncelikli tek sütun */
+.customer-portal {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 1.25rem 1rem 2rem;
+  max-width: 32rem;
+  margin: 0 auto;
+  background: #f4f7f9;
+  color: #0f172a;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.customer-portal__header {
+  margin-bottom: 1.25rem;
+}
+
+.customer-portal__header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.customer-portal__tenant {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0a1628;
+}
+
+.customer-portal__link {
+  border: none;
+  background: none;
+  padding: 0.25rem 0;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0056b3;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.customer-portal__balance {
+  margin-top: 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.customer-portal__balance-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.customer-portal__balance-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0a1628;
+}
+
+.customer-portal__section {
+  margin-top: 1.25rem;
+}
+
+.customer-portal__h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #0a1628;
+}
+
+.customer-portal__hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.customer-portal__muted {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.customer-portal__error {
+  margin: 0;
+  padding: 1rem;
+  color: #b91c1c;
+  font-size: 0.9375rem;
+}
+
+.customer-portal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.customer-portal__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.customer-portal__input {
+  font: inherit;
+  padding: 0.75rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #fff;
+}
+
+.customer-portal__btn {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, #3b71f3 0%, #0056b3 100%);
+}
+
+.customer-portal__btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.customer-portal__btn--small {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8125rem;
+  align-self: flex-start;
+}
+
+.customer-portal__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.customer-portal__li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  font-size: 0.875rem;
+}
+
+.customer-portal__li-main {
+  font-weight: 700;
+  color: #0a1628;
+}
+
+.customer-portal__cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.customer-portal__card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 0.95rem;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.customer-portal__card--flat {
+  flex-direction: column;
+}
+
+.customer-portal__card-title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: #0a1628;
+}
+
+.customer-portal__card-desc {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+.customer-portal__card-cost {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  margin-top: 0.35rem;
+}
+
+.customer-portal__badge {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #0056b3;
 }

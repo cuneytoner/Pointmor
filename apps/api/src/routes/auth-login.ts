@@ -9,7 +9,6 @@ import { SESSION_COOKIE_NAME, sessionCookieOptions } from "../lib/session-cookie
 type LoginBody = {
   email?: string;
   password?: string;
-  tenantSlug?: string;
 };
 
 export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
@@ -24,7 +23,6 @@ export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
         const body = req.body ?? {};
         const email = (body.email ?? "").trim().toLowerCase();
         const password = (body.password ?? "").trim();
-        const tenantSlug = (body.tenantSlug ?? "").trim();
 
         if (password.length < 4) {
           return reply.code(401).send({
@@ -68,13 +66,6 @@ export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
           return reply.code(403).send({
             error: "no_tenant_membership",
             message: "Kiracı üyeliği yok.",
-          });
-        }
-
-        if (tenantSlug && tenantSlug !== user.tenant.slug) {
-          return reply.code(403).send({
-            error: "tenant_slug_mismatch",
-            message: "Kiracı kodu hesapla eşleşmiyor.",
           });
         }
 

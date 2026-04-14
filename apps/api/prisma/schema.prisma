@@ -30,8 +30,10 @@ model Tenant {
   loyaltyAccounts   LoyaltyAccount[]
   pointsLedgers     PointsLedger[]
   visits            Visit[]
-  rewards           Reward[]
-  redemptions       Redemption[]
+  rewards                  Reward[]
+  redemptions              Redemption[]
+  campaigns                Campaign[]
+  visitCampaignApplications VisitCampaignApplication[]
 }
 
 // --- Loyalty (Phase 1) ---
@@ -76,6 +78,7 @@ enum PointsLedgerType {
 
 enum PointsLedgerSource {
   visit
+  campaign
   redemption
   manual
 }
@@ -90,54 +93,140 @@ model PointsLedger {
   points      Int
   source      PointsLedgerSource
   referenceId String?
+  visitId     String?
+  visit       Visit?               @relation(fields: [visitId], references: [id], onDelete: SetNull)
   createdAt   DateTime             @default(now())
 
   @@index([tenantId, customerId])
   @@index([tenantId, createdAt])
+  @@index([visitId])
 }
 
 model Visit {
-  id           String   @id @default(cuid())
-  tenantId     String
-  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  customerId   String
-  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  amount       Int
-  pointsEarned Int
-  createdAt    DateTime @default(now())
+  id                String   @id @default(cuid())
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customerId        String
+  customer          Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  amount            Int
+  /// Toplam kazanılan puan (taban + kampanya bonusları)
+  pointsEarned      Int
+  basePointsEarned  Int
+  bonusPointsEarned Int
+  createdAt         DateTime @default(now())
+
+  campaignApplications VisitCampaignApplication[]
+  pointsLedgerRows     PointsLedger[]
 
   @@index([tenantId, customerId])
 }
 
+enum RewardType {
+  FREE_ITEM
+  FIXED_DISCOUNT
+  PERCENT_DISCOUNT
+}
+
+enum RewardValueType {
+  NONE
+  MINOR_AMOUNT
+  PERCENT_BP
+}
+
+enum RedemptionMethod {
+  POINTS_ONLY
+}
+
+enum RedemptionStatus {
+  pending
+  completed
+  rejected
+}
+
 model Reward {
-  id          String   @id @default(cuid())
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  pointsCost  Int
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String            @id @default(cuid())
+  tenantId         String
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name             String
+  description      String?
+  pointsCost       Int
+  rewardType       RewardType        @default(FREE_ITEM)
+  valueType        RewardValueType   @default(NONE)
+  value            Int               @default(0)
+  redemptionMethod RedemptionMethod  @default(POINTS_ONLY)
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   redemptions Redemption[]
 
   @@index([tenantId])
 }
 
-model Redemption {
-  id          String   @id @default(cuid())
+enum CampaignType {
+  BONUS_POINTS
+  SPEND_THRESHOLD_BONUS
+  FIRST_VISIT_BONUS
+}
+
+enum CampaignStatus {
+  draft
+  active
+  paused
+  archived
+}
+
+model Campaign {
+  id          String         @id @default(cuid())
   tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  type        CampaignType
+  status      CampaignStatus @default(draft)
+  startAt     DateTime?
+  endAt       DateTime?
+  config      Json
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  visitApplications VisitCampaignApplication[]
+
+  @@index([tenantId])
+}
+
+model VisitCampaignApplication {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  visitId       String
+  visit         Visit    @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  campaignId    String
+  campaign      Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  pointsAwarded Int
+  createdAt     DateTime @default(now())
+
+  @@unique([visitId, campaignId])
+  @@index([tenantId])
+  @@index([campaignId])
+}
+
+model Redemption {
+  id          String            @id @default(cuid())
+  tenantId    String
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   customerId  String
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer    Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
   rewardId    String
-  reward      Reward   @relation(fields: [rewardId], references: [id], onDelete: Restrict)
+  reward      Reward            @relation(fields: [rewardId], references: [id], onDelete: Restrict)
   pointsSpent Int
-  createdAt   DateTime @default(now())
+  status      RedemptionStatus  @default(completed)
+  createdAt   DateTime          @default(now())
 
   @@index([tenantId, customerId])
   @@index([rewardId])
+  @@index([tenantId, status])
 }
 
 model User {

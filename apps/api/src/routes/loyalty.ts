@@ -2,15 +2,64 @@ import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
 import { writeAudit } from "../lib/audit.js";
+import type {
+  CampaignType,
+  RedemptionMethod,
+  RewardType,
+  RewardValueType,
+} from "../generated/prisma/client.js";
 import {
+  createCampaign,
   createCustomer,
   createReward,
   getCustomerAccount,
+  getCustomerDetail,
+  getLoyaltySummary,
+  listCampaigns,
   listCustomers,
+  listRedemptionsForTenant,
   listRewards,
+  listVisitsForTenant,
   recordVisit,
   redeemReward,
+  rejectPendingRedemption,
+  finalizePendingRedemption,
+  updateCampaign,
+  updateReward,
 } from "../lib/loyalty-service.js";
+
+const CAMPAIGN_TYPES: CampaignType[] = [
+  "BONUS_POINTS",
+  "SPEND_THRESHOLD_BONUS",
+  "FIRST_VISIT_BONUS",
+];
+
+const CAMPAIGN_STATUSES = ["draft", "active", "paused", "archived"] as const;
+
+function isCampaignType(v: unknown): v is CampaignType {
+  return typeof v === "string" && (CAMPAIGN_TYPES as string[]).includes(v);
+}
+
+function isCampaignStatus(
+  v: unknown,
+): v is (typeof CAMPAIGN_STATUSES)[number] {
+  return typeof v === "string" && (CAMPAIGN_STATUSES as readonly string[]).includes(v);
+}
+
+function parseOptionalIsoDate(v: unknown): Date | null | undefined {
+  if (v === undefined) return undefined;
+  if (v === null) return null;
+  if (typeof v !== "string") {
+    const err = Object.assign(new Error("validation_error"), { statusCode: 400 });
+    throw err;
+  }
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) {
+    const err = Object.assign(new Error("validation_error"), { statusCode: 400 });
+    throw err;
+  }
+  return d;
+}
 
 function requireTenantSession(
   req: { authSession?: SessionPayload },
@@ -26,6 +75,12 @@ function requireTenantSession(
 }
 
 export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void> {
+  app.get("/summary", { preHandler: [authPreHandler] }, async (req, reply) => {
+    const tenantId = requireTenantSession(req, reply);
+    if (!tenantId) return;
+    return getLoyaltySummary(tenantId);
+  });
+
   app.post<{ Body: { name?: string; phone?: string; email?: string } }>(
     "/customers",
     { preHandler: [authPreHandler] },
@@ -66,6 +121,23 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
   });
 
   app.get<{ Params: { customerId: string } }>(
+    "/customers/:customerId/detail",
+    { preHandler: [authPreHandler] },
+    async (req, reply) => {
+      const tenantId = requireTenantSession(req, reply);
+      if (!tenantId) return;
+      try {
+        return await getCustomerDetail(tenantId, req.params.customerId);
+      } catch (e) {
+        if ((e as Error & { statusCode?: number }).statusCode === 404) {
+          return reply.code(404).send({ error: "not_found" });
+        }
+        throw e;
+      }
+    },
+  );
+
+  app.get<{ Params: { customerId: string } }>(
     "/customers/:customerId/account",
     { preHandler: [authPreHandler] },
     async (req, reply) => {
@@ -79,6 +151,18 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
         }
         throw e;
       }
+    },
+  );
+
+  app.get<{ Querystring: { limit?: string } }>(
+    "/visits",
+    { preHandler: [authPreHandler] },
+    async (req, reply) => {
+      const tenantId = requireTenantSession(req, reply);
+      if (!tenantId) return;
+      const lim = req.query.limit ? Number.parseInt(req.query.limit, 10) : 100;
+      const take = Number.isFinite(lim) && lim > 0 && lim <= 500 ? lim : 100;
+      return listVisitsForTenant(tenantId, take);
     },
   );
 
@@ -100,13 +184,36 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
         const code = (e as Error & { statusCode?: number }).statusCode;
         if (code === 400) return reply.code(400).send({ error: "validation_error" });
         if (code === 404) return reply.code(404).send({ error: "not_found" });
+        if (code === 500) {
+          return reply.code(500).send({ error: "campaign_config_corrupt" });
+        }
         throw e;
       }
     },
   );
 
+  app.get<{ Querystring: { active?: string } }>(
+    "/rewards",
+    { preHandler: [authPreHandler] },
+    async (req, reply) => {
+      const tenantId = requireTenantSession(req, reply);
+      if (!tenantId) return;
+      const activeOnly = req.query.active !== "false";
+      return listRewards(tenantId, activeOnly);
+    },
+  );
+
   app.post<{
-    Body: { name?: string; description?: string; pointsCost?: number; isActive?: boolean };
+    Body: {
+      name?: string;
+      description?: string;
+      pointsCost?: number;
+      isActive?: boolean;
+      rewardType?: string;
+      valueType?: string;
+      value?: number;
+      redemptionMethod?: string;
+    };
   }>("/rewards", { preHandler: [authPreHandler] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
@@ -118,6 +225,10 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
         description: b.description,
         pointsCost: Number(b.pointsCost),
         isActive: b.isActive,
+        rewardType: b.rewardType as RewardType | undefined,
+        valueType: b.valueType as RewardValueType | undefined,
+        value: b.value !== undefined ? Number(b.value) : undefined,
+        redemptionMethod: b.redemptionMethod as RedemptionMethod | undefined,
       });
       await writeAudit(s.user.email, "loyalty.reward.create", row.id);
       return row;
@@ -129,14 +240,164 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
     }
   });
 
-  app.get<{ Querystring: { active?: string } }>(
-    "/rewards",
+  app.patch<{
+    Params: { rewardId: string };
+    Body: {
+      name?: string;
+      description?: string | null;
+      pointsCost?: number;
+      isActive?: boolean;
+      rewardType?: string;
+      valueType?: string;
+      value?: number;
+      redemptionMethod?: string;
+    };
+  }>("/rewards/:rewardId", { preHandler: [authPreHandler] }, async (req, reply) => {
+    const tenantId = requireTenantSession(req, reply);
+    if (!tenantId) return;
+    const s = req.authSession as SessionPayload;
+    const b = req.body ?? {};
+    try {
+      const row = await updateReward(tenantId, req.params.rewardId, {
+        ...(b.name !== undefined ? { name: String(b.name) } : {}),
+        ...(b.description !== undefined ? { description: b.description } : {}),
+        ...(b.pointsCost !== undefined ? { pointsCost: Number(b.pointsCost) } : {}),
+        ...(b.isActive !== undefined ? { isActive: Boolean(b.isActive) } : {}),
+        ...(b.rewardType !== undefined ? { rewardType: b.rewardType as never } : {}),
+        ...(b.valueType !== undefined ? { valueType: b.valueType as never } : {}),
+        ...(b.value !== undefined ? { value: Number(b.value) } : {}),
+        ...(b.redemptionMethod !== undefined
+          ? { redemptionMethod: b.redemptionMethod as never }
+          : {}),
+      });
+      await writeAudit(s.user.email, "loyalty.reward.update", row.id);
+      return row;
+    } catch (e) {
+      const code = (e as Error & { statusCode?: number }).statusCode;
+      if (code === 400) return reply.code(400).send({ error: "validation_error" });
+      if (code === 404) return reply.code(404).send({ error: "not_found" });
+      throw e;
+    }
+  });
+
+  app.get("/campaigns", { preHandler: [authPreHandler] }, async (req, reply) => {
+    const tenantId = requireTenantSession(req, reply);
+    if (!tenantId) return;
+    return listCampaigns(tenantId);
+  });
+
+  app.post<{
+    Body: {
+      name?: string;
+      description?: string;
+      type?: string;
+      status?: string;
+      startAt?: string | null;
+      endAt?: string | null;
+      config?: unknown;
+      isActive?: boolean;
+    };
+  }>("/campaigns", { preHandler: [authPreHandler] }, async (req, reply) => {
+    const tenantId = requireTenantSession(req, reply);
+    if (!tenantId) return;
+    const s = req.authSession as SessionPayload;
+    const b = req.body ?? {};
+    if (!isCampaignType(b.type)) {
+      return reply.code(400).send({ error: "invalid_campaign_type" });
+    }
+    if (b.status !== undefined && !isCampaignStatus(b.status)) {
+      return reply.code(400).send({ error: "invalid_campaign_status" });
+    }
+    try {
+      const startAt = parseOptionalIsoDate(b.startAt);
+      const endAt = parseOptionalIsoDate(b.endAt);
+      const row = await createCampaign(tenantId, {
+        name: String(b.name ?? ""),
+        description: b.description,
+        type: b.type,
+        status: b.status !== undefined ? b.status : undefined,
+        startAt: startAt === undefined ? undefined : startAt,
+        endAt: endAt === undefined ? undefined : endAt,
+        config: b.config,
+        isActive: b.isActive,
+      });
+      await writeAudit(s.user.email, "loyalty.campaign.create", row.id);
+      return row;
+    } catch (e) {
+      const code = (e as Error & { statusCode?: number }).statusCode;
+      if (code === 400) {
+        return reply.code(400).send({
+          error:
+            (e as Error).message === "invalid_campaign_config"
+              ? "invalid_campaign_config"
+              : "validation_error",
+        });
+      }
+      throw e;
+    }
+  });
+
+  app.patch<{
+    Params: { campaignId: string };
+    Body: {
+      name?: string;
+      description?: string | null;
+      type?: string;
+      status?: string;
+      startAt?: string | null;
+      endAt?: string | null;
+      config?: unknown;
+      isActive?: boolean;
+    };
+  }>("/campaigns/:campaignId", { preHandler: [authPreHandler] }, async (req, reply) => {
+    const tenantId = requireTenantSession(req, reply);
+    if (!tenantId) return;
+    const s = req.authSession as SessionPayload;
+    const b = req.body ?? {};
+    if (b.type !== undefined && !isCampaignType(b.type)) {
+      return reply.code(400).send({ error: "invalid_campaign_type" });
+    }
+    if (b.status !== undefined && !isCampaignStatus(b.status)) {
+      return reply.code(400).send({ error: "invalid_campaign_status" });
+    }
+    try {
+      const patch: Parameters<typeof updateCampaign>[2] = {};
+      if (b.name !== undefined) patch.name = String(b.name);
+      if (b.description !== undefined) patch.description = b.description;
+      if (b.type !== undefined) patch.type = b.type;
+      if (b.status !== undefined) patch.status = b.status as never;
+      if (b.startAt !== undefined) patch.startAt = parseOptionalIsoDate(b.startAt);
+      if (b.endAt !== undefined) patch.endAt = parseOptionalIsoDate(b.endAt);
+      if (b.config !== undefined) patch.config = b.config;
+      if (b.isActive !== undefined) patch.isActive = Boolean(b.isActive);
+
+      const row = await updateCampaign(tenantId, req.params.campaignId, patch);
+      await writeAudit(s.user.email, "loyalty.campaign.update", row.id);
+      return row;
+    } catch (e) {
+      const code = (e as Error & { statusCode?: number }).statusCode;
+      if (code === 400) {
+        return reply.code(400).send({
+          error:
+            (e as Error).message === "invalid_campaign_config"
+              ? "invalid_campaign_config"
+              : "validation_error",
+        });
+      }
+      if (code === 404) return reply.code(404).send({ error: "not_found" });
+      throw e;
+    }
+  });
+
+  app.get<{ Querystring: { limit?: string } }>(
+    "/redemptions",
     { preHandler: [authPreHandler] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
-      const activeOnly = req.query.active !== "false";
-      return listRewards(tenantId, activeOnly);
+      const lim = req.query.limit ? Number.parseInt(req.query.limit, 10) : 100;
+      const take = Number.isFinite(lim) && lim > 0 && lim <= 500 ? lim : 100;
+      return listRedemptionsForTenant(tenantId, take);
     },
   );
 
@@ -160,6 +421,47 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
         if (code === 409) {
           return reply.code(409).send({ error: "insufficient_points" });
         }
+        throw e;
+      }
+    },
+  );
+
+  app.post<{ Params: { redemptionId: string } }>(
+    "/redemptions/:redemptionId/approve",
+    { preHandler: [authPreHandler] },
+    async (req, reply) => {
+      const tenantId = requireTenantSession(req, reply);
+      if (!tenantId) return;
+      const s = req.authSession as SessionPayload;
+      try {
+        const row = await finalizePendingRedemption(tenantId, req.params.redemptionId);
+        await writeAudit(s.user.email, "loyalty.redemption.approve", row?.id ?? "");
+        return row;
+      } catch (e) {
+        const code = (e as Error & { statusCode?: number }).statusCode;
+        if (code === 404) return reply.code(404).send({ error: "not_found" });
+        if (code === 409) {
+          return reply.code(409).send({ error: "insufficient_points" });
+        }
+        throw e;
+      }
+    },
+  );
+
+  app.post<{ Params: { redemptionId: string } }>(
+    "/redemptions/:redemptionId/reject",
+    { preHandler: [authPreHandler] },
+    async (req, reply) => {
+      const tenantId = requireTenantSession(req, reply);
+      if (!tenantId) return;
+      const s = req.authSession as SessionPayload;
+      try {
+        const row = await rejectPendingRedemption(tenantId, req.params.redemptionId);
+        await writeAudit(s.user.email, "loyalty.redemption.reject", row.id);
+        return row;
+      } catch (e) {
+        const code = (e as Error & { statusCode?: number }).statusCode;
+        if (code === 404) return reply.code(404).send({ error: "not_found" });
         throw e;
       }
     },

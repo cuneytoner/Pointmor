@@ -22,7 +22,6 @@ export function LoginPage({ sessionInvalid }: LoginPageProps) {
 
   const [email, setEmail] = useState("admin@pointmor.local");
   const [password, setPassword] = useState("PointmorDev!Admin");
-  const [tenantSlug, setTenantSlug] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -36,11 +35,7 @@ export function LoginPage({ sessionInvalid }: LoginPageProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          email,
-          password,
-          tenantSlug: tenantSlug.trim() || undefined,
-        }),
+        body: JSON.stringify({ email, password }),
       });
       const data = (await res.json()) as { token?: string; error?: string };
       if (!res.ok || !data.token) {
@@ -61,11 +56,11 @@ export function LoginPage({ sessionInvalid }: LoginPageProps) {
       <div className="login-standalone__grid">
         <div className="login-standalone__form-col">
           <div className="login-card">
+            {/* Future: if a user belongs to multiple tenants, tenant selection can run after login (dedicated screen or modal). */}
             <div className="login-card__brand">
               <img src="/brand/pointmor-mark.svg" width={52} height={52} alt="" />
               <div>
                 <h1 className="login-card__title">{t("auth.login.title")}</h1>
-                <p className="login-card__subtitle">{t("auth.login.subtitle")}</p>
               </div>
             </div>
 
@@ -106,18 +101,6 @@ export function LoginPage({ sessionInvalid }: LoginPageProps) {
                   required
                   minLength={4}
                 />
-              </label>
-              <label className="login-form__label">
-                <span>{t("auth.login.workspaceCode")}</span>
-                <input
-                  className="login-form__input"
-                  type="text"
-                  name="tenantSlug"
-                  autoComplete="organization"
-                  value={tenantSlug}
-                  onChange={(e) => setTenantSlug(e.target.value)}
-                />
-                <span className="login-form__hint">{t("auth.login.workspaceHint")}</span>
               </label>
               <button
                 className="login-form__submit"

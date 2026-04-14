@@ -1,54 +1,87 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { useTranslation } from "../hooks/useTranslation";
+import { getLoyaltySummary, type LoyaltySummary } from "../lib/tenant-loyalty-api";
 
-/** Kiracı yöneticisi — çalışma alanı özeti. */
+/** Kiracı — sadakat özeti (Phase 2). */
 export function TenantDashboardPage() {
   const { t } = useTranslation();
+  const { token } = useAuth();
   const { auth, bootstrap } = useAdminDataContext();
+  const [summary, setSummary] = useState<LoyaltySummary | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const tenantId = auth?.tenant?.id;
-  const tenantRow = useMemo(() => {
-    if (!bootstrap?.tenants || !tenantId) return null;
-    return bootstrap.tenants.find((tn) => tn.id === tenantId) ?? null;
-  }, [bootstrap?.tenants, tenantId]);
+  const tenantName = auth?.tenant?.name ?? "";
 
   const sub = useMemo(() => {
     if (!bootstrap?.subscriptions || !tenantId) return null;
     return bootstrap.subscriptions.find((s) => s.tenant.id === tenantId) ?? null;
   }, [bootstrap?.subscriptions, tenantId]);
 
-  const teamCount = useMemo(() => {
-    if (!bootstrap?.users || !tenantId) return 0;
-    return bootstrap.users.filter((u) => u.tenantId === tenantId).length;
-  }, [bootstrap?.users, tenantId]);
+  useEffect(() => {
+    if (!token?.trim()) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setLoadError(false);
+    getLoyaltySummary(token)
+      .then((s) => {
+        if (!cancelled) setSummary(s);
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
-  const metrics = [
-    {
-      k: t("tenantDashboard.metrics.team"),
-      v: String(teamCount),
-      hint: t("tenantDashboard.metrics.teamHint"),
-    },
-    {
-      k: t("tenantDashboard.metrics.plan"),
-      v: sub?.plan.name ?? "—",
-      hint: t("tenantDashboard.metrics.planHint"),
-    },
-    {
-      k: t("tenantDashboard.metrics.subscription"),
-      v: sub?.status ?? "—",
-      hint: t("tenantDashboard.metrics.subscriptionHint"),
-    },
-  ];
+  const metrics = summary
+    ? [
+        {
+          k: t("tenantLoyalty.dash.totalCustomers"),
+          v: String(summary.totalCustomers),
+        },
+        {
+          k: t("tenantLoyalty.dash.visitsToday"),
+          v: String(summary.visitsToday),
+        },
+        {
+          k: t("tenantLoyalty.dash.pointsIssuedToday"),
+          v: String(summary.pointsIssuedToday),
+        },
+        {
+          k: t("tenantLoyalty.dash.redemptionsToday"),
+          v: String(summary.redemptionsToday),
+        },
+        {
+          k: t("tenantLoyalty.dash.activeCampaigns"),
+          v: String(summary.activeCampaigns),
+        },
+      ]
+    : [];
 
   return (
     <PageShell
-      eyebrow={t("tenantDashboard.eyebrow")}
-      title={t("tenantDashboard.title", { name: auth?.tenant?.name ?? "" })}
-      description={t("tenantDashboard.description")}
+      eyebrow={t("tenantLoyalty.dash.eyebrow")}
+      title={t("tenantLoyalty.dash.title", { name: tenantName })}
+      description={t("tenantLoyalty.dash.description")}
     >
+      <p className="admin-app__card-text data-table__muted" style={{ marginBottom: "1rem" }}>
+        {t("tenantLoyalty.common.utcNote")}
+      </p>
+
       <div className="dashboard-hero">
         <div className="dashboard-hero__text">
           <h2 className="dashboard-hero__title">{t("tenantDashboard.hero.title")}</h2>
@@ -59,19 +92,44 @@ export function TenantDashboardPage() {
         )}
       </div>
 
-      <div className="metric-grid metric-grid--3">
-        {metrics.map((m) => (
-          <div key={m.k} className="metric-card">
-            <div className="metric-card__label">{m.k}</div>
-            <div className="metric-card__value">{m.v}</div>
-            <div className="metric-card__hint">{m.hint}</div>
-          </div>
-        ))}
-      </div>
-
-      {tenantRow?.onboardingCompletedAt ? null : (
-        <p className="admin-app__card-text">{t("tenantDashboard.onboardingHint")}</p>
+      {loading ? (
+        <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
+      ) : loadError ? (
+        <p className="admin-app__card-text">{t("tenantLoyalty.dash.loadError")}</p>
+      ) : (
+        <div className="metric-grid metric-grid--4">
+          {metrics.map((m) => (
+            <div key={m.k} className="metric-card">
+              <div className="metric-card__label">{m.k}</div>
+              <div className="metric-card__value">{m.v}</div>
+            </div>
+          ))}
+        </div>
       )}
+
+      {sub ? (
+        <div className="admin-app__card admin-app__card--wide" style={{ marginTop: "1.25rem" }}>
+          <div className="metric-grid metric-grid--3">
+            <div className="metric-card">
+              <div className="metric-card__label">{t("tenantDashboard.metrics.plan")}</div>
+              <div className="metric-card__value">{sub.plan.name}</div>
+              <div className="metric-card__hint">{t("tenantLoyalty.dash.subscriptionHint")}</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-card__label">{t("tenantDashboard.metrics.subscription")}</div>
+              <div className="metric-card__value">{sub.status}</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-card__label">{t("usage.upgradeCta")}</div>
+              <div className="metric-card__value">
+                <Link to="/pricing" className="admin-secondary-btn">
+                  {t("usage.upgradeCta")}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </PageShell>
   );
 }

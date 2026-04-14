@@ -90,7 +90,7 @@ await prisma.user.upsert({
   where: { email: "owner@demo.pointmor.local" },
   create: {
     email: "owner@demo.pointmor.local",
-    name: "Demo Cafe — işletme sahibi",
+    name: "Demo Cafe — owner",
     passwordHash: DEV_PASSWORDS.operator,
     platformAdmin: false,
     tenantId: demoTenant.id,

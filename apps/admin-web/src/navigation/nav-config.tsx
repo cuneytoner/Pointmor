@@ -3,10 +3,12 @@ import {
   IconBuilding,
   IconCredit,
   IconDashboard,
+  IconGift,
   IconLayers,
   IconShield,
   IconUsers,
   IconSettings,
+  IconVisit,
 } from "../components/nav-icons";
 
 /** Placeholder ikon — faturalama */
@@ -84,10 +86,40 @@ export const PLATFORM_NAV: NavItemConfig[] = [
 export const TENANT_NAV: NavItemConfig[] = [
   {
     to: "/app/dashboard",
-    labelKey: "nav.tenantDashboard",
+    labelKey: "tenantLoyalty.nav.dashboard",
     Icon: IconDashboard,
     tenant: true,
     end: true,
+  },
+  {
+    to: "/app/customers",
+    labelKey: "tenantLoyalty.nav.customers",
+    Icon: IconUsers,
+    tenant: true,
+  },
+  {
+    to: "/app/visits",
+    labelKey: "tenantLoyalty.nav.visits",
+    Icon: IconVisit,
+    tenant: true,
+  },
+  {
+    to: "/app/rewards",
+    labelKey: "tenantLoyalty.nav.rewards",
+    Icon: IconGift,
+    tenant: true,
+  },
+  {
+    to: "/app/campaigns",
+    labelKey: "tenantLoyalty.nav.campaigns",
+    Icon: IconLayers,
+    tenant: true,
+  },
+  {
+    to: "/app/redemptions",
+    labelKey: "tenantLoyalty.nav.redemptions",
+    Icon: IconCredit,
+    tenant: true,
   },
   {
     to: "/app/billing",

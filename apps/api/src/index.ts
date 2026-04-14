@@ -13,6 +13,8 @@ import { registerTenantRoutes } from "./routes/tenants.js";
 import { registerUserRoutes } from "./routes/users.js";
 import { registerWebhookRoutes } from "./routes/webhooks.js";
 import { registerLoyaltyRoutes } from "./routes/loyalty.js";
+import { registerPublicLoyaltyRoutes } from "./routes/public-loyalty.js";
+import { registerPublicTenantRoutes } from "./routes/public-tenants.js";
 
 const port = Number(process.env.PORT) || 3000;
 const corsOriginsRaw = process.env.CORS_ORIGINS ?? "";
@@ -50,6 +52,8 @@ await registerSubscriptionRoutes(app);
 await registerUserRoutes(app);
 await registerAuditRoutes(app);
 await registerWebhookRoutes(app);
+await registerPublicLoyaltyRoutes(app);
+await registerPublicTenantRoutes(app);
 await registerLoyaltyRoutes(app);
 
 const address = await app.listen({ port, host: "0.0.0.0" });

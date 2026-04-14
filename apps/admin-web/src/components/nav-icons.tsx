@@ -162,6 +162,48 @@ export function IconSettings(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+/** Ziyaret / işlem kaydı */
+export function IconVisit(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      {...props}
+    >
+      <path d="M12 22s8-4 8-10V7l-8-4-8 4v5c0 6 8 10 8 10z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  );
+}
+
+export function IconGift(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      {...props}
+    >
+      <path d="M20 12v8a2 2 0 01-2 2H6a2 2 0 01-2-2v-8" />
+      <path d="M4 12h16a2 2 0 002-2V8a2 2 0 00-2-2h-3.5a3.5 3.5 0 01-7 0H4a2 2 0 00-2 2v2a2 2 0 002 2z" />
+      <path d="M12 6v16" />
+    </svg>
+  );
+}
+
 export function IconShield(props: SVGProps<SVGSVGElement>) {
   return (
     <svg

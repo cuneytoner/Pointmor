@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { AdminDataProvider, useAdminDataContext } from "../contexts/AdminDataContext";
 import { useLocale } from "../contexts/LocaleContext";
@@ -21,10 +21,23 @@ import { PlatformDashboardPage } from "../pages/PlatformDashboardPage";
 import { PricingPage } from "../pages/PricingPage";
 import { SubscriptionsPage } from "../pages/SubscriptionsPage";
 import { TenantBillingPage } from "../pages/TenantBillingPage";
+import { TenantCampaignsPage } from "../pages/TenantCampaignsPage";
+import { TenantCustomerDetailPage } from "../pages/TenantCustomerDetailPage";
+import { TenantCustomersPage } from "../pages/TenantCustomersPage";
 import { TenantDashboardPage } from "../pages/TenantDashboardPage";
+import { TenantRedemptionsPage } from "../pages/TenantRedemptionsPage";
+import { TenantRewardsPage } from "../pages/TenantRewardsPage";
 import { TenantSettingsPage } from "../pages/TenantSettingsPage";
+import { TenantVisitsPage } from "../pages/TenantVisitsPage";
 import { TenantsPage } from "../pages/TenantsPage";
 import { UsersPage } from "../pages/UsersPage";
+import { CustomerPwaLayout } from "../customer-pwa/CustomerPwaLayout";
+import { CustomerActivityPage } from "../pages/customer/CustomerActivityPage";
+import { CustomerClaimPage } from "../pages/customer/CustomerClaimPage";
+import { CustomerHomePage } from "../pages/customer/CustomerHomePage";
+import { CustomerProfilePage } from "../pages/customer/CustomerProfilePage";
+import { CustomerRewardsPage } from "../pages/customer/CustomerRewardsPage";
+import { CUSTOMER_LAST_TENANT_SLUG_KEY } from "../lib/customer-portal-api";
 
 function RootHomeRedirect() {
   const { auth } = useAdminDataContext();
@@ -38,11 +51,30 @@ function SessionHomeRedirect() {
   return <Navigate to={defaultHomePath(auth)} replace />;
 }
 
+function CustomerPwaStandaloneEntry() {
+  const standalone =
+    typeof window !== "undefined" &&
+    (window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone ===
+        true);
+  const last =
+    typeof window !== "undefined"
+      ? window.localStorage.getItem(CUSTOMER_LAST_TENANT_SLUG_KEY)?.trim()
+      : "";
+  if (standalone && last) {
+    return <Navigate to={`/c/${encodeURIComponent(last)}`} replace />;
+  }
+  return <Navigate to="/login" replace />;
+}
+
 export function AppRoutes() {
+  const location = useLocation();
   const { token, setToken, refreshKey } = useAuth();
   const locale = useLocale();
   const { t } = useTranslation();
   const adminData = useAdminData(token, refreshKey, locale);
+
+  const isCustomerPortalRoute = /^\/c\/[^/]+/.test(location.pathname);
 
   useEffect(() => {
     if (!adminData.authInvalid) return;
@@ -56,6 +88,20 @@ export function AppRoutes() {
     !adminData.authInvalid &&
     Boolean(adminData.auth?.user?.id);
 
+  if (isCustomerPortalRoute) {
+    return (
+      <Routes>
+        <Route path="/c/:tenantSlug" element={<CustomerPwaLayout />}>
+          <Route index element={<CustomerHomePage />} />
+          <Route path="rewards" element={<CustomerRewardsPage />} />
+          <Route path="activity" element={<CustomerActivityPage />} />
+          <Route path="claim/:rewardId" element={<CustomerClaimPage />} />
+          <Route path="profile" element={<CustomerProfilePage />} />
+        </Route>
+      </Routes>
+    );
+  }
+
   if (sessionLoading) {
     return <FullScreenSpinner label={t("app.verifyingSession")} />;
   }
@@ -63,6 +109,7 @@ export function AppRoutes() {
   if (!sessionOk) {
     return (
       <Routes>
+        <Route path="/" element={<CustomerPwaStandaloneEntry />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route
           path="/login"
@@ -98,6 +145,12 @@ export function AppRoutes() {
           <Route path="/app" element={<RequireTenantLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<TenantDashboardPage />} />
+            <Route path="customers" element={<TenantCustomersPage />} />
+            <Route path="customers/:customerId" element={<TenantCustomerDetailPage />} />
+            <Route path="visits" element={<TenantVisitsPage />} />
+            <Route path="rewards" element={<TenantRewardsPage />} />
+            <Route path="campaigns" element={<TenantCampaignsPage />} />
+            <Route path="redemptions" element={<TenantRedemptionsPage />} />
             <Route path="billing" element={<TenantBillingPage />} />
             <Route path="settings" element={<TenantSettingsPage />} />
           </Route>
