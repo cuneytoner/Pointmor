@@ -44,13 +44,16 @@ Pre-alpha demo ortamı: Debian VM üzerinde Docker Compose, PostgreSQL ayrı vol
 - Varsayılan: `RUN_MIGRATIONS_ON_START=true` → API konteyneri açılışta `prisma migrate deploy` çalıştırır.
 - Ayrıca `./infra/scripts/migrate-demo.sh` ile çalışan API’ye karşı idempotent tekrar çalıştırılabilir.
 
-## Demo seed (host)
+## Demo seed (VM)
 
-Konteyner üretim imajında `tsx` yoktur; seed **VM/host Node** ile çalıştırılır:
+`./infra/scripts/seed-demo.sh` **`api-demo` konteyneri içinde** `npm run db:seed:demo` çalıştırır; sunucuda ayrıca Node/npm kurmanız gerekmez. Önce stack ayakta olmalı (`postgres-demo`, `api-demo`).
 
-1. `infra/docker/.env.demo` içinde `DATABASE_URL_SEED` tanımlayın (ör. `127.0.0.1:${POSTGRES_DEMO_PORT}` ile compose’taki Postgres’e).
-2. `DEMO_ADMIN_PASSWORD` ve `DEMO_OPERATOR_PASSWORD` (≥12 karakter).
-3. `./infra/scripts/seed-demo.sh`
+1. `infra/docker/.env.demo` içinde **`DATABASE_URL_DEMO`** (compose ağı: `postgres-demo`) ve **`DEMO_ADMIN_PASSWORD`**, **`DEMO_OPERATOR_PASSWORD`** (≥12 karakter).
+2. `./infra/scripts/seed-demo.sh`
+
+İsteğe bağlı e-postalar: `DEMO_ADMIN_EMAIL`, `DEMO_OPERATOR_EMAIL`.
+
+Yerel geliştirici makinede doğrudan Postgres’e bağlanıp seed çalıştırmak isterseniz: `DATABASE_URL=... npm run db:seed:demo -w api` (`apps/api`); `DATABASE_URL_SEED` artık `seed-demo.sh` için zorunlu değildir.
 
 **Üretim ortamında bu hesapları ve şifreleri kullanmayın.**
 

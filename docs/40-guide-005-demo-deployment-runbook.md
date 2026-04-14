@@ -19,8 +19,8 @@ Debian VM + Docker Compose + isteğe bağlı Cloudflare Tunnel. Ayrıntılı ba�
 | `RUN_MIGRATIONS_ON_START` | `true` → API açılışta migrate (idempotent). |
 | `API_HOST_PORT`, `ADMIN_HOST_PORT` | VM’de localhost test portları. |
 | `CLOUDFLARE_TUNNEL_TOKEN` | Tunnel servisi için; boşsa profil kullanmayın. |
-| `DATABASE_URL_SEED` | (Opsiyonel) Host’tan seed; localhost + `POSTGRES_DEMO_PORT`. |
-| `DEMO_ADMIN_PASSWORD`, `DEMO_OPERATOR_PASSWORD` | Yalnız seed için; ≥12 karakter. |
+| `DEMO_ADMIN_PASSWORD`, `DEMO_OPERATOR_PASSWORD` | Seed için; ≥12 karakter. `seed-demo.sh` konteyner içinde `DATABASE_URL_DEMO` kullanır. |
+| `DATABASE_URL_SEED` | (İsteğe bağlı, yerel CLI) Host’tan doğrudan `npm run db:seed:demo` için localhost URL; `seed-demo.sh` kullanıyorsanız gerekmez. |
 
 Şablon:
 
@@ -83,16 +83,12 @@ API açık değilse önce `./infra/scripts/deploy-demo.sh` veya `docker compose 
 
 ## 5. Seed (yalnız manuel / ilk kurulum)
 
-Otomatik deploy ile **çalıştırılmaz**. Host’ta Node + `npm ci` gerekir.
+Otomatik deploy ile **çalıştırılmaz**. `seed-demo.sh`, **`api-demo` konteyneri içinde** seed çalıştırır (sunucuda ekstra Node/npm gerekmez).
 
-`infra/docker/.env.demo` içinde:
-
-- `DATABASE_URL_SEED=postgresql://USER:PASS@127.0.0.1:55432/DB` (port `POSTGRES_DEMO_PORT` ile uyumlu)
-- `DEMO_ADMIN_PASSWORD`, `DEMO_OPERATOR_PASSWORD`
+`infra/docker/.env.demo` içinde: `DATABASE_URL_DEMO`, `DEMO_ADMIN_PASSWORD`, `DEMO_OPERATOR_PASSWORD` (≥12 karakter). `api-demo` çalışıyor olmalı.
 
 ```bash
 cd /opt/pointmor-demo
-npm ci
 ./infra/scripts/seed-demo.sh
 ```
 

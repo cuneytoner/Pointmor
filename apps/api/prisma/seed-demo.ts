@@ -4,8 +4,9 @@
  * Üretim ortamında kullanmayın — yalnızca izole demo DB.
  */
 import { config } from "dotenv";
+import { existsSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { hashSync } from "bcryptjs";
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
@@ -29,7 +30,13 @@ if (adminPw.length < 12 || operatorPw.length < 12) {
   process.exit(1);
 }
 
-const { prisma } = await import("../src/lib/prisma.js");
+// Docker imajında yalnızca dist/ vardır; yerel geliştirmede dist yoksa src kullanılır.
+const apiRoot = path.join(dir, "..");
+const distPrisma = path.join(apiRoot, "dist/lib/prisma.js");
+const prismaEntry = existsSync(distPrisma)
+  ? pathToFileURL(distPrisma).href
+  : pathToFileURL(path.join(apiRoot, "src/lib/prisma.ts")).href;
+const { prisma } = await import(prismaEntry);
 
 const rounds = 12;
 const hashAdmin = hashSync(adminPw, rounds);
