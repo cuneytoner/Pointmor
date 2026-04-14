@@ -5,10 +5,23 @@
 
 FROM node:20-bookworm-slim AS build
 WORKDIR /app
+
+# Prisma query engine (Debian slim) için OpenSSL
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
 COPY apps/admin-web/package.json apps/admin-web/
-RUN npm ci
+
+# npm ci → workspace postinstall: prisma generate — şema ve config bu aşamada hazır olmalı
+COPY apps/api/prisma ./apps/api/prisma
+COPY apps/api/prisma.config.ts ./apps/api/prisma.config.ts
+
+# prisma.config.ts datasource; generate DB’ye bağlanmaz, yalnızca config doğrulaması için
+RUN DATABASE_URL="postgresql://build:build@127.0.0.1:5432/pointmor_build" npm ci
+
 COPY apps/api ./apps/api
 RUN npm run build -w api
 
@@ -17,7 +30,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends wget ca-certificates \
+  && apt-get install -y --no-install-recommends wget ca-certificates openssl \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
@@ -27,8 +40,8 @@ COPY apps/api/prisma.config.ts ./apps/api/prisma.config.ts
 COPY apps/admin-web/package.json apps/admin-web/
 RUN npm ci --omit=dev --ignore-scripts
 
-RUN npm install prisma@7.7.0 --no-save --workspace=api \
-  && cd apps/api && npx prisma generate
+RUN DATABASE_URL="postgresql://build:build@127.0.0.1:5432/pointmor_build" sh -c \
+  'npm install prisma@7.7.0 --no-save --workspace=api && cd apps/api && npx prisma generate'
 
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 
