@@ -44,6 +44,8 @@ RUN DATABASE_URL="postgresql://build:build@127.0.0.1:5432/pointmor_build" sh -c 
   'npm install prisma@7.7.0 --no-save --workspace=api && cd apps/api && npx prisma generate'
 
 COPY --from=build /app/apps/api/dist ./apps/api/dist
+# Derlenmiş JS `dist/lib/*.js` içinden `../generated/prisma` import eder; Prisma çıktısı `src/generated`
+COPY --from=build /app/apps/api/src/generated ./apps/api/dist/generated
 
 COPY apps/api/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
