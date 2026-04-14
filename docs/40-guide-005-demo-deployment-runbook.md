@@ -58,7 +58,15 @@ git pull origin main
 ./infra/scripts/deploy-demo.sh
 ```
 
-Ne yapar: `docker compose build` → `up -d` (postgres, api, admin) → `prisma migrate deploy` → `health-check-demo.sh`. **Seed çalıştırmaz.**
+Cloudflare tunnel’ı da aynı deploy ile kaldırmak için:
+
+```bash
+./infra/scripts/deploy-demo.sh --cloud
+```
+
+(`CLOUDFLARE_TUNNEL_TOKEN` dolu olmalı; ayrıntı bölüm 7.)
+
+Ne yapar: `docker compose build` → `up -d` (postgres, api, admin; `--cloud` ile ayrıca `cloudflared`) → `prisma migrate deploy` → `health-check-demo.sh`. **Seed çalıştırmaz.**
 
 ---
 
@@ -107,15 +115,62 @@ Script (aynı işlev: `healthcheck-demo.sh` → `health-check-demo.sh`):
 
 ## 7. Cloudflare Tunnel
 
+`CLOUDFLARE_TUNNEL_TOKEN` `infra/docker/.env.demo` içinde tanımlı olmalı (repoda tutulmaz). Ingress hostname → origin eşlemesini Zero Trust panelinde yapın (`api-demo` / `admin-web-demo` servis portları).
+
+### 7.1 Tunnel’ı başlatma veya güncelleme
+
+Stack zaten ayaktaysa (postgres, api, admin) yalnızca tunnel servisini de eklemek / güncellemek için:
+
 ```bash
 cd /opt/pointmor-demo
-set -a && . infra/docker/.env.demo && set +a
 docker compose -f infra/docker/docker-compose.demo.yml \
   --env-file infra/docker/.env.demo \
   --profile cloudflare up -d
 ```
 
-`CLOUDFLARE_TUNNEL_TOKEN` dolu olmalı. Ingress hostname → origin eşlemesini Zero Trust panelinde yapın (`api-demo` / `admin-web-demo` servis portları).
+Komut sırası esnek; aşağıdaki ile aynıdır:
+
+```bash
+docker compose --profile cloudflare \
+  -f infra/docker/docker-compose.demo.yml \
+  --env-file infra/docker/.env.demo \
+  up -d
+```
+
+### 7.2 `./infra/scripts/deploy-demo.sh` ve tunnel
+
+**Varsayılan:** `deploy-demo.sh` yalnızca `postgres-demo`, `api-demo`, `admin-web-demo` kaldırır. **`deploy-demo.sh --cloud`** aynı akışta **`cloudflared`**’i de başlatır (`CLOUDFLARE_TUNNEL_TOKEN` dolu olmalı).
+
+CI/GitHub Actions hâlâ tunnel başlatmaz; gerekirse sunucuda `deploy-demo.sh --cloud` veya aşağıdaki `docker compose … --profile cloudflare up -d` kullanın.
+
+**`--cloud` kullanmadıysanız** ve dışarıdan Cloudflare gerekiyorsa, pull + `deploy-demo.sh` **ardından** yukarıdaki `docker compose … --profile cloudflare up -d` komutunu tekrar çalıştırın (idempotent).
+
+### 7.3 Sunucu yeniden başlatma (reboot)
+
+Compose dosyasındaki servislerde `restart: unless-stopped` vardır; Docker daemon açıldığında konteynerler genelde yeniden kalkar. **Tunnel da** son başarılı `up` ile profile dahil edildiyse aynı proje altında yeniden başlamalıdır.
+
+Kontrol:
+
+```bash
+docker compose -f infra/docker/docker-compose.demo.yml \
+  --env-file infra/docker/.env.demo \
+  --profile cloudflare ps
+```
+
+`cloudflared` yoksa veya `Exit` görüyorsanız, **7.1** komutunu tekrar çalıştırın.
+
+İsteğe bağlı: VM’de Docker’ın açılışta çalışması için `sudo systemctl enable docker` (dağıtıma göre).
+
+### 7.4 İlk kurulumda tek seferde stack + tunnel
+
+```bash
+cd /opt/pointmor-demo
+docker compose -f infra/docker/docker-compose.demo.yml \
+  --env-file infra/docker/.env.demo \
+  --profile cloudflare up -d
+```
+
+(İmajlar yoksa önce `./infra/scripts/deploy-demo.sh` ile build edip stack’i kaldırmanız gerekir; ardından tunnel için **7.1** yeterli.)
 
 ---
 

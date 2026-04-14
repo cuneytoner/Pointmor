@@ -15,4 +15,4 @@ Token’ı Cloudflare Zero Trust → Tunnels → ilgili tunnel → **Configure**
 ## Ayrıntı
 
 - [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md) — Cloudflare ve ingress notları  
-- [`40-guide-005-demo-deployment-runbook.md`](./40-guide-005-demo-deployment-runbook.md) — bölüm 7  
+- [`40-guide-005-demo-deployment-runbook.md`](./40-guide-005-demo-deployment-runbook.md) — **bölüm 7** (tunnel komutu, `deploy-demo.sh` ile ilişki, reboot / yeni deployment sonrası ne yapılır)  

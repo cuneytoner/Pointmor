@@ -36,6 +36,7 @@ Pre-alpha demo ortamı: Debian VM üzerinde Docker Compose, PostgreSQL ayrı vol
 ## Cloudflare Tunnel
 
 - `docker compose -f infra/docker/docker-compose.demo.yml --env-file infra/docker/.env.demo --profile cloudflare up -d` ile `cloudflared` başlar; `CLOUDFLARE_TUNNEL_TOKEN` `infra/docker/.env.demo` içinde olmalıdır.
+- **Varsayılan:** `./infra/scripts/deploy-demo.sh` tunnel başlatmaz. **`./infra/scripts/deploy-demo.sh --cloud`** ile `cloudflared` de kalkar (`CLOUDFLARE_TUNNEL_TOKEN` gerekir). Aksi halde yeni deployment sonrası tunnel için compose’u [`40-guide-005-demo-deployment-runbook.md`](./40-guide-005-demo-deployment-runbook.md) bölüm 7’deki gibi çalıştırın.
 - Ingress kurallarını Zero Trust panelinde **Docker servis adreslerine** değil, tunnel çıkışına göre ayarlayın: ör. `https://api-demo…` → `http://api-demo:3000` ağı içindeki hostname’ler (Cloudflare dokümantasyonuna göre genelde public hostname → origin URL; VM’de tunnel konteyneri `demo` ağına bağlıdır).
 
 ## Migration
