@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
@@ -26,18 +26,18 @@ export function TenantVisitsPage() {
   const [qcName, setQcName] = useState("");
   const [qcPhone, setQcPhone] = useState("");
 
-  const refreshCustomers = () => {
+  const refreshCustomers = useCallback(() => {
     if (!token) return;
     getCustomers(token)
       .then(setCustomers)
       .catch(() => setLoadError(true));
-  };
+  }, [token]);
 
   useEffect(() => {
     if (!token?.trim()) return;
     setLoadError(false);
     refreshCustomers();
-  }, [token]);
+  }, [token, refreshCustomers]);
 
   const filtered = useMemo(() => {
     if (!customers) return [];

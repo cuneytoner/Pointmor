@@ -9,7 +9,9 @@
     "dev:portal": "npm run dev --workspace admin-web",
     "dev:api": "npm run dev --workspace api",
     "build": "npm run build --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "ci:prisma": "npm run db:validate -w api && npm run db:generate -w api",
+    "ci:i18n": "npm run i18n:validate -w admin-web"
   },
   "engines": {
     "node": ">=20"

@@ -4,13 +4,13 @@ Bu paket, Pointmor monorepo yapısına daha yakın ikinci adım taslaklarını i
 
 İçerik:
 - repo içi önerilen dosya ağacı
-- demo için örnek `docker-compose.demo.yml`
+- demo için örnek `docker-compose.demo.yml` (`examples/` altı bazen eski; canlı: `infra/docker/`)
 - `.env.demo.example`
-- GitHub Actions `ci.yml` ve `deploy-demo.yml` taslakları
-- deploy/migrate/seed/healthcheck script taslakları
-- Cursor için repo’ya daha yakın prompt paketi
+- Cursor prompt’ları (`prompts/`)
+
+**Repoda uygulanmış (kök):** `.github/workflows/ci.yml` (Node 20, `npm ci`, Prisma validate/generate, lint, i18n, build; `cache: npm`), `.github/workflows/deploy-demo.yml`, `infra/scripts/*.sh`, Docker/Compose dosyaları.
 
 Notlar:
-- Bu dosyalar doğrudan kopyala-yapıştırdan önce repo script isimleriyle eşleştirilmelidir.
+- `examples/` ile kök dosyalar çelişirse **kök + `docs/40-guide-*`** esas alınır.
 - `db:seed:demo` gibi scriptler örnek olarak verilmiştir. Eğer repoda yoksa eklenmelidir.
 - `admin-web` static build çıkış klasörü için Vite varsayımı (`dist/`) esas alınmıştır.

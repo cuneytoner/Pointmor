@@ -9,41 +9,51 @@ export function CustomerHomePage() {
   const { t } = useTranslation();
   const locale = useLocale();
   const { tenantSlug, data, celebrationGain, clearCelebration } = useCustomerPwa();
-  if (!data) return null;
 
-  const base = `/c/${encodeURIComponent(tenantSlug)}`;
-  const tenantName = data.tenant?.name ?? data.customer.name;
-  const lastVisit = data.recentVisits[0];
+  const base = useMemo(
+    () => `/c/${encodeURIComponent(tenantSlug)}`,
+    [tenantSlug],
+  );
+
+  const tenantName = data ? (data.tenant?.name ?? data.customer.name) : "";
+  const lastVisit = data?.recentVisits[0];
+
   const fmt = (iso: string) =>
     new Date(iso).toLocaleString(toIntlLocale(locale), {
       dateStyle: "short",
       timeStyle: "short",
     });
 
-  const activeRewards = useMemo(
-    () => data.rewards.filter((r) => r.isActive).sort((a, b) => a.pointsCost - b.pointsCost),
-    [data.rewards],
-  );
+  const activeRewards = useMemo(() => {
+    if (!data) return [];
+    return data.rewards
+      .filter((r) => r.isActive)
+      .sort((a, b) => a.pointsCost - b.pointsCost);
+  }, [data]);
 
   const nextReward = useMemo(() => {
-    if (activeRewards.length === 0) return null;
+    if (activeRewards.length === 0 || !data) return null;
     const needUnlock = activeRewards.find((r) => r.pointsCost > data.pointsBalance);
     return needUnlock ?? activeRewards[0];
-  }, [activeRewards, data.pointsBalance]);
+  }, [activeRewards, data]);
 
   const nextProgressPct = useMemo(() => {
-    if (!nextReward || nextReward.pointsCost <= 0) return 100;
+    if (!data || !nextReward || nextReward.pointsCost <= 0) return 100;
     return Math.min(100, Math.round((data.pointsBalance / nextReward.pointsCost) * 100));
-  }, [data.pointsBalance, nextReward]);
+  }, [data, nextReward]);
 
-  const ptsToNext = nextReward ? Math.max(0, nextReward.pointsCost - data.pointsBalance) : 0;
-  const canRedeemSomething = activeRewards.some((r) => data.pointsBalance >= r.pointsCost);
+  const ptsToNext = nextReward && data ? Math.max(0, nextReward.pointsCost - data.pointsBalance) : 0;
+  const canRedeemSomething = Boolean(
+    data && activeRewards.some((r) => data.pointsBalance >= r.pointsCost),
+  );
 
   useEffect(() => {
     if (!celebrationGain || celebrationGain <= 0) return;
     const id = window.setTimeout(() => clearCelebration(), 7800);
     return () => window.clearTimeout(id);
   }, [celebrationGain, clearCelebration]);
+
+  if (!data) return null;
 
   return (
     <div className="customer-pwa__home">

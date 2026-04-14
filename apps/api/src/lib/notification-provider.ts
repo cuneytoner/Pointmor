@@ -6,7 +6,6 @@ export type NotificationProvider = (
 
 /** Üretim öncesi: konsola yazar; SMS/e-posta sağlayıcısı burada implement edilir. */
 export const logNotificationProvider: NotificationProvider = async (action) => {
-  // eslint-disable-next-line no-console
   console.info("[Pointmor notify:simulate]", {
     actionId: action.id,
     type: action.type,

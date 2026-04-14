@@ -170,7 +170,13 @@
   "tenantSettings": {
     "eyebrow": "Workspace",
     "title": "Einstellungen",
-    "description": "Workspace-Einstellungen folgen (demnächst)."
+    "description": "Workspace-Einstellungen und Kundeneinstieg.",
+    "portal": {
+      "title": "Kundeneinstieg (QR)",
+      "description": "Link oder QR teilen; Kunden sehen Punkte und können Prämien zur Freigabe durch Personal anfragen.",
+      "copy": "Link kopieren",
+      "copied": "Kopiert"
+    }
   },
   "dashboard": {
     "badgeLive": "Live-API",

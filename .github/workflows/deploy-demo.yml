@@ -1,0 +1,46 @@
+# Debian VM üzerinde Docker Compose demo deploy.
+# Sırlar GitHub Secrets içinde tutulur; repo içine yazılmaz.
+#
+# Gerekli sırlar: bkz. docs/40-guide-004-demo-deployment.md (GitHub secrets listesi)
+#
+# İsteğe bağlı: yalnızca CI yeşil olduktan sonra deploy için tetikleyiciyi
+# `workflow_run` (workflows: ["CI"]) ile değiştirebilirsiniz.
+
+name: Deploy demo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-demo-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: demo
+    steps:
+      - name: SSH known_hosts (GitHub runner → demo sunucu)
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -H "${{ secrets.DEMO_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEMO_HOST }}
+          username: ${{ secrets.DEMO_USER }}
+          key: ${{ secrets.DEMO_SSH_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            REPO="${{ secrets.DEMO_REPO_PATH }}"
+            cd "$REPO"
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+            chmod +x infra/scripts/deploy-demo.sh infra/scripts/health-check-demo.sh infra/scripts/healthcheck-demo.sh
+            ./infra/scripts/deploy-demo.sh

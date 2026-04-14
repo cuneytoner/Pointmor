@@ -1,0 +1,76 @@
+# Pointmor pre-alpha demo stack — repo kökünden:
+# docker compose -f infra/docker/docker-compose.demo.yml --env-file infra/docker/.env.demo up -d
+# Ayrı volume: postgres_demo_data (dev DB ile karışmaz).
+
+name: pointmor-demo
+
+services:
+  postgres-demo:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_DEMO_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_DEMO_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DEMO_DB}
+    volumes:
+      - postgres_demo_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${POSTGRES_DEMO_PORT:-55432}:5432"
+    networks: [demo]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api-demo:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL_DEMO}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      CUSTOMER_PORTAL_JWT_SECRET: ${CUSTOMER_PORTAL_JWT_SECRET:-}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      RUN_MIGRATIONS_ON_START: ${RUN_MIGRATIONS_ON_START:-true}
+    depends_on:
+      postgres-demo:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${API_HOST_PORT:-3000}:3000"
+    networks: [demo]
+
+  admin-web-demo:
+    build:
+      context: ../..
+      dockerfile: apps/admin-web/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${PUBLIC_API_BASE_URL}
+    restart: unless-stopped
+    depends_on:
+      api-demo:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${ADMIN_HOST_PORT:-8080}:80"
+    networks: [demo]
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks: [demo]
+    depends_on:
+      - api-demo
+      - admin-web-demo
+    profiles: [cloudflare]
+
+volumes:
+  postgres_demo_data:
+    name: pointmor_postgres_demo_data
+
+networks:
+  demo:
+    name: pointmor_demo

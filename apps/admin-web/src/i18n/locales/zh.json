@@ -1,0 +1,508 @@
+{
+  "common": {
+    "appName": "Pointmor",
+    "ellipsis": "…",
+    "email": "Email",
+    "loadingBody": "Loading data…",
+    "slug": "Slug",
+    "id": "ID"
+  },
+  "auth": {
+    "login": {
+      "title": "Pointmor",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Continue",
+      "submitting": "Signing in…",
+      "forgot": "Forgot password",
+      "register": "Create account",
+      "error": "Sign-in failed. Check your credentials.",
+      "sessionInvalid": "Session expired. Sign in again.",
+      "passwordPlaceholder": "••••••••"
+    }
+  },
+  "app": {
+    "verifyingSession": "Verifying session…"
+  },
+  "customerPortal": {
+    "loading": "Loading…",
+    "title": "Loyalty",
+    "signInTitle": "Sign in with phone",
+    "gateHeadline": "See your points in seconds",
+    "gateSub": "Use the phone number we have on file from checkout.",
+    "gateRewardsTeaser": "{{count}} rewards in this program",
+    "gateCampaignAccent": "Now live: {{name}}",
+    "gatePreviewAria": "What you can unlock",
+    "continueSeePoints": "Show my points",
+    "phoneRequired": "Enter your phone number to continue.",
+    "phone": "Phone",
+    "phonePlaceholder": "Same number as in store",
+    "continue": "Continue",
+    "signingIn": "Signing in…",
+    "signOut": "Leave",
+    "balance": "Points balance",
+    "lastEarn": "Last earn: +{{points}} pts · {{when}}",
+    "lastEarnMicro": "+{{points}} pts on your last visit · {{when}}",
+    "visits": "Recent visits",
+    "rewards": "Rewards",
+    "rewardsTitle": "Rewards",
+    "rewardsLead": "Use points you’ve earned. Staff confirms at the register.",
+    "campaigns": "Campaigns",
+    "pendingClaims": "Awaiting staff approval",
+    "recentRedemptions": "Redeemed",
+    "claim": "Request reward",
+    "claiming": "Sending…",
+    "claimNote": "After you request, staff confirms at the register.",
+    "claimTitle": "Use reward",
+    "claimHint": "Show this screen to staff so they can confirm your request.",
+    "claimPendingCashier": "Waiting for staff — reference:",
+    "startClaim": "Request reward",
+    "rewardNotFound": "Reward not found.",
+    "backToRewards": "Back to rewards",
+    "pointsCost": "{{n}} pts",
+    "needMorePoints": "{{n}} more points to unlock",
+    "useReward": "Use",
+    "showCashierScreen": "Cashier view",
+    "statusPending": "Pending",
+    "ctaUseReward": "Use a reward",
+    "ctaActivity": "Activity",
+    "seeAll": "See all",
+    "navHome": "Home",
+    "navRewards": "Rewards",
+    "navActivity": "Activity",
+    "navAria": "Customer sections",
+    "offlineStale": "Offline — showing last saved data.",
+    "activityTitle": "Activity",
+    "activityVisit": "Visit",
+    "activityEmpty": "No activity yet.",
+    "activityFilterAria": "Filter activity",
+    "filterAll": "All",
+    "filterEarned": "Earned",
+    "filterRedeemed": "Redeemed",
+    "profileTitle": "Member",
+    "profileLead": "Details from your last sign-in on this device.",
+    "noRewards": "No rewards available.",
+    "noVisits": "No visits yet.",
+    "noVisitsYet": "Shop once — your points will show up here.",
+    "noCampaigns": "No active campaigns.",
+    "loadError": "Could not load. Try again.",
+    "notFoundTenant": "This store link is invalid.",
+    "customerNotFound": "No loyalty account for this phone.",
+    "insufficientPoints": "Not enough points.",
+    "celebrateGain": "+{{points}} pts — you’re gaining momentum",
+    "celebrateDismiss": "Nice",
+    "almostFreeLine": "You’re closer than you think.",
+    "nextRewardTitle": "Next reward",
+    "nextRewardProgress": "{{pct}}% toward {{name}}",
+    "nextRewardPointsAway": "{{points}} pts to unlock {{name}}",
+    "nextRewardUnlocked": "You can redeem now — pick a reward.",
+    "noAccountHint": "No account on this number? Ask staff to enroll you at the register.",
+    "campaignTypes": {
+      "BONUS_POINTS": "Bonus",
+      "SPEND_THRESHOLD_BONUS": "Threshold",
+      "FIRST_VISIT_BONUS": "First visit"
+    }
+  },
+  "shell": {
+    "brandAria": "Main navigation",
+    "platformConsole": "Platform console",
+    "tenantApp": "Workspace app",
+    "statusOnline": "Online",
+    "language": "Language",
+    "signOut": "Sign out",
+    "envBanner": "Development — sample data.",
+    "sessionAria": "Session",
+    "workspaceLine": "Workspace: {{name}} ({{slug}})",
+    "platformSession": "Platform administrator session"
+  },
+  "nav": {
+    "platformDashboard": "Dashboard",
+    "tenantDashboard": "Dashboard",
+    "workspaces": "Workspaces",
+    "usersGlobal": "Users (global)",
+    "plans": "Plans",
+    "subscriptions": "Subscriptions",
+    "billing": "Billing",
+    "tenantSettings": "Settings",
+    "platformAdmin": "Platform admin"
+  },
+  "dashboardPlatform": {
+    "eyebrow": "Operations",
+    "title": "Platform overview",
+    "description": "Cross-tenant metrics from the API bootstrap; activity table is sample data.",
+    "hero": {
+      "title": "SaaS operations snapshot",
+      "subtitle": "Workspaces, billing, and audit — operator scope."
+    }
+  },
+  "tenantDashboard": {
+    "eyebrow": "Your workspace",
+    "title": "{{name}} — overview",
+    "description": "Team size and subscription summary for this workspace.",
+    "onboardingHint": "You can manage billing and settings from the sidebar when you are ready.",
+    "hero": {
+      "title": "Workspace snapshot",
+      "subtitle": "Loyalty program management for your venue — more features coming soon."
+    },
+    "badgeTrialing": "Trialing",
+    "metrics": {
+      "team": "Team members",
+      "teamHint": "Users in this workspace",
+      "plan": "Plan",
+      "planHint": "From subscription",
+      "subscription": "Status",
+      "subscriptionHint": "Billing lifecycle"
+    }
+  },
+  "usage": {
+    "upgradeCta": "View plans & upgrade"
+  },
+  "billing": {
+    "eyebrow": "Billing",
+    "title": "Billing & plan",
+    "description": "Subscription summary from bootstrap data.",
+    "empty": "No subscription row for this workspace in bootstrap.",
+    "plan": "Plan",
+    "status": "Status",
+    "renews": "Renews",
+    "renewsUnknown": "—"
+  },
+  "tenantSettings": {
+    "eyebrow": "Workspace",
+    "title": "Settings",
+    "description": "Workspace preferences and customer entry.",
+    "portal": {
+      "title": "Customer entry (QR)",
+      "description": "Share this link or QR code; customers see points and can request rewards for staff approval.",
+      "copy": "Copy link",
+      "copied": "Copied"
+    }
+  },
+  "dashboard": {
+    "badgeLive": "Live API",
+    "metrics": {
+      "workspaces": "Workspaces",
+      "workspacesHint": "Workspace records",
+      "users": "Users",
+      "usersHint": "Visible list",
+      "subscriptions": "Subscriptions",
+      "subscriptionsHint": "All statuses",
+      "trialing": "Trialing",
+      "trialingHint": "status = trialing"
+    },
+    "activity": {
+      "title": "Sample workspace activity",
+      "badgeDemo": "Demo",
+      "columns": {
+        "workspace": "Workspace",
+        "event": "Event",
+        "time": "Time",
+        "status": "Status"
+      },
+      "statusBadge": {
+        "success": "OK",
+        "warning": "Watch",
+        "info": "Info"
+      },
+      "demo": {
+        "row1": {
+          "workspace": "Pointmor Demo Cafe",
+          "when": "12 min ago"
+        },
+        "row2": {
+          "workspace": "Harbor Street Bistro",
+          "when": "1 hour ago"
+        },
+        "row3": {
+          "workspace": "Campus Coffee Co.",
+          "when": "Yesterday"
+        }
+      }
+    },
+    "events": {
+      "provision": "Provisioned",
+      "invite_sent": "Invite sent",
+      "subscription_hold": "On hold"
+    }
+  },
+  "workspaces": {
+    "eyebrow": "Directory",
+    "title": "Workspaces",
+    "description": "From `GET /tenants` and bootstrap.",
+    "searchPlaceholder": "Search name or slug…",
+    "searchAria": "Search workspaces",
+    "emptyTitle": "No workspaces",
+    "emptyDescription": "No data or no filter match.",
+    "columns": {
+      "name": "Name",
+      "status": "Status"
+    },
+    "statusActive": "Active"
+  },
+  "users": {
+    "eyebrow": "Access",
+    "title": "Users",
+    "description": "From `GET /users`.",
+    "filterAria": "Filter by role",
+    "filterAll": "All",
+    "emptyTitle": "No users",
+    "emptyDescription": "No rows for this filter.",
+    "columns": {
+      "name": "Name",
+      "role": "Role",
+      "workspace": "Workspace"
+    },
+    "roles": {
+      "platform_admin": "Platform",
+      "tenant_operator": "Operator",
+      "viewer": "Viewer"
+    }
+  },
+  "plans": {
+    "eyebrow": "Catalog",
+    "title": "Plans",
+    "description": "From `GET /plans`. Weekly quota vs monthly billing.",
+    "featured": "Featured",
+    "planType": {
+      "free": "Free",
+      "pro": "Pro",
+      "team": "Team"
+    },
+    "cadence": {
+      "weekQuota": "/ week (quota)",
+      "month": "/ mo"
+    }
+  },
+  "subscriptions": {
+    "eyebrow": "Lifecycle",
+    "title": "Subscriptions",
+    "description": "From `GET /subscriptions` — workspace and plan.",
+    "columns": {
+      "workspace": "Workspace",
+      "plan": "Plan",
+      "status": "Status",
+      "renews": "Renews"
+    },
+    "status": {
+      "active": "Active",
+      "trialing": "Trialing",
+      "past_due": "Past due"
+    }
+  },
+  "platform": {
+    "eyebrow": "Security",
+    "title": "Platform administration",
+    "description": "Audit trail from bootstrap and `GET /admin/audit-logs`.",
+    "cardTitle": "Audit log",
+    "badgeSource": "Database",
+    "columns": {
+      "time": "Time",
+      "actor": "Actor",
+      "action": "Action",
+      "detail": "Detail"
+    }
+  },
+  "pricing": {
+    "title": "Pricing",
+    "description": "No sign-in required. Plans will appear here.",
+    "ctaLogin": "Operator sign-in"
+  },
+  "tenantLoyalty": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "growth": "Growth",
+      "customers": "Customers",
+      "visits": "Visits",
+      "rewards": "Rewards",
+      "campaigns": "Campaigns",
+      "redemptions": "Redemptions"
+    },
+    "dash": {
+      "eyebrow": "Loyalty",
+      "title": "{{name}} — overview",
+      "description": "Today’s activity and program health.",
+      "totalCustomers": "Customers",
+      "visitsToday": "Visits today",
+      "pointsIssuedToday": "Points issued today",
+      "redemptionsToday": "Redemptions today",
+      "activeCampaigns": "Active campaigns",
+      "subscriptionHint": "Billing",
+      "loadError": "Could not load loyalty summary."
+    },
+    "customers": {
+      "eyebrow": "Directory",
+      "title": "Customers",
+      "description": "Members and point balances.",
+      "columns": {
+        "name": "Name",
+        "phone": "Phone",
+        "balance": "Points"
+      },
+      "empty": "No customers yet.",
+      "open": "View",
+      "loadError": "Could not load customers."
+    },
+    "customerDetail": {
+      "eyebrow": "Customer",
+      "balance": "Point balance",
+      "visitsTitle": "Recent visits",
+      "ledgerTitle": "Points ledger",
+      "ledgerPoints": "Points",
+      "ledgerSource": "Source",
+      "ledgerWhen": "When",
+      "visitAmount": "Amount",
+      "visitTotal": "Total pts",
+      "visitBase": "Base",
+      "visitBonus": "Bonus",
+      "emptyVisits": "No visits yet.",
+      "emptyLedger": "No ledger entries.",
+      "loadError": "Could not load customer."
+    },
+    "visits": {
+      "eyebrow": "Earn",
+      "title": "Record visit",
+      "description": "Select a customer, enter spend amount (minor units), submit.",
+      "customer": "Customer",
+      "searchPlaceholder": "Search name or phone…",
+      "quickCreate": "Quick add customer",
+      "qcName": "Name",
+      "qcPhone": "Phone",
+      "qcSubmit": "Create & select",
+      "amount": "Amount (minor units)",
+      "submit": "Record visit",
+      "resultTitle": "Visit recorded",
+      "base": "Base points",
+      "bonus": "Bonus points",
+      "total": "Total",
+      "campaigns": "Campaigns",
+      "none": "—",
+      "loadError": "Could not load customers.",
+      "validation": "Select a customer and enter a positive amount."
+    },
+    "rewards": {
+      "eyebrow": "Catalog",
+      "title": "Rewards",
+      "description": "Redeemable rewards and point costs.",
+      "add": "Add reward",
+      "edit": "Edit",
+      "name": "Name",
+      "descriptionField": "Description",
+      "pointsCost": "Points cost",
+      "type": "Type",
+      "value": "Value",
+      "valueType": "Value kind",
+      "valueNumeric": "Numeric value",
+      "active": "Active",
+      "save": "Save",
+      "cancel": "Cancel",
+      "empty": "No rewards yet.",
+      "loadError": "Could not load rewards.",
+      "types": {
+        "FREE_ITEM": "Free item",
+        "FIXED_DISCOUNT": "Fixed discount",
+        "PERCENT_DISCOUNT": "Percent discount"
+      }
+    },
+    "campaigns": {
+      "eyebrow": "Programs",
+      "title": "Campaigns",
+      "description": "Bonus rules evaluated on each visit.",
+      "add": "Add campaign",
+      "edit": "Edit",
+      "name": "Name",
+      "statusColumn": "Status",
+      "type": "Type",
+      "active": "Active",
+      "period": "Schedule",
+      "periodStart": "Start",
+      "periodEnd": "End",
+      "config": "Config (JSON)",
+      "save": "Save",
+      "cancel": "Cancel",
+      "empty": "No campaigns yet.",
+      "loadError": "Could not load campaigns.",
+      "types": {
+        "BONUS_POINTS": "Bonus points",
+        "SPEND_THRESHOLD_BONUS": "Spend threshold",
+        "FIRST_VISIT_BONUS": "First visit"
+      },
+      "status": {
+        "draft": "Draft",
+        "active": "Active",
+        "paused": "Paused",
+        "archived": "Archived"
+      }
+    },
+    "growth": {
+      "eyebrow": "Analytics",
+      "title": "Growth & retention",
+      "description": "Funnel conversion, cohort retention (D1/D3/D7), and reward engagement — from product events stored in your workspace.",
+      "periodNote": "Funnel: last {{funnelDays}} days. Retention cohort uses first recorded visit in the window below. Reward metrics: last {{rewardDays}} days.",
+      "funnelTitle": "Funnel (unique customers per step)",
+      "transitionsTitle": "Step transitions (sequential)",
+      "columns": {
+        "step": "Step",
+        "uniqueCustomers": "Unique customers",
+        "eventsApprox": "Events (approx.)",
+        "transition": "Transition",
+        "sequentialUsers": "Sequential users",
+        "conversion": "Conversion",
+        "dropOff": "Drop-off"
+      },
+      "biggestDropOff": "Largest drop-off:",
+      "retentionTitle": "Retention (D1 / D3 / D7)",
+      "cohortSize": "Cohort size",
+      "rewardTitle": "Reward usage",
+      "redemptionCompleted": "Completed redemptions (DB)",
+      "rewardClaimedEvents": "reward_claimed events",
+      "rewardViewedEvents": "reward_viewed events",
+      "claimPerView": "Claims per view (approx.)",
+      "insightsTitle": "Insights",
+      "loadError": "Could not load growth analytics.",
+      "stepLabels": {
+        "qr_opened": "QR opened",
+        "customer_viewed_home": "Home viewed",
+        "visit_recorded": "Visit recorded",
+        "points_awarded": "Points awarded",
+        "reward_viewed": "Reward viewed",
+        "reward_claimed": "Reward claimed",
+        "redemption_completed": "Redemption completed"
+      }
+    },
+    "redemptions": {
+      "eyebrow": "Redeem",
+      "title": "Redemptions",
+      "description": "Customer reward requests and completed redemptions.",
+      "columns": {
+        "customer": "Customer",
+        "reward": "Reward",
+        "points": "Points",
+        "status": "Status",
+        "when": "Date",
+        "actions": ""
+      },
+      "status": {
+        "pending": "Pending",
+        "completed": "Completed",
+        "rejected": "Rejected"
+      },
+      "approve": "Confirm",
+      "reject": "Reject",
+      "empty": "No redemptions yet.",
+      "loadError": "Could not load redemptions."
+    },
+    "common": {
+      "loading": "Loading…",
+      "retry": "Retry",
+      "yes": "Yes",
+      "no": "No",
+      "utcNote": "Figures use UTC calendar day."
+    }
+  },
+  "lang": {
+    "en": "English",
+    "tr": "Türkçe",
+    "es": "Español",
+    "de": "Deutsch"
+  }
+}

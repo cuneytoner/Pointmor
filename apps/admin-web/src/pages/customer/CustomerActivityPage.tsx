@@ -11,7 +11,6 @@ export function CustomerActivityPage() {
   const locale = useLocale();
   const { data } = useCustomerPwa();
   const [filter, setFilter] = useState<Filter>("all");
-  if (!data) return null;
 
   const fmt = (iso: string) =>
     new Date(iso).toLocaleString(toIntlLocale(locale), {
@@ -22,6 +21,7 @@ export function CustomerActivityPage() {
   const rows = useMemo(() => {
     type Row = { id: string; label: string; points: number; at: string; kind: "earn" | "redeem" };
     const out: Row[] = [];
+    if (!data) return out;
     for (const v of data.recentVisits) {
       out.push({
         id: `visit-${v.id}`,
@@ -44,7 +44,9 @@ export function CustomerActivityPage() {
     if (filter === "earned") return out.filter((x) => x.kind === "earn");
     if (filter === "redeemed") return out.filter((x) => x.kind === "redeem");
     return out;
-  }, [data.recentVisits, data.recentRedemptions, filter, t]);
+  }, [data, filter, t]);
+
+  if (!data) return null;
 
   return (
     <div className="customer-pwa__page">

@@ -10,12 +10,14 @@
     "lint": "eslint src",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
+    "db:validate": "prisma validate",
     "db:clean": "prisma db execute --file prisma/clean-public-schema.sql",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:reset": "prisma migrate reset --force",
     "db:fresh": "npm run db:clean && prisma migrate dev --name init",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "db:seed:demo": "tsx prisma/seed-demo.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^10.0.1",

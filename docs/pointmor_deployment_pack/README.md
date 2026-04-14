@@ -4,12 +4,15 @@ Bu paket, Pointmor projesi için pre-alpha demo deployment ve CI/CD hazırlığ�
 
 ## İçerik
 
+- [`docs/40-guide-004-demo-deployment.md`](../40-guide-004-demo-deployment.md) — demo Docker Compose, scriptler ve Cloudflare notları
+- [`docs/40-guide-005-demo-deployment-runbook.md`](../40-guide-005-demo-deployment-runbook.md) — **Prompt 05:** env, ilk kurulum, deploy, migrate, seed, health, Cloudflare, sık hatalar (copy-paste odaklı)
+- [`docs/demo-deployment-runbook.md`](../demo-deployment-runbook.md) — kısa giriş + hızlı komutlar
+- `infra/docker/docker-compose.demo.yml`, `infra/docker/.env.demo.example` — repodaki canlı demo şablonları (kök `apps/*/Dockerfile` ile birlikte)
+- `.github/workflows/deploy-demo.yml` — `main` push / manuel tetik → SSH ile sunucuda `deploy-demo.sh` (sırlar GitHub Secrets)
 - `docs/pointmor-cicd-plan.md`
   - Mimari kararlar, ortam stratejisi, CI/CD yaklaşımı, branch modeli, rollout planı
 - `docs/repo-tree-proposal.md`
   - Repo içi önerilen dosya ağacı
-- `docs/demo-deployment-runbook.md`
-  - İlk kurulum, deploy, migration, seed, health check ve Cloudflare Tunnel runbook'u
 - `examples/infra/docker/docker-compose.demo.yml`
   - Demo ortamı için örnek Docker Compose taslağı
 - `examples/infra/docker/.env.demo.example`

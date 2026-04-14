@@ -28,7 +28,6 @@ export async function recordProductAnalyticsEvent(input: {
       },
     });
   } catch (e) {
-    // eslint-disable-next-line no-console
     console.warn("[product-analytics] record failed", e);
   }
 }

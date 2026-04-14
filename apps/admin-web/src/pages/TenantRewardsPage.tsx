@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
@@ -41,17 +41,17 @@ export function TenantRewardsPage() {
   const [isActive, setIsActive] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const load = () => {
+  const load = useCallback(() => {
     if (!token) return;
     setError(false);
     getRewards(token, false)
       .then(setRows)
       .catch(() => setError(true));
-  };
+  }, [token]);
 
   useEffect(() => {
     load();
-  }, [token]);
+  }, [load]);
 
   const openCreate = () => {
     setEditing(null);
