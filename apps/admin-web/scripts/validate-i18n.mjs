@@ -34,7 +34,7 @@ function loadJson(name) {
 
 const en = loadJson("en.json");
 const enKeys = flatten(en);
-const localeFiles = ["tr.json", "es.json", "de.json", "zh.json"];
+const localeFiles = ["tr.json", "es.json", "de.json"];
 
 let exit = 0;
 
