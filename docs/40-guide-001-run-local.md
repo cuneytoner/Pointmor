@@ -8,11 +8,17 @@ Tüm yollar repo kökü `Pointmor` (ör. `d:\Projects\Pointmor`) varsayılarak y
 
 | Dosya | İçerik özeti |
 |--------|----------------|
-| `apps/api/.env` | `PORT`, `CORS_ORIGINS`, `DATABASE_URL` — **git’e eklenmez.** |
+| `apps/api/.env` | `PORT`, `CORS_ORIGINS`, `DATABASE_URL` — **git’e eklenmez.** İsteğe bağlı: `ALLOW_TENANT_DEMO_PLAN_SWITCH` (tenant’ta demo plan yükseltme; bkz. aşağı). |
 | `apps/admin-web/.env.local` | `VITE_API_BASE_URL` (API tabanı); isteğe bağlı `VITE_MARKETING_BASE_URL` (hesap oluştur / pazarlama). |
 | Kök `.env.example` | Kopyalama şablonu; gerçek sırlar burada tutulmaz. |
 
 Örnek oluşturma: kök `.env.example` satırlarını ilgili dosyalara kopyalayın ve değerleri doldurun.
+
+<a id="tenant-demo-plan-switch"></a>
+
+### Tenant billing — demo plan değişimi (API)
+
+`POST /tenant/billing/demo-plan-switch` tenant oturumu ister; **gerçek ödeme yok** (Tenant App → Faturalama → “Planı yükselt” akışı). Ortam değişkeni **`ALLOW_TENANT_DEMO_PLAN_SWITCH`**: değer **`0`**, **`false`** veya **`no`** ise uç **kapalı** (403, `demo_plan_switch_disabled`). **Tanımsız** veya bu üçlü dışında bir değer = **açık** (yerel geliştirmede pratik varsayılan). **Üretimde** genelde kapatın (`0`). Şablon satırları: `apps/api/.env.example` ve kök `.env.example`. İlgili ürün notu: [`10-meta-002-project-overview.md`](./10-meta-002-project-overview.md) (Plan & entitlement).
 
 ## Tek seferlik: bağımlılıklar
 

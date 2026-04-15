@@ -7,6 +7,12 @@ import {
   getRetentionAnalytics,
   getRewardUsageStats,
 } from "../lib/product-analytics-service.js";
+import {
+  assertFeature,
+  FEATURE,
+  getTenantEntitlementContext,
+  sendEntitlementHttpError,
+} from "../lib/entitlement-service.js";
 
 function requireTenantSession(
   req: { authSession?: SessionPayload },
@@ -21,6 +27,20 @@ function requireTenantSession(
   return tenantId;
 }
 
+async function requireProductAnalytics(
+  tenantId: string,
+  reply: { code: (n: number) => { send: (b: unknown) => unknown } },
+): Promise<boolean> {
+  try {
+    const ent = await getTenantEntitlementContext(tenantId);
+    assertFeature(ent, FEATURE.PRODUCT_ANALYTICS);
+    return true;
+  } catch (e) {
+    if (sendEntitlementHttpError(reply, e)) return false;
+    throw e;
+  }
+}
+
 export async function registerProductAnalyticsRoutes(
   app: FastifyInstance,
 ): Promise<void> {
@@ -30,6 +50,7 @@ export async function registerProductAnalyticsRoutes(
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
+      if (!(await requireProductAnalytics(tenantId, reply))) return;
       const d = req.query.days ? Number.parseInt(req.query.days, 10) : 30;
       const days = Number.isFinite(d) && d > 0 && d <= 365 ? d : 30;
       return getFunnelAnalytics(tenantId, days);
@@ -42,6 +63,7 @@ export async function registerProductAnalyticsRoutes(
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
+      if (!(await requireProductAnalytics(tenantId, reply))) return;
       const d = req.query.cohortDays
         ? Number.parseInt(req.query.cohortDays, 10)
         : 90;
@@ -59,6 +81,7 @@ export async function registerProductAnalyticsRoutes(
   }>("/analytics/overview", { preHandler: [authPreHandler] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
+    if (!(await requireProductAnalytics(tenantId, reply))) return;
     const fd = req.query.funnelDays
       ? Number.parseInt(req.query.funnelDays, 10)
       : 30;
@@ -81,6 +104,7 @@ export async function registerProductAnalyticsRoutes(
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
+      if (!(await requireProductAnalytics(tenantId, reply))) return;
       const d = req.query.days ? Number.parseInt(req.query.days, 10) : 30;
       const days = Number.isFinite(d) && d > 0 && d <= 365 ? d : 30;
       return getRewardUsageStats(tenantId, days);

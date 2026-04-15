@@ -4,6 +4,7 @@ import type { SessionPayload } from "../lib/auth-memory.js";
 import { canAccessTenant, requirePlatformAdmin } from "../lib/guards.js";
 import { writeAudit } from "../lib/audit.js";
 import { prisma } from "../lib/prisma.js";
+import { recordAuditEvent } from "../lib/operational-audit-service.js";
 
 export async function registerSubscriptionRoutes(
   app: FastifyInstance,
@@ -66,7 +67,7 @@ export async function registerSubscriptionRoutes(
 
   app.patch<{
     Params: { subscriptionId: string };
-    Body: { status?: string; renewsAt?: string | null };
+    Body: { status?: string; renewsAt?: string | null; planId?: string };
   }>(
     "/subscriptions/:subscriptionId",
     { preHandler: [authPreHandler] },
@@ -84,6 +85,14 @@ export async function registerSubscriptionRoutes(
         return reply.code(403).send({ error: "platform_or_elevated_required" });
       }
       const b = req.body ?? {};
+      const nextPlanId =
+        typeof b.planId === "string" && b.planId.trim() ? b.planId.trim() : undefined;
+      if (nextPlanId) {
+        const pl = await prisma.plan.findFirst({ where: { id: nextPlanId } });
+        if (!pl) {
+          return reply.code(400).send({ error: "plan_not_found" });
+        }
+      }
       const updated = await prisma.subscription.update({
         where: { id: subscriptionId },
         data: {
@@ -91,10 +100,30 @@ export async function registerSubscriptionRoutes(
           ...(b.renewsAt !== undefined
             ? { renewsAt: b.renewsAt ? new Date(b.renewsAt) : null }
             : {}),
+          ...(nextPlanId ? { planId: nextPlanId } : {}),
         },
         include: { plan: true, tenant: true },
       });
-      await writeAudit(s.user.email, "subscription.update", subscriptionId);
+      await writeAudit(
+        s.user.email,
+        "subscription.update",
+        `${subscriptionId}:${nextPlanId ?? "no_plan_change"}`,
+      );
+      if (nextPlanId) {
+        await recordAuditEvent({
+          tenantId: updated.tenantId,
+          actorUserId: s.user.id,
+          actorType: "manager",
+          eventType: "subscription_plan_changed",
+          entityType: "other",
+          entityId: subscriptionId,
+          payload: {
+            planId: updated.plan.id,
+            planSlug: updated.plan.slug,
+            source: "platform_admin",
+          },
+        });
+      }
       return updated;
     },
   );

@@ -32,6 +32,16 @@ const demoTenant = await prisma.tenant.upsert({
   },
 });
 
+const starterLimits = {
+  maxCustomers: 150,
+  maxActiveRewards: 8,
+  maxActiveCampaigns: 0,
+  maxVisitsPerMonth: 1000,
+  maxBranches: 1,
+  maxStaffUsers: 2,
+  softWarningPercent: 80,
+};
+
 const starter = await prisma.plan.upsert({
   where: { slug: "starter" },
   create: {
@@ -43,12 +53,25 @@ const starter = await prisma.plan.upsert({
     interval: "month",
     planType: "free",
     featureTags: ["loyalty_core"],
+    limits: starterLimits,
   },
   update: {
     planType: "free",
     featureTags: ["loyalty_core"],
+    limits: starterLimits,
   },
 });
+
+const growthFeatures = [
+  "loyalty_core",
+  "customer_pwa",
+  "campaigns",
+  "growth_automation",
+  "manager_closing",
+  "multi_branch",
+  "webhooks",
+  "product_analytics",
+];
 
 const growth = await prisma.plan.upsert({
   where: { slug: "growth" },
@@ -60,11 +83,13 @@ const growth = await prisma.plan.upsert({
     currency: "EUR",
     interval: "month",
     planType: "pro",
-    featureTags: ["loyalty_core", "webhooks"],
+    featureTags: growthFeatures,
+    limits: {},
   },
   update: {
     planType: "pro",
-    featureTags: ["loyalty_core", "webhooks"],
+    featureTags: growthFeatures,
+    limits: {},
   },
 });
 

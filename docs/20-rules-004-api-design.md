@@ -65,6 +65,8 @@ veya liste için `{ "data": [...], "pagination": { ... } }` — proje tek stile 
 
 **HTTP status:** 4xx istemci, 5xx sunucu; `401`/`403` ayrımı net.
 
+**Bilinen pragmatik sapma (plan):** Bazı iç uçlar (ör. entitlement ihlali) düz JSON `{ "error": "plan_limit_exceeded", "metric": "..." }` dönebilir; uzun vadede üstteki `error` nesne modeli ile hizalanması hedeflenir ([`10-meta-003-project-tracker.md`](./10-meta-003-project-tracker.md) — sıradaki adımlar).
+
 ---
 
 ## Pagination, filtre, sıralama

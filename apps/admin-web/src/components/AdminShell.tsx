@@ -3,21 +3,43 @@ import { NavLink, Outlet } from "react-router-dom";
 import { LanguageSelector } from "./LanguageSelector";
 import type { AdminAuth } from "../hooks/useAdminData";
 import { useAuth } from "../contexts/AuthContext";
+import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { getApiBaseUrl } from "../lib/api-base";
 import { useTranslation } from "../hooks/useTranslation";
+import type { NavItemConfig } from "../navigation/nav-config";
 import { PLATFORM_NAV, TENANT_NAV } from "../navigation/nav-config";
 import { getAppSurface } from "../lib/access";
+import { PlanTypeBadge, planBadgeFromEntitlements } from "./PlanTypeBadge";
+import { EntitlementAlerts } from "./EntitlementAlerts";
 
 type AdminShellProps = {
   auth: AdminAuth;
 };
 
+function filterTenantNav(
+  items: NavItemConfig[],
+  featureList: string[] | undefined,
+): NavItemConfig[] {
+  if (!featureList || featureList.length === 0) return items;
+  const f = new Set(featureList);
+  return items.filter((item) => {
+    if (item.to === "/app/growth") return f.has("product_analytics");
+    if (item.to === "/app/campaigns") return f.has("campaigns");
+    return true;
+  });
+}
+
 export function AdminShell({ auth }: AdminShellProps) {
   const { t } = useTranslation();
   const { token, setToken } = useAuth();
+  const { bootstrap } = useAdminDataContext();
 
   const surface = getAppSurface(auth);
-  const nav = surface === "platform" ? PLATFORM_NAV : TENANT_NAV;
+  const nav =
+    surface === "platform"
+      ? PLATFORM_NAV
+      : filterTenantNav(TENANT_NAV, bootstrap?.entitlements?.features);
+  const planType = planBadgeFromEntitlements(bootstrap?.entitlements ?? null);
 
   const topbarKey =
     surface === "platform" ? "shell.platformConsole" : "shell.tenantApp";
@@ -75,6 +97,11 @@ export function AdminShell({ auth }: AdminShellProps) {
       <div className="admin-app__main">
         <header className="admin-app__topbar">
           <span className="admin-app__topbar-title">{t(topbarKey)}</span>
+          {surface === "tenant" && planType ? (
+            <span className="admin-app__topbar-plan-wrap">
+              <PlanTypeBadge planType={planType} />
+            </span>
+          ) : null}
           <span className="admin-app__topbar-spacer" />
           <span className="admin-app__status-pill" title="API">
             <span className="admin-app__status-dot" aria-hidden />
@@ -90,6 +117,9 @@ export function AdminShell({ auth }: AdminShellProps) {
             {t("shell.envBanner")}
           </div>
           <div className="workspace__body">
+            {surface === "tenant" ? (
+              <EntitlementAlerts entitlements={bootstrap?.entitlements} />
+            ) : null}
             <section className="admin-app__user-strip" aria-label={t("shell.sessionAria")}>
               <img
                 className="admin-app__user-avatar"

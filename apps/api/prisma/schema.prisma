@@ -37,9 +37,157 @@ model Tenant {
   loyaltyDomainEvents       LoyaltyDomainEvent[]
   customerActions           CustomerAction[]
   productAnalyticsEvents    ProductAnalyticsEvent[]
+  branches                  Branch[]
+  deviceSessions            DeviceSession[]
+  cashierShifts             CashierShift[]
+  auditEvents               AuditEvent[]
+  anomalySignals            AnomalySignal[]
+}
+
+/// Operasyonel denetim kaydı — tenant kapsamlı, güncellenmez (yalnızca ekleme).
+enum AuditActorType {
+  cashier
+  manager
+  system
+}
+
+enum AuditEntityType {
+  visit
+  redemption
+  customer
+  cashier_shift
+  device_session
+  branch
+  reward
+  campaign
+  other
+}
+
+model AuditEvent {
+  id              String         @id @default(cuid())
+  tenantId        String
+  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  actorUserId     String?
+  actorType       AuditActorType
+  branchId        String?
+  branch          Branch?        @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  deviceSessionId String?
+  deviceSession   DeviceSession? @relation(fields: [deviceSessionId], references: [id], onDelete: SetNull)
+  cashierShiftId  String?
+  cashierShift    CashierShift?  @relation(fields: [cashierShiftId], references: [id], onDelete: SetNull)
+  eventType       String
+  entityType      AuditEntityType
+  entityId        String
+  payload         Json           @default("{}")
+  createdAt       DateTime       @default(now())
+
+  linkedAnomalies AnomalySignal[]
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, eventType, createdAt])
+  @@index([cashierShiftId])
+  @@index([branchId])
+  @@index([deviceSessionId])
+}
+
+/// Hafif kural tabanlı anomali bayrağı — ML / skor motoru yok.
+model AnomalySignal {
+  id                 String      @id @default(cuid())
+  tenantId           String
+  tenant             Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type               String
+  severity           String      @default("warn")
+  branchId           String?
+  branch             Branch?     @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  cashierShiftId     String?
+  cashierShift       CashierShift? @relation(fields: [cashierShiftId], references: [id], onDelete: SetNull)
+  customerId         String?
+  customer           Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  payload            Json        @default("{}")
+  sourceAuditEventId String?
+  sourceAuditEvent   AuditEvent? @relation(fields: [sourceAuditEventId], references: [id], onDelete: SetNull)
+  createdAt          DateTime    @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, type, createdAt])
+  @@index([cashierShiftId])
+  @@index([branchId])
 }
 
 // --- Loyalty (Phase 1) ---
+
+/// Şube / lokasyon (kasiyer cihaz oturumu için opsiyonel bağlam)
+model Branch {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  slug      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deviceSessions DeviceSession[]
+  auditEvents    AuditEvent[]
+  anomalySignals AnomalySignal[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+enum DeviceSessionStatus {
+  open
+  closed
+}
+
+/// Fiziksel cihaz / tablet register oturumu (şube ile ilişkilendirilebilir)
+model DeviceSession {
+  id              String              @id @default(cuid())
+  tenantId        String
+  tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branchId        String?
+  branch          Branch?             @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  deviceLabel     String
+  status          DeviceSessionStatus @default(open)
+  startedAt       DateTime            @default(now())
+  endedAt         DateTime?
+  createdByUserId String?
+
+  cashierShifts CashierShift[]
+  visits          Visit[]
+  redemptions     Redemption[]
+  auditEvents     AuditEvent[]
+
+  @@index([tenantId, status])
+  @@index([branchId])
+}
+
+enum CashierShiftStatus {
+  open
+  closed
+}
+
+/// Kasiyer vardiyası — kullanıcı + cihaz oturumu
+model CashierShift {
+  id              String             @id @default(cuid())
+  tenantId        String
+  tenant          Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  deviceSessionId String
+  deviceSession   DeviceSession      @relation(fields: [deviceSessionId], references: [id], onDelete: Restrict)
+  status          CashierShiftStatus @default(open)
+  startedAt       DateTime           @default(now())
+  endedAt         DateTime?
+
+  visits      Visit[]
+  redemptions Redemption[]
+  auditEvents AuditEvent[]
+  anomalies   AnomalySignal[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, userId, status])
+  @@index([deviceSessionId, status])
+}
 
 model Customer {
   id        String   @id @default(cuid())
@@ -47,6 +195,8 @@ model Customer {
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name      String
   phone     String
+
+  anomalySignals AnomalySignal[]
   email     String?
   /// Son ziyaret zamanı (growth / inactivity kuralları)
   lastVisitAt DateTime?
@@ -128,10 +278,17 @@ model Visit {
   bonusPointsEarned Int
   createdAt         DateTime @default(now())
 
+  deviceSessionId String?
+  deviceSession   DeviceSession? @relation(fields: [deviceSessionId], references: [id], onDelete: SetNull)
+  cashierShiftId  String?
+  cashierShift    CashierShift?  @relation(fields: [cashierShiftId], references: [id], onDelete: SetNull)
+
   campaignApplications VisitCampaignApplication[]
   pointsLedgerRows     PointsLedger[]
 
   @@index([tenantId, customerId])
+  @@index([cashierShiftId])
+  @@index([deviceSessionId])
 }
 
 enum RewardType {
@@ -237,9 +394,16 @@ model Redemption {
   status      RedemptionStatus  @default(completed)
   createdAt   DateTime          @default(now())
 
+  deviceSessionId String?
+  deviceSession   DeviceSession? @relation(fields: [deviceSessionId], references: [id], onDelete: SetNull)
+  cashierShiftId  String?
+  cashierShift    CashierShift?  @relation(fields: [cashierShiftId], references: [id], onDelete: SetNull)
+
   @@index([tenantId, customerId])
   @@index([rewardId])
   @@index([tenantId, status])
+  @@index([cashierShiftId])
+  @@index([deviceSessionId])
 }
 
 // --- Growth & automation (Phase 4) ---
@@ -326,6 +490,8 @@ model User {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  cashierShifts CashierShift[]
+
   @@index([tenantId])
 }
 
@@ -339,6 +505,8 @@ model Plan {
   interval    String
   planType    PlanType @default(free)
   featureTags String[] @default([])
+  /// Loyalty limitleri (JSON). Boş veya eksik anahtarlar plan slug/planType varsayılanları ile tamamlanır; null = sınırsız.
+  limits      Json     @default("{}")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

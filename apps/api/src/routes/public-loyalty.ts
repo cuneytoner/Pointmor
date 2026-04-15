@@ -10,6 +10,26 @@ import {
 } from "../lib/customer-portal-jwt.js";
 import { requireCustomerBearer } from "../lib/public-customer-auth.js";
 import { recordProductAnalyticsEvent } from "../lib/product-analytics-service.js";
+import {
+  assertFeature,
+  FEATURE,
+  getTenantEntitlementContext,
+  sendEntitlementHttpError,
+} from "../lib/entitlement-service.js";
+
+async function ensureCustomerPwaEnabled(
+  tenantId: string,
+  reply: { code: (n: number) => { send: (b: unknown) => unknown } },
+): Promise<boolean> {
+  try {
+    const ent = await getTenantEntitlementContext(tenantId);
+    assertFeature(ent, FEATURE.CUSTOMER_PWA);
+    return true;
+  } catch (e) {
+    if (sendEntitlementHttpError(reply, e)) return false;
+    throw e;
+  }
+}
 
 const PRODUCT_ANALYTICS_TYPES = new Set<string>([
   "qr_opened",
@@ -51,6 +71,7 @@ export async function registerPublicLoyaltyRoutes(app: FastifyInstance): Promise
           if (!tenant) {
             return reply.code(404).send({ error: "not_found" });
           }
+          if (!(await ensureCustomerPwaEnabled(tenant.id, reply))) return;
           const customer = await prisma.customer.findFirst({
             where: { tenantId: tenant.id, phone },
           });
@@ -86,6 +107,7 @@ export async function registerPublicLoyaltyRoutes(app: FastifyInstance): Promise
           const slug = req.params.tenantSlug.trim();
           const ctx = await requireCustomerBearer(req, reply, slug);
           if (!ctx) return;
+          if (!(await ensureCustomerPwaEnabled(ctx.tenantId, reply))) return;
           const rewardId = String(req.body?.rewardId ?? "").trim();
           if (!rewardId) {
             return reply.code(400).send({ error: "validation_error" });
@@ -95,6 +117,7 @@ export async function registerPublicLoyaltyRoutes(app: FastifyInstance): Promise
               ctx.tenantId,
               ctx.customerId,
               rewardId,
+              { actorType: "system", userId: null },
             );
             return {
               id: row.id,

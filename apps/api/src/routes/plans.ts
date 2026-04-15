@@ -3,6 +3,7 @@ import { authPreHandler } from "../lib/http-auth.js";
 import { requirePlatformAdmin } from "../lib/guards.js";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { writeAudit } from "../lib/audit.js";
+import type { Prisma } from "../generated/prisma/client.js";
 import { prisma } from "../lib/prisma.js";
 
 export async function registerPlanRoutes(app: FastifyInstance): Promise<void> {
@@ -22,6 +23,7 @@ export async function registerPlanRoutes(app: FastifyInstance): Promise<void> {
       interval?: string;
       planType?: "free" | "pro" | "team";
       featureTags?: string[];
+      limits?: Record<string, unknown>;
     };
   }>(
     "/plans",
@@ -38,6 +40,10 @@ export async function registerPlanRoutes(app: FastifyInstance): Promise<void> {
         const pt = b.planType;
         const planType =
           pt === "free" || pt === "pro" || pt === "team" ? pt : "free";
+        const limitsJson: Prisma.InputJsonValue | undefined =
+          b.limits !== undefined && typeof b.limits === "object" && b.limits !== null
+            ? (b.limits as Prisma.InputJsonValue)
+            : undefined;
         const created = await prisma.plan.create({
           data: {
             slug,
@@ -48,6 +54,7 @@ export async function registerPlanRoutes(app: FastifyInstance): Promise<void> {
             interval: (b.interval ?? "month").trim() || "month",
             planType,
             featureTags: Array.isArray(b.featureTags) ? b.featureTags : [],
+            ...(limitsJson !== undefined ? { limits: limitsJson } : {}),
           },
         });
         await writeAudit(s.user.email, "plan.create", slug);
@@ -66,6 +73,7 @@ export async function registerPlanRoutes(app: FastifyInstance): Promise<void> {
       priceCents?: number;
       planType?: "free" | "pro" | "team";
       featureTags?: string[];
+      limits?: Record<string, unknown> | null;
     };
   }>(
     "/plans/:planId",
@@ -75,6 +83,11 @@ export async function registerPlanRoutes(app: FastifyInstance): Promise<void> {
       const { planId } = req.params;
       const b = req.body ?? {};
       try {
+        const limitsPatch: { limits?: Prisma.InputJsonValue } = {};
+        if (b.limits !== undefined) {
+          limitsPatch.limits =
+            b.limits === null ? {} : (b.limits as Prisma.InputJsonValue);
+        }
         const updated = await prisma.plan.update({
           where: { id: planId },
           data: {
@@ -91,6 +104,7 @@ export async function registerPlanRoutes(app: FastifyInstance): Promise<void> {
               ? { planType: b.planType }
               : {}),
             ...(b.featureTags !== undefined ? { featureTags: b.featureTags } : {}),
+            ...limitsPatch,
           },
         });
         await writeAudit(s.user.email, "plan.update", planId);

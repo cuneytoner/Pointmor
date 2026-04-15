@@ -31,7 +31,7 @@ Komut biçimi için: [`40-guide-001-run-local.md`](./40-guide-001-run-local.md).
 
 4. **Admin web**  
    - İkinci terminal: `npm.cmd run dev:admin`  
-   - `http://127.0.0.1:5173` açılır; Plus kabuk önizlemesi ve “İskelet hazır” metni görünür (mevcut `App.tsx`).
+   - `http://127.0.0.1:5173` açılır; giriş sonrası Platform Console (`/platform/*`) veya Tenant App (`/app/*`) — Plus kabuk (`admin-app`). **Hızlı entitlement / billing:** tenant oturumunda `/app/billing` (kullanım satırları, demo plan değişimi; API’de `ALLOW_TENANT_DEMO_PLAN_SWITCH` — varsayılan açık, kapatma: [`40-guide-001-run-local.md`](./40-guide-001-run-local.md#tenant-demo-plan-switch)); platformda `/platform/subscriptions` (plan `PATCH`). Ürün özeti: [`10-meta-002-project-overview.md`](./10-meta-002-project-overview.md) (Plan & entitlement).
 
 5. **CORS / origin**  
    API `CORS_ORIGINS` içinde admin origin’i listelenmiş olmalı; admin ve API için aynı host adını kullanmaya devam edin (`127.0.0.1` veya `localhost`).

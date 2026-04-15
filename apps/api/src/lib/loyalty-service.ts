@@ -1,4 +1,5 @@
 import type {
+  AuditActorType,
   Campaign,
   Customer,
   PointsLedgerSource,
@@ -23,6 +24,32 @@ import {
   processVisitCreatedAutomation,
 } from "./automation-engine.js";
 import { recordProductAnalyticsEvent } from "./product-analytics-service.js";
+import type { CashierOperationContext } from "./cashier-operation-service.js";
+import {
+  maybeFlagClaimVelocity,
+  maybeFlagDuplicatePendingPattern,
+  maybeFlagHighRedemptionVolume,
+  maybeFlagOperationOutsideSession,
+} from "./operational-anomaly-service.js";
+import {
+  recordAuditEvent,
+  resolveBranchFromDeviceSession,
+} from "./operational-audit-service.js";
+import {
+  assertFeature,
+  assertWithinLimit,
+  createCustomerWithinEntitlements,
+  FEATURE,
+  getTenantEntitlementContext,
+  isCampaignRowActive,
+  utcMonthRange,
+} from "./entitlement-service.js";
+
+/** Operasyonel audit için isteğe bağlı aktör (staff / sistem). */
+export type LoyaltyAuditActor = {
+  userId?: string | null;
+  actorType: AuditActorType;
+};
 
 function utcDayRange(): { start: Date; end: Date } {
   const start = new Date();
@@ -49,7 +76,7 @@ export async function createCustomer(
     throw err;
   }
 
-  return prisma.$transaction(async (tx) => {
+  return createCustomerWithinEntitlements(tenantId, async (tx) => {
     const c = await tx.customer.create({
       data: {
         tenantId,
@@ -98,6 +125,8 @@ export async function recordVisit(
   tenantId: string,
   customerId: string,
   amount: number,
+  cashierCtx?: CashierOperationContext | null,
+  actor?: LoyaltyAuditActor | null,
 ): Promise<RecordVisitResult> {
   if (!Number.isFinite(amount) || amount <= 0) {
     const err = Object.assign(new Error("validation_error"), { statusCode: 400 });
@@ -107,7 +136,15 @@ export async function recordVisit(
   const basePoints = visitAmountToPointsEarned(amountMinor);
   const now = new Date();
 
+  const entCtx = await getTenantEntitlementContext(tenantId);
+  const { start: monthStart, end: monthEnd } = utcMonthRange(now);
+
   const result = await prisma.$transaction(async (tx) => {
+    const visitsMonth = await tx.visit.count({
+      where: { tenantId, createdAt: { gte: monthStart, lt: monthEnd } },
+    });
+    assertWithinLimit(entCtx, "maxVisitsPerMonth", visitsMonth, 1);
+
     const customer = await tx.customer.findFirst({
       where: { id: customerId, tenantId },
     });
@@ -158,6 +195,12 @@ export async function recordVisit(
         basePointsEarned: basePoints,
         bonusPointsEarned: bonusTotal,
         pointsEarned: basePoints + bonusTotal,
+        ...(cashierCtx
+          ? {
+              deviceSessionId: cashierCtx.deviceSessionId,
+              cashierShiftId: cashierCtx.cashierShiftId,
+            }
+          : {}),
       },
     });
 
@@ -233,6 +276,37 @@ export async function recordVisit(
     };
   });
 
+  const branchId = await resolveBranchFromDeviceSession(
+    tenantId,
+    cashierCtx?.deviceSessionId,
+  );
+  const auditVisit = await recordAuditEvent({
+    tenantId,
+    actorUserId: actor?.userId ?? null,
+    actorType: actor?.actorType ?? "system",
+    branchId,
+    deviceSessionId: cashierCtx?.deviceSessionId ?? null,
+    cashierShiftId: cashierCtx?.cashierShiftId ?? null,
+    eventType: "visit_created",
+    entityType: "visit",
+    entityId: result.visitId,
+    payload: {
+      customerId,
+      pointsEarned: result.pointsEarned,
+      amountMinor,
+      hasCashierContext: Boolean(cashierCtx),
+    },
+  });
+  await maybeFlagOperationOutsideSession({
+    tenantId,
+    eventType: "visit_created",
+    entityId: result.visitId,
+    actorType: actor?.actorType ?? "system",
+    hasCashierContext: Boolean(cashierCtx),
+    branchId,
+    sourceAuditEventId: auditVisit.id,
+  });
+
   await processVisitCreatedAutomation({
     tenantId,
     customerId,
@@ -258,6 +332,83 @@ export async function recordVisit(
   });
 
   return result;
+}
+
+/** Ziyaret kaydı olmadan puan önizlemesi (POS anlık geri bildirim). */
+export type PreviewVisitResult = {
+  basePoints: number;
+  bonusPoints: number;
+  totalPointsAwarded: number;
+  appliedCampaigns: AppliedCampaignDto[];
+  priorVisitCount: number;
+};
+
+export async function previewVisitPoints(
+  tenantId: string,
+  customerId: string,
+  amount: number,
+): Promise<PreviewVisitResult> {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    const err = Object.assign(new Error("validation_error"), { statusCode: 400 });
+    throw err;
+  }
+  const amountMinor = Math.floor(amount);
+  const basePoints = visitAmountToPointsEarned(amountMinor);
+  const now = new Date();
+
+  const customer = await prisma.customer.findFirst({
+    where: { id: customerId, tenantId },
+  });
+  if (!customer) {
+    const err = Object.assign(new Error("not_found"), { statusCode: 404 });
+    throw err;
+  }
+
+  const priorVisitCount = await prisma.visit.count({
+    where: { tenantId, customerId },
+  });
+
+  const campaigns = await prisma.campaign.findMany({
+    where: { tenantId },
+    orderBy: { id: "asc" },
+  });
+
+  const runnable = campaigns.filter((c) => isCampaignRunnable(c, now));
+
+  const evalCtx = {
+    amountMinor,
+    priorVisitCount,
+    basePoints,
+    now,
+  };
+
+  const pending: Array<{ campaign: Campaign; bonus: number }> = [];
+  for (const c of runnable) {
+    let bonus: number;
+    try {
+      bonus = evaluateCampaignBonus(c, evalCtx);
+    } catch {
+      const err = Object.assign(new Error("campaign_config_corrupt"), { statusCode: 500 });
+      throw err;
+    }
+    if (bonus > 0) pending.push({ campaign: c, bonus });
+  }
+
+  const bonusTotal = pending.reduce((s, p) => s + p.bonus, 0);
+  const appliedCampaigns: AppliedCampaignDto[] = pending.map(({ campaign, bonus }) => ({
+    campaignId: campaign.id,
+    name: campaign.name,
+    type: campaign.type,
+    pointsAwarded: bonus,
+  }));
+
+  return {
+    basePoints,
+    bonusPoints: bonusTotal,
+    totalPointsAwarded: basePoints + bonusTotal,
+    appliedCampaigns,
+    priorVisitCount,
+  };
 }
 
 function validateRewardShape(input: {
@@ -317,6 +468,12 @@ export async function createReward(
     throw err;
   }
   validateRewardShape({ rewardType, valueType, value, redemptionMethod });
+  const willBeActive = data.isActive ?? true;
+  if (willBeActive) {
+    const ctx = await getTenantEntitlementContext(tenantId);
+    const n = await prisma.reward.count({ where: { tenantId, isActive: true } });
+    assertWithinLimit(ctx, "maxActiveRewards", n, 1);
+  }
   return prisma.reward.create({
     data: {
       tenantId,
@@ -380,6 +537,12 @@ export async function updateReward(
     redemptionMethod: next.redemptionMethod,
   });
 
+  if (next.isActive && !existing.isActive) {
+    const ctx = await getTenantEntitlementContext(tenantId);
+    const n = await prisma.reward.count({ where: { tenantId, isActive: true } });
+    assertWithinLimit(ctx, "maxActiveRewards", n, 1);
+  }
+
   return prisma.reward.update({
     where: { id: rewardId },
     data: {
@@ -424,6 +587,16 @@ export async function createCampaign(
     throw err;
   }
   const cfg = assertCampaignConfigMatchesType(data.type, data.config);
+  const ctx = await getTenantEntitlementContext(tenantId);
+  assertFeature(ctx, FEATURE.CAMPAIGNS);
+  const nextStatus = data.status ?? "draft";
+  const nextActive = data.isActive ?? true;
+  if (isCampaignRowActive({ status: nextStatus, isActive: nextActive })) {
+    const n = await prisma.campaign.count({
+      where: { tenantId, status: "active", isActive: true },
+    });
+    assertWithinLimit(ctx, "maxActiveCampaigns", n, 1);
+  }
   return prisma.campaign.create({
     data: {
       tenantId,
@@ -478,6 +651,18 @@ export async function updateCampaign(
     throw err;
   }
 
+  const nextStatus = patch.status ?? existing.status;
+  const nextIsActive = patch.isActive !== undefined ? patch.isActive : existing.isActive;
+  const nextRow = { status: nextStatus, isActive: nextIsActive };
+  if (isCampaignRowActive(nextRow) && !isCampaignRowActive(existing)) {
+    const ctx = await getTenantEntitlementContext(tenantId);
+    assertFeature(ctx, FEATURE.CAMPAIGNS);
+    const n = await prisma.campaign.count({
+      where: { tenantId, status: "active", isActive: true },
+    });
+    assertWithinLimit(ctx, "maxActiveCampaigns", n, 1);
+  }
+
   return prisma.campaign.update({
     where: { id: campaignId },
     data: {
@@ -501,6 +686,8 @@ export async function redeemReward(
   tenantId: string,
   customerId: string,
   rewardId: string,
+  cashierCtx?: CashierOperationContext | null,
+  actor?: LoyaltyAuditActor | null,
 ) {
   const result = await prisma.$transaction(async (tx) => {
     const reward = await tx.reward.findFirst({
@@ -543,6 +730,12 @@ export async function redeemReward(
         rewardId,
         pointsSpent: cost,
         status: "completed",
+        ...(cashierCtx
+          ? {
+              deviceSessionId: cashierCtx.deviceSessionId,
+              cashierShiftId: cashierCtx.cashierShiftId,
+            }
+          : {}),
       },
     });
 
@@ -563,6 +756,44 @@ export async function redeemReward(
     });
 
     return { redemption, rewardName: reward.name };
+  });
+
+  const branchId = await resolveBranchFromDeviceSession(
+    tenantId,
+    cashierCtx?.deviceSessionId,
+  );
+  const auditRedeem = await recordAuditEvent({
+    tenantId,
+    actorUserId: actor?.userId ?? null,
+    actorType: actor?.actorType ?? "system",
+    branchId,
+    deviceSessionId: cashierCtx?.deviceSessionId ?? null,
+    cashierShiftId: cashierCtx?.cashierShiftId ?? null,
+    eventType: "reward_redeemed",
+    entityType: "redemption",
+    entityId: result.redemption.id,
+    payload: {
+      customerId,
+      rewardId,
+      channel: "instant",
+      pointsSpent: result.redemption.pointsSpent,
+    },
+  });
+  await maybeFlagOperationOutsideSession({
+    tenantId,
+    eventType: "reward_redeemed",
+    entityId: result.redemption.id,
+    actorType: actor?.actorType ?? "system",
+    hasCashierContext: Boolean(cashierCtx),
+    branchId,
+    customerId,
+    sourceAuditEventId: auditRedeem.id,
+  });
+  await maybeFlagHighRedemptionVolume({
+    tenantId,
+    cashierShiftId: cashierCtx?.cashierShiftId,
+    branchId,
+    sourceAuditEventId: auditRedeem.id,
   });
 
   await processRewardClaimedAutomation({
@@ -765,6 +996,7 @@ export async function createRedemptionClaim(
   tenantId: string,
   customerId: string,
   rewardId: string,
+  actor?: LoyaltyAuditActor | null,
 ) {
   const row = await prisma.$transaction(async (tx) => {
     const reward = await tx.reward.findFirst({
@@ -817,6 +1049,30 @@ export async function createRedemptionClaim(
     return created;
   });
 
+  await recordAuditEvent({
+    tenantId,
+    actorUserId: actor?.userId ?? null,
+    actorType: actor?.actorType ?? "system",
+    eventType: "reward_claimed",
+    entityType: "redemption",
+    entityId: row.id,
+    payload: {
+      customerId,
+      rewardId,
+      status: "pending",
+    },
+  });
+  await maybeFlagClaimVelocity({
+    tenantId,
+    customerId,
+    branchId: null,
+  });
+  await maybeFlagDuplicatePendingPattern({
+    tenantId,
+    customerId,
+    branchId: null,
+  });
+
   if (row.reward) {
     await processRewardClaimedAutomation({
       tenantId,
@@ -841,7 +1097,12 @@ export async function createRedemptionClaim(
   return row;
 }
 
-export async function finalizePendingRedemption(tenantId: string, redemptionId: string) {
+export async function finalizePendingRedemption(
+  tenantId: string,
+  redemptionId: string,
+  cashierCtx?: CashierOperationContext | null,
+  actor?: LoyaltyAuditActor | null,
+) {
   const out = await prisma.$transaction(async (tx) => {
     const row = await tx.redemption.findFirst({
       where: { id: redemptionId, tenantId, status: "pending" },
@@ -867,7 +1128,15 @@ export async function finalizePendingRedemption(tenantId: string, redemptionId: 
     }
     await tx.redemption.update({
       where: { id: redemptionId },
-      data: { status: "completed" },
+      data: {
+        status: "completed",
+        ...(cashierCtx
+          ? {
+              deviceSessionId: cashierCtx.deviceSessionId,
+              cashierShiftId: cashierCtx.cashierShiftId,
+            }
+          : {}),
+      },
     });
     await tx.pointsLedger.create({
       data: {
@@ -893,6 +1162,44 @@ export async function finalizePendingRedemption(tenantId: string, redemptionId: 
     return result;
   });
 
+  const branchId = await resolveBranchFromDeviceSession(
+    tenantId,
+    cashierCtx?.deviceSessionId,
+  );
+  const auditFin = await recordAuditEvent({
+    tenantId,
+    actorUserId: actor?.userId ?? null,
+    actorType: actor?.actorType ?? "system",
+    branchId,
+    deviceSessionId: cashierCtx?.deviceSessionId ?? null,
+    cashierShiftId: cashierCtx?.cashierShiftId ?? null,
+    eventType: "reward_redeemed",
+    entityType: "redemption",
+    entityId: out.id,
+    payload: {
+      customerId: out.customer.id,
+      rewardId: out.reward.id,
+      channel: "approval",
+      pointsSpent: out.pointsSpent,
+    },
+  });
+  await maybeFlagOperationOutsideSession({
+    tenantId,
+    eventType: "reward_redeemed",
+    entityId: out.id,
+    actorType: actor?.actorType ?? "system",
+    hasCashierContext: Boolean(cashierCtx),
+    branchId,
+    customerId: out.customer.id,
+    sourceAuditEventId: auditFin.id,
+  });
+  await maybeFlagHighRedemptionVolume({
+    tenantId,
+    cashierShiftId: cashierCtx?.cashierShiftId,
+    branchId,
+    sourceAuditEventId: auditFin.id,
+  });
+
   await recordProductAnalyticsEvent({
     tenantId,
     customerId: out.customer.id,
@@ -907,7 +1214,12 @@ export async function finalizePendingRedemption(tenantId: string, redemptionId: 
   return out;
 }
 
-export async function rejectPendingRedemption(tenantId: string, redemptionId: string) {
+export async function rejectPendingRedemption(
+  tenantId: string,
+  redemptionId: string,
+  actor?: LoyaltyAuditActor | null,
+  cashierCtx?: CashierOperationContext | null,
+) {
   const row = await prisma.redemption.findFirst({
     where: { id: redemptionId, tenantId, status: "pending" },
   });
@@ -915,10 +1227,40 @@ export async function rejectPendingRedemption(tenantId: string, redemptionId: st
     const err = Object.assign(new Error("not_found"), { statusCode: 404 });
     throw err;
   }
-  return prisma.redemption.update({
+  const updated = await prisma.redemption.update({
     where: { id: redemptionId },
     data: { status: "rejected" },
   });
+  const branchId = await resolveBranchFromDeviceSession(
+    tenantId,
+    cashierCtx?.deviceSessionId,
+  );
+  const auditReject = await recordAuditEvent({
+    tenantId,
+    actorUserId: actor?.userId ?? null,
+    actorType: actor?.actorType ?? "system",
+    branchId,
+    deviceSessionId: cashierCtx?.deviceSessionId ?? null,
+    cashierShiftId: cashierCtx?.cashierShiftId ?? null,
+    eventType: "reward_rejected",
+    entityType: "redemption",
+    entityId: redemptionId,
+    payload: {
+      customerId: row.customerId,
+      rewardId: row.rewardId,
+    },
+  });
+  await maybeFlagOperationOutsideSession({
+    tenantId,
+    eventType: "reward_rejected",
+    entityId: redemptionId,
+    actorType: actor?.actorType ?? "system",
+    hasCashierContext: Boolean(cashierCtx),
+    branchId,
+    customerId: row.customerId,
+    sourceAuditEventId: auditReject.id,
+  });
+  return updated;
 }
 
 export async function getCustomerAccount(tenantId: string, customerId: string) {
@@ -1009,6 +1351,20 @@ export async function listRedemptionsForTenant(tenantId: string, take = 100) {
     take,
     include: {
       customer: { select: { id: true, name: true, phone: true } },
+      reward: { select: { id: true, name: true } },
+    },
+  });
+}
+
+/** Müşteri uygulamasından oluşan bekleyen talepler — kasiyer onayı için. */
+export async function listPendingClaimsForCustomer(
+  tenantId: string,
+  customerId: string,
+) {
+  return prisma.redemption.findMany({
+    where: { tenantId, customerId, status: "pending" },
+    orderBy: { createdAt: "asc" },
+    include: {
       reward: { select: { id: true, name: true } },
     },
   });

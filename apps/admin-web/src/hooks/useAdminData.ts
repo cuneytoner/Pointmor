@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { LocaleCode } from "../i18n/locale";
 import { getApiBaseUrl } from "../lib/api-base";
+import type { EntitlementsPayload } from "../lib/entitlements-api";
 
 export type AuthUser = {
   id: string;
@@ -93,6 +94,8 @@ export type AdminBootstrap = {
   plans: PlanDto[];
   subscriptions: SubscriptionDto[];
   auditLogs: AuditLogDto[];
+  /** `/tenant/entitlements` — yalnızca tenant oturumunda doldurulur. */
+  entitlements: EntitlementsPayload | null;
 };
 
 export type AdminDataState = {
@@ -162,12 +165,30 @@ export function useAdminData(
           activation?: ActivationMilestones | null;
         };
 
-        const bootRes = await fetch(`${base}/admin/bootstrap`, {
-          headers,
-          credentials: "include",
-        });
-        const bootstrap = bootRes.ok
-          ? ((await bootRes.json()) as AdminBootstrap)
+        const [bootRes, entRes] = await Promise.all([
+          fetch(`${base}/admin/bootstrap`, {
+            headers,
+            credentials: "include",
+          }),
+          me.tenant
+            ? fetch(`${base}/tenant/entitlements`, {
+                headers,
+                credentials: "include",
+              })
+            : Promise.resolve(null),
+        ]);
+
+        const rawBoot = bootRes.ok ? ((await bootRes.json()) as Omit<AdminBootstrap, "entitlements">) : null;
+        let entitlements: EntitlementsPayload | null = null;
+        if (me.tenant && entRes?.ok) {
+          try {
+            entitlements = (await entRes.json()) as EntitlementsPayload;
+          } catch {
+            entitlements = null;
+          }
+        }
+        const bootstrap: AdminBootstrap | null = rawBoot
+          ? { ...rawBoot, entitlements }
           : null;
 
         if (!cancelled) {

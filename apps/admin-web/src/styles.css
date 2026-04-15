@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Global temel; Plus Admin görünümü yalnızca plus-shell.css içinde .admin-app altında. */
 *,
 *::before,

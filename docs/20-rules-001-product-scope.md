@@ -8,7 +8,9 @@
 
 **Pointmor**, çok kiracılı **sadakat (loyalty) SaaS** ürünüdür; birincil kullanıcılar **restoran / kafe işletmeleri** ve operasyonlarını yöneten **SaaS operatörü** (platform) rolleridir.
 
-**Şu anki repoda** çekirdek SaaS (kimlik, kiracı, kullanıcı, plan, abonelik, admin UI) ve **loyalty faz 1** (müşteri, ziyaret, ödül, kullanım — Prisma + tenant kapsamlı API) bulunur. Müşteri PWA + canonical public API, kasiyer onaylı talep → kullanım akışı ve Tenant App’te kullanım operasyon ekranı **mevcut kapsamda**dır. Ödeme entegrasyonu ve plan limitleri **ürün olgunluğuna göre** sonraki adımlardır.
+**Şu anki repoda** çekirdek SaaS (kimlik, kiracı, kullanıcı, plan, abonelik, admin UI) ve **loyalty faz 1** (müşteri, ziyaret, ödül, kullanım — Prisma + tenant kapsamlı API) bulunur. Müşteri PWA + canonical public API, kasiyer onaylı talep → kullanım akışı ve Tenant App’te kullanım operasyon ekranı **mevcut kapsamda**dır. **Plan / entitlement:** `GET /tenant/entitlements`, yazma yollarında limit ve özellik kontrolleri, Tenant App’te kullanım ve yükseltme UX’i (demo plan değişimi; gerçek **ödeme / PSP / fatura** entegrasyonu ürün olgunluğuna göre sonraki adım).
+
+**Tenant kasa yüzeyi (hedef):** Tek ekranda visit ve anında ödül kullanımı (`POST /visits`, `POST /redemptions`) — ürün sırası ve CTA kuralları [`42-design-tenant-cashier-flow.md`](./42-design-tenant-cashier-flow.md).
 
 ---
 
@@ -31,7 +33,8 @@ Eski plan/spec dosyaları repodan kaldırılmıştır (gerekirse git geçmişi).
 | **Tenant** | Kiracı yaşam döngüsü, slug, ayarlar |
 | **Kullanıcı** | Üyelik, rol |
 | **Plan / Subscription** | Fiyatlandırma sınıfı, özellik etiketleri, abonelik durumu |
-| **Denetim** | Audit log (operasyonel) |
+| **Denetim** | E-posta tabanlı `AuditLog` (admin eylemleri) + **yapısal** `AuditEvent` (loyalty/kasiyer kritik olaylar; immutable, tenant kapsamlı). İkisi farklı amaçlara hizmet eder; finans/SIEM platformu değildir. |
+| **Plan / entitlement** | `Plan` üzerinde `limits` (JSON) + `featureTags`; abonelik yoksa varsayılan `starter` planı. Ödeme sağlayıcısı yok; limit ve özellikler backend’de zorunlu. |
 
 ---
 
@@ -43,7 +46,7 @@ Eski plan/spec dosyaları repodan kaldırılmıştır (gerekirse git geçmişi).
 | **Platform Console** | SaaS operatörü — tüm kiracılar |
 | **Tenant App** | Tek işletmenin yönetim alanı |
 
-**Billing** (gerçek ödeme, PSP, fatura): ürün olgunlaşana kadar **ertelenebilir**; çekirdekte abonelik kaydı ve UI iskeleti yeterlidir.
+**Billing** (gerçek ödeme, PSP, fatura): ürün olgunlaşana kadar **ertelenebilir**. Çekirdekte abonelik kaydı, platformdan plan `PATCH`, tenant’ta kullanım/limit görünürlüğü ve (ortamda açıksa) demo plan değişimi vardır; **tahsilat** yoktur.
 
 ---
 

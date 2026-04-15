@@ -59,3 +59,18 @@
 - [ ] Yeni stil `plus-shell.css` ve tutarlı önekte mi?
 - [ ] Gereksiz inline stil yok mu?
 - [ ] Tenant governance/lineage ekranında `gov-*` ve yoğunluk `rules-008` ile uyumlu mu?
+
+---
+
+## 8. Tenant App — Cashier (POS) ekranı
+
+- **Tam sayfa** `PageShell`; modal içinde kasa akışı yok.
+- **Birincil / ikincil:** Visit tamamlama `admin-primary-btn`; ödül kullanımı `admin-secondary-btn` — ayrıntılı durum kuralları ve operasyon sırası (önce visit, sonra redeem): [`42-design-tenant-cashier-flow.md`](./42-design-tenant-cashier-flow.md).
+- **Tailwind (`apps/admin-web`):** Kasa düzeni `src/cashier/*` içinde **Tailwind utility** ile; `tailwind.config.js` içinde **preflight kapalı** — mevcut Plus shell / `plus-shell.css` ile çakışmayı azaltır. Yeni POS yüzeyleri bu dosya ağacında tutulur.
+
+---
+
+## 9. Tenant App — Plan / billing görünürlüğü
+
+- **Üst çubuk:** plan rozeti (`plan-badge`); **Billing** (`/app/billing`): kullanım satırları, özellik listesi, demo yükseltme modalı — stiller `plus-shell.css` içinde (ör. `usage-row`, `entitlement-alerts`, `billing-*`).
+- Metinler i18n; gerçek ödeme yoktur ([`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md)).

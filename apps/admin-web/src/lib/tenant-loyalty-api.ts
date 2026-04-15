@@ -30,6 +30,15 @@ export type VisitRecordResult = {
   }>;
 };
 
+/** Sunucu ile aynı kurallar — anlık önizleme (POS). */
+export type VisitPreviewResult = {
+  basePoints: number;
+  bonusPoints: number;
+  totalPointsAwarded: number;
+  priorVisitCount: number;
+  appliedCampaigns: VisitRecordResult["appliedCampaigns"];
+};
+
 export type CustomerDetail = {
   customer: CustomerWithBalance;
   pointsBalance: number;
@@ -80,6 +89,15 @@ export type RedemptionRow = {
   reward: { id: string; name: string };
 };
 
+/** Bekleyen müşteri talebi (app claim) — kasiyer listesi. */
+export type PendingClaimRow = {
+  id: string;
+  pointsSpent: number;
+  status: string;
+  createdAt: string;
+  reward: { id: string; name: string };
+};
+
 export type RewardDto = {
   id: string;
   name: string;
@@ -107,6 +125,21 @@ export type CampaignDto = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type CashierOperationIds = {
+  deviceSessionId: string;
+  cashierShiftId: string;
+};
+
+function cashierHeaders(
+  ctx?: CashierOperationIds | null,
+): Record<string, string> {
+  if (!ctx) return {};
+  return {
+    "X-Pointmor-Device-Session": ctx.deviceSessionId,
+    "X-Pointmor-Cashier-Shift": ctx.cashierShiftId,
+  };
+}
 
 async function loyaltyFetch<T>(
   token: string,
@@ -157,6 +190,13 @@ export function getCustomerDetail(token: string, customerId: string) {
   );
 }
 
+export function getPendingClaims(token: string, customerId: string) {
+  return loyaltyFetch<PendingClaimRow[]>(
+    token,
+    `/customers/${encodeURIComponent(customerId)}/pending-claims`,
+  );
+}
+
 export function getVisits(token: string, limit = 100) {
   return loyaltyFetch<VisitRow[]>(token, `/visits?limit=${limit}`);
 }
@@ -178,8 +218,20 @@ export function getCampaigns(token: string) {
 export function postVisit(
   token: string,
   body: { customerId: string; amount: number },
+  cashierCtx?: CashierOperationIds | null,
 ) {
   return loyaltyFetch<VisitRecordResult>(token, "/visits", {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: cashierHeaders(cashierCtx),
+  });
+}
+
+export function postVisitPreview(
+  token: string,
+  body: { customerId: string; amount: number },
+) {
+  return loyaltyFetch<VisitPreviewResult>(token, "/visits/preview", {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -241,18 +293,113 @@ export function patchCampaign(
 export function postRedemption(
   token: string,
   body: { customerId: string; rewardId: string },
+  cashierCtx?: CashierOperationIds | null,
 ) {
   return loyaltyFetch<{ id: string }>(token, "/redemptions", {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: cashierHeaders(cashierCtx),
+  });
+}
+
+export function postRedemptionApprove(
+  token: string,
+  redemptionId: string,
+  cashierCtx?: CashierOperationIds | null,
+) {
+  return loyaltyFetch<RedemptionRow>(
+    token,
+    `/redemptions/${encodeURIComponent(redemptionId)}/approve`,
+    { method: "POST", headers: cashierHeaders(cashierCtx) },
+  );
+}
+
+export type CashierBootstrap = {
+  branches: Array<{ id: string; name: string; slug: string | null }>;
+  myOpenShift: null | {
+    id: string;
+    deviceSessionId: string;
+    status: string;
+    startedAt: string;
+    deviceSession: {
+      id: string;
+      deviceLabel: string;
+      branchId: string | null;
+      branch: { id: string; name: string } | null;
+    };
+    user: { id: string; name: string; email: string };
+  };
+};
+
+export function getCashierBootstrap(token: string) {
+  return loyaltyFetch<CashierBootstrap>(token, "/cashier/bootstrap");
+}
+
+export function postCashierDeviceSession(
+  token: string,
+  body: { deviceLabel: string; branchId?: string | null },
+) {
+  return loyaltyFetch<{
+    id: string;
+    deviceLabel: string;
+    branchId: string | null;
+    status: string;
+    startedAt: string;
+  }>(token, "/cashier/device-sessions", {
     method: "POST",
     body: JSON.stringify(body),
   });
 }
 
-export function postRedemptionApprove(token: string, redemptionId: string) {
-  return loyaltyFetch<RedemptionRow>(
+export function postCashierDeviceSessionClose(token: string, deviceSessionId: string) {
+  return loyaltyFetch<{ ok: boolean; closedShifts: number }>(
     token,
-    `/redemptions/${encodeURIComponent(redemptionId)}/approve`,
+    `/cashier/device-sessions/${encodeURIComponent(deviceSessionId)}/close`,
     { method: "POST" },
+  );
+}
+
+export function postCashierShiftStart(
+  token: string,
+  body: { deviceSessionId: string },
+) {
+  return loyaltyFetch<unknown>(token, "/cashier/shifts", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function postCashierShiftClose(token: string, shiftId: string) {
+  return loyaltyFetch<unknown>(
+    token,
+    `/cashier/shifts/${encodeURIComponent(shiftId)}/close`,
+    { method: "POST" },
+  );
+}
+
+export type CashierShiftSummary = {
+  shift: {
+    id: string;
+    status: string;
+    startedAt: string;
+    endedAt: string | null;
+    user: { id: string; name: string; email: string };
+    deviceSession: {
+      id: string;
+      deviceLabel: string;
+      branchId: string | null;
+    };
+  };
+  visitCount: number;
+  totalPointsIssued: number;
+  redemptionCount: number;
+  totalPointsRedeemed: number;
+};
+
+export function getCashierShiftSummary(token: string, shiftId: string) {
+  return loyaltyFetch<CashierShiftSummary>(
+    token,
+    `/cashier/shifts/${encodeURIComponent(shiftId)}/summary`,
   );
 }
 

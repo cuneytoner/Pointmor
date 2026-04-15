@@ -4,7 +4,7 @@
 
 **Güncel ürün:** **Pointmor** — restoran / kafe **loyalty SaaS**; çekirdek kod `apps/api` + `apps/admin-web`. Çok kiracılı yapı, oturum ve plan/abonelik korunur; **sadakat domain’i** (müşteri, puan, ziyaret, ödül) API’de tanımlıdır.
 
-**Stratejik yön:** Önce **loyalty çekirdeği** ve PMF; tam **ödeme / PSP** entegrasyonu ürün olgunluğuna göre. Ayrım: **SaaS çekirdeği** (tenant, kullanım, limit) vs **Billing** (tahsilat) — bkz. [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md).
+**Stratejik yön:** Önce **loyalty çekirdeği** ve PMF; tam **ödeme / PSP** entegrasyonu ürün olgunluğuna göre. Ayrım: **SaaS çekirdeği** (tenant, kullanım, **limit + entitlement enforcement**, tenant billing görünürlüğü / demo yükseltme) vs **Billing** (tahsilat, fatura) — bkz. [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md), durum özeti [`10-meta-003-project-tracker.md`](./10-meta-003-project-tracker.md) Phase 4.7.
 
 **Eski içerik:** Data platform, document SaaS ve eski sprint/plan dosyaları repodan **kaldırılmıştır**; gerektiğinde git geçmişine bakın.
 
@@ -36,7 +36,8 @@
 | PR, test, kod stili | [`20-rules-007-engineering.md`](./20-rules-007-engineering.md) |
 | Tema, tipografi, bileşen | [`20-rules-008-design-system.md`](./20-rules-008-design-system.md) |
 | Admin UI (Plus shell, `admin-*` sınıfları) | [`42-design-admin-ui.md`](./42-design-admin-ui.md) |
-| Yerel çalıştırma, Prisma | [`40-guide-001-run-local.md`](./40-guide-001-run-local.md) |
+| Tenant Cashier (tek ekran visit + redeem) | [`42-design-tenant-cashier-flow.md`](./42-design-tenant-cashier-flow.md) |
+| Yerel çalıştırma, Prisma, `ALLOW_TENANT_DEMO_PLAN_SWITCH` (demo plan ucu) | [`40-guide-001-run-local.md`](./40-guide-001-run-local.md) |
 | Seed kullanıcıları | [`41-ref-001-dev-seed-users.md`](./41-ref-001-dev-seed-users.md) |
 
 ---
@@ -56,6 +57,6 @@
 | Kurallar | `20-rules-001` … `20-rules-010` |
 | Kılavuz | `40-guide-001` … `40-guide-003` |
 | Ref | `41-ref-001-dev-seed-users.md` |
-| Tasarım | `42-design-admin-ui.md` |
+| Tasarım | `42-design-admin-ui.md`, `42-design-tenant-cashier-flow.md` |
 
 Eski **plan/spec** dosyaları (data platform, document SaaS, sprint1–4) kaldırıldı; yeni plan eklenecekse `10-plan-` öneki ve boş numara kullanın.

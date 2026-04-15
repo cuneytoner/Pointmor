@@ -16,6 +16,12 @@ import {
 import { signCustomerAccessToken, verifyCustomerAccessToken } from "../lib/customer-portal-jwt.js";
 import { requireCustomerBearer } from "../lib/public-customer-auth.js";
 import { recordProductAnalyticsEvent } from "../lib/product-analytics-service.js";
+import {
+  assertFeature,
+  FEATURE,
+  getTenantEntitlementContext,
+  sendEntitlementHttpError,
+} from "../lib/entitlement-service.js";
 
 const PRODUCT_ANALYTICS_TYPES = new Set<string>([
   "qr_opened",
@@ -39,6 +45,20 @@ async function resolveTenantOr404(slug: string) {
     where: { slug: slug.trim() },
   });
   return tenant;
+}
+
+async function ensureCustomerPwaEnabled(
+  tenantId: string,
+  reply: { code: (n: number) => { send: (b: unknown) => unknown } },
+): Promise<boolean> {
+  try {
+    const ent = await getTenantEntitlementContext(tenantId);
+    assertFeature(ent, FEATURE.CUSTOMER_PWA);
+    return true;
+  } catch (e) {
+    if (sendEntitlementHttpError(reply, e)) return false;
+    throw e;
+  }
 }
 
 export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<void> {
@@ -112,6 +132,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
           const slug = req.params.tenantSlug.trim();
           const ctx = await requireCustomerBearer(req, reply, slug);
           if (!ctx) return;
+          if (!(await ensureCustomerPwaEnabled(ctx.tenantId, reply))) return;
           const [dashboard, tenantRow] = await Promise.all([
             getCustomerPortalData(ctx.tenantId, ctx.customerId),
             prisma.tenant.findUnique({ where: { id: ctx.tenantId } }),
@@ -144,6 +165,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
           const slug = req.params.tenantSlug.trim();
           const ctx = await requireCustomerBearer(req, reply, slug);
           if (!ctx) return;
+          if (!(await ensureCustomerPwaEnabled(ctx.tenantId, reply))) return;
           try {
             return await getPublicCustomerAccountSummary(ctx.tenantId, ctx.customerId);
           } catch (e) {
@@ -160,6 +182,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
           const slug = req.params.tenantSlug.trim();
           const ctx = await requireCustomerBearer(req, reply, slug);
           if (!ctx) return;
+          if (!(await ensureCustomerPwaEnabled(ctx.tenantId, reply))) return;
           const raw = req.query?.limit;
           const n = raw !== undefined ? Number(raw) : 40;
           const items = await getPublicCustomerActivityLedger(
@@ -177,6 +200,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
           const slug = req.params.tenantSlug.trim();
           const ctx = await requireCustomerBearer(req, reply, slug);
           if (!ctx) return;
+          if (!(await ensureCustomerPwaEnabled(ctx.tenantId, reply))) return;
           const rewardId = String(req.body?.rewardId ?? "").trim();
           if (!rewardId) {
             req.log.warn({ route: "public.claims" }, "public_api_validation");
@@ -187,6 +211,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
               ctx.tenantId,
               ctx.customerId,
               rewardId,
+              { actorType: "system", userId: null },
             );
             return {
               id: row.id,
@@ -274,6 +299,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
             req.log.warn({ slug, route: "public.session" }, "public_api_not_found");
             return reply.code(404).send({ error: "not_found" });
           }
+          if (!(await ensureCustomerPwaEnabled(tenant.id, reply))) return;
           const customer = await prisma.customer.findFirst({
             where: { tenantId: tenant.id, phone },
           });

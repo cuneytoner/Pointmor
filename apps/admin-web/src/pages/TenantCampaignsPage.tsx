@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -131,6 +133,8 @@ export function TenantCampaignsPage() {
   const { t } = useTranslation();
   const locale = useLocale();
   const { token } = useAuth();
+  const { bootstrap } = useAdminDataContext();
+  const ent = bootstrap?.entitlements;
   const dlg = useRef<HTMLDialogElement>(null);
   const [rows, setRows] = useState<CampaignDto[] | null>(null);
   const [error, setError] = useState(false);
@@ -249,6 +253,35 @@ export function TenantCampaignsPage() {
   const statusOptions = editing
     ? STATUSES_EXTENDED
     : (["draft", "active"] as const);
+
+  if (!ent) {
+    return (
+      <PageShell
+        eyebrow={t("tenantLoyalty.campaigns.eyebrow")}
+        title={t("tenantLoyalty.campaigns.title")}
+        description=""
+      >
+        <p className="admin-app__card-text">{t("plan.gate.loadingEntitlements")}</p>
+      </PageShell>
+    );
+  }
+
+  if (!ent.features.includes("campaigns")) {
+    return (
+      <PageShell
+        eyebrow={t("tenantLoyalty.campaigns.eyebrow")}
+        title={t("plan.gate.campaignsTitle")}
+        description={t("plan.gate.campaignsLead")}
+      >
+        <div className="feature-plan-gate">
+          <p className="admin-app__card-text">{t("plan.gate.campaignsBody")}</p>
+          <Link to="/app/billing" className="admin-primary-btn">
+            {t("plan.gate.ctaBilling")}
+          </Link>
+        </div>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell

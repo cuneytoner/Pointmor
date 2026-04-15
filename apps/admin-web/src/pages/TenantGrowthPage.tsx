@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { useTranslation } from "../hooks/useTranslation";
 import {
@@ -16,11 +18,19 @@ function pct(n: number | null): string {
 export function TenantGrowthPage() {
   const { t } = useTranslation();
   const { token } = useAuth();
+  const { bootstrap } = useAdminDataContext();
+  const ent = bootstrap?.entitlements;
   const [data, setData] = useState<GrowthOverview | null>(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!token?.trim()) return;
+    if (
+      bootstrap?.entitlements &&
+      !bootstrap.entitlements.features.includes("product_analytics")
+    ) {
+      return;
+    }
     let c = false;
     setError(false);
     getGrowthOverview(token, {
@@ -37,7 +47,7 @@ export function TenantGrowthPage() {
     return () => {
       c = true;
     };
-  }, [token]);
+  }, [token, bootstrap?.entitlements]);
 
   const loading = data === null && !error;
 
@@ -46,6 +56,35 @@ export function TenantGrowthPage() {
     const x = t(k);
     return x === k ? s : x;
   };
+
+  if (!ent) {
+    return (
+      <PageShell
+        eyebrow={t("tenantLoyalty.growth.eyebrow")}
+        title={t("tenantLoyalty.growth.title")}
+        description=""
+      >
+        <p className="admin-app__card-text">{t("plan.gate.loadingEntitlements")}</p>
+      </PageShell>
+    );
+  }
+
+  if (!ent.features.includes("product_analytics")) {
+    return (
+      <PageShell
+        eyebrow={t("tenantLoyalty.growth.eyebrow")}
+        title={t("plan.gate.growthTitle")}
+        description={t("plan.gate.growthLead")}
+      >
+        <div className="feature-plan-gate">
+          <p className="admin-app__card-text">{t("plan.gate.growthBody")}</p>
+          <Link to="/app/billing" className="admin-primary-btn">
+            {t("plan.gate.ctaBilling")}
+          </Link>
+        </div>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell
