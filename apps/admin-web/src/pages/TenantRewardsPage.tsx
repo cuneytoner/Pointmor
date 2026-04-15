@@ -21,20 +21,16 @@ function rewardTypeLabel(rt: string, t: (k: string) => string): string {
   return rt;
 }
 
-function defaultsForRewardType(rt: RewardTypeId): {
-  valueType: string;
-  value: string;
-  percentStr: string;
-} {
+function defaultsForRewardType(rt: RewardTypeId): { value: string; percentStr: string } {
   switch (rt) {
     case "FREE_ITEM":
-      return { valueType: "NONE", value: "0", percentStr: "10" };
+      return { value: "0", percentStr: "10" };
     case "FIXED_DISCOUNT":
-      return { valueType: "MINOR_AMOUNT", value: "500", percentStr: "10" };
+      return { value: "500", percentStr: "10" };
     case "PERCENT_DISCOUNT":
-      return { valueType: "PERCENT_BP", value: "1000", percentStr: "10" };
+      return { value: "1000", percentStr: "10" };
     default:
-      return { valueType: "NONE", value: "0", percentStr: "10" };
+      return { value: "0", percentStr: "10" };
   }
 }
 
@@ -54,7 +50,6 @@ export function TenantRewardsPage() {
   const [description, setDescription] = useState("");
   const [pointsCost, setPointsCost] = useState("100");
   const [rewardType, setRewardType] = useState<RewardTypeId>("FREE_ITEM");
-  const [valueType, setValueType] = useState("NONE");
   const [value, setValue] = useState("0");
   const [percentStr, setPercentStr] = useState("10");
   const [isActive, setIsActive] = useState(true);
@@ -76,7 +71,6 @@ export function TenantRewardsPage() {
     setRewardType(rt);
     if (resetValues) {
       const d = defaultsForRewardType(rt);
-      setValueType(d.valueType);
       setValue(d.value);
       setPercentStr(d.percentStr);
     }
@@ -98,7 +92,6 @@ export function TenantRewardsPage() {
     setDescription(r.description ?? "");
     setPointsCost(String(r.pointsCost));
     setRewardType(r.rewardType as RewardTypeId);
-    setValueType(r.valueType);
     setValue(String(r.value));
     setPercentStr(
       r.rewardType === "PERCENT_DISCOUNT"
@@ -117,11 +110,10 @@ export function TenantRewardsPage() {
     const cost = Number(pointsCost);
     if (!name.trim() || !Number.isFinite(cost) || cost <= 0) return;
 
-    let vt = valueType;
+    let vt = "NONE";
     let val = Math.floor(Number(value));
 
     if (rewardType === "FREE_ITEM") {
-      vt = "NONE";
       val = 0;
     } else if (rewardType === "FIXED_DISCOUNT") {
       vt = "MINOR_AMOUNT";
