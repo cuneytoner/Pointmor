@@ -8,7 +8,7 @@
 
 **Eski veri platformu domain’i** (Data Health, Governance, Lineage, connector/scan/registry) **koddan ve şemadan kaldırılmıştır**; ilgili eski plan/spec dokümanları da `docs/` içinden **temizlenmiştir** (gerekirse git geçmişi). Güncel ürün yönü **Pointmor sadakat**tir.
 
-**Loyalty (faz 1):** Prisma modelleri ve tenant bağlamında REST uçları (`/customers`, `/visits`, `/rewards`, `/redemptions`, hesap özeti) `apps/api` içindedir; tam ürün yüzeyi (kampanya, ödeme, zengin Tenant UI) **sonraki adımlar**dır.
+**Loyalty (faz 1):** Prisma modelleri ve tenant bağlamında REST uçları (`/customers`, `/visits`, `/rewards`, `/redemptions`, hesap özeti) `apps/api` içindedir. Müşteri tarafı (PWA) **canonical** public API ile konuşur: **`/public/tenants/:tenantSlug/...`** (legacy `/public/loyalty/...` GET’leri 308 yönlendirme). Tenant App’te ödül talebi onayı ve kullanım listesi **Kullanımlar** ekranında işlenir.
 
 ## Teknik yığın
 

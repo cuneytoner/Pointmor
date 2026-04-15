@@ -19,6 +19,7 @@ export type CustomerPortalBootstrap = {
     description: string | null;
     pointsCost: number;
     isActive: boolean;
+    rewardType?: string;
   }>;
   campaigns: Array<{
     id: string;
@@ -104,22 +105,23 @@ function publicFetch<T>(
   });
 }
 
+const publicTenantBase = (tenantSlug: string) =>
+  `/public/tenants/${encodeURIComponent(tenantSlug)}`;
+
 export function getCustomerPortalBootstrap(tenantSlug: string) {
-  return publicFetch<CustomerPortalBootstrap>(
-    `/public/loyalty/${encodeURIComponent(tenantSlug)}/bootstrap`,
-  );
+  return publicFetch<CustomerPortalBootstrap>(`${publicTenantBase(tenantSlug)}`);
 }
 
 export function postCustomerPortalSession(tenantSlug: string, phone: string) {
   return publicFetch<CustomerPortalDashboard & { token: string }>(
-    `/public/loyalty/${encodeURIComponent(tenantSlug)}/session`,
+    `${publicTenantBase(tenantSlug)}/session`,
     { method: "POST", body: JSON.stringify({ phone }) },
   );
 }
 
 export function getCustomerPortalMe(tenantSlug: string, token: string) {
   return publicFetch<CustomerPortalDashboard>(
-    `/public/loyalty/${encodeURIComponent(tenantSlug)}/me`,
+    `${publicTenantBase(tenantSlug)}/customers/me`,
     { token },
   );
 }
@@ -129,14 +131,15 @@ export function postCustomerClaim(
   token: string,
   rewardId: string,
 ) {
-  return publicFetch<{ id: string; status: string }>(
-    `/public/loyalty/${encodeURIComponent(tenantSlug)}/claims`,
-    {
-      method: "POST",
-      body: JSON.stringify({ rewardId }),
-      token,
-    },
-  );
+  return publicFetch<{
+    id: string;
+    status: string;
+    reward?: { id: string; name: string; pointsCost: number };
+  }>(`${publicTenantBase(tenantSlug)}/claims`, {
+    method: "POST",
+    body: JSON.stringify({ rewardId }),
+    token,
+  });
 }
 
 export function postCustomerProductAnalyticsEvent(
@@ -145,7 +148,7 @@ export function postCustomerProductAnalyticsEvent(
   body: { type: string; payload?: Record<string, unknown> },
 ) {
   return publicFetch<{ ok: boolean }>(
-    `/public/loyalty/${encodeURIComponent(tenantSlug)}/analytics/events`,
+    `${publicTenantBase(tenantSlug)}/analytics/events`,
     {
       method: "POST",
       body: JSON.stringify({

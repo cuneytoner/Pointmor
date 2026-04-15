@@ -52,6 +52,13 @@ export type CustomerDetail = {
     visitId: string | null;
     createdAt: string;
   }>;
+  rewardClaims: Array<{
+    id: string;
+    status: string;
+    pointsSpent: number;
+    createdAt: string;
+    reward: { id: string; name: string };
+  }>;
 };
 
 export type VisitRow = {

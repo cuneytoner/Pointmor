@@ -34,6 +34,12 @@ export function TenantCustomerDetailPage() {
 
   const loading = !data && !error;
 
+  const redemptionStatusLabel = (s: string) => {
+    const k = `tenantLoyalty.redemptions.status.${s}` as const;
+    const label = t(k);
+    return label === k ? s : label;
+  };
+
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleString(toIntlLocale(locale), {
       dateStyle: "short",
@@ -92,6 +98,39 @@ export function TenantCustomerDetailPage() {
                         <td>{v.bonusPointsEarned}</td>
                         <td>{v.pointsEarned}</td>
                         <td className="data-table__muted">{fmtDate(v.createdAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="admin-app__card admin-app__card--wide" style={{ marginBottom: "1rem" }}>
+            <p className="admin-app__card-title">{t("tenantLoyalty.customerDetail.claimsTitle")}</p>
+            {data.rewardClaims.length === 0 ? (
+              <EmptyState
+                title={t("tenantLoyalty.customerDetail.emptyClaims")}
+                description=""
+              />
+            ) : (
+              <div className="table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>{t("tenantLoyalty.customerDetail.claimReward")}</th>
+                      <th>{t("tenantLoyalty.customerDetail.claimStatus")}</th>
+                      <th>{t("tenantLoyalty.customerDetail.claimPoints")}</th>
+                      <th>{t("tenantLoyalty.customerDetail.ledgerWhen")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.rewardClaims.map((c) => (
+                      <tr key={c.id}>
+                        <td>{c.reward.name}</td>
+                        <td>{redemptionStatusLabel(c.status)}</td>
+                        <td className="data-table__mono">{c.pointsSpent}</td>
+                        <td className="data-table__muted">{fmtDate(c.createdAt)}</td>
                       </tr>
                     ))}
                   </tbody>

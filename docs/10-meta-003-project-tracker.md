@@ -16,9 +16,9 @@ Eski veri platformu faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor loya
 
 ### Phase 3 — Customer Experience (PWA + public API)
 
-**Durum:** Ürün akışı açısından **kapatıldı** (QR → gate/home → puan; telefon+token; ödül talebi; offline snapshot). API’de hem **`/public/loyalty/:slug/*`** (PWA’nın kullandığı) hem Phase 3 **`/public/tenants/:slug/*`** yüzeyi kayıtlı; global + public scope **rate limit** ve **Bearer + tenant slug** ile tenant izolasyonu uygulanıyor.
+**Durum:** Ürün akışı açısından **kapatıldı** (QR → gate/home → puan; telefon+token; ödül talebi; offline snapshot). **Canonical public müşteri API’si:** **`/public/tenants/:slug/*`** (bootstrap = `GET /public/tenants/:slug`, oturum, `customers/me`, `claims`, `analytics/events`). Legacy **`/public/loyalty/:slug/*`** — GET uçları **308** ile canonical’a yönlendirilir; POST uçları geçici uyumluluk için yerinde kalır. Global + public scope **rate limit** ve **Bearer + tenant slug** ile tenant izolasyonu uygulanıyor.
 
-**Bilinen teknik borç (kısa fix):** Müşteri PWA’da `409` yanıtı hem yetersiz puan hem **duplicate pending claim** için aynı metinle gösterilebilir; istemci gövde (`error`) ayrımı veya toast ile netleştirilmeli. İstemci hâlâ legacy path kullanıyor; istenirse taban URL **`/public/tenants/...`** ile hizalanır.
+**409 ayrımı:** `insufficient_points` vs `duplicate_pending_claim` canonical (ve legacy) `claims` yanıtında `error` stringi ile ayrılır; PWA toast ile farklı metin gösterir.
 
 ### Phase 4 — Growth & automation (MVP)
 
@@ -31,7 +31,7 @@ Eski veri platformu faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor loya
 - **Model:** `ProductAnalyticsEvent` + enum (`qr_opened`, `customer_viewed_home`, `visit_recorded`, `points_awarded`, `reward_viewed`, `reward_claimed`, `redemption_completed`).
 - **API (tenant oturumu):** `GET /analytics/funnel`, `/analytics/retention`, `/analytics/overview`, `/analytics/reward-usage` — huni adım/düşüş, kohort D1/D3/D7, ödül kullanım özeti.
 - **Yüzey:** Tenant admin → **Büyüme** (`/app/growth`): huni, tutma, ödül metrikleri, sunucu üretimi kısa öngörüler.
-- **PWA:** Ödül listesi açılışında `reward_viewed` (best-effort); bootstrap/me ve loyalty servisi diğer olayları yazar.
+- **PWA:** Ödül listesi açılışında `reward_viewed` (best-effort); `GET /public/tenants/:slug` (`qr_opened`), `customers/me` (`customer_viewed_home`) ve servis katmanı diğer olayları yazar.
 
 ---
 
@@ -39,10 +39,12 @@ Eski veri platformu faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor loya
 
 | Öncelik | Konu |
 |--------|------|
-| 1 | PWA `customer-portal-api` tabanını `/public/tenants/...` ile hizalama; `409` gövde ayrımı (duplicate vs insufficient) |
-| 2 | Tenant App’te loyalty operasyon ekranları (pending redemption onayı vb.) — müşteri claim ile uçtan uca test |
-| 3 | İşletme onboarding ve plan limitleri (loyalty’ye özgü kullanım sayaçları) |
-| 4 | Gerçek ödeme / faturalama entegrasyonu (ürün olgunluğuna göre) |
+| 1 | İşletme onboarding ve plan limitleri (loyalty’ye özgü kullanım sayaçları) |
+| 2 | Gerçek ödeme / faturalama entegrasyonu (ürün olgunluğuna göre) |
+| 3 | Legacy `POST /public/loyalty/...` alias’larını kaldırma veya tek modüle indirgeme (istemci tamamen canonical olduğunda) |
+| 4 | Public API hata gövdesini uzun vadede `20-rules-004` ile tam hizalama (`error.code` nesnesi) |
+
+**Tamamlanan (bu dilim):** PWA tabanı `/public/tenants/...`; Tenant App **Kullanımlar** — bekleyen/tamamlanan filtre, detay paneli, müşteri profilinde talep geçmişi; `409` mesaj ayrımı.
 
 ---
 

@@ -947,7 +947,7 @@ export async function getCustomerAccount(tenantId: string, customerId: string) {
 
 export async function getCustomerDetail(tenantId: string, customerId: string) {
   const base = await getCustomerAccount(tenantId, customerId);
-  const [recentVisits, recentLedger] = await Promise.all([
+  const [recentVisits, recentLedger, rewardClaims] = await Promise.all([
     prisma.visit.findMany({
       where: { tenantId, customerId },
       orderBy: { createdAt: "desc" },
@@ -975,8 +975,20 @@ export async function getCustomerDetail(tenantId: string, customerId: string) {
         createdAt: true,
       },
     }),
+    prisma.redemption.findMany({
+      where: { tenantId, customerId },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      select: {
+        id: true,
+        status: true,
+        pointsSpent: true,
+        createdAt: true,
+        reward: { select: { id: true, name: true } },
+      },
+    }),
   ]);
-  return { ...base, recentVisits, recentLedger };
+  return { ...base, recentVisits, recentLedger, rewardClaims };
 }
 
 export async function listVisitsForTenant(tenantId: string, take = 100) {

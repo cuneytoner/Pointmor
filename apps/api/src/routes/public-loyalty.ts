@@ -3,12 +3,7 @@ import rateLimit from "@fastify/rate-limit";
 import type { ProductAnalyticsEventType } from "../generated/prisma/client.js";
 import { prisma } from "../lib/prisma.js";
 import { normalizeCustomerPhone } from "../lib/loyalty-config.js";
-import {
-  createRedemptionClaim,
-  getCustomerPortalData,
-  getPublicCampaignsCatalog,
-  listRewards,
-} from "../lib/loyalty-service.js";
+import { createRedemptionClaim, getCustomerPortalData } from "../lib/loyalty-service.js";
 import {
   signCustomerAccessToken,
   verifyCustomerAccessToken,
@@ -26,6 +21,7 @@ const PRODUCT_ANALYTICS_TYPES = new Set<string>([
   "redemption_completed",
 ]);
 
+/** @deprecated Legacy `/public/loyalty/*` — canonical müşteri API’si `/public/tenants/:slug/*`. GET uçları 308 ile yönlendirilir; POST uçları geçici uyumluluk için yerinde kalır. */
 export async function registerPublicLoyaltyRoutes(app: FastifyInstance): Promise<void> {
   await app.register(
     async function publicLoyaltyScope(f) {
@@ -38,32 +34,8 @@ export async function registerPublicLoyaltyRoutes(app: FastifyInstance): Promise
         "/public/loyalty/:tenantSlug/bootstrap",
         async (req, reply) => {
           const slug = req.params.tenantSlug.trim();
-          const tenant = await prisma.tenant.findUnique({ where: { slug } });
-          if (!tenant) {
-            return reply.code(404).send({ error: "not_found" });
-          }
-          const [rewards, campaigns] = await Promise.all([
-            listRewards(tenant.id, true),
-            getPublicCampaignsCatalog(tenant.id),
-          ]);
-          await recordProductAnalyticsEvent({
-            tenantId: tenant.id,
-            customerId: null,
-            type: "qr_opened",
-            payload: { source: "bootstrap" },
-          });
-          return {
-            tenant: {
-              slug: tenant.slug,
-              name: tenant.name,
-              branding: {
-                primaryHex: "#0056b3",
-                logoUrl: null as string | null,
-              },
-            },
-            rewards,
-            campaigns,
-          };
+          const encoded = encodeURIComponent(slug);
+          return reply.redirect(`/public/tenants/${encoded}`, 308);
         },
       );
 
@@ -103,29 +75,8 @@ export async function registerPublicLoyaltyRoutes(app: FastifyInstance): Promise
         "/public/loyalty/:tenantSlug/me",
         async (req, reply) => {
           const slug = req.params.tenantSlug.trim();
-          const ctx = await requireCustomerBearer(req, reply, slug);
-          if (!ctx) return;
-          const [dashboard, tenantRow] = await Promise.all([
-            getCustomerPortalData(ctx.tenantId, ctx.customerId),
-            prisma.tenant.findUnique({ where: { id: ctx.tenantId } }),
-          ]);
-          if (!tenantRow) {
-            return reply.code(404).send({ error: "not_found" });
-          }
-          await recordProductAnalyticsEvent({
-            tenantId: ctx.tenantId,
-            customerId: ctx.customerId,
-            type: "customer_viewed_home",
-            payload: { source: "me" },
-          });
-          return {
-            ...dashboard,
-            tenant: {
-              slug: tenantRow.slug,
-              name: tenantRow.name,
-              branding: { primaryHex: "#0056b3", logoUrl: null as string | null },
-            },
-          };
+          const encoded = encodeURIComponent(slug);
+          return reply.redirect(`/public/tenants/${encoded}/customers/me`, 308);
         },
       );
 
@@ -140,11 +91,22 @@ export async function registerPublicLoyaltyRoutes(app: FastifyInstance): Promise
             return reply.code(400).send({ error: "validation_error" });
           }
           try {
-            return await createRedemptionClaim(
+            const row = await createRedemptionClaim(
               ctx.tenantId,
               ctx.customerId,
               rewardId,
             );
+            return {
+              id: row.id,
+              status: row.status,
+              reward: row.reward
+                ? {
+                    id: row.reward.id,
+                    name: row.reward.name,
+                    pointsCost: row.reward.pointsCost,
+                  }
+                : undefined,
+            };
           } catch (e) {
             const err = e as Error & { statusCode?: number };
             const code = err.statusCode;

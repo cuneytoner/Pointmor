@@ -12,16 +12,34 @@ import {
 } from "../lib/tenant-loyalty-api";
 
 const REWARD_TYPES = ["FREE_ITEM", "FIXED_DISCOUNT", "PERCENT_DISCOUNT"] as const;
-const VALUE_TYPES = ["NONE", "MINOR_AMOUNT", "PERCENT_BP"] as const;
+type RewardTypeId = (typeof REWARD_TYPES)[number];
 
-function rewardTypeLabel(
-  rt: string,
-  t: (k: string) => string,
-): string {
+function rewardTypeLabel(rt: string, t: (k: string) => string): string {
   if (rt === "FREE_ITEM") return t("tenantLoyalty.rewards.types.FREE_ITEM");
   if (rt === "FIXED_DISCOUNT") return t("tenantLoyalty.rewards.types.FIXED_DISCOUNT");
   if (rt === "PERCENT_DISCOUNT") return t("tenantLoyalty.rewards.types.PERCENT_DISCOUNT");
   return rt;
+}
+
+function defaultsForRewardType(rt: RewardTypeId): {
+  valueType: string;
+  value: string;
+  percentStr: string;
+} {
+  switch (rt) {
+    case "FREE_ITEM":
+      return { valueType: "NONE", value: "0", percentStr: "10" };
+    case "FIXED_DISCOUNT":
+      return { valueType: "MINOR_AMOUNT", value: "500", percentStr: "10" };
+    case "PERCENT_DISCOUNT":
+      return { valueType: "PERCENT_BP", value: "1000", percentStr: "10" };
+    default:
+      return { valueType: "NONE", value: "0", percentStr: "10" };
+  }
+}
+
+function percentToBp(percent: number): number {
+  return Math.round(percent * 100);
 }
 
 export function TenantRewardsPage() {
@@ -34,10 +52,11 @@ export function TenantRewardsPage() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [pointsCost, setPointsCost] = useState("");
-  const [rewardType, setRewardType] = useState<string>("FREE_ITEM");
-  const [valueType, setValueType] = useState<string>("NONE");
+  const [pointsCost, setPointsCost] = useState("100");
+  const [rewardType, setRewardType] = useState<RewardTypeId>("FREE_ITEM");
+  const [valueType, setValueType] = useState("NONE");
   const [value, setValue] = useState("0");
+  const [percentStr, setPercentStr] = useState("10");
   const [isActive, setIsActive] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -53,14 +72,22 @@ export function TenantRewardsPage() {
     load();
   }, [load]);
 
+  const applyRewardType = (rt: RewardTypeId, resetValues: boolean) => {
+    setRewardType(rt);
+    if (resetValues) {
+      const d = defaultsForRewardType(rt);
+      setValueType(d.valueType);
+      setValue(d.value);
+      setPercentStr(d.percentStr);
+    }
+  };
+
   const openCreate = () => {
     setEditing(null);
     setName("");
     setDescription("");
-    setPointsCost("");
-    setRewardType("FREE_ITEM");
-    setValueType("NONE");
-    setValue("0");
+    setPointsCost("100");
+    applyRewardType("FREE_ITEM", true);
     setIsActive(true);
     dlg.current?.showModal();
   };
@@ -70,9 +97,14 @@ export function TenantRewardsPage() {
     setName(r.name);
     setDescription(r.description ?? "");
     setPointsCost(String(r.pointsCost));
-    setRewardType(r.rewardType);
+    setRewardType(r.rewardType as RewardTypeId);
     setValueType(r.valueType);
     setValue(String(r.value));
+    setPercentStr(
+      r.rewardType === "PERCENT_DISCOUNT"
+        ? String(Math.round(r.value / 100))
+        : "10",
+    );
     setIsActive(r.isActive);
     dlg.current?.showModal();
   };
@@ -83,8 +115,25 @@ export function TenantRewardsPage() {
     e.preventDefault();
     if (!token) return;
     const cost = Number(pointsCost);
-    const val = Number(value);
     if (!name.trim() || !Number.isFinite(cost) || cost <= 0) return;
+
+    let vt = valueType;
+    let val = Math.floor(Number(value));
+
+    if (rewardType === "FREE_ITEM") {
+      vt = "NONE";
+      val = 0;
+    } else if (rewardType === "FIXED_DISCOUNT") {
+      vt = "MINOR_AMOUNT";
+      if (!Number.isFinite(val) || val <= 0) return;
+    } else if (rewardType === "PERCENT_DISCOUNT") {
+      vt = "PERCENT_BP";
+      const p = Number(percentStr);
+      if (!Number.isFinite(p) || p < 1 || p > 100) return;
+      val = percentToBp(p);
+      if (val < 1 || val > 10000) return;
+    }
+
     setSaving(true);
     try {
       const body = {
@@ -92,7 +141,7 @@ export function TenantRewardsPage() {
         description: description.trim() || null,
         pointsCost: cost,
         rewardType,
-        valueType,
+        valueType: vt,
         value: val,
         redemptionMethod: "POINTS_ONLY",
         isActive,
@@ -140,7 +189,10 @@ export function TenantRewardsPage() {
       ) : error && !rows ? (
         <p className="admin-app__card-text">{t("tenantLoyalty.rewards.loadError")}</p>
       ) : rows?.length === 0 ? (
-        <EmptyState title={t("tenantLoyalty.rewards.empty")} description="" />
+        <EmptyState
+          title={t("tenantLoyalty.rewards.empty")}
+          description={t("tenantLoyalty.rewards.emptyDescription")}
+        />
       ) : (
         <div className="admin-app__card admin-app__card--wide">
           <div className="table-wrap">
@@ -189,91 +241,135 @@ export function TenantRewardsPage() {
       )}
 
       <dialog ref={dlg} className="loyalty-modal">
-        <form className="loyalty-modal__panel" onSubmit={onSave}>
-          <h2 className="page-shell__title" style={{ fontSize: "1.1rem", marginBottom: "1rem" }}>
-            {editing ? t("tenantLoyalty.rewards.edit") : t("tenantLoyalty.rewards.add")}
-          </h2>
-          <div className="loyalty-form-stack">
-            <label>
-              {t("tenantLoyalty.rewards.name")}
-              <input
-                required
-                className="toolbar__search toolbar__search--block"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantLoyalty.rewards.descriptionField")}
-              <input
-                className="toolbar__search toolbar__search--block"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantLoyalty.rewards.pointsCost")}
-              <input
-                required
-                className="toolbar__search toolbar__search--block"
-                inputMode="numeric"
-                value={pointsCost}
-                onChange={(e) => setPointsCost(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantLoyalty.rewards.type")}
-              <select
-                className="toolbar__select toolbar__search--block"
-                value={rewardType}
-                onChange={(e) => setRewardType(e.target.value)}
-              >
-                {REWARD_TYPES.map((x) => (
-                  <option key={x} value={x}>
-                    {t(`tenantLoyalty.rewards.types.${x}` as "tenantLoyalty.rewards.types.FREE_ITEM")}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              {t("tenantLoyalty.rewards.valueType")}
-              <select
-                className="toolbar__select toolbar__search--block"
-                value={valueType}
-                onChange={(e) => setValueType(e.target.value)}
-              >
-                {VALUE_TYPES.map((x) => (
-                  <option key={x} value={x}>
-                    {x}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              {t("tenantLoyalty.rewards.valueNumeric")}
-              <input
-                className="toolbar__search toolbar__search--block"
-                inputMode="numeric"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-              />
-            </label>
-            <label style={{ flexDirection: "row", alignItems: "center", gap: "0.5rem" }}>
-              <input
-                type="checkbox"
-                checked={isActive}
-                onChange={(e) => setIsActive(e.target.checked)}
-              />
-              {t("tenantLoyalty.rewards.active")}
-            </label>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              <button type="submit" className="admin-primary-btn" disabled={saving}>
-                {t("tenantLoyalty.rewards.save")}
-              </button>
-              <button type="button" className="admin-secondary-btn" onClick={close}>
-                {t("tenantLoyalty.rewards.cancel")}
-              </button>
+        <form className="loyalty-modal__panel loyalty-modal__panel--form" onSubmit={onSave}>
+          <div className="loyalty-modal__panel-head">
+            <h2 className="loyalty-form-modal__title">
+              {editing ? t("tenantLoyalty.rewards.edit") : t("tenantLoyalty.rewards.add")}
+            </h2>
+          </div>
+
+          <div className="loyalty-form-modal__body">
+            <div className="loyalty-form-stack loyalty-form-stack--relaxed">
+              <div className="loyalty-form-section">
+                <h3 className="loyalty-form-section__title">
+                  {t("tenantLoyalty.rewards.sectionBasic")}
+                </h3>
+                <label>
+                  {t("tenantLoyalty.rewards.name")}
+                  <input
+                    required
+                    className="toolbar__search toolbar__search--block loyalty-form-input"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="off"
+                  />
+                </label>
+                <label>
+                  {t("tenantLoyalty.rewards.descriptionField")}
+                  <input
+                    className="toolbar__search toolbar__search--block loyalty-form-input"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder={t("tenantLoyalty.rewards.descriptionPlaceholder")}
+                  />
+                </label>
+              </div>
+
+              <div className="loyalty-form-section">
+                <h3 className="loyalty-form-section__title">
+                  {t("tenantLoyalty.rewards.sectionType")}
+                </h3>
+                <label>
+                  {t("tenantLoyalty.rewards.type")}
+                  <select
+                    className="toolbar__select toolbar__search--block loyalty-form-input"
+                    value={rewardType}
+                    onChange={(e) =>
+                      applyRewardType(e.target.value as RewardTypeId, true)
+                    }
+                  >
+                    {REWARD_TYPES.map((x) => (
+                      <option key={x} value={x}>
+                        {t(`tenantLoyalty.rewards.types.${x}` as const)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p className="loyalty-form-hint">{t("tenantLoyalty.rewards.typeHint")}</p>
+
+                {rewardType === "FIXED_DISCOUNT" ? (
+                  <label>
+                    {t("tenantLoyalty.rewards.discountAmount")}
+                    <input
+                      required
+                      className="toolbar__search toolbar__search--block loyalty-form-input"
+                      inputMode="numeric"
+                      value={value}
+                      onChange={(e) => setValue(e.target.value)}
+                    />
+                    <span className="loyalty-form-hint loyalty-form-hint--inline">
+                      {t("tenantLoyalty.rewards.minorUnitsHint")}
+                    </span>
+                  </label>
+                ) : null}
+
+                {rewardType === "PERCENT_DISCOUNT" ? (
+                  <label>
+                    {t("tenantLoyalty.rewards.percentLabel")}
+                    <input
+                      required
+                      className="toolbar__search toolbar__search--block loyalty-form-input"
+                      inputMode="decimal"
+                      value={percentStr}
+                      onChange={(e) => setPercentStr(e.target.value)}
+                    />
+                    <span className="loyalty-form-hint loyalty-form-hint--inline">
+                      {t("tenantLoyalty.rewards.percentHint")}
+                    </span>
+                  </label>
+                ) : null}
+              </div>
+
+              <div className="loyalty-form-section">
+                <h3 className="loyalty-form-section__title">
+                  {t("tenantLoyalty.rewards.sectionCost")}
+                </h3>
+                <label>
+                  {t("tenantLoyalty.rewards.pointsCost")}
+                  <input
+                    required
+                    className="toolbar__search toolbar__search--block loyalty-form-input"
+                    inputMode="numeric"
+                    value={pointsCost}
+                    onChange={(e) => setPointsCost(e.target.value)}
+                  />
+                </label>
+                <p className="loyalty-form-hint">{t("tenantLoyalty.rewards.pointsCostHelp")}</p>
+              </div>
+
+              <div className="loyalty-form-section">
+                <h3 className="loyalty-form-section__title">
+                  {t("tenantLoyalty.rewards.sectionStatus")}
+                </h3>
+                <label className="loyalty-form-toggle">
+                  <input
+                    type="checkbox"
+                    checked={isActive}
+                    onChange={(e) => setIsActive(e.target.checked)}
+                  />
+                  <span>{t("tenantLoyalty.rewards.activeInProgram")}</span>
+                </label>
+              </div>
             </div>
+          </div>
+
+          <div className="loyalty-form-modal__footer">
+            <button type="button" className="admin-secondary-btn" onClick={close}>
+              {t("tenantLoyalty.rewards.cancel")}
+            </button>
+            <button type="submit" className="admin-primary-btn" disabled={saving}>
+              {t("tenantLoyalty.rewards.save")}
+            </button>
           </div>
         </form>
       </dialog>

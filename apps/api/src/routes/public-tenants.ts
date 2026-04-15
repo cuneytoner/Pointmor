@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import rateLimit from "@fastify/rate-limit";
+import type { ProductAnalyticsEventType } from "../generated/prisma/client.js";
 import { prisma } from "../lib/prisma.js";
 import { normalizeCustomerPhone } from "../lib/loyalty-config.js";
 import {
@@ -12,8 +13,19 @@ import {
   toPublicCampaignDto,
   toPublicRewardDto,
 } from "../lib/loyalty-service.js";
-import { signCustomerAccessToken } from "../lib/customer-portal-jwt.js";
+import { signCustomerAccessToken, verifyCustomerAccessToken } from "../lib/customer-portal-jwt.js";
 import { requireCustomerBearer } from "../lib/public-customer-auth.js";
+import { recordProductAnalyticsEvent } from "../lib/product-analytics-service.js";
+
+const PRODUCT_ANALYTICS_TYPES = new Set<string>([
+  "qr_opened",
+  "customer_viewed_home",
+  "visit_recorded",
+  "points_awarded",
+  "reward_viewed",
+  "reward_claimed",
+  "redemption_completed",
+]);
 
 function tenantBrandingPlaceholder() {
   return {
@@ -46,6 +58,12 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
             req.log.warn({ slug, route: "public.tenants.get" }, "public_api_not_found");
             return reply.code(404).send({ error: "not_found" });
           }
+          await recordProductAnalyticsEvent({
+            tenantId: tenant.id,
+            customerId: null,
+            type: "qr_opened",
+            payload: { source: "tenant_catalog" },
+          });
           const [rewards, campaigns] = await Promise.all([
             listRewards(tenant.id, true),
             getPublicCampaignsCatalog(tenant.id),
@@ -101,6 +119,12 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
           if (!tenantRow) {
             return reply.code(404).send({ error: "not_found" });
           }
+          await recordProductAnalyticsEvent({
+            tenantId: ctx.tenantId,
+            customerId: ctx.customerId,
+            type: "customer_viewed_home",
+            payload: { source: "customers_me" },
+          });
           return {
             ...dashboard,
             rewards: dashboard.rewards.map(toPublicRewardDto),
@@ -190,6 +214,41 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
           }
         },
       );
+
+      f.post<{
+        Params: { tenantSlug: string };
+        Body: { type?: string; payload?: Record<string, unknown>; token?: string };
+      }>("/public/tenants/:tenantSlug/analytics/events", async (req, reply) => {
+        const slug = req.params.tenantSlug.trim();
+        const tenant = await resolveTenantOr404(slug);
+        if (!tenant) {
+          return reply.code(404).send({ error: "not_found" });
+        }
+        const rawType = String(req.body?.type ?? "").trim();
+        if (!PRODUCT_ANALYTICS_TYPES.has(rawType)) {
+          return reply.code(400).send({ error: "validation_error" });
+        }
+        const type = rawType as ProductAnalyticsEventType;
+        let customerId: string | null = null;
+        const tok = String(req.body?.token ?? "").trim();
+        if (tok) {
+          const pl = verifyCustomerAccessToken(tok);
+          if (pl && pl.tenantId === tenant.id) {
+            customerId = pl.customerId;
+          }
+        }
+        const payload = req.body?.payload;
+        await recordProductAnalyticsEvent({
+          tenantId: tenant.id,
+          customerId,
+          type,
+          payload:
+            payload && typeof payload === "object" && !Array.isArray(payload)
+              ? (payload as Record<string, unknown>)
+              : {},
+        });
+        return { ok: true };
+      });
     },
     { prefix: "" },
   );

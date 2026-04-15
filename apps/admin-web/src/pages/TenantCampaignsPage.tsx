@@ -14,15 +14,8 @@ import {
 } from "../lib/tenant-loyalty-api";
 
 const TYPES = ["BONUS_POINTS", "SPEND_THRESHOLD_BONUS", "FIRST_VISIT_BONUS"] as const;
-const STATUSES = ["draft", "active", "paused", "archived"] as const;
-
-function defaultConfig(type: string): string {
-  if (type === "BONUS_POINTS") return '{\n  "points": 10\n}';
-  if (type === "SPEND_THRESHOLD_BONUS") {
-    return '{\n  "thresholdMinorUnits": 5000,\n  "bonusPoints": 50\n}';
-  }
-  return '{\n  "bonusPoints": 100\n}';
-}
+type CampaignTypeId = (typeof TYPES)[number];
+const STATUSES_EXTENDED = ["draft", "active", "paused", "archived"] as const;
 
 function campaignTypeLabel(ct: string, t: (k: string) => string): string {
   if (ct === "BONUS_POINTS") return t("tenantLoyalty.campaigns.types.BONUS_POINTS");
@@ -47,13 +40,91 @@ function toIsoFromLocal(v: string): string | null {
   return d.toISOString();
 }
 
-/** datetime-local value (YYYY-MM-DDTHH:mm) — basit UTC offset yok */
 function isoToDatetimeLocal(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function defaultsForCampaignType(type: CampaignTypeId): {
+  pointsBonus: string;
+  thresholdMinor: string;
+  thresholdBonusPts: string;
+  firstVisitBonus: string;
+} {
+  switch (type) {
+    case "BONUS_POINTS":
+      return { pointsBonus: "10", thresholdMinor: "5000", thresholdBonusPts: "50", firstVisitBonus: "100" };
+    case "SPEND_THRESHOLD_BONUS":
+      return { pointsBonus: "10", thresholdMinor: "5000", thresholdBonusPts: "50", firstVisitBonus: "100" };
+    case "FIRST_VISIT_BONUS":
+      return { pointsBonus: "10", thresholdMinor: "5000", thresholdBonusPts: "50", firstVisitBonus: "100" };
+    default:
+      return { pointsBonus: "10", thresholdMinor: "5000", thresholdBonusPts: "50", firstVisitBonus: "100" };
+  }
+}
+
+function parseConfigFromDto(
+  type: string,
+  config: unknown,
+): {
+  pointsBonus: string;
+  thresholdMinor: string;
+  thresholdBonusPts: string;
+  firstVisitBonus: string;
+} {
+  const base = defaultsForCampaignType(type as CampaignTypeId);
+  if (!config || typeof config !== "object" || Array.isArray(config)) return base;
+  const c = config as Record<string, unknown>;
+  if (type === "BONUS_POINTS" && typeof c.points === "number") {
+    return { ...base, pointsBonus: String(Math.floor(c.points)) };
+  }
+  if (type === "SPEND_THRESHOLD_BONUS") {
+    return {
+      ...base,
+      thresholdMinor:
+        typeof c.thresholdMinorUnits === "number" ? String(Math.floor(c.thresholdMinorUnits)) : base.thresholdMinor,
+      thresholdBonusPts:
+        typeof c.bonusPoints === "number" ? String(Math.floor(c.bonusPoints)) : base.thresholdBonusPts,
+    };
+  }
+  if (type === "FIRST_VISIT_BONUS" && typeof c.bonusPoints === "number") {
+    return { ...base, firstVisitBonus: String(Math.floor(c.bonusPoints)) };
+  }
+  return base;
+}
+
+function buildConfig(
+  type: CampaignTypeId,
+  fields: {
+    pointsBonus: string;
+    thresholdMinor: string;
+    thresholdBonusPts: string;
+    firstVisitBonus: string;
+  },
+): Record<string, number> | null {
+  switch (type) {
+    case "BONUS_POINTS": {
+      const p = Math.floor(Number(fields.pointsBonus));
+      if (!Number.isFinite(p) || p <= 0) return null;
+      return { points: p };
+    }
+    case "SPEND_THRESHOLD_BONUS": {
+      const th = Math.floor(Number(fields.thresholdMinor));
+      const bp = Math.floor(Number(fields.thresholdBonusPts));
+      if (!Number.isFinite(th) || th <= 0 || !Number.isFinite(bp) || bp <= 0) return null;
+      return { thresholdMinorUnits: th, bonusPoints: bp };
+    }
+    case "FIRST_VISIT_BONUS": {
+      const bp = Math.floor(Number(fields.firstVisitBonus));
+      if (!Number.isFinite(bp) || bp <= 0) return null;
+      return { bonusPoints: bp };
+    }
+    default:
+      return null;
+  }
 }
 
 export function TenantCampaignsPage() {
@@ -67,13 +138,18 @@ export function TenantCampaignsPage() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [type, setType] = useState<string>("BONUS_POINTS");
+  const [type, setType] = useState<CampaignTypeId>("BONUS_POINTS");
   const [status, setStatus] = useState<string>("draft");
   const [startAt, setStartAt] = useState("");
   const [endAt, setEndAt] = useState("");
-  const [configText, setConfigText] = useState(defaultConfig("BONUS_POINTS"));
+  const [pointsBonus, setPointsBonus] = useState("10");
+  const [thresholdMinor, setThresholdMinor] = useState("5000");
+  const [thresholdBonusPts, setThresholdBonusPts] = useState("50");
+  const [firstVisitBonus, setFirstVisitBonus] = useState("100");
   const [isActive, setIsActive] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const fieldBag = { pointsBonus, thresholdMinor, thresholdBonusPts, firstVisitBonus };
 
   const load = useCallback(() => {
     if (!token) return;
@@ -87,15 +163,25 @@ export function TenantCampaignsPage() {
     load();
   }, [load]);
 
+  const applyCampaignType = (nt: CampaignTypeId, resetFields: boolean) => {
+    setType(nt);
+    if (resetFields) {
+      const d = defaultsForCampaignType(nt);
+      setPointsBonus(d.pointsBonus);
+      setThresholdMinor(d.thresholdMinor);
+      setThresholdBonusPts(d.thresholdBonusPts);
+      setFirstVisitBonus(d.firstVisitBonus);
+    }
+  };
+
   const openCreate = () => {
     setEditing(null);
     setName("");
     setDescription("");
-    setType("BONUS_POINTS");
+    applyCampaignType("BONUS_POINTS", true);
     setStatus("draft");
     setStartAt("");
     setEndAt("");
-    setConfigText(defaultConfig("BONUS_POINTS"));
     setIsActive(true);
     dlg.current?.showModal();
   };
@@ -104,11 +190,15 @@ export function TenantCampaignsPage() {
     setEditing(c);
     setName(c.name);
     setDescription(c.description ?? "");
-    setType(c.type);
+    setType(c.type as CampaignTypeId);
     setStatus(c.status);
     setStartAt(isoToDatetimeLocal(c.startAt));
     setEndAt(isoToDatetimeLocal(c.endAt));
-    setConfigText(JSON.stringify(c.config, null, 2));
+    const parsed = parseConfigFromDto(c.type, c.config);
+    setPointsBonus(parsed.pointsBonus);
+    setThresholdMinor(parsed.thresholdMinor);
+    setThresholdBonusPts(parsed.thresholdBonusPts);
+    setFirstVisitBonus(parsed.firstVisitBonus);
     setIsActive(c.isActive);
     dlg.current?.showModal();
   };
@@ -118,12 +208,8 @@ export function TenantCampaignsPage() {
   const onSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token || !name.trim()) return;
-    let config: unknown;
-    try {
-      config = JSON.parse(configText) as unknown;
-    } catch {
-      return;
-    }
+    const config = buildConfig(type, fieldBag);
+    if (!config) return;
     const body: Record<string, unknown> = {
       name: name.trim(),
       description: description.trim() || null,
@@ -132,10 +218,8 @@ export function TenantCampaignsPage() {
       config,
       isActive,
     };
-    const sIso = toIsoFromLocal(startAt);
-    const eIso = toIsoFromLocal(endAt);
-    body.startAt = sIso;
-    body.endAt = eIso;
+    body.startAt = toIsoFromLocal(startAt);
+    body.endAt = toIsoFromLocal(endAt);
     setSaving(true);
     try {
       if (editing) {
@@ -162,6 +246,10 @@ export function TenantCampaignsPage() {
         })
       : "—";
 
+  const statusOptions = editing
+    ? STATUSES_EXTENDED
+    : (["draft", "active"] as const);
+
   return (
     <PageShell
       eyebrow={t("tenantLoyalty.campaigns.eyebrow")}
@@ -179,7 +267,10 @@ export function TenantCampaignsPage() {
       ) : error && !rows ? (
         <p className="admin-app__card-text">{t("tenantLoyalty.campaigns.loadError")}</p>
       ) : rows?.length === 0 ? (
-        <EmptyState title={t("tenantLoyalty.campaigns.empty")} description="" />
+        <EmptyState
+          title={t("tenantLoyalty.campaigns.empty")}
+          description={t("tenantLoyalty.campaigns.emptyDescription")}
+        />
       ) : (
         <div className="admin-app__card admin-app__card--wide">
           <div className="table-wrap">
@@ -224,104 +315,178 @@ export function TenantCampaignsPage() {
       )}
 
       <dialog ref={dlg} className="loyalty-modal">
-        <form className="loyalty-modal__panel" onSubmit={onSave}>
-          <h2 className="page-shell__title" style={{ fontSize: "1.1rem", marginBottom: "1rem" }}>
-            {editing ? t("tenantLoyalty.campaigns.edit") : t("tenantLoyalty.campaigns.add")}
-          </h2>
-          <div className="loyalty-form-stack" style={{ maxWidth: "100%" }}>
-            <label>
-              {t("tenantLoyalty.campaigns.name")}
-              <input
-                required
-                className="toolbar__search toolbar__search--block"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantLoyalty.rewards.descriptionField")}
-              <input
-                className="toolbar__search toolbar__search--block"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantLoyalty.campaigns.type")}
-              <select
-                className="toolbar__select toolbar__search--block"
-                value={type}
-                onChange={(e) => {
-                  const nt = e.target.value;
-                  setType(nt);
-                  if (!editing) setConfigText(defaultConfig(nt));
-                }}
-              >
-                {TYPES.map((x) => (
-                  <option key={x} value={x}>
-                    {campaignTypeLabel(x, t)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              {t("tenantLoyalty.campaigns.statusColumn")}
-              <select
-                className="toolbar__select toolbar__search--block"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                {STATUSES.map((x) => (
-                  <option key={x} value={x}>
-                    {statusLabel(x, t)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              {t("tenantLoyalty.campaigns.periodStart")}
-              <input
-                type="datetime-local"
-                className="toolbar__search toolbar__search--block"
-                value={startAt}
-                onChange={(e) => setStartAt(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantLoyalty.campaigns.periodEnd")}
-              <input
-                type="datetime-local"
-                className="toolbar__search toolbar__search--block"
-                value={endAt}
-                onChange={(e) => setEndAt(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantLoyalty.campaigns.config")}
-              <textarea
-                className="toolbar__search toolbar__search--block"
-                rows={6}
-                style={{ fontFamily: "ui-monospace, monospace", fontSize: "0.8125rem" }}
-                value={configText}
-                onChange={(e) => setConfigText(e.target.value)}
-              />
-            </label>
-            <label style={{ flexDirection: "row", alignItems: "center", gap: "0.5rem" }}>
-              <input
-                type="checkbox"
-                checked={isActive}
-                onChange={(e) => setIsActive(e.target.checked)}
-              />
-              {t("tenantLoyalty.campaigns.active")}
-            </label>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              <button type="submit" className="admin-primary-btn" disabled={saving}>
-                {t("tenantLoyalty.campaigns.save")}
-              </button>
-              <button type="button" className="admin-secondary-btn" onClick={close}>
-                {t("tenantLoyalty.campaigns.cancel")}
-              </button>
+        <form className="loyalty-modal__panel loyalty-modal__panel--form" onSubmit={onSave}>
+          <div className="loyalty-modal__panel-head">
+            <h2 className="loyalty-form-modal__title">
+              {editing ? t("tenantLoyalty.campaigns.edit") : t("tenantLoyalty.campaigns.add")}
+            </h2>
+          </div>
+
+          <div className="loyalty-form-modal__body">
+            <div className="loyalty-form-stack loyalty-form-stack--relaxed">
+              <div className="loyalty-form-section">
+                <h3 className="loyalty-form-section__title">
+                  {t("tenantLoyalty.campaigns.sectionBasic")}
+                </h3>
+                <label>
+                  {t("tenantLoyalty.campaigns.name")}
+                  <input
+                    required
+                    className="toolbar__search toolbar__search--block loyalty-form-input"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="off"
+                  />
+                </label>
+                <label>
+                  {t("tenantLoyalty.rewards.descriptionField")}
+                  <input
+                    className="toolbar__search toolbar__search--block loyalty-form-input"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder={t("tenantLoyalty.campaigns.descriptionPlaceholder")}
+                  />
+                </label>
+              </div>
+
+              <div className="loyalty-form-section">
+                <h3 className="loyalty-form-section__title">
+                  {t("tenantLoyalty.campaigns.sectionType")}
+                </h3>
+                <label>
+                  {t("tenantLoyalty.campaigns.type")}
+                  <select
+                    className="toolbar__select toolbar__search--block loyalty-form-input"
+                    value={type}
+                    onChange={(e) => applyCampaignType(e.target.value as CampaignTypeId, true)}
+                  >
+                    {TYPES.map((x) => (
+                      <option key={x} value={x}>
+                        {campaignTypeLabel(x, t)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p className="loyalty-form-hint">{t("tenantLoyalty.campaigns.typeHint")}</p>
+
+                {type === "BONUS_POINTS" ? (
+                  <label>
+                    {t("tenantLoyalty.campaigns.fieldBonusPoints")}
+                    <input
+                      required
+                      className="toolbar__search toolbar__search--block loyalty-form-input"
+                      inputMode="numeric"
+                      value={pointsBonus}
+                      onChange={(e) => setPointsBonus(e.target.value)}
+                    />
+                  </label>
+                ) : null}
+
+                {type === "SPEND_THRESHOLD_BONUS" ? (
+                  <>
+                    <label>
+                      {t("tenantLoyalty.campaigns.fieldMinSpend")}
+                      <input
+                        required
+                        className="toolbar__search toolbar__search--block loyalty-form-input"
+                        inputMode="numeric"
+                        value={thresholdMinor}
+                        onChange={(e) => setThresholdMinor(e.target.value)}
+                      />
+                      <span className="loyalty-form-hint loyalty-form-hint--inline">
+                        {t("tenantLoyalty.campaigns.minorUnitsHint")}
+                      </span>
+                    </label>
+                    <label>
+                      {t("tenantLoyalty.campaigns.fieldThresholdBonus")}
+                      <input
+                        required
+                        className="toolbar__search toolbar__search--block loyalty-form-input"
+                        inputMode="numeric"
+                        value={thresholdBonusPts}
+                        onChange={(e) => setThresholdBonusPts(e.target.value)}
+                      />
+                    </label>
+                  </>
+                ) : null}
+
+                {type === "FIRST_VISIT_BONUS" ? (
+                  <label>
+                    {t("tenantLoyalty.campaigns.fieldFirstVisitBonus")}
+                    <input
+                      required
+                      className="toolbar__search toolbar__search--block loyalty-form-input"
+                      inputMode="numeric"
+                      value={firstVisitBonus}
+                      onChange={(e) => setFirstVisitBonus(e.target.value)}
+                    />
+                  </label>
+                ) : null}
+              </div>
+
+              <div className="loyalty-form-section">
+                <h3 className="loyalty-form-section__title">
+                  {t("tenantLoyalty.campaigns.sectionSchedule")}
+                </h3>
+                <label>
+                  {t("tenantLoyalty.campaigns.periodStart")}
+                  <input
+                    type="datetime-local"
+                    className="toolbar__search toolbar__search--block loyalty-form-input"
+                    value={startAt}
+                    onChange={(e) => setStartAt(e.target.value)}
+                  />
+                </label>
+                <label>
+                  {t("tenantLoyalty.campaigns.periodEnd")}
+                  <input
+                    type="datetime-local"
+                    className="toolbar__search toolbar__search--block loyalty-form-input"
+                    value={endAt}
+                    onChange={(e) => setEndAt(e.target.value)}
+                  />
+                </label>
+                <p className="loyalty-form-hint">{t("tenantLoyalty.campaigns.scheduleHint")}</p>
+              </div>
+
+              <div className="loyalty-form-section">
+                <h3 className="loyalty-form-section__title">
+                  {t("tenantLoyalty.campaigns.sectionStatus")}
+                </h3>
+                <label>
+                  {t("tenantLoyalty.campaigns.workflowStatus")}
+                  <select
+                    className="toolbar__select toolbar__search--block loyalty-form-input"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                  >
+                    {statusOptions.map((x) => (
+                      <option key={x} value={x}>
+                        {statusLabel(x, t)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p className="loyalty-form-hint">{t("tenantLoyalty.campaigns.statusHint")}</p>
+                <label className="loyalty-form-toggle">
+                  <input
+                    type="checkbox"
+                    checked={isActive}
+                    onChange={(e) => setIsActive(e.target.checked)}
+                  />
+                  <span>{t("tenantLoyalty.campaigns.activeInProgram")}</span>
+                </label>
+              </div>
             </div>
+          </div>
+
+          <div className="loyalty-form-modal__footer">
+            <button type="button" className="admin-secondary-btn" onClick={close}>
+              {t("tenantLoyalty.campaigns.cancel")}
+            </button>
+            <button type="submit" className="admin-primary-btn" disabled={saving}>
+              {t("tenantLoyalty.campaigns.save")}
+            </button>
           </div>
         </form>
       </dialog>

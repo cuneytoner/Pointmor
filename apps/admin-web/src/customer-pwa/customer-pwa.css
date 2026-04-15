@@ -719,3 +719,25 @@
   text-align: right;
   max-width: 10rem;
 }
+
+.customer-pwa__toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  z-index: 50;
+  max-width: min(22rem, calc(100vw - 2rem));
+  padding: 0.65rem 1rem;
+  border-radius: 0.65rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: #0f172a;
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.18);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.customer-pwa__toast--error {
+  border-color: rgba(185, 28, 28, 0.25);
+  color: #991b1b;
+}

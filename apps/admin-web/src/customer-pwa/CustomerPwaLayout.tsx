@@ -39,6 +39,7 @@ export function CustomerPwaLayout() {
   const [token, setToken] = useState<string | null>(null);
   const [offlineStale, setOfflineStale] = useState(false);
   const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [claimToast, setClaimToast] = useState<string | null>(null);
   const [celebrationGain, setCelebrationGain] = useState<number | null>(null);
   const [gateError, setGateError] = useState<string | null>(null);
 
@@ -177,16 +178,25 @@ export function CustomerPwaLayout() {
       const tok = token ?? localStorage.getItem(storageKey)?.trim();
       if (!tok) return;
       setClaimingId(rewardId);
+      setClaimToast(null);
       try {
         await postCustomerClaim(tenantSlug, tok, rewardId);
         const next = await getCustomerPortalMe(tenantSlug, tok);
         applyReady(next, tok);
       } catch (err) {
-        const status = (err as { status?: number }).status;
-        if (status === 409) {
-          alert(t("customerPortal.insufficientPoints"));
+        const e = err as { status?: number; body?: unknown };
+        let errCode: string | undefined;
+        if (e.body && typeof e.body === "object" && e.body !== null && "error" in e.body) {
+          errCode = String((e.body as { error?: string }).error ?? "");
+        }
+        if (e.status === 409) {
+          setClaimToast(
+            errCode === "duplicate_pending_claim"
+              ? t("customerPortal.duplicatePendingClaim")
+              : t("customerPortal.insufficientPoints"),
+          );
         } else {
-          alert(t("customerPortal.loadError"));
+          setClaimToast(t("customerPortal.loadError"));
         }
       } finally {
         setClaimingId(null);
@@ -194,6 +204,12 @@ export function CustomerPwaLayout() {
     },
     [tenantSlug, storageKey, token, applyReady, t],
   );
+
+  useEffect(() => {
+    if (!claimToast) return;
+    const id = window.setTimeout(() => setClaimToast(null), 5200);
+    return () => window.clearTimeout(id);
+  }, [claimToast]);
 
   const ctxValue = useMemo(
     () => ({
@@ -287,6 +303,11 @@ export function CustomerPwaLayout() {
           {offlineStale ? (
             <p className="customer-pwa__banner" role="status">
               {t("customerPortal.offlineStale")}
+            </p>
+          ) : null}
+          {claimToast ? (
+            <p className="customer-pwa__toast customer-pwa__toast--error" role="status">
+              {claimToast}
             </p>
           ) : null}
           <CustomerPwaChrome>
