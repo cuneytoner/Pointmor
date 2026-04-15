@@ -50,6 +50,16 @@ Eski plan/spec dosyaları repodan kaldırılmıştır (gerekirse git geçmişi).
 
 ---
 
+## Validation-first (saha önceliği)
+
+**Öncelik sırası:** Önce **gerçek işletme pilotunda** öğrenilen sürtünme, hata desenleri ve operasyonel metrikler; sonra backlog’a yeni özellik. Amaç, repoda “hazır” olan akışların sahada **tekrarlanabilir** ve **ölçülebilir** şekilde işlemesini doğrulamak; saf özellik genişlemesi yerine **alan doğrulaması**.
+
+**Pilot çerçevesi** (işletme seçimi, onboarding, ölçüm, geri bildirim): [`10-meta-003-project-tracker.md`](./10-meta-003-project-tracker.md) **Phase 7**. Ürün özeti: [`10-meta-002-project-overview.md`](./10-meta-002-project-overview.md) — *Güncel odak*.
+
+**Kural:** Yeni büyük özellik (ör. yeni entegrasyon, yeni müşteri yüzeyi) önerilmeden önce pilot bulgusu veya açık metrik ihtiyacı yazılır; istisna ürün ve güvenlik gerektirir.
+
+---
+
 ## Feature ekleme kriteri
 
 Yeni özellik şunları netleştirmeli: hangi **kiracı** verisini taşıyor, **Tenant App** veya **Platform** hangisinde, **plan / limit** ile mi ilişkili. Çekirdek dışı “genel veri platformu” özellikleri **önerilmez**.

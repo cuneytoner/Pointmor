@@ -42,17 +42,67 @@ Eski veri platformu faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor loya
 - **Yüzey:** Tenant admin → **Büyüme** (`/app/growth`): huni, tutma, ödül metrikleri, sunucu üretimi kısa öngörüler.
 - **PWA:** Ödül listesi açılışında `reward_viewed` (best-effort); `GET /public/tenants/:slug` (`qr_opened`), `customers/me` (`customer_viewed_home`) ve servis katmanı diğer olayları yazar.
 
+### Phase 7 — Real-world validation (pilot)
+
+**Durum:** **Aktif ürün önceliği (saha / PMF).** Amaç: gerçek işletmede uçtan uca kullanımı **ölçmek** ve **öğrenmek**; yeni büyük özelliklerden önce sürtünme ve metriklerle yön vermek. Kod zorunluluğu yok; süreç + ortam + veri ayrımı esastır.
+
+**İşletme seçimi (1–3 lokasyon):**
+
+| Ölçüt | Not |
+|--------|-----|
+| Operasyonel uygunluk | Günlük POS trafiği olan, sadakat denemeye açık işletme |
+| Teknik | Stabil internet; tablet veya kasa yanı cihaz; QR’ın masa/kasada görünür olması |
+| İnsan | En az bir “sahip veya müdür” + 1–2 kasiyer; pilot için haftalık 15 dk check-in |
+| Çeşitlilik | Mümkünse farklı yoğunluk (ör. kahvaltı yoğun vs akşam) veya farklı ortalama sepet |
+
+**Onboarding akışı (özet):**
+
+1. Platform: yeni **tenant** (demo seed ile karışmaması için ayrı workspace), plan limitleri pilot için yeterli Pro/Team veya manuel `PATCH`.
+2. Tenant App: ödül/kural basit (1–2 ödül, gerekiyorsa tek kampanya); **Cashier** vardiya akışı eğitimi (10–15 dk); QR / müşteri giriş URL’si fiziksel olarak yerinde.
+3. “Canlı günü”: ilk ziyaret → talep/onay hattı gözlemi; sorun anında Slack/telefon ile ürün ekibine.
+4. Demo → gerçek: seed kullanıcıları yerine gerçek müşteri telefonları; gerekirse mevcut müşteri listesine CSV ile sınırlı import (süreç dokümante); **gerçek trafik** olmadan pilot tamamlanmış sayılmaz.
+
+**Ölçüm planı (minimum set):**
+
+| Metrik | Tanım / kaynak | Not |
+|--------|----------------|-----|
+| Kasiyer işlem süresi | Visit tamamlama: müşteri seçiminden başarılı `visit_created`/`points` yanıtına median süre (stopwatch + log zaman damgası veya `AuditEvent` / client timestamp) | Yoğun saatte örneklem |
+| Ödül kullanım oranı | `redemption_completed` / uygun visit sayısı veya ödül görüntüleme sonrası redeem | Tanım pilot başında sabitlenir |
+| Müşteri geri dönüş | Aynı telefon ile ikinci ziyaret veya 7/14 gün içinde tekrar `visit_recorded` | Kohort küçük; yön göstermek için |
+| Günlük aktif kullanıcı (işletme) | En az bir başarılı kasiyer işlemi olan gün başına benzersiz staff veya vardiya sayısı | “DAU” tenant içi operasyon |
+
+**Geri bildirim toplama:**
+
+- **Kasiyer:** Haftalık 5 soruluk anket (en yavaş adım, hata mesajı, offline); mümkünse 1 oturum shadowing.
+- **İşletme sahibi:** 2 haftada bir 20 dk — ROI hissi, karmaşıklık, devam / iptal kararı.
+- **Müşteri:** İsteğe bağlı masa üstü QR sonrası 1 soru (NPS veya “tekrar gelir miydiniz”); PWA içinde agresif anket yok, gürültüyü azalt.
+
+**Sürtünme analizi (çıktı):**
+
+- Hata yoğunluğu: API/istemci hataları, `AnomalySignal`, duplicate claim, offline blokları.
+- Yavaş ekranlar: kasiyer tarafında algılanan bekleme (özellikle önizleme / tamamlama).
+- Anlaşılmayan UX: eğitim gerektiren adımların listesi (bir sonraki sprint’e girdi).
+
+**Riskler (pilot):**
+
+| Risk | Azaltma |
+|------|---------|
+| Veri gürültüsü | Tek tanım seti; pilot süresi 2–4 hafta |
+| Operasyon yorgunluğu | Kapsamı küçük tut; özellik dondurma |
+| Gizlilik | Açık rıza; telefon maskeleme politikası |
+
 ---
 
 ## Sıradaki anlamlı adımlar
 
 | Öncelik | Konu |
 |--------|------|
-| 0 | **Cashier single-screen** — ürün/UX spec tamam: [`42-design-tenant-cashier-flow.md`](./42-design-tenant-cashier-flow.md) (visit → redeem sırası, çift CTA, acceptance criteria). **Sırada:** `CashierPage` + paneller ile Tenant App’te implementasyon (mevcut `/app/visits` POS ile birleştirme veya yeni rota). |
-| 1 | İşletme **onboarding** akışını derinleştirme (limit/usage sayaçları ve entitlement backend + tenant billing UX mevcut; bkz. Phase 4.7) |
-| 2 | Gerçek ödeme / faturalama entegrasyonu (ürün olgunluğuna göre) |
-| 3 | Legacy `POST /public/loyalty/...` alias’larını kaldırma veya tek modüle indirgeme (istemci tamamen canonical olduğunda) |
-| 4 | Public API hata gövdesini uzun vadede `20-rules-004` ile tam hizalama (`error.code` nesnesi) |
+| **0** | **Phase 7 — Real-world validation (pilot):** işletme seçimi, onboarding, canlı veri, ölçüm + geri bildirim döngüsü (bu dosyada üst bölüm). Genel bakış: [`10-meta-002-project-overview.md`](./10-meta-002-project-overview.md) — *Güncel odak*. |
+| 1 | Cashier / tenant ürün iyileştirmeleri — pilot bulgularına göre önceliklendirilir ([`42-design-tenant-cashier-flow.md`](./42-design-tenant-cashier-flow.md) referans; tek ekran akışı ürünte mevcut) |
+| 2 | İşletme **onboarding** ürünleştirme (self-serve; limit/usage + billing UX Phase 4.7 ile uyumlu) |
+| 3 | Gerçek ödeme / faturalama entegrasyonu (ürün olgunluğuna göre) |
+| 4 | Legacy `POST /public/loyalty/...` alias’larını kaldırma veya tek modüle indirgeme (istemci tamamen canonical olduğunda) |
+| 5 | Public API hata gövdesini uzun vadede `20-rules-004` ile tam hizalama (`error.code` nesnesi) |
 
 **Tamamlanan (bu dilim):** PWA tabanı `/public/tenants/...`; Tenant App **Kullanımlar** — bekleyen/tamamlanan filtre, detay paneli, müşteri profilinde talep geçmişi; `409` mesaj ayrımı.
 

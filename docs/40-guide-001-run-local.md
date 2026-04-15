@@ -9,10 +9,10 @@ Tüm yollar repo kökü `Pointmor` (ör. `d:\Projects\Pointmor`) varsayılarak y
 | Dosya | İçerik özeti |
 |--------|----------------|
 | `apps/api/.env` | `PORT`, `CORS_ORIGINS`, `DATABASE_URL` — **git’e eklenmez.** İsteğe bağlı: `ALLOW_TENANT_DEMO_PLAN_SWITCH` (tenant’ta demo plan yükseltme; bkz. aşağı). |
-| `apps/admin-web/.env.local` | `VITE_API_BASE_URL` (API tabanı); isteğe bağlı `VITE_MARKETING_BASE_URL` (hesap oluştur / pazarlama). |
+| `apps/admin-web/.env.local` | **Önerilir (yerel dev):** `VITE_API_BASE_URL=http://127.0.0.1:3000` — Vite bu dosyayı okur; tanımsızsa varsayılan kullanılır ama konsolda uyarı çıkar. Şablon: `apps/admin-web/.env.example` → `Copy-Item .env.example .env.local` (`apps/admin-web` içinde). İsteğe bağlı: `VITE_MARKETING_BASE_URL`. |
 | Kök `.env.example` | Kopyalama şablonu; gerçek sırlar burada tutulmaz. |
 
-Örnek oluşturma: kök `.env.example` satırlarını ilgili dosyalara kopyalayın ve değerleri doldurun.
+Örnek oluşturma: kök `.env.example` satırlarını ilgili dosyalara kopyalayın ve değerleri doldurun. **Admin web** için API URL’si yalnızca `apps/admin-web/.env.local` ile kalıcı olur (kök `.env` Vite tarafından otomatik okunmaz).
 
 <a id="tenant-demo-plan-switch"></a>
 
@@ -129,6 +129,25 @@ npm.cmd run db:deploy
 - Sadece seed metni değiştiyse migration gerekmez; `db:seed` yeter (yukarıdaki tablo).
 
 İlgili: [10-meta-001-rules-index.md](./10-meta-001-rules-index.md) altın kural **G5**, [20-rules-007-engineering.md](./20-rules-007-engineering.md) Definition of Done, [.cursor/rules/prisma-migrate-after-schema.mdc](../.cursor/rules/prisma-migrate-after-schema.mdc) (Prisma dosyalarıyla otomatik bağlama).
+
+<a id="migration-errors-p3009"></a>
+
+## Migration hataları (P3009, uyumsuz geçmiş) ve `GET /admin/bootstrap` 500
+
+**Belirti:** Giriş sonrası admin UI kırık veya `GET http://127.0.0.1:3000/admin/bootstrap` **500**; API log’da Prisma **P2022** (`column ... does not exist`) veya migrate **P3009** (başarısız migration).
+
+**Önce kontrol:**
+
+```powershell
+cd d:\Projects\Pointmor\apps\api
+npx prisma migrate status
+```
+
+- **Uygulanmamış migration’lar listeleniyorsa** ve DB tek başına sizin geliştirme veritabanınızsa: `npm.cmd run db:deploy`, ardından gerekirse `npm.cmd run db:seed`.
+- **P3009** (“failed migrations”): `_prisma_migrations` tablosunda yarım kalan kayıt vardır. Geliştirme DB’si için (veri silinebilir) en temiz yol genelde `npm.cmd run db:reset` (tüm migration’ları baştan uygular + seed). Üretim/ortak VM için: [Prisma P3009 dokümantasyonu](https://www.prisma.io/docs/guides/migrate/production-troubleshooting) veya DBA ile tabloyu onarın; **asistan uzak VM’de `reset` çalıştırmamalı** (veri kaybı).
+- **`migrate status` “migrations from the database are not found locally”** diyorsa: DB, eski/başka bir repodan migration adlarıyla oluşturulmuş demektir; repodaki `prisma/migrations` ile **geçmiş uyuşmuyor**. Çözüm: bu makine için **`DATABASE_URL` ile temiz bir Postgres** kullanıp `db:reset` + `db:seed`, **veya** DB’yi bilinçli olarak baseline’layıp tek bir geçmişe çekmek (ileri düzey). Karışık VM DB’sinde “sadece seed” yetmez — şema eksik kalır.
+
+**Özet:** Bootstrap 500 çoğu zaman **migration uygulanmamış** veya **DB migration geçmişi repo ile çelişen** ortamlarda oluşur; admin-web tarafındaki `VITE_*` uyarısı ayrı bir konudur (`.env.local`).
 
 ## VM / SSH ile `postgre.sh` okuma (isteğe bağlı)
 

@@ -16,6 +16,10 @@
 
 **Plan & entitlement (slice):** `Plan.limits` JSON + `featureTags`; kullanım ölçümü çoğunlukla **runtime aggregate** (persisted usage tablosu yok). Kritik yazma yollarında backend enforcement; Tenant App `GET /tenant/entitlements` ile plan, limit, kullanım, kalan ve uyarılar. **Upgrade UX (bu repo):** Tenant App üst çubukta plan rozeti, `/app/billing` üzerinde kullanım/limit ve demo plan değişimi (`POST /tenant/billing/demo-plan-switch`, ortamda kapatılabilir); Platform Console **Abonelikler** tablosunda plan `PATCH`. Gerçek ödeme / Stripe sonraki faz; monetization erteli, entitlement + görünürlük aktif.
 
+## Güncel odak (ürün)
+
+**Real-world validation (pilot):** Çekirdek özellikler repoda mevcut; sıradaki kritik faz **sahada doğrulama**dır: 1–3 gerçek restoran/kafe, demo seed’den bağımsız tenant ve veri, QR + kasiyer + müşteri akışının canlı ölçümü ve yapılandırılmış geri bildirim. Ayrıntılı pilot çerçevesi, ölçüm ve riskler: [`10-meta-003-project-tracker.md`](./10-meta-003-project-tracker.md) **Phase 7**. Ürün önceliği kuralı: [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md) — **validation-first**.
+
 ## Teknik yığın
 
 - Monorepo: `apps/api`, `apps/admin-web`

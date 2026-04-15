@@ -19,7 +19,7 @@
 | G1 | **DB ≠ doğrudan UI modeli** — API DTO / sunucu hesaplanmış alanlar. | [`20-rules-003-data-model.md`](./20-rules-003-data-model.md), [`20-rules-002-architecture.md`](./20-rules-002-architecture.md) |
 | G2 | **Kiracı izolasyonu** — tenant scoped veri; public API yoksa iç route’lar oturum ile. | [`20-rules-005-security.md`](./20-rules-005-security.md) |
 | G3 | **Kullanıcıya görünen metin** hardcode değil; i18n. | [`20-rules-010-i18n.md`](./20-rules-010-i18n.md) |
-| G4 | **Migration** şema kararı `rules-003`; deploy sırası `rules-006`. Yerel: `apps/api` içinde `npx prisma migrate deploy`. | [`20-rules-003-data-model.md`](./20-rules-003-data-model.md), [`20-rules-006-deployment-and-ops.md`](./20-rules-006-deployment-and-ops.md) |
+| G4 | **Migration** — şema `rules-003`, deploy `rules-006`; yerel `migrate deploy`. Bootstrap **500** / P3009 / uyumsuz geçmiş: [`40-guide-001`](./40-guide-001-run-local.md#migration-errors-p3009); Cursor: [`prisma-migrate-after-schema.mdc`](../.cursor/rules/prisma-migrate-after-schema.mdc). | [`20-rules-003-data-model.md`](./20-rules-003-data-model.md), [`20-rules-006-deployment-and-ops.md`](./20-rules-006-deployment-and-ops.md) |
 
 ---
 
@@ -27,7 +27,7 @@
 
 | Konu | Ana sahip |
 |------|-----------|
-| Ürün kapsamı, roadmap özeti | [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md), [`10-meta-002-project-overview.md`](./10-meta-002-project-overview.md), [`10-meta-003-project-tracker.md`](./10-meta-003-project-tracker.md) |
+| Ürün kapsamı, roadmap özeti, **pilot / Phase 7** | [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md) (validation-first), [`10-meta-002-project-overview.md`](./10-meta-002-project-overview.md) (güncel odak), [`10-meta-003-project-tracker.md`](./10-meta-003-project-tracker.md) Phase 7 |
 | Monorepo, katmanlar, API sınırı | [`20-rules-002-architecture.md`](./20-rules-002-architecture.md) |
 | Entity, migration | [`20-rules-003-data-model.md`](./20-rules-003-data-model.md) |
 | REST, hata modeli | [`20-rules-004-api-design.md`](./20-rules-004-api-design.md) |

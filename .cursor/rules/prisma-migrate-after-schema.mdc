@@ -1,0 +1,25 @@
+---
+description: Prisma şema/migration değişince DB’yi güncelle; bootstrap 500 ve P3009 için kontrol.
+globs:
+  - apps/api/prisma/**
+  - apps/api/src/**/*.ts
+---
+
+# Prisma migration (Pointmor)
+
+## Görev bitmeden önce
+
+`schema.prisma` veya `prisma/migrations/` değiştiyse geliştirme veritabanında migration uygulanmış olmalı. Adımlar: [`docs/40-guide-001-run-local.md`](docs/40-guide-001-run-local.md) — bölüm *AI / Cursor: şema veya migration değiştiyse* ve *Migration hataları (P3009, uyumsuz geçmiş)*.
+
+## Belirtiler
+
+- `GET /admin/bootstrap` **500**, login sonrası boş/kırık admin UI
+- API log / Prisma: **P2022** (kolon yok), **P3009** (başarısız migration)
+
+## Admin web
+
+`apps/admin-web/.env.local` içinde `VITE_API_BASE_URL=http://127.0.0.1:3000` (şablon: `apps/admin-web/.env.example`). Uyarısız dev: bu dosya oluşturulmalı.
+
+## Uzak / kirli dev DB
+
+`prisma migrate status` “repo ile DB farklı” diyorsa: aynı makinede temiz Postgres ile `db:reset` + `db:seed` (yıkıcı) veya VM DB için ayrı onarım — rehbere bakın.
