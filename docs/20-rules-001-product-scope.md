@@ -60,6 +60,12 @@ Eski plan/spec dosyaları repodan kaldırılmıştır (gerekirse git geçmişi).
 
 ---
 
+## Store & kamuya açık menü (sınır)
+
+**Store Experience Foundation:** Tenant başına **mağaza ayarları** (dil listesi, varsayılan dil, para birimi, saat dilimi, iletişim, branding, **loyalty/menü kamuya açık** bayrakları) ve **salt okunur menü** vitrinu. Müşteri tarafında route **`/m/:tenantSlug`**; loyalty PWA **`/c/:tenantSlug`** ile aynı repo (`apps/admin-web`), farklı ürün amacı — tek “mega app” birleştirmesi zorunlu değil. **Sipariş, sepet, ödeme, mutfak, envanter** bu slice’da yok. Ayrıntı: [`42-design-store-public-menu.md`](./42-design-store-public-menu.md).
+
+---
+
 ## Feature ekleme kriteri
 
 Yeni özellik şunları netleştirmeli: hangi **kiracı** verisini taşıyor, **Tenant App** veya **Platform** hangisinde, **plan / limit** ile mi ilişkili. Çekirdek dışı “genel veri platformu” özellikleri **önerilmez**.

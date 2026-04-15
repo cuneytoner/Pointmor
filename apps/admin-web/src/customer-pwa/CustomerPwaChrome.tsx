@@ -1,10 +1,11 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useTranslation } from "../hooks/useTranslation";
 import { useCustomerPwa } from "./CustomerPwaContext";
 
 export function CustomerPwaChrome({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
-  const { tenantSlug, data, setGate } = useCustomerPwa();
+  const { tenantSlug, data, setGate, bootstrap } = useCustomerPwa();
+  const menuPublicOn = Boolean(bootstrap?.storeSettings?.menuPublicEnabled);
   const base = `/c/${encodeURIComponent(tenantSlug)}`;
 
   return (
@@ -38,6 +39,14 @@ export function CustomerPwaChrome({ children }: { children: React.ReactNode }) {
         </NavLink>
       </nav>
       <footer className="customer-pwa__footer">
+        {menuPublicOn ? (
+          <Link
+            className="customer-pwa__linkbtn"
+            to={`/m/${encodeURIComponent(tenantSlug)}`}
+          >
+            {t("customerPortal.viewMenu")}
+          </Link>
+        ) : null}
         <button type="button" className="customer-pwa__linkbtn" onClick={setGate}>
           {t("customerPortal.signOut")}
         </button>

@@ -71,6 +71,7 @@
     "navHome": "Start",
     "navRewards": "Prämien",
     "navActivity": "Aktivität",
+    "viewMenu": "Menü anzeigen",
     "navAria": "Kundenbereiche",
     "offlineStale": "Offline — letzte gespeicherte Daten.",
     "activityTitle": "Aktivität",
@@ -391,6 +392,7 @@
       "visits": "Besuche",
       "rewards": "Prämien",
       "campaigns": "Kampagnen",
+      "menu": "Menü",
       "redemptions": "Einlösungen"
     },
     "dash": {

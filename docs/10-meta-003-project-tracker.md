@@ -42,6 +42,12 @@ Eski veri platformu faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor loya
 - **Yüzey:** Tenant admin → **Büyüme** (`/app/growth`): huni, tutma, ödül metrikleri, sunucu üretimi kısa öngörüler.
 - **PWA:** Ödül listesi açılışında `reward_viewed` (best-effort); `GET /public/tenants/:slug` (`qr_opened`), `customers/me` (`customer_viewed_home`) ve servis katmanı diğer olayları yazar.
 
+### Store Experience Foundation (mağaza ayarları + kamuya açık menü)
+
+**Durum:** **Planlı / tasarım hazır** — kod iterasyonu sırayla. Müşteri loyalty PWA zaten **`/c/:tenantSlug/*`**; aynı **`apps/admin-web`** paketinde kamuya açık menü **`/m/:tenantSlug`** ile ayrılacak (yeni app yok). Tenant App’te **Store settings** + **menü yönetimi**; public **GET** menü API’si; **loyalty QR** (`/c/...`) ve **menü QR** (`/m/...`) ayrı. Dil: `?lang` → kayıtlı tercih → `navigator.languages` ∩ `supportedLanguages` → `defaultLanguage`. Sipariş / checkout / ödeme bu fazda yok.
+
+**Tasarım:** [`42-design-store-public-menu.md`](./42-design-store-public-menu.md).
+
 ### Phase 7 — Real-world validation (pilot)
 
 **Durum:** **Aktif ürün önceliği (saha / PMF).** Amaç: gerçek işletmede uçtan uca kullanımı **ölçmek** ve **öğrenmek**; yeni büyük özelliklerden önce sürtünme ve metriklerle yön vermek. Kod zorunluluğu yok; süreç + ortam + veri ayrımı esastır.

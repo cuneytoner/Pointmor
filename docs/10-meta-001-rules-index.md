@@ -37,6 +37,7 @@
 | Tema, tipografi, bileşen | [`20-rules-008-design-system.md`](./20-rules-008-design-system.md) |
 | Admin UI (Plus shell, `admin-*` sınıfları) | [`42-design-admin-ui.md`](./42-design-admin-ui.md) |
 | Tenant Cashier (tek ekran visit + redeem) | [`42-design-tenant-cashier-flow.md`](./42-design-tenant-cashier-flow.md) |
+| Mağaza ayarları, kamuya açık menü (`/m/:slug`) | [`42-design-store-public-menu.md`](./42-design-store-public-menu.md) |
 | Yerel çalıştırma, Prisma, `ALLOW_TENANT_DEMO_PLAN_SWITCH` (demo plan ucu) | [`40-guide-001-run-local.md`](./40-guide-001-run-local.md) |
 | Seed kullanıcıları | [`41-ref-001-dev-seed-users.md`](./41-ref-001-dev-seed-users.md) |
 

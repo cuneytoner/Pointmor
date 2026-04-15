@@ -38,6 +38,9 @@ jobs:
       - name: Lint (workspaces)
         run: npm run lint
 
+      - name: API — Vitest
+        run: npm run test -w api
+
       - name: admin-web — i18n validate
         run: npm run ci:i18n
 

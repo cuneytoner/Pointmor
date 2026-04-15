@@ -42,6 +42,71 @@ model Tenant {
   cashierShifts             CashierShift[]
   auditEvents               AuditEvent[]
   anomalySignals            AnomalySignal[]
+  storeSettings             StoreSettings?
+  menuCategories            MenuCategory[]
+  menuItems                 MenuItem[]
+}
+
+/// Mağaza vitrin ayarları — tenant başına tek kayıt.
+model StoreSettings {
+  id     String @id @default(cuid())
+  tenantId String @unique
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  storeName    String
+  logoUrl      String?
+  primaryColor String  @default("#0056b3")
+  defaultLanguage   String   @default("en")
+  supportedLanguages String[] @default(["en", "tr"])
+  currency     String @default("EUR")
+  timezone     String @default("UTC")
+  address      Json?
+
+  contactPhone String?
+  contactEmail String?
+
+  loyaltyPublicEnabled Boolean @default(true)
+  menuPublicEnabled    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MenuCategory {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items MenuItem[]
+
+  @@index([tenantId, sortOrder])
+}
+
+model MenuItem {
+  id          String       @id @default(cuid())
+  tenantId    String
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  /// Para birimi alt birimi (ör. sent).
+  price       Int
+  currency    String?
+  imageUrl    String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([categoryId, sortOrder])
 }
 
 /// Operasyonel denetim kaydı — tenant kapsamlı, güncellenmez (yalnızca ekleme).

@@ -13,6 +13,12 @@ export type CustomerTenantMeta = {
 
 export type CustomerPortalBootstrap = {
   tenant: CustomerTenantMeta;
+  /** Dil stratejisi — mağaza ayarlarından (DB yoksa API varsayılanı). */
+  storeSettings?: {
+    defaultLanguage: string;
+    supportedLanguages: string[];
+    menuPublicEnabled?: boolean;
+  };
   rewards: Array<{
     id: string;
     name: string;
@@ -33,6 +39,7 @@ export type CustomerPortalBootstrap = {
 export type CustomerPortalDashboard = {
   token?: string;
   tenant?: CustomerTenantMeta;
+  storeSettings?: CustomerPortalBootstrap["storeSettings"];
   customer: {
     id: string;
     name: string;

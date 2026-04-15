@@ -1,14 +1,15 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useLocale } from "../../contexts/LocaleContext";
 import { toIntlLocale } from "../../lib/locale-intl";
 import { useCustomerPwa } from "../../customer-pwa/CustomerPwaContext";
+import { getNextRewardPreview } from "../../customer-pwa/loyalty-preview";
 
 export function CustomerHomePage() {
   const { t } = useTranslation();
   const locale = useLocale();
-  const { tenantSlug, data, celebrationGain, clearCelebration } = useCustomerPwa();
+  const { tenantSlug, data } = useCustomerPwa();
 
   const base = useMemo(
     () => `/c/${encodeURIComponent(tenantSlug)}`,
@@ -31,46 +32,20 @@ export function CustomerHomePage() {
       .sort((a, b) => a.pointsCost - b.pointsCost);
   }, [data]);
 
-  const nextReward = useMemo(() => {
-    if (activeRewards.length === 0 || !data) return null;
-    const needUnlock = activeRewards.find((r) => r.pointsCost > data.pointsBalance);
-    return needUnlock ?? activeRewards[0];
-  }, [activeRewards, data]);
-
-  const nextProgressPct = useMemo(() => {
-    if (!data || !nextReward || nextReward.pointsCost <= 0) return 100;
-    return Math.min(100, Math.round((data.pointsBalance / nextReward.pointsCost) * 100));
-  }, [data, nextReward]);
-
-  const ptsToNext = nextReward && data ? Math.max(0, nextReward.pointsCost - data.pointsBalance) : 0;
-  const canRedeemSomething = Boolean(
-    data && activeRewards.some((r) => data.pointsBalance >= r.pointsCost),
+  const nextPreview = useMemo(
+    () => (data ? getNextRewardPreview(data) : null),
+    [data],
   );
 
-  useEffect(() => {
-    if (!celebrationGain || celebrationGain <= 0) return;
-    const id = window.setTimeout(() => clearCelebration(), 7800);
-    return () => window.clearTimeout(id);
-  }, [celebrationGain, clearCelebration]);
+  const nextReward = nextPreview?.reward ?? null;
+  const nextProgressPct = nextPreview?.progressPct ?? 0;
+  const ptsToNext = nextPreview?.pointsToNext ?? 0;
+  const canRedeemSomething = nextPreview?.canRedeemNow ?? false;
 
   if (!data) return null;
 
   return (
     <div className="customer-pwa__home">
-      {celebrationGain !== null && celebrationGain > 0 ? (
-        <div className="customer-pwa__celebrate" role="status">
-          <div className="customer-pwa__celebrate-inner">
-            <p className="customer-pwa__celebrate-title">
-              {t("customerPortal.celebrateGain", { points: String(celebrationGain) })}
-            </p>
-            <p className="customer-pwa__celebrate-sub">{t("customerPortal.almostFreeLine")}</p>
-            <button type="button" className="customer-pwa__celebrate-dismiss" onClick={clearCelebration}>
-              {t("customerPortal.celebrateDismiss")}
-            </button>
-          </div>
-        </div>
-      ) : null}
-
       <header className="customer-pwa__home-head">
         {data.tenant?.branding.logoUrl ? (
           <img

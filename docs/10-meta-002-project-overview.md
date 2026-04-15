@@ -31,5 +31,9 @@
 |--------|-----|------|
 | Platform Console | SaaS operatörü | `/platform/*` |
 | Tenant App | İşletme kullanıcısı | `/app/*` |
+| Müşteri (loyalty PWA) | Müşteri — puan, ödül, talep | `/c/:tenantSlug/*` (`apps/admin-web`, admin shell yok) |
+| Kamuya açık menü (planlı) | Salt okunur menü vitrinu | `/m/:tenantSlug` (aynı paket; [`42-design-store-public-menu.md`](./42-design-store-public-menu.md)) |
+
+**Store Experience Foundation:** Mağaza ayarları (dil, para birimi, branding bayrakları), menü kategorileri/kalemleri, public menü sayfası ve menü QR — tenant yönetiminde; sipariş/ödeme yok. Müşteri loyalty PWA **mevcut**; yeni müşteri uygulaması açılmaz.
 
 Detaylı kurallar: [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md). İlerleme özeti: [`10-meta-003-project-tracker.md`](./10-meta-003-project-tracker.md).

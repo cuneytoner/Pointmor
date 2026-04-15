@@ -2485,6 +2485,79 @@ a.admin-secondary-btn:hover {
   display: inline-block;
 }
 
+.tenant-store-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-width: 36rem;
+}
+
+.tenant-store-form label.admin-field,
+.tenant-store-form .admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+}
+
+.tenant-store-form .admin-field--inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tenant-store-form .admin-input {
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  font-size: 0.9375rem;
+}
+
+.tenant-store-form .admin-input--textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  resize: vertical;
+}
+
+.tenant-store-form .admin-input--color {
+  max-width: 5rem;
+  padding: 0.2rem;
+  height: 2.25rem;
+}
+
+.tenant-store-form__actions {
+  margin-top: 0.5rem;
+}
+
+.tenant-menu__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.tenant-menu__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.tenant-menu__table th,
+.tenant-menu__table td {
+  text-align: left;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.tenant-menu__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
 /* Tenant App — Visits POS (/app/visits) */
 .pos-visit {
   width: 100%;

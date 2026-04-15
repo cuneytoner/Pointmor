@@ -243,3 +243,23 @@ export function IconGrowth(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+/** Liste / menü */
+export function IconMenu(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      {...props}
+    >
+      <path d="M4 6h16M4 12h16M4 18h10" />
+    </svg>
+  );
+}

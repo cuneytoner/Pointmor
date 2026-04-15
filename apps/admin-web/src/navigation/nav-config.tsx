@@ -6,6 +6,7 @@ import {
   IconGift,
   IconGrowth,
   IconLayers,
+  IconMenu,
   IconShield,
   IconUsers,
   IconSettings,
@@ -120,6 +121,12 @@ export const TENANT_NAV: NavItemConfig[] = [
     to: "/app/campaigns",
     labelKey: "tenantLoyalty.nav.campaigns",
     Icon: IconLayers,
+    tenant: true,
+  },
+  {
+    to: "/app/menu",
+    labelKey: "tenantLoyalty.nav.menu",
+    Icon: IconMenu,
     tenant: true,
   },
   {

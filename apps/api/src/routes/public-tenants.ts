@@ -22,6 +22,8 @@ import {
   getTenantEntitlementContext,
   sendEntitlementHttpError,
 } from "../lib/entitlement-service.js";
+import { loadTenantPublicMeta } from "../lib/store-settings-service.js";
+import { getPublicMenuPayload } from "../lib/public-menu-service.js";
 
 const PRODUCT_ANALYTICS_TYPES = new Set<string>([
   "qr_opened",
@@ -32,13 +34,6 @@ const PRODUCT_ANALYTICS_TYPES = new Set<string>([
   "reward_claimed",
   "redemption_completed",
 ]);
-
-function tenantBrandingPlaceholder() {
-  return {
-    primaryHex: "#0056b3",
-    logoUrl: null as string | null,
-  };
-}
 
 async function resolveTenantOr404(slug: string) {
   const tenant = await prisma.tenant.findUnique({
@@ -84,16 +79,14 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
             type: "qr_opened",
             payload: { source: "tenant_catalog" },
           });
-          const [rewards, campaigns] = await Promise.all([
+          const [rewards, campaigns, meta] = await Promise.all([
             listRewards(tenant.id, true),
             getPublicCampaignsCatalog(tenant.id),
+            loadTenantPublicMeta(tenant),
           ]);
           return {
-            tenant: {
-              slug: tenant.slug,
-              name: tenant.name,
-              branding: tenantBrandingPlaceholder(),
-            },
+            tenant: meta.tenant,
+            storeSettings: meta.storeSettings,
             rewards: rewards.map(toPublicRewardDto),
             campaigns: campaigns.map(toPublicCampaignDto),
           };
@@ -127,6 +120,24 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
       );
 
       f.get<{ Params: { tenantSlug: string } }>(
+        "/public/tenants/:tenantSlug/menu",
+        async (req, reply) => {
+          const slug = req.params.tenantSlug.trim();
+          try {
+            return await getPublicMenuPayload(slug);
+          } catch (e) {
+            const code = (e as Error & { statusCode?: number }).statusCode;
+            const msg = (e as Error).message;
+            if (code === 404) return reply.code(404).send({ error: "not_found" });
+            if (code === 403 && msg === "menu_disabled") {
+              return reply.code(403).send({ error: "menu_disabled" });
+            }
+            throw e;
+          }
+        },
+      );
+
+      f.get<{ Params: { tenantSlug: string } }>(
         "/public/tenants/:tenantSlug/customers/me",
         async (req, reply) => {
           const slug = req.params.tenantSlug.trim();
@@ -140,6 +151,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
           if (!tenantRow) {
             return reply.code(404).send({ error: "not_found" });
           }
+          const meta = await loadTenantPublicMeta(tenantRow);
           await recordProductAnalyticsEvent({
             tenantId: ctx.tenantId,
             customerId: ctx.customerId,
@@ -150,11 +162,8 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
             ...dashboard,
             rewards: dashboard.rewards.map(toPublicRewardDto),
             campaigns: dashboard.campaigns.map(toPublicCampaignDto),
-            tenant: {
-              slug: tenantRow.slug,
-              name: tenantRow.name,
-              branding: tenantBrandingPlaceholder(),
-            },
+            tenant: meta.tenant,
+            storeSettings: meta.storeSettings,
           };
         },
       );
@@ -312,16 +321,14 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
           }
           const token = signCustomerAccessToken(customer.id, tenant.id);
           const dashboard = await getCustomerPortalData(tenant.id, customer.id);
+          const meta = await loadTenantPublicMeta(tenant);
           return {
             token,
             ...dashboard,
             rewards: dashboard.rewards.map(toPublicRewardDto),
             campaigns: dashboard.campaigns.map(toPublicCampaignDto),
-            tenant: {
-              slug: tenant.slug,
-              name: tenant.name,
-              branding: tenantBrandingPlaceholder(),
-            },
+            tenant: meta.tenant,
+            storeSettings: meta.storeSettings,
           };
         },
       );

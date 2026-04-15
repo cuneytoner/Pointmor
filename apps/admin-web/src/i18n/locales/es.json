@@ -71,6 +71,7 @@
     "navHome": "Inicio",
     "navRewards": "Recompensas",
     "navActivity": "Actividad",
+    "viewMenu": "Ver menú",
     "navAria": "Secciones del cliente",
     "offlineStale": "Sin conexión — mostrando los últimos datos guardados.",
     "activityTitle": "Actividad",
@@ -391,6 +392,7 @@
       "visits": "Visitas",
       "rewards": "Recompensas",
       "campaigns": "Campañas",
+      "menu": "Menú",
       "redemptions": "Canjes"
     },
     "dash": {

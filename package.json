@@ -8,7 +8,11 @@
     "dev:admin": "npm run dev --workspace admin-web",
     "dev:portal": "npm run dev --workspace admin-web",
     "dev:api": "npm run dev --workspace api",
+    "db:reset": "npm run db:reset -w api",
+    "db:seed": "npm run db:seed -w api",
+    "db:migrate": "npm run db:migrate -w api",
     "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "ci:prisma": "npm run db:validate -w api && npm run db:generate -w api",
     "ci:i18n": "npm run i18n:validate -w admin-web"

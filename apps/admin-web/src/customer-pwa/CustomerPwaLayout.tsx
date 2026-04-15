@@ -1,5 +1,5 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { Outlet, useParams } from "react-router-dom";
+import { Outlet, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "../hooks/useTranslation";
 import {
   CUSTOMER_LAST_TENANT_SLUG_KEY,
@@ -16,6 +16,13 @@ import {
 import { CustomerPwaProvider, type CustomerPwaPhase } from "./CustomerPwaContext";
 import { CustomerPwaChrome } from "./CustomerPwaChrome";
 import { CustomerPwaGate } from "./CustomerPwaGate";
+import { VisitSuccessSheet } from "./VisitSuccessSheet";
+import { useLocaleActions } from "../contexts/LocaleContext";
+import {
+  resolveLanguage,
+  resolveUiLocale,
+  tenantLanguageStorageKey,
+} from "../lib/resolveLanguage";
 import "./customer-pwa.css";
 
 function persistSnapshot(tenantSlug: string, data: CustomerPortalDashboard) {
@@ -31,6 +38,8 @@ function persistSnapshot(tenantSlug: string, data: CustomerPortalDashboard) {
 
 export function CustomerPwaLayout() {
   const { tenantSlug = "" } = useParams<{ tenantSlug: string }>();
+  const [searchParams] = useSearchParams();
+  const { setLocale } = useLocaleActions();
   const { t } = useTranslation();
   const [phase, setPhase] = useState<CustomerPwaPhase>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -151,6 +160,27 @@ export function CustomerPwaLayout() {
     };
   }, [tenantSlug, storageKey, applyReady, t]);
 
+  /** Kasiyer ziyareti sonrası bakiye — arka planda hafif yenileme + sekme görünür olunca sync. */
+  useEffect(() => {
+    if (phase !== "ready") return;
+    const tok = token ?? localStorage.getItem(storageKey)?.trim();
+    if (!tok) return;
+    const poll = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      void refresh();
+    }, 7000);
+    return () => clearInterval(poll);
+  }, [phase, token, storageKey, refresh]);
+
+  useEffect(() => {
+    if (phase !== "ready") return;
+    const onVis = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [phase, refresh]);
+
   const submitPhone = useCallback(
     async (phone: string) => {
       const res = await postCustomerPortalSession(tenantSlug, phone);
@@ -249,6 +279,40 @@ export function CustomerPwaLayout() {
   const primary =
     bootstrap?.tenant.branding.primaryHex ?? data?.tenant?.branding.primaryHex ?? "#0056b3";
 
+  useEffect(() => {
+    if (!bootstrap) return;
+    const ss = bootstrap.storeSettings;
+    const defaultLanguage = ss?.defaultLanguage ?? "en";
+    const supportedLanguages =
+      ss?.supportedLanguages && ss.supportedLanguages.length > 0
+        ? ss.supportedLanguages
+        : ["en", "tr"];
+    const langParam = searchParams.get("lang");
+    const resolved = resolveLanguage({
+      langParam,
+      tenantSlug,
+      supportedLanguages,
+      defaultLanguage,
+      navigatorLanguages:
+        typeof navigator !== "undefined" ? navigator.languages : [],
+    });
+    try {
+      localStorage.setItem(tenantLanguageStorageKey(tenantSlug), resolved);
+    } catch {
+      /* ignore */
+    }
+    setLocale(resolveUiLocale(resolved));
+  }, [bootstrap, searchParams, setLocale, tenantSlug]);
+
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    const prev = meta?.getAttribute("content") ?? "#0a1628";
+    meta?.setAttribute("content", primary);
+    return () => {
+      meta?.setAttribute("content", prev);
+    };
+  }, [primary]);
+
   if (phase === "loading") {
     return (
       <div className="customer-pwa" style={{ ["--cp-primary" as string]: primary }}>
@@ -309,6 +373,15 @@ export function CustomerPwaLayout() {
             <p className="customer-pwa__toast customer-pwa__toast--error" role="status">
               {claimToast}
             </p>
+          ) : null}
+          {celebrationGain !== null && celebrationGain > 0 && data ? (
+            <VisitSuccessSheet
+              tenantSlug={tenantSlug}
+              data={data}
+              gain={celebrationGain}
+              primaryHex={primary}
+              onDismiss={clearCelebration}
+            />
           ) : null}
           <CustomerPwaChrome>
             <Outlet />

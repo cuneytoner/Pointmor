@@ -9,6 +9,7 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["brand/pointmor-mark.svg"],
       manifest: {
+        id: "/",
         name: "Pointmor",
         short_name: "Pointmor",
         description: "Customer loyalty — points, rewards, campaigns.",
@@ -19,6 +20,7 @@ export default defineConfig({
         background_color: "#f4f7f9",
         start_url: "/",
         scope: "/",
+        categories: ["food", "lifestyle", "business"],
         icons: [
           {
             src: "/brand/pointmor-mark.svg",

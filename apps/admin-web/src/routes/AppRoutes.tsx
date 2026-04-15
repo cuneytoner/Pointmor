@@ -38,6 +38,8 @@ import { CustomerClaimPage } from "../pages/customer/CustomerClaimPage";
 import { CustomerHomePage } from "../pages/customer/CustomerHomePage";
 import { CustomerProfilePage } from "../pages/customer/CustomerProfilePage";
 import { CustomerRewardsPage } from "../pages/customer/CustomerRewardsPage";
+import { CustomerMenuPage } from "../pages/customer/CustomerMenuPage";
+import { TenantMenuPage } from "../pages/TenantMenuPage";
 import { CUSTOMER_LAST_TENANT_SLUG_KEY } from "../lib/customer-portal-api";
 
 function RootHomeRedirect() {
@@ -76,6 +78,7 @@ export function AppRoutes() {
   const adminData = useAdminData(token, refreshKey, locale);
 
   const isCustomerPortalRoute = /^\/c\/[^/]+/.test(location.pathname);
+  const isPublicMenuRoute = /^\/m\/[^/]+/.test(location.pathname);
 
   useEffect(() => {
     if (!adminData.authInvalid) return;
@@ -99,6 +102,14 @@ export function AppRoutes() {
           <Route path="claim/:rewardId" element={<CustomerClaimPage />} />
           <Route path="profile" element={<CustomerProfilePage />} />
         </Route>
+      </Routes>
+    );
+  }
+
+  if (isPublicMenuRoute) {
+    return (
+      <Routes>
+        <Route path="/m/:tenantSlug" element={<CustomerMenuPage />} />
       </Routes>
     );
   }
@@ -152,6 +163,7 @@ export function AppRoutes() {
             <Route path="visits" element={<TenantVisitsPage />} />
             <Route path="rewards" element={<TenantRewardsPage />} />
             <Route path="campaigns" element={<TenantCampaignsPage />} />
+            <Route path="menu" element={<TenantMenuPage />} />
             <Route path="redemptions" element={<TenantRedemptionsPage />} />
             <Route path="billing" element={<TenantBillingPage />} />
             <Route path="settings" element={<TenantSettingsPage />} />
