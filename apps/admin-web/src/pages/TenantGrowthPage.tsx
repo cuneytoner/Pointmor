@@ -78,7 +78,7 @@ export function TenantGrowthPage() {
       >
         <div className="feature-plan-gate">
           <p className="admin-app__card-text">{t("plan.gate.growthBody")}</p>
-          <Link to="/app/billing" className="admin-primary-btn">
+          <Link to="/app/admin/billing" className="admin-primary-btn">
             {t("plan.gate.ctaBilling")}
           </Link>
         </div>

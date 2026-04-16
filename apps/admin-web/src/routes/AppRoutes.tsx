@@ -13,6 +13,9 @@ import {
   LegacyUsersRedirect,
   RequirePlatformLayout,
   RequireTenantLayout,
+  RequireTenantRouteAccess,
+  TenantAppHomeRedirect,
+  WorkspaceAdminIndexRedirect,
 } from "../components/route-guards";
 import { LoginPage } from "../pages/LoginPage";
 import { PlansPage } from "../pages/PlansPage";
@@ -41,6 +44,8 @@ import { CustomerRewardsPage } from "../pages/customer/CustomerRewardsPage";
 import { CustomerMenuPage } from "../pages/customer/CustomerMenuPage";
 import { TenantMenuPage } from "../pages/TenantMenuPage";
 import { TenantMessagingPage } from "../pages/TenantMessagingPage";
+import { TenantAdminTeamPage } from "../pages/TenantAdminTeamPage";
+import { WorkspaceAdminLayout } from "../components/WorkspaceAdminLayout";
 import { CUSTOMER_LAST_TENANT_SLUG_KEY } from "../lib/customer-portal-api";
 
 function RootHomeRedirect() {
@@ -156,19 +161,28 @@ export function AppRoutes() {
           </Route>
 
           <Route path="/app" element={<RequireTenantLayout />}>
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<TenantDashboardPage />} />
-            <Route path="growth" element={<TenantGrowthPage />} />
-            <Route path="messaging" element={<TenantMessagingPage />} />
-            <Route path="customers" element={<TenantCustomersPage />} />
-            <Route path="customers/:customerId" element={<TenantCustomerDetailPage />} />
-            <Route path="visits" element={<TenantVisitsPage />} />
-            <Route path="rewards" element={<TenantRewardsPage />} />
-            <Route path="campaigns" element={<TenantCampaignsPage />} />
-            <Route path="menu" element={<TenantMenuPage />} />
-            <Route path="redemptions" element={<TenantRedemptionsPage />} />
-            <Route path="billing" element={<TenantBillingPage />} />
-            <Route path="settings" element={<TenantSettingsPage />} />
+            <Route element={<RequireTenantRouteAccess />}>
+              <Route index element={<TenantAppHomeRedirect />} />
+              <Route path="dashboard" element={<TenantDashboardPage />} />
+              <Route path="growth" element={<TenantGrowthPage />} />
+              <Route path="messaging" element={<Navigate to="/app/admin/messaging" replace />} />
+              <Route path="customers" element={<TenantCustomersPage />} />
+              <Route path="customers/:customerId" element={<TenantCustomerDetailPage />} />
+              <Route path="visits" element={<TenantVisitsPage />} />
+              <Route path="rewards" element={<TenantRewardsPage />} />
+              <Route path="campaigns" element={<TenantCampaignsPage />} />
+              <Route path="menu" element={<TenantMenuPage />} />
+              <Route path="redemptions" element={<TenantRedemptionsPage />} />
+              <Route path="billing" element={<Navigate to="/app/admin/billing" replace />} />
+              <Route path="settings" element={<Navigate to="/app/admin/general" replace />} />
+              <Route path="admin" element={<WorkspaceAdminLayout />}>
+                <Route index element={<WorkspaceAdminIndexRedirect />} />
+                <Route path="general" element={<TenantSettingsPage embedded />} />
+                <Route path="team" element={<TenantAdminTeamPage />} />
+                <Route path="messaging" element={<TenantMessagingPage embedded />} />
+                <Route path="billing" element={<TenantBillingPage embedded />} />
+              </Route>
+            </Route>
           </Route>
 
           <Route path="/dashboard" element={<LegacyDashboardRedirect />} />

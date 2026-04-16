@@ -1,4 +1,16 @@
 import type { AdminAuth } from "../hooks/useAdminData";
+import { resolveTenantAppRole } from "./tenant-app-role";
+import { defaultTenantHomePath } from "./tenant-route-access";
+
+export { resolveTenantAppRole, TENANT_MEMBERSHIP_ROLES, type TenantAppRole } from "./tenant-app-role";
+export type { WorkspaceAdminSection } from "./tenant-route-access";
+export {
+  canAccessTenantPath,
+  canAccessTenantNavTarget,
+  canAccessWorkspaceAdminSection,
+  redirectPathForDeniedTenantRoute,
+  defaultTenantHomePath,
+} from "./tenant-route-access";
 
 /** Ürün yüzeyi: SaaS operatörü vs kiracı uygulaması */
 export type AppSurface = "platform" | "tenant";
@@ -8,17 +20,30 @@ export function getAppSurface(auth: AdminAuth): AppSurface {
 }
 
 export function defaultHomePath(auth: AdminAuth): string {
-  return getAppSurface(auth) === "platform" ? "/platform/dashboard" : "/app/dashboard";
+  return getAppSurface(auth) === "platform" ? "/platform/dashboard" : defaultTenantHomePath(resolveTenantAppRole(auth));
 }
 
-/** Kiracı API rolü (membership.role); seed: platform_admin | tenant_operator */
+/** Ham API rolü (`membership.role`) */
 export function tenantMembershipRole(auth: AdminAuth): string {
   return auth.membership?.role?.trim() || "tenant_operator";
 }
 
-/** Organizasyon ayarları (ileride tenant_viewer için kısıtlanabilir) */
+/** Mağaza / organizasyon ayarları (General) — owner veya manager */
 export function canManageTenantOrg(auth: AdminAuth): boolean {
-  if (auth.user.platformAdmin) return false;
-  const r = tenantMembershipRole(auth);
-  return r === "tenant_admin" || r === "tenant_operator";
+  if (auth.user.platformAdmin || !auth.tenant) return false;
+  const k = resolveTenantAppRole(auth);
+  return k === "owner" || k === "manager";
+}
+
+/** Workspace Administration girişi — owner, manager veya ops (mesajlaşma sekmesi) */
+export function canAccessWorkspaceAdmin(auth: AdminAuth): boolean {
+  if (auth.user.platformAdmin || !auth.tenant) return false;
+  const k = resolveTenantAppRole(auth);
+  return k === "owner" || k === "manager" || k === "ops";
+}
+
+/** Faturalama / plan — yalnızca owner */
+export function canViewTenantBilling(auth: AdminAuth): boolean {
+  if (auth.user.platformAdmin || !auth.tenant) return false;
+  return resolveTenantAppRole(auth) === "owner";
 }

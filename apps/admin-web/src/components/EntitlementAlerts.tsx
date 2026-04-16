@@ -58,7 +58,7 @@ export function EntitlementAlerts({ entitlements }: Props) {
               ? t(`plan.limitReached.${b.key}`)
               : t(`plan.approachingLimit.${b.key}`)}
           </span>
-          <Link to="/app/billing" className="entitlement-alerts__link">
+          <Link to="/app/admin/billing" className="entitlement-alerts__link">
             {t("plan.alerts.viewBilling")}
           </Link>
         </div>

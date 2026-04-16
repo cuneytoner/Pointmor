@@ -490,6 +490,45 @@
   min-height: 2rem;
 }
 
+.page-shell--embedded {
+  max-width: none;
+}
+
+.workspace-admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 1.25rem;
+}
+
+.workspace-admin-tabs__link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.workspace-admin-tabs__link:hover {
+  background: rgba(15, 23, 42, 0.06);
+  color: #0f172a;
+}
+
+.workspace-admin-tabs__link--active {
+  background: rgba(99, 102, 241, 0.12);
+  color: #312e81;
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.workspace-admin__outlet {
+  padding-top: 0;
+}
+
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

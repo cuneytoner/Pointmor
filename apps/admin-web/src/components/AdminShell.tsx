@@ -1,5 +1,5 @@
 import type { FC, SVGProps } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { LanguageSelector } from "./LanguageSelector";
 import type { AdminAuth } from "../hooks/useAdminData";
 import { useAuth } from "../contexts/AuthContext";
@@ -8,7 +8,7 @@ import { getApiBaseUrl } from "../lib/api-base";
 import { useTranslation } from "../hooks/useTranslation";
 import type { NavItemConfig } from "../navigation/nav-config";
 import { PLATFORM_NAV, TENANT_NAV } from "../navigation/nav-config";
-import { getAppSurface } from "../lib/access";
+import { canAccessTenantNavTarget, getAppSurface } from "../lib/access";
 import { PlanTypeBadge, planBadgeFromEntitlements } from "./PlanTypeBadge";
 import { EntitlementAlerts } from "./EntitlementAlerts";
 
@@ -19,13 +19,15 @@ type AdminShellProps = {
 function filterTenantNav(
   items: NavItemConfig[],
   featureList: string[] | undefined,
+  auth: AdminShellProps["auth"],
 ): NavItemConfig[] {
-  if (!featureList || featureList.length === 0) return items;
-  const f = new Set(featureList);
   return items.filter((item) => {
-    if (item.to === "/app/growth") return f.has("product_analytics");
-    if (item.to === "/app/campaigns") return f.has("campaigns");
-    return true;
+    if (featureList && featureList.length > 0) {
+      const f = new Set(featureList);
+      if (item.to === "/app/growth" && !f.has("product_analytics")) return false;
+      if (item.to === "/app/campaigns" && !f.has("campaigns")) return false;
+    }
+    return canAccessTenantNavTarget(item.to, auth);
   });
 }
 
@@ -33,12 +35,13 @@ export function AdminShell({ auth }: AdminShellProps) {
   const { t } = useTranslation();
   const { token, setToken } = useAuth();
   const { bootstrap } = useAdminDataContext();
+  const location = useLocation();
 
   const surface = getAppSurface(auth);
   const nav =
     surface === "platform"
       ? PLATFORM_NAV
-      : filterTenantNav(TENANT_NAV, bootstrap?.entitlements?.features);
+      : filterTenantNav(TENANT_NAV, bootstrap?.entitlements?.features, auth);
   const planType = planBadgeFromEntitlements(bootstrap?.entitlements ?? null);
 
   const topbarKey =
@@ -75,14 +78,21 @@ export function AdminShell({ auth }: AdminShellProps) {
           {nav.map((item) => {
             const label = t(item.labelKey);
             const Icon = item.Icon as FC<SVGProps<SVGSVGElement>>;
-            const end = item.end ?? item.to.endsWith("/dashboard");
+            const end = item.navActivePrefix
+              ? false
+              : (item.end ?? item.to.endsWith("/dashboard"));
+            const prefix = item.navActivePrefix;
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={({ isActive }) =>
-                  `admin-app__nav-link${isActive ? " admin-app__nav-link--active" : ""}`
-                }
+                className={({ isActive }) => {
+                  const active =
+                    prefix !== undefined
+                      ? location.pathname.startsWith(prefix)
+                      : isActive;
+                  return `admin-app__nav-link${active ? " admin-app__nav-link--active" : ""}`;
+                }}
                 end={end}
               >
                 <span className="admin-app__nav-icon" aria-hidden>

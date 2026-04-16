@@ -20,7 +20,11 @@ import {
   type MessagingSettingsDto,
 } from "../lib/messaging-api";
 
-export function TenantMessagingPage() {
+export type TenantMessagingPageProps = {
+  embedded?: boolean;
+};
+
+export function TenantMessagingPage({ embedded }: TenantMessagingPageProps = {}) {
   const { t } = useTranslation();
   const { token } = useAuth();
   const dlg = useRef<HTMLDialogElement>(null);
@@ -101,12 +105,8 @@ export function TenantMessagingPage() {
 
   const loading = settings === null && !error;
 
-  return (
-    <PageShell
-      eyebrow={t("tenantLoyalty.messaging.eyebrow")}
-      title={t("tenantLoyalty.messaging.title")}
-      description={t("tenantLoyalty.messaging.description")}
-    >
+  const body = (
+    <>
       {loading ? (
         <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
       ) : error && !settings ? (
@@ -351,6 +351,20 @@ export function TenantMessagingPage() {
           </dialog>
         </>
       ) : null}
+    </>
+  );
+
+  if (embedded) {
+    return <PageShell embedded>{body}</PageShell>;
+  }
+
+  return (
+    <PageShell
+      eyebrow={t("tenantLoyalty.messaging.eyebrow")}
+      title={t("tenantLoyalty.messaging.title")}
+      description={t("tenantLoyalty.messaging.description")}
+    >
+      {body}
     </PageShell>
   );
 }

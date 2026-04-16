@@ -72,5 +72,5 @@
 
 ## 9. Tenant App — Plan / billing görünürlüğü
 
-- **Üst çubuk:** plan rozeti (`plan-badge`); **Billing** (`/app/billing`): kullanım satırları, özellik listesi, demo yükseltme modalı — stiller `plus-shell.css` içinde (ör. `usage-row`, `entitlement-alerts`, `billing-*`).
+- **Üst çubuk:** plan rozeti (`plan-badge`); **Administration → Billing** (`/app/admin/billing`): kullanım satırları, özellik listesi, demo yükseltme modalı — stiller `plus-shell.css` içinde (ör. `usage-row`, `entitlement-alerts`, `billing-*`).
 - Metinler i18n; gerçek ödeme yoktur ([`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md)).

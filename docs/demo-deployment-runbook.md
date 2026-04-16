@@ -1,6 +1,6 @@
 # Demo deployment runbook (giriş)
 
-Bu dosya, monorepo kökünde keşfedilebilir kısa giriş noktasıdır. **Ayrıntılı ve güncel operasyon rehberi:** [`40-guide-005-demo-deployment-runbook.md`](./40-guide-005-demo-deployment-runbook.md). Mimari ve GitHub Actions: [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md). Cloudflare Tunnel özeti: [`cloudflare.md`](./cloudflare.md).
+Bu dosya, monorepo kökünde keşfedilebilir kısa giriş noktasıdır. **Ayrıntılı ve güncel operasyon rehberi:** [`40-guide-005-demo-deployment-runbook.md`](./40-guide-005-demo-deployment-runbook.md) (içinde **LAN SSH**, repo yolu **`/opt/pointmor-demo/Pointmor`**, **`pmdeploy`** vs **`pmdeploycld`**). Mimari ve GitHub Actions: [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md). Cloudflare Tunnel özeti: [`cloudflare.md`](./cloudflare.md).
 
 ## Hızlı komutlar (repo kökü, Debian VM)
 

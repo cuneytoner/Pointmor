@@ -140,7 +140,30 @@
     "subscriptions": "Abonnements",
     "billing": "Abrechnung",
     "tenantSettings": "Einstellungen",
-    "platformAdmin": "Plattform-Admin"
+    "platformAdmin": "Plattform-Admin",
+    "workspaceAdmin": "Verwaltung"
+  },
+  "workspaceAdmin": {
+    "eyebrow": "Workspace",
+    "title": "Verwaltung",
+    "description": "Geschäftsprofil, Team, Messaging und Abrechnung — zentrale Workspace-Verwaltung.",
+    "subnavAria": "Verwaltungsbereiche",
+    "tab": {
+      "general": "Allgemein",
+      "team": "Team",
+      "messaging": "Messaging",
+      "billing": "Abrechnung & Plan"
+    },
+    "team": {
+      "sectionRole": "Ihre Zugriffsrolle",
+      "roleLabel": "Rolle",
+      "roleHint": "Einladungen und Rollenverwaltung erscheinen hier, sobald verfügbar.",
+      "sectionStaffLimit": "Mitarbeiterplätze (Plan)",
+      "staffUsage": "{{used}} von {{cap}} Mitarbeiterkonten im Plan.",
+      "staffUsageUnknown": "Nutzung konnte nicht geladen werden.",
+      "sectionInvites": "Einladungen",
+      "invitesPlaceholder": "Kollegen per E-Mail einladen — demnächst."
+    }
   },
   "dashboardPlatform": {
     "eyebrow": "Betrieb",
@@ -155,7 +178,7 @@
     "eyebrow": "Ihr Workspace",
     "title": "{{name}} — Übersicht",
     "description": "Teamgröße und Abonnement für diesen Workspace.",
-    "onboardingHint": "Abrechnung und Einstellungen finden Sie in der Seitenleiste.",
+    "onboardingHint": "Unter „Verwaltung“ in der Seitenleiste finden Sie Abrechnung, Messaging und Geschäftseinstellungen.",
     "hero": {
       "title": "Workspace-Snapshot",
       "subtitle": "Treueprogramm für Ihren Betrieb — weitere Funktionen folgen."

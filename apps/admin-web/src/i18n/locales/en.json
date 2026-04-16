@@ -140,7 +140,30 @@
     "subscriptions": "Subscriptions",
     "billing": "Billing",
     "tenantSettings": "Settings",
-    "platformAdmin": "Platform admin"
+    "platformAdmin": "Platform admin",
+    "workspaceAdmin": "Administration"
+  },
+  "workspaceAdmin": {
+    "eyebrow": "Workspace",
+    "title": "Administration",
+    "description": "Store profile, team, messaging channels, and billing — one place for workspace management.",
+    "subnavAria": "Administration sections",
+    "tab": {
+      "general": "General",
+      "team": "Team",
+      "messaging": "Messaging",
+      "billing": "Billing & plan"
+    },
+    "team": {
+      "sectionRole": "Your access",
+      "roleLabel": "Role",
+      "roleHint": "Member invites and role management will appear here as the product expands.",
+      "sectionStaffLimit": "Staff seats (plan)",
+      "staffUsage": "{{used}} of {{cap}} staff users included in your plan.",
+      "staffUsageUnknown": "Usage could not be loaded.",
+      "sectionInvites": "Invites",
+      "invitesPlaceholder": "Invite colleagues by email — coming soon."
+    }
   },
   "dashboardPlatform": {
     "eyebrow": "Operations",
@@ -155,7 +178,7 @@
     "eyebrow": "Your workspace",
     "title": "{{name}} — overview",
     "description": "Team size and subscription summary for this workspace.",
-    "onboardingHint": "You can manage billing and settings from the sidebar when you are ready.",
+    "onboardingHint": "When you are ready, use Administration in the sidebar for billing, messaging, and store settings.",
     "hero": {
       "title": "Workspace snapshot",
       "subtitle": "Loyalty program management for your venue — more features coming soon."

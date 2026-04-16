@@ -24,7 +24,12 @@ function addressToText(a: unknown): string {
   }
 }
 
-export function TenantSettingsPage() {
+export type TenantSettingsPageProps = {
+  /** Workspace Administration layout içinde üst başlık gizlenir */
+  embedded?: boolean;
+};
+
+export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
   const { t } = useTranslation();
   const { auth } = useAdminDataContext();
   const { token } = useAuth();
@@ -137,12 +142,8 @@ export function TenantSettingsPage() {
     }
   };
 
-  return (
-    <PageShell
-      eyebrow={t("tenantSettings.eyebrow")}
-      title={t("tenantSettings.title")}
-      description={t("tenantSettings.description")}
-    >
+  const body = (
+    <>
       {loading ? (
         <div className="admin-app__card admin-app__card--wide">
           <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
@@ -349,6 +350,20 @@ export function TenantSettingsPage() {
           </div>
         </>
       )}
+    </>
+  );
+
+  if (embedded) {
+    return <PageShell embedded>{body}</PageShell>;
+  }
+
+  return (
+    <PageShell
+      eyebrow={t("tenantSettings.eyebrow")}
+      title={t("tenantSettings.title")}
+      description={t("tenantSettings.description")}
+    >
+      {body}
     </PageShell>
   );
 }

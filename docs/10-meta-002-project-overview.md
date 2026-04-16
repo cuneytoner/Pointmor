@@ -14,7 +14,7 @@
 
 **Operasyonel görünürlük (slice):** Yapısal `AuditEvent` + hafif `AnomalySignal` (tekrar talep hızı, vardiyada yüksek redeem hacmi, aktif oturum/vardiya dışı kasiyer işlemi vb.). Yönetici için vardiya/şube/gün kapanış özeti API’si (`/manager/...`); finansal mutabakat veya fraud motoru kapsam dışı.
 
-**Plan & entitlement (slice):** `Plan.limits` JSON + `featureTags`; kullanım ölçümü çoğunlukla **runtime aggregate** (persisted usage tablosu yok). Kritik yazma yollarında backend enforcement; Tenant App `GET /tenant/entitlements` ile plan, limit, kullanım, kalan ve uyarılar. **Upgrade UX (bu repo):** Tenant App üst çubukta plan rozeti, `/app/billing` üzerinde kullanım/limit ve demo plan değişimi (`POST /tenant/billing/demo-plan-switch`, ortamda kapatılabilir); Platform Console **Abonelikler** tablosunda plan `PATCH`. Gerçek ödeme / Stripe sonraki faz; monetization erteli, entitlement + görünürlük aktif.
+**Plan & entitlement (slice):** `Plan.limits` JSON + `featureTags`; kullanım ölçümü çoğunlukla **runtime aggregate** (persisted usage tablosu yok). Kritik yazma yollarında backend enforcement; Tenant App `GET /tenant/entitlements` ile plan, limit, kullanım, kalan ve uyarılar. **Upgrade UX (bu repo):** Tenant App üst çubukta plan rozeti, **Administration → Billing** (`/app/admin/billing`; eski `/app/billing` yönlendirir) üzerinde kullanım/limit ve demo plan değişimi (`POST /tenant/billing/demo-plan-switch`, ortamda kapatılabilir); Platform Console **Abonelikler** tablosunda plan `PATCH`. Gerçek ödeme / Stripe sonraki faz; monetization erteli, entitlement + görünürlük aktif.
 
 ## Güncel odak (ürün)
 

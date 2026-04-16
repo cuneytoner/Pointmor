@@ -1,7 +1,13 @@
 import type { ReactNode } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
-import { defaultHomePath } from "../lib/access";
+import {
+  canAccessTenantPath,
+  defaultHomePath,
+  redirectPathForDeniedTenantRoute,
+} from "../lib/access";
+import { resolveTenantAppRole } from "../lib/tenant-app-role";
+import { defaultTenantHomePath } from "../lib/tenant-route-access";
 
 export function RequirePlatformLayout(): ReactNode {
   const { auth } = useAdminDataContext();
@@ -23,6 +29,33 @@ export function RequireTenantLayout(): ReactNode {
   return <Outlet />;
 }
 
+/** Kiracı rotalarında RBAC — yetkisiz URL sessizce güvenli sayfaya yönlenir. */
+export function RequireTenantRouteAccess(): ReactNode {
+  const { auth } = useAdminDataContext();
+  const location = useLocation();
+  if (!auth?.tenant) return <Outlet />;
+  if (!canAccessTenantPath(location.pathname, auth)) {
+    return <Navigate to={redirectPathForDeniedTenantRoute(location.pathname, auth)} replace />;
+  }
+  return <Outlet />;
+}
+
+/** `/app` → role göre varsayılan giriş (staff → müşteriler). */
+export function TenantAppHomeRedirect(): ReactNode {
+  const { auth } = useAdminDataContext();
+  if (!auth) return null;
+  return <Navigate to={defaultTenantHomePath(resolveTenantAppRole(auth))} replace />;
+}
+
+/** `/app/admin` → ops için mesajlaşma, diğerleri için genel. */
+export function WorkspaceAdminIndexRedirect(): ReactNode {
+  const { auth } = useAdminDataContext();
+  if (!auth) return null;
+  const role = resolveTenantAppRole(auth);
+  if (role === "ops") return <Navigate to="messaging" replace />;
+  return <Navigate to="general" replace />;
+}
+
 /** Eski `/dashboard` bağlantıları */
 export function LegacyDashboardRedirect(): ReactNode {
   const { auth } = useAdminDataContext();
@@ -41,5 +74,5 @@ export function LegacyUsersRedirect(): ReactNode {
   if (auth.user.platformAdmin) {
     return <Navigate to="/platform/users" replace />;
   }
-  return <Navigate to="/app/dashboard" replace />;
+  return <Navigate to={defaultHomePath(auth)} replace />;
 }

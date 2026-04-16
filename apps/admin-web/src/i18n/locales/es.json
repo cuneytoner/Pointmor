@@ -140,7 +140,30 @@
     "subscriptions": "Suscripciones",
     "billing": "Facturación",
     "tenantSettings": "Ajustes",
-    "platformAdmin": "Admin de plataforma"
+    "platformAdmin": "Admin de plataforma",
+    "workspaceAdmin": "Administración"
+  },
+  "workspaceAdmin": {
+    "eyebrow": "Espacio de trabajo",
+    "title": "Administración",
+    "description": "Perfil del negocio, equipo, mensajería y facturación — gestión del espacio en un solo lugar.",
+    "subnavAria": "Secciones de administración",
+    "tab": {
+      "general": "General",
+      "team": "Equipo",
+      "messaging": "Mensajería",
+      "billing": "Facturación y plan"
+    },
+    "team": {
+      "sectionRole": "Tu acceso",
+      "roleLabel": "Rol",
+      "roleHint": "Las invitaciones y la gestión de roles aparecerán aquí cuando estén disponibles.",
+      "sectionStaffLimit": "Plazas de staff (plan)",
+      "staffUsage": "{{used}} de {{cap}} usuarios de staff incluidos en tu plan.",
+      "staffUsageUnknown": "No se pudo cargar el uso.",
+      "sectionInvites": "Invitaciones",
+      "invitesPlaceholder": "Invitar por correo — próximamente."
+    }
   },
   "dashboardPlatform": {
     "eyebrow": "Operaciones",
@@ -155,7 +178,7 @@
     "eyebrow": "Su espacio",
     "title": "{{name}} — resumen",
     "description": "Tamaño del equipo y suscripción de este espacio.",
-    "onboardingHint": "Use la barra lateral para facturación y ajustes.",
+    "onboardingHint": "En la barra lateral, Administración agrupa facturación, mensajería y ajustes del negocio.",
     "hero": {
       "title": "Instantánea del espacio",
       "subtitle": "Fidelización para su local — más funciones próximamente."

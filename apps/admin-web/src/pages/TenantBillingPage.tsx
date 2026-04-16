@@ -72,7 +72,11 @@ function FeatureList({ ent }: { ent: EntitlementsPayload }) {
   );
 }
 
-export function TenantBillingPage() {
+export type TenantBillingPageProps = {
+  embedded?: boolean;
+};
+
+export function TenantBillingPage({ embedded }: TenantBillingPageProps = {}) {
   const { t } = useTranslation();
   const locale = useLocale();
   const { auth, bootstrap } = useAdminDataContext();
@@ -130,19 +134,19 @@ export function TenantBillingPage() {
   };
 
   if (!bootstrap || !tenantId) {
+    const loadingInner = <p className="admin-app__card-text">{t("common.loadingBody")}</p>;
+    if (embedded) {
+      return <PageShell embedded>{loadingInner}</PageShell>;
+    }
     return (
       <PageShell eyebrow={t("billing.eyebrow")} title={t("billing.title")} description="">
-        <p className="admin-app__card-text">{t("common.loadingBody")}</p>
+        {loadingInner}
       </PageShell>
     );
   }
 
-  return (
-    <PageShell
-      eyebrow={t("billing.eyebrow")}
-      title={t("billing.title")}
-      description={t("billing.pageIntro")}
-    >
+  const body = (
+    <>
       {msg ? (
         <p className="admin-app__card-text billing-flash billing-flash--ok" role="status">
           {msg}
@@ -291,6 +295,20 @@ export function TenantBillingPage() {
           </div>
         </div>
       ) : null}
+    </>
+  );
+
+  if (embedded) {
+    return <PageShell embedded>{body}</PageShell>;
+  }
+
+  return (
+    <PageShell
+      eyebrow={t("billing.eyebrow")}
+      title={t("billing.title")}
+      description={t("billing.pageIntro")}
+    >
+      {body}
     </PageShell>
   );
 }

@@ -140,7 +140,30 @@
     "subscriptions": "Abonelikler",
     "billing": "Faturalama",
     "tenantSettings": "Ayarlar",
-    "platformAdmin": "Platform yönetimi"
+    "platformAdmin": "Platform yönetimi",
+    "workspaceAdmin": "Yönetim"
+  },
+  "workspaceAdmin": {
+    "eyebrow": "Çalışma alanı",
+    "title": "Yönetim",
+    "description": "Mağaza profili, takım, mesajlaşma ve faturalama — çalışma alanı ayarları tek yerde.",
+    "subnavAria": "Yönetim bölümleri",
+    "tab": {
+      "general": "Genel",
+      "team": "Takım",
+      "messaging": "Mesajlaşma",
+      "billing": "Faturalama ve plan"
+    },
+    "team": {
+      "sectionRole": "Erişiminiz",
+      "roleLabel": "Rol",
+      "roleHint": "Üye davetleri ve rol yönetimi ürün genişledikçe burada görünecek.",
+      "sectionStaffLimit": "Personel kotası (plan)",
+      "staffUsage": "Plana dahil {{cap}} personel kullanıcısından {{used}} kullanılıyor.",
+      "staffUsageUnknown": "Kullanım yüklenemedi.",
+      "sectionInvites": "Davetler",
+      "invitesPlaceholder": "E-posta ile davet — yakında."
+    }
   },
   "dashboardPlatform": {
     "eyebrow": "Operasyon",
@@ -155,7 +178,7 @@
     "eyebrow": "Çalışma alanınız",
     "title": "{{name}} — özet",
     "description": "Bu çalışma alanı için ekip boyutu ve abonelik özeti.",
-    "onboardingHint": "Hazır olduğunuzda kenar çubuktan faturalama ve ayarlara gidebilirsiniz.",
+    "onboardingHint": "Hazır olduğunuzda kenar çubuktan Yönetim üzerinden faturalama, mesajlaşma ve mağaza ayarlarına gidebilirsiniz.",
     "hero": {
       "title": "Çalışma alanı özeti",
       "subtitle": "İşletmeniz için sadakat yönetimi — yeni özellikler yakında."

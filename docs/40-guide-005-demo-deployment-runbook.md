@@ -172,7 +172,89 @@ docker compose -f infra/docker/docker-compose.demo.yml \
 
 ---
 
-## 8. Sık sorunlar
+## 8. LAN üzerinden SSH ve hızlı deploy (`pmdeploy` / `pmdeploycld`)
+
+Bazı kurulumlarda demo **PostgreSQL ile aynı host** üzerindedir; SSH açık, uygulama kodu sabit dizindedir.
+
+| Öğe | Örnek |
+|-----|--------|
+| **SSH** | `ssh -p 22 cc@192.168.1.20` (LAN; VPN veya iç ağ gerekir) |
+| **Kullanıcı** | `cc` |
+| **Repo kökü** | `/opt/pointmor-demo/Pointmor` |
+| **Sunucu** | Docker + Docker Compose; `git`; `infra/scripts/*.sh` çalıştırılabilir olmalı |
+
+**Güvenlik:** Parolalar ve SSH özel anahtarları **bu repoda tutulmaz**. Üretim benzeri ortamlarda mümkünse **anahtar tabanlı** giriş ve güçlü parola politikası kullanın.
+
+### 8.1 `pmdeploy` ile `pmdeploycld` farkı
+
+Sunucuda `~/.bashrc` içinde tanımlı iki shell fonksiyonu aynı akışı kullanır: **`git reset --hard HEAD`** → **`git pull`** → **`chmod +x infra/scripts/*.sh`** → **`deploy-demo.sh`** → **localhost health**.
+
+| Komut | `deploy-demo.sh` çağrısı | Ne zaman |
+|--------|---------------------------|----------|
+| **`pmdeploy`** | `./infra/scripts/deploy-demo.sh` | Yalnızca Docker stack (Postgres, API, admin). Dış dünya için Cloudflare **başlatılmaz**. |
+| **`pmdeploycld`** | `./infra/scripts/deploy-demo.sh --cloud` | Stack + **Cloudflare tunnel** (`cloudflared`). `CLOUDFLARE_TUNNEL_TOKEN` ve env: [bölüm 7](#7-cloudflare-tunnel). |
+
+### 8.2 Örnek `~/.bashrc` gövdeleri
+
+Sunucudaki gerçek dosya ile aynı tutun; aşağısı referans içindir. Health URL’si `API_HOST_PORT` kullanıyorsa shell’de export edin veya `${API_HOST_PORT:-3000}` kullanın.
+
+```bash
+pmdeploy() {
+  cd /opt/pointmor-demo/Pointmor || return
+
+  echo "📥 Pulling latest code..."
+  git reset --hard HEAD || return
+  git pull || return
+
+  echo "🔧 Fixing permissions..."
+  chmod +x infra/scripts/*.sh
+
+  echo "🐳 Deploying stack..."
+  ./infra/scripts/deploy-demo.sh || {
+    echo "❌ Deploy failed"
+    return
+  }
+
+  echo "🔎 API health check..."
+  curl -fsS "http://127.0.0.1:${API_HOST_PORT:-3000}/health" || echo "⚠️ API health check failed"
+}
+
+pmdeploycld() {
+  cd /opt/pointmor-demo/Pointmor || return
+
+  echo "📥 Pulling latest code..."
+  git reset --hard HEAD || return
+  git pull || return
+
+  echo "🔧 Fixing permissions..."
+  chmod +x infra/scripts/*.sh
+
+  echo "☁️ Deploying with Cloudflare..."
+  ./infra/scripts/deploy-demo.sh --cloud || {
+    echo "❌ Deploy (cloud) failed"
+    return
+  }
+
+  echo "🔎 API health check..."
+  curl -fsS "http://127.0.0.1:${API_HOST_PORT:-3000}/health" || echo "⚠️ API health check failed"
+}
+```
+
+Deploy sonrası sürümü doğrulamak:
+
+```bash
+cd /opt/pointmor-demo/Pointmor && git rev-parse HEAD && git log -1 --oneline
+```
+
+Not: `git rev-parse HEAD~` **bir önceki** commit’i verir; aktif sürüm için **`HEAD`** kullanın.
+
+### 8.3 Erişim ve otomasyon sınırı
+
+`192.168.x.x` gibi adresler genelde **yalnızca yerel ağ/VPN** içindir. Cursor veya bulut CI bu makineye **doğrudan SSH ile bağlanamaz**; doğrulama için komutları **sunucuya erişen operatör** çalıştırır. İsterseniz “deploy sonrası `git log -1` çıktısını paylaş” gibi bir kontrol listesi kullanın.
+
+---
+
+## 9. Sık sorunlar
 
 | Belirti | Olası neden | Ne yapın |
 |---------|-------------|----------|
@@ -185,6 +267,6 @@ docker compose -f infra/docker/docker-compose.demo.yml \
 
 ---
 
-## GitHub Actions deploy
+## 10. GitHub Actions deploy
 
 Secrets: `DEMO_HOST`, `DEMO_USER`, `DEMO_SSH_PRIVATE_KEY`, `DEMO_REPO_PATH`. Ayrıntı: [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md) (GitHub Actions bölümü).
