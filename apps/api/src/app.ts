@@ -21,6 +21,8 @@ import { registerPublicLoyaltyRoutes } from "./routes/public-loyalty.js";
 import { registerPublicTenantRoutes } from "./routes/public-tenants.js";
 import { registerStoreSettingsRoutes } from "./routes/store-settings.js";
 import { registerTenantMenuRoutes } from "./routes/tenant-menu.js";
+import { registerPublicVerifyRoutes } from "./routes/public-verify.js";
+import { registerTenantMessagingRoutes } from "./routes/tenant-messaging.js";
 
 export type BuildAppOptions = {
   /** Testlerde konsol gürültüsünü kapatmak için (`false`). */
@@ -70,6 +72,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerWebhookRoutes(app);
   await registerPublicLoyaltyRoutes(app);
   await registerPublicTenantRoutes(app);
+  await registerPublicVerifyRoutes(app);
   await registerLoyaltyRoutes(app);
   await registerCashierRoutes(app);
   await registerManagerRoutes(app);
@@ -77,6 +80,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerProductAnalyticsRoutes(app);
   await registerStoreSettingsRoutes(app);
   await registerTenantMenuRoutes(app);
+  await registerTenantMessagingRoutes(app);
 
   const isProd = process.env.NODE_ENV === "production";
   app.setErrorHandler((error: unknown, request, reply) => {

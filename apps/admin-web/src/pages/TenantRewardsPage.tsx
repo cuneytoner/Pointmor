@@ -1,9 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useTranslation } from "../hooks/useTranslation";
+import {
+  FormField,
+  NumberField,
+  SelectField,
+  TextField,
+} from "../components/form";
 import {
   getRewards,
   patchReward,
@@ -41,6 +47,7 @@ function percentToBp(percent: number): number {
 export function TenantRewardsPage() {
   const { t } = useTranslation();
   const { token } = useAuth();
+  const fid = useId();
   const dlg = useRef<HTMLDialogElement>(null);
   const [rows, setRows] = useState<RewardDto[] | null>(null);
   const [error, setError] = useState(false);
@@ -246,55 +253,49 @@ export function TenantRewardsPage() {
                 <h3 className="loyalty-form-section__title">
                   {t("tenantLoyalty.rewards.sectionBasic")}
                 </h3>
-                <label>
-                  {t("tenantLoyalty.rewards.name")}
-                  <input
+                <FormField id={`${fid}-name`} label={t("tenantLoyalty.rewards.name")} required>
+                  <TextField
+                    id={`${fid}-name`}
                     required
-                    className="toolbar__search toolbar__search--block loyalty-form-input"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     autoComplete="off"
                   />
-                </label>
-                <label>
-                  {t("tenantLoyalty.rewards.descriptionField")}
-                  <input
-                    className="toolbar__search toolbar__search--block loyalty-form-input"
+                </FormField>
+                <FormField id={`${fid}-desc`} label={t("tenantLoyalty.rewards.descriptionField")}>
+                  <TextField
+                    id={`${fid}-desc`}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder={t("tenantLoyalty.rewards.descriptionPlaceholder")}
                   />
-                </label>
+                </FormField>
               </div>
 
               <div className="loyalty-form-section">
                 <h3 className="loyalty-form-section__title">
                   {t("tenantLoyalty.rewards.sectionType")}
                 </h3>
-                <label>
-                  {t("tenantLoyalty.rewards.type")}
-                  <select
-                    className="toolbar__select toolbar__search--block loyalty-form-input"
+                <FormField id={`${fid}-type`} label={t("tenantLoyalty.rewards.type")}>
+                  <SelectField
+                    id={`${fid}-type`}
                     value={rewardType}
-                    onChange={(e) =>
-                      applyRewardType(e.target.value as RewardTypeId, true)
-                    }
+                    onChange={(e) => applyRewardType(e.target.value as RewardTypeId, true)}
                   >
                     {REWARD_TYPES.map((x) => (
                       <option key={x} value={x}>
                         {t(`tenantLoyalty.rewards.types.${x}` as const)}
                       </option>
                     ))}
-                  </select>
-                </label>
+                  </SelectField>
+                </FormField>
                 <p className="loyalty-form-hint">{t("tenantLoyalty.rewards.typeHint")}</p>
 
                 {rewardType === "FIXED_DISCOUNT" ? (
-                  <label>
-                    {t("tenantLoyalty.rewards.discountAmount")}
-                    <input
+                  <FormField id={`${fid}-val`} label={t("tenantLoyalty.rewards.discountAmount")} required>
+                    <NumberField
+                      id={`${fid}-val`}
                       required
-                      className="toolbar__search toolbar__search--block loyalty-form-input"
                       inputMode="numeric"
                       value={value}
                       onChange={(e) => setValue(e.target.value)}
@@ -302,15 +303,14 @@ export function TenantRewardsPage() {
                     <span className="loyalty-form-hint loyalty-form-hint--inline">
                       {t("tenantLoyalty.rewards.minorUnitsHint")}
                     </span>
-                  </label>
+                  </FormField>
                 ) : null}
 
                 {rewardType === "PERCENT_DISCOUNT" ? (
-                  <label>
-                    {t("tenantLoyalty.rewards.percentLabel")}
-                    <input
+                  <FormField id={`${fid}-pct`} label={t("tenantLoyalty.rewards.percentLabel")} required>
+                    <NumberField
+                      id={`${fid}-pct`}
                       required
-                      className="toolbar__search toolbar__search--block loyalty-form-input"
                       inputMode="decimal"
                       value={percentStr}
                       onChange={(e) => setPercentStr(e.target.value)}
@@ -318,7 +318,7 @@ export function TenantRewardsPage() {
                     <span className="loyalty-form-hint loyalty-form-hint--inline">
                       {t("tenantLoyalty.rewards.percentHint")}
                     </span>
-                  </label>
+                  </FormField>
                 ) : null}
               </div>
 
@@ -326,17 +326,20 @@ export function TenantRewardsPage() {
                 <h3 className="loyalty-form-section__title">
                   {t("tenantLoyalty.rewards.sectionCost")}
                 </h3>
-                <label>
-                  {t("tenantLoyalty.rewards.pointsCost")}
-                  <input
+                <FormField
+                  id={`${fid}-points`}
+                  label={t("tenantLoyalty.rewards.pointsCost")}
+                  required
+                  hint={t("tenantLoyalty.rewards.pointsCostHelp")}
+                >
+                  <NumberField
+                    id={`${fid}-points`}
                     required
-                    className="toolbar__search toolbar__search--block loyalty-form-input"
                     inputMode="numeric"
                     value={pointsCost}
                     onChange={(e) => setPointsCost(e.target.value)}
                   />
-                </label>
-                <p className="loyalty-form-hint">{t("tenantLoyalty.rewards.pointsCostHelp")}</p>
+                </FormField>
               </div>
 
               <div className="loyalty-form-section">

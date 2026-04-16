@@ -1,8 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
+import {
+  DateTimeLocalField,
+  FormField,
+  NumberField,
+  SelectField,
+  TextField,
+} from "../components/form";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useLocale } from "../contexts/LocaleContext";
@@ -136,6 +143,7 @@ export function TenantCampaignsPage() {
   const { bootstrap } = useAdminDataContext();
   const ent = bootstrap?.entitlements;
   const dlg = useRef<HTMLDialogElement>(null);
+  const formFieldId = useId();
   const [rows, setRows] = useState<CampaignDto[] | null>(null);
   const [error, setError] = useState(false);
   const [editing, setEditing] = useState<CampaignDto | null>(null);
@@ -361,35 +369,32 @@ export function TenantCampaignsPage() {
                 <h3 className="loyalty-form-section__title">
                   {t("tenantLoyalty.campaigns.sectionBasic")}
                 </h3>
-                <label>
-                  {t("tenantLoyalty.campaigns.name")}
-                  <input
+                <FormField id={`${formFieldId}-name`} label={t("tenantLoyalty.campaigns.name")} required>
+                  <TextField
+                    id={`${formFieldId}-name`}
                     required
-                    className="toolbar__search toolbar__search--block loyalty-form-input"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     autoComplete="off"
                   />
-                </label>
-                <label>
-                  {t("tenantLoyalty.rewards.descriptionField")}
-                  <input
-                    className="toolbar__search toolbar__search--block loyalty-form-input"
+                </FormField>
+                <FormField id={`${formFieldId}-description`} label={t("tenantLoyalty.rewards.descriptionField")}>
+                  <TextField
+                    id={`${formFieldId}-description`}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder={t("tenantLoyalty.campaigns.descriptionPlaceholder")}
                   />
-                </label>
+                </FormField>
               </div>
 
               <div className="loyalty-form-section">
                 <h3 className="loyalty-form-section__title">
                   {t("tenantLoyalty.campaigns.sectionType")}
                 </h3>
-                <label>
-                  {t("tenantLoyalty.campaigns.type")}
-                  <select
-                    className="toolbar__select toolbar__search--block loyalty-form-input"
+                <FormField id={`${formFieldId}-type`} label={t("tenantLoyalty.campaigns.type")}>
+                  <SelectField
+                    id={`${formFieldId}-type`}
                     value={type}
                     onChange={(e) => applyCampaignType(e.target.value as CampaignTypeId, true)}
                   >
@@ -398,30 +403,36 @@ export function TenantCampaignsPage() {
                         {campaignTypeLabel(x, t)}
                       </option>
                     ))}
-                  </select>
-                </label>
+                  </SelectField>
+                </FormField>
                 <p className="loyalty-form-hint">{t("tenantLoyalty.campaigns.typeHint")}</p>
 
                 {type === "BONUS_POINTS" ? (
-                  <label>
-                    {t("tenantLoyalty.campaigns.fieldBonusPoints")}
-                    <input
+                  <FormField
+                    id={`${formFieldId}-points-bonus`}
+                    label={t("tenantLoyalty.campaigns.fieldBonusPoints")}
+                    required
+                  >
+                    <NumberField
+                      id={`${formFieldId}-points-bonus`}
                       required
-                      className="toolbar__search toolbar__search--block loyalty-form-input"
                       inputMode="numeric"
                       value={pointsBonus}
                       onChange={(e) => setPointsBonus(e.target.value)}
                     />
-                  </label>
+                  </FormField>
                 ) : null}
 
                 {type === "SPEND_THRESHOLD_BONUS" ? (
                   <>
-                    <label>
-                      {t("tenantLoyalty.campaigns.fieldMinSpend")}
-                      <input
+                    <FormField
+                      id={`${formFieldId}-threshold-minor`}
+                      label={t("tenantLoyalty.campaigns.fieldMinSpend")}
+                      required
+                    >
+                      <NumberField
+                        id={`${formFieldId}-threshold-minor`}
                         required
-                        className="toolbar__search toolbar__search--block loyalty-form-input"
                         inputMode="numeric"
                         value={thresholdMinor}
                         onChange={(e) => setThresholdMinor(e.target.value)}
@@ -429,31 +440,37 @@ export function TenantCampaignsPage() {
                       <span className="loyalty-form-hint loyalty-form-hint--inline">
                         {t("tenantLoyalty.campaigns.minorUnitsHint")}
                       </span>
-                    </label>
-                    <label>
-                      {t("tenantLoyalty.campaigns.fieldThresholdBonus")}
-                      <input
+                    </FormField>
+                    <FormField
+                      id={`${formFieldId}-threshold-bonus`}
+                      label={t("tenantLoyalty.campaigns.fieldThresholdBonus")}
+                      required
+                    >
+                      <NumberField
+                        id={`${formFieldId}-threshold-bonus`}
                         required
-                        className="toolbar__search toolbar__search--block loyalty-form-input"
                         inputMode="numeric"
                         value={thresholdBonusPts}
                         onChange={(e) => setThresholdBonusPts(e.target.value)}
                       />
-                    </label>
+                    </FormField>
                   </>
                 ) : null}
 
                 {type === "FIRST_VISIT_BONUS" ? (
-                  <label>
-                    {t("tenantLoyalty.campaigns.fieldFirstVisitBonus")}
-                    <input
+                  <FormField
+                    id={`${formFieldId}-first-visit`}
+                    label={t("tenantLoyalty.campaigns.fieldFirstVisitBonus")}
+                    required
+                  >
+                    <NumberField
+                      id={`${formFieldId}-first-visit`}
                       required
-                      className="toolbar__search toolbar__search--block loyalty-form-input"
                       inputMode="numeric"
                       value={firstVisitBonus}
                       onChange={(e) => setFirstVisitBonus(e.target.value)}
                     />
-                  </label>
+                  </FormField>
                 ) : null}
               </div>
 
@@ -461,48 +478,53 @@ export function TenantCampaignsPage() {
                 <h3 className="loyalty-form-section__title">
                   {t("tenantLoyalty.campaigns.sectionSchedule")}
                 </h3>
-                <label>
-                  {t("tenantLoyalty.campaigns.periodStart")}
-                  <input
-                    type="datetime-local"
-                    className="toolbar__search toolbar__search--block loyalty-form-input"
-                    value={startAt}
-                    onChange={(e) => setStartAt(e.target.value)}
-                  />
-                </label>
-                <label>
-                  {t("tenantLoyalty.campaigns.periodEnd")}
-                  <input
-                    type="datetime-local"
-                    className="toolbar__search toolbar__search--block loyalty-form-input"
-                    value={endAt}
-                    onChange={(e) => setEndAt(e.target.value)}
-                  />
-                </label>
-                <p className="loyalty-form-hint">{t("tenantLoyalty.campaigns.scheduleHint")}</p>
+                <div className="loyalty-schedule-grid">
+                  <FormField id={`${formFieldId}-start`} label={t("tenantLoyalty.campaigns.periodStart")}>
+                    <DateTimeLocalField
+                      id={`${formFieldId}-start`}
+                      value={startAt}
+                      onChange={(e) => setStartAt(e.target.value)}
+                      aria-describedby={`${formFieldId}-schedule-hint`}
+                    />
+                  </FormField>
+                  <FormField id={`${formFieldId}-end`} label={t("tenantLoyalty.campaigns.periodEnd")}>
+                    <DateTimeLocalField
+                      id={`${formFieldId}-end`}
+                      value={endAt}
+                      onChange={(e) => setEndAt(e.target.value)}
+                      aria-describedby={`${formFieldId}-schedule-hint`}
+                    />
+                  </FormField>
+                </div>
+                <p className="loyalty-form-hint" id={`${formFieldId}-schedule-hint`}>
+                  {t("tenantLoyalty.campaigns.scheduleHint")}
+                </p>
               </div>
 
               <div className="loyalty-form-section">
                 <h3 className="loyalty-form-section__title">
                   {t("tenantLoyalty.campaigns.sectionStatus")}
                 </h3>
-                <label>
-                  {t("tenantLoyalty.campaigns.workflowStatus")}
-                  <select
-                    className="toolbar__select toolbar__search--block loyalty-form-input"
+                <FormField id={`${formFieldId}-status`} label={t("tenantLoyalty.campaigns.workflowStatus")}>
+                  <SelectField
+                    id={`${formFieldId}-status`}
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
+                    aria-describedby={`${formFieldId}-status-hint`}
                   >
                     {statusOptions.map((x) => (
                       <option key={x} value={x}>
                         {statusLabel(x, t)}
                       </option>
                     ))}
-                  </select>
-                </label>
-                <p className="loyalty-form-hint">{t("tenantLoyalty.campaigns.statusHint")}</p>
-                <label className="loyalty-form-toggle">
+                  </SelectField>
+                </FormField>
+                <p className="loyalty-form-hint" id={`${formFieldId}-status-hint`}>
+                  {t("tenantLoyalty.campaigns.statusHint")}
+                </p>
+                <label className="loyalty-form-toggle" htmlFor={`${formFieldId}-active`}>
                   <input
+                    id={`${formFieldId}-active`}
                     type="checkbox"
                     checked={isActive}
                     onChange={(e) => setIsActive(e.target.checked)}

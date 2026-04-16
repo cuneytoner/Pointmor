@@ -474,7 +474,8 @@
       "rewards": "Ödüller",
       "campaigns": "Kampanyalar",
       "menu": "Menü",
-      "redemptions": "Kullanımlar"
+      "redemptions": "Kullanımlar",
+      "messaging": "Mesajlaşma"
     },
     "dash": {
       "eyebrow": "Sadakat",
@@ -771,6 +772,38 @@
       "emptyPending": "Bekleyen talep yok.",
       "emptyCompleted": "Bu listede tamamlanan kullanım yok.",
       "loadError": "Liste yüklenemedi."
+    },
+    "messaging": {
+      "eyebrow": "Etkileşim",
+      "title": "Mesajlaşma ve şablonlar",
+      "description": "SMS/WhatsApp tercihleri, sessiz saatler ve şablon üzerine yazmalar. Varsayılan şablonlar silinemez.",
+      "loadError": "Mesajlaşma ayarları yüklenemedi.",
+      "sectionSettings": "Mesaj ayarları",
+      "sectionTemplates": "Şablonlar",
+      "smsEnabled": "SMS gönderimi açık",
+      "whatsappEnabled": "WhatsApp (ileride) — tercih kaydı",
+      "allowFallback": "Birincil kanal başarısızsa yedek kanala izin ver",
+      "defaultChannel": "Varsayılan kanal",
+      "timezone": "Saat dilimi (IANA, örn. Europe/Istanbul)",
+      "quietStart": "Sessiz saat başlangıç (SS:dd)",
+      "quietEnd": "Sessiz saat bitiş (SS:dd)",
+      "requireVerified": "Müşteri girişi için telefon doğrulaması zorunlu",
+      "save": "Ayarları kaydet",
+      "saving": "Kaydediliyor…",
+      "templatesLead": "{{değişken}} yer tutucularını kullanın. SMS için metni kısa tutun.",
+      "colKey": "Anahtar",
+      "colChannel": "Kanal",
+      "colVars": "Değişkenler",
+      "colOverride": "Özelleştirme",
+      "overrideYes": "Özel metin",
+      "overrideNo": "Varsayılan",
+      "overrideDisabled": "Kapalı (varsayılan)",
+      "edit": "Düzenle",
+      "editHint": "Değişiklikler yalnızca bu işletme için geçerlidir. Metninizi kullanmak için «Özelleştirme aktif» açık kalsın.",
+      "overrideActive": "Özelleştirme aktif",
+      "content": "Mesaj gövdesi",
+      "smsLengthWarning": "SMS 160 karakterden uzun — birden fazla parçaya bölünebilir.",
+      "saveOverride": "Şablonu kaydet"
     },
     "common": {
       "loading": "Yükleniyor…",

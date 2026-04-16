@@ -25,6 +25,8 @@ CREATE TABLE "CustomerAction" (
     "customerId" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "message" TEXT NOT NULL,
+    "templateKey" TEXT,
+    "templateData" JSONB,
     "status" "CustomerActionStatus" NOT NULL DEFAULT 'pending',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -48,6 +50,9 @@ ALTER TABLE "LoyaltyDomainEvent" ADD CONSTRAINT "LoyaltyDomainEvent_customerId_f
 ALTER TABLE "CustomerAction" ADD CONSTRAINT "CustomerAction_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "CustomerAction" ADD CONSTRAINT "CustomerAction_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- NotificationDelivery.customerActionId FK (CustomerAction önceki migrasyonda yoktu)
+ALTER TABLE "NotificationDelivery" ADD CONSTRAINT "NotificationDelivery_customerActionId_fkey" FOREIGN KEY ("customerActionId") REFERENCES "CustomerAction"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 UPDATE "Customer" c
 SET "visitCount" = v.cnt

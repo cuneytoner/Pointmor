@@ -7,6 +7,7 @@ import {
   IconGrowth,
   IconLayers,
   IconMenu,
+  IconMessage,
   IconShield,
   IconUsers,
   IconSettings,
@@ -97,6 +98,12 @@ export const TENANT_NAV: NavItemConfig[] = [
     to: "/app/growth",
     labelKey: "tenantLoyalty.nav.growth",
     Icon: IconGrowth,
+    tenant: true,
+  },
+  {
+    to: "/app/messaging",
+    labelKey: "tenantLoyalty.nav.messaging",
+    Icon: IconMessage,
     tenant: true,
   },
   {

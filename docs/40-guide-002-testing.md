@@ -21,6 +21,12 @@ Bu doküman, projeye ölçeklenebilir test katmanlarını tanımlar. Henüz otom
 4. API `GET /health` → `{ "ok": true }`.
 5. DB kullanan kod varsa: migration’lar uygulanmış ortamda API ayakta.
 
+## Prisma migrasyon sırası
+
+- Yeni migrasyon eklerken **bağımlılık sırasına** dikkat: örneğin `ALTER` / FK ancak hedef tablo **daha önceki** bir migrasyonda `CREATE` edildiyse uygulanabilir.
+- Doğrulama: boş bir DB’de `npm run db:reset -w api` (yalnızca **geliştirme** veritabanları; production’da `migrate reset` kullanılmaz).
+- İnceleme: yeni SQL’de `REFERENCES "TabloAdı"` varsa, o tablonun aynı zincirde önce oluşturulduğundan emin olun.
+
 ## Ortam tutarlılığı
 
 - **Origin:** `localhost` ile `127.0.0.1` farklı origin sayılır; localStorage paylaşılmaz. Testleri tek adreste yürütün.

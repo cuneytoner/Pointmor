@@ -474,7 +474,8 @@
       "rewards": "Rewards",
       "campaigns": "Campaigns",
       "menu": "Menu",
-      "redemptions": "Redemptions"
+      "redemptions": "Redemptions",
+      "messaging": "Messaging"
     },
     "dash": {
       "eyebrow": "Loyalty",
@@ -771,6 +772,38 @@
       "emptyPending": "No pending requests.",
       "emptyCompleted": "No completed redemptions in this list.",
       "loadError": "Could not load redemptions."
+    },
+    "messaging": {
+      "eyebrow": "Engagement",
+      "title": "Messaging & templates",
+      "description": "SMS/WhatsApp toggles, quiet hours, and per-template overrides. System defaults cannot be deleted.",
+      "loadError": "Could not load messaging settings.",
+      "sectionSettings": "Message settings",
+      "sectionTemplates": "Templates",
+      "smsEnabled": "SMS sending enabled",
+      "whatsappEnabled": "WhatsApp (future) — preference stored",
+      "allowFallback": "Allow fallback channel when primary fails",
+      "defaultChannel": "Default channel",
+      "timezone": "Timezone (IANA, e.g. Europe/Istanbul)",
+      "quietStart": "Quiet hours start (HH:mm)",
+      "quietEnd": "Quiet hours end (HH:mm)",
+      "requireVerified": "Require phone verification for customer sign-in",
+      "save": "Save settings",
+      "saving": "Saving…",
+      "templatesLead": "Use {{variableName}} placeholders. SMS: keep text short.",
+      "colKey": "Key",
+      "colChannel": "Channel",
+      "colVars": "Variables",
+      "colOverride": "Override",
+      "overrideYes": "Custom text",
+      "overrideNo": "Default",
+      "overrideDisabled": "Disabled (use default)",
+      "edit": "Edit",
+      "editHint": "Changes apply to this workspace only. Leave “override active” on to use your text.",
+      "overrideActive": "Override active",
+      "content": "Message body",
+      "smsLengthWarning": "SMS is longer than 160 characters — may split into multiple parts.",
+      "saveOverride": "Save template"
     },
     "common": {
       "loading": "Loading…",

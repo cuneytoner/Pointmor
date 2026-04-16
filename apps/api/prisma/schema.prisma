@@ -45,6 +45,10 @@ model Tenant {
   storeSettings             StoreSettings?
   menuCategories            MenuCategory[]
   menuItems                 MenuItem[]
+  storeMessagingSettings    StoreMessagingSettings?
+  notificationDeliveries    NotificationDelivery[]
+  customerContactPreferences CustomerContactPreference[]
+  messageTemplateOverrides  TenantMessageTemplateOverride[]
 }
 
 /// Mağaza vitrin ayarları — tenant başına tek kayıt.
@@ -279,6 +283,8 @@ model Customer {
   loyaltyDomainEvents LoyaltyDomainEvent[]
   customerActions     CustomerAction[]
   productAnalyticsEvents ProductAnalyticsEvent[]
+  contactPreference   CustomerContactPreference?
+  notificationDeliveries NotificationDelivery[]
 
   @@unique([tenantId, phone])
   @@index([tenantId])
@@ -509,11 +515,178 @@ model CustomerAction {
   customer   Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
   type       String
   message    String
+  /// Şablon anahtarı (örn. DAY_1_REMINDER); yoksa type üzerinden eşlenir
+  templateKey String?
+  /// `renderTemplate` için değişkenler (JSON)
+  templateData Json?
   status     CustomerActionStatus @default(pending)
   createdAt  DateTime             @default(now())
 
+  notificationDeliveries NotificationDelivery[]
+
   @@index([tenantId, createdAt])
   @@index([tenantId, customerId])
+}
+
+// --- Messaging & notifications (Twilio Verify / SMS / delivery log) ---
+
+enum ContactPreferredChannel {
+  sms
+  whatsapp
+  none
+}
+
+/// Müşteri iletişim tercihi + doğrulanmış telefon (session için verifiedAt zorunlu)
+model CustomerContactPreference {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customerId String  @unique
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  /// Müşteri kaydıyla uyumlu denormalize (arama / rapor)
+  phone     String
+  smsOptIn  Boolean  @default(false)
+  whatsappOptIn Boolean @default(false)
+  preferredChannel ContactPreferredChannel @default(none)
+  verifiedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, phone])
+}
+
+enum NotificationChannel {
+  sms
+  whatsapp
+}
+
+enum NotificationProviderId {
+  twilio
+}
+
+enum NotificationDeliveryStatus {
+  queued
+  sent
+  delivered
+  failed
+}
+
+/// Zincirin nihai sonucu (yalnızca terminal satırda dolu)
+enum NotificationDeliveryFinalOutcome {
+  succeeded
+  failed
+}
+
+/// Sınıflandırma — log / rapor (PII yok)
+enum NotificationFailureCategory {
+  none
+  validation
+  opt_in
+  quiet_hours
+  provider_transient
+  provider_permanent
+  configuration
+  rate_limited
+  unknown
+}
+
+/// Gönderim kaydı (Twilio SID referansları; auth token DB’de tutulmaz)
+model NotificationDelivery {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerActionId String?
+  customerAction   CustomerAction? @relation(fields: [customerActionId], references: [id], onDelete: SetNull)
+  channel    NotificationChannel
+  provider   NotificationProviderId @default(twilio)
+  providerMessageId String?
+  status     NotificationDeliveryStatus @default(queued)
+  errorCode  String?
+  payloadSummary Json?
+  /// Bu mantıksal gönderimdeki deneme sırası (1 tabanlı; kanal değişimi + retry dahil)
+  attemptNumber Int @default(1)
+  /// Fallback: bir önceki kanaldaki başarısız delivery satırı
+  fallbackFromId String?
+  fallbackParent NotificationDelivery? @relation("NotificationDeliveryFallback", fields: [fallbackFromId], references: [id], onDelete: SetNull)
+  fallbackChildren NotificationDelivery[] @relation("NotificationDeliveryFallback")
+  /// Aynı kanalda geçici hata sonrası retry zinciri
+  retryOfId String?
+  retryParent NotificationDelivery? @relation("NotificationDeliveryRetry", fields: [retryOfId], references: [id], onDelete: SetNull)
+  retryChildren NotificationDelivery[] @relation("NotificationDeliveryRetry")
+  /// Yalnızca müşteri aksiyonu için nihai satırda: başarı veya tüm seçenekler tükendi
+  finalOutcome NotificationDeliveryFinalOutcome?
+  failureCategory NotificationFailureCategory @default(none)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, customerId])
+  @@index([customerActionId])
+  @@index([fallbackFromId])
+  @@index([retryOfId])
+}
+
+enum StoreMessagingDefaultChannel {
+  sms
+  whatsapp
+}
+
+/// Kiracı başına tek — Twilio Verify / Messaging servis SID’leri (gizli anahtar env’de)
+model StoreMessagingSettings {
+  id        String   @id @default(cuid())
+  tenantId  String   @unique
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  smsEnabled Boolean @default(false)
+  whatsappEnabled Boolean @default(false)
+  defaultChannel StoreMessagingDefaultChannel @default(sms)
+  twilioVerifyServiceSid     String?
+  twilioMessagingServiceSid  String?
+  whatsappSender String?
+  fromNumber    String?
+  /// OTP zorunlu müşteri oturumu (PWA); false iken legacy telefon ile session mümkün (dev)
+  requireVerifiedForSession Boolean @default(false)
+  /// Birincil kanal başarısız olursa (ileride) ikincil kanala izin
+  allowFallbackChannel Boolean @default(true)
+  /// Sessiz saat başlangıç/bitiş — kiracı `timezone` içinde "HH:mm"
+  quietHoursStart String?
+  quietHoursEnd   String?
+  timezone        String @default("UTC")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Global varsayılan mesaj şablonları (tenant silinemez; yalnızca override)
+model MessageTemplate {
+  id             String               @id @default(cuid())
+  key            String
+  channel        NotificationChannel
+  defaultContent String
+  variables      String[]             @default([])
+  isActive       Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@unique([key, channel])
+  @@index([key])
+}
+
+/// Kiracı başına şablon üzerine yazma
+model TenantMessageTemplateOverride {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  templateKey String
+  channel     NotificationChannel
+  content     String
+  isEnabled   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, templateKey, channel])
+  @@index([tenantId])
 }
 
 // --- Phase 4.5 — ürün analitiği (davranış / funnel / retention; harici araç yok) ---

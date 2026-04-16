@@ -13,6 +13,13 @@
   min-height: 100vh;
   font-family: Inter, system-ui, sans-serif;
   color: #1a1f36;
+  /* Form control tokens — input / select / number / date tek aile */
+  --pm-control-min-h: 2.5rem;
+  --pm-control-pad-y: 0.4375rem;
+  --pm-control-pad-x: 0.75rem;
+  --pm-control-radius: 10px;
+  --pm-control-font-size: 0.9375rem;
+  --pm-control-line-height: 1.25;
 }
 
 .admin-app__sidebar {
@@ -2327,13 +2334,19 @@ a.admin-secondary-btn:hover {
   margin-bottom: 0;
 }
 
+.admin-app .loyalty-form-stack--relaxed .loyalty-form-section:not(:last-child) {
+  margin-bottom: 1.15rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
 .loyalty-form-section__title {
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: #64748b;
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.65rem;
 }
 
 .loyalty-form-modal__title {
@@ -2360,6 +2373,149 @@ a.admin-secondary-btn:hover {
   max-width: 22rem;
 }
 
+/**
+ * Paylaşılan form alanı — etiket / yardım / hata ritmi (`FormField`).
+ */
+.admin-app .pm-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.admin-app .pm-form-field__label {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+
+.admin-app .pm-form-field__req {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.admin-app .pm-form-field__error {
+  margin: 0.1rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #b91c1c;
+}
+
+.admin-app .loyalty-form-section .pm-form-field {
+  margin-bottom: 0.65rem;
+}
+
+/**
+ * Loyalty modals — tek satır form kontrolleri.
+ * `toolbar__search` ile karıştırma: formda yalnızca `loyalty-form-control` (+ `field-classes`) kullan.
+ */
+.admin-app .loyalty-form-control {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  max-width: 22rem;
+  margin: 0;
+  font: inherit;
+  font-size: var(--pm-control-font-size);
+  line-height: var(--pm-control-line-height);
+  padding: var(--pm-control-pad-y) var(--pm-control-pad-x);
+  min-height: var(--pm-control-min-h);
+  border-radius: var(--pm-control-radius);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #fff;
+  color: #0f172a;
+}
+
+.admin-app .loyalty-form-control::placeholder {
+  color: #94a3b8;
+}
+
+.admin-app .loyalty-form-control:focus-visible {
+  outline: 2px solid rgba(59, 113, 243, 0.45);
+  outline-offset: 1px;
+}
+
+.admin-app .loyalty-form-control:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.admin-app .loyalty-form-control[aria-invalid="true"] {
+  border-color: rgba(220, 38, 38, 0.55);
+}
+
+.admin-app select.loyalty-form-control {
+  cursor: pointer;
+  min-height: var(--pm-control-min-h);
+}
+
+.admin-app textarea.loyalty-form-control--textarea {
+  min-height: 5rem;
+  max-height: min(20rem, 50dvh);
+  resize: vertical;
+  line-height: 1.45;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  font-family: inherit;
+}
+
+.admin-app textarea.loyalty-form-control--textarea.loyalty-form-control--textarea-lg {
+  min-height: 11rem;
+}
+
+/**
+ * datetime-local: WebKit/Chromium iç düzeninin fazla dikey yer kaplamasını sınırla
+ * (textarea benzeri görünümü engelle — açık yükseklik + satır içi metin hizası).
+ */
+.admin-app input.loyalty-form-control--datetime[type="datetime-local"] {
+  min-height: var(--pm-control-min-h);
+  max-height: 2.75rem;
+  padding-block: 0.35rem;
+  line-height: var(--pm-control-line-height);
+}
+
+/**
+ * Toolbar arama sınıfları form içinde yanlışlıkla kullanılırsa tek satıra zorla
+ * (numeric/date alanlarının "blok textarea" gibi görünmesini engelle).
+ */
+.admin-app .loyalty-form-stack .toolbar__search,
+.admin-app .loyalty-form-stack .toolbar__select,
+.admin-app .loyalty-form-modal__body .toolbar__search,
+.admin-app .loyalty-form-modal__body .toolbar__select {
+  flex: none;
+  min-width: 0;
+  min-height: var(--pm-control-min-h);
+  line-height: var(--pm-control-line-height);
+  font-size: var(--pm-control-font-size);
+  padding: var(--pm-control-pad-y) var(--pm-control-pad-x);
+}
+
+.admin-app .loyalty-schedule-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+}
+
+@media (min-width: 520px) {
+  .admin-app .loyalty-schedule-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+}
+
+.admin-app .loyalty-schedule-grid > label {
+  margin-bottom: 0;
+}
+
+.admin-app .loyalty-schedule-grid .loyalty-form-control {
+  margin-bottom: 0;
+}
+
 .loyalty-form-toggle {
   flex-direction: row !important;
   align-items: flex-start;
@@ -2376,7 +2532,8 @@ a.admin-secondary-btn:hover {
   color: #334155;
 }
 
-.loyalty-modal {
+.loyalty-modal,
+.admin-app dialog.loyalty-form-modal {
   border: none;
   padding: 0;
   border-radius: 12px;
@@ -2385,8 +2542,27 @@ a.admin-secondary-btn:hover {
   background: transparent;
 }
 
-.loyalty-modal::backdrop {
+.loyalty-modal::backdrop,
+.admin-app dialog.loyalty-form-modal::backdrop {
   background: rgba(15, 23, 42, 0.45);
+}
+
+/** Menü modalları — `loyalty-modal__panel` ile aynı kart hissi */
+.admin-app .loyalty-form-modal__inner {
+  display: flex;
+  flex-direction: column;
+  max-height: min(88dvh, 720px);
+  padding: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+.admin-app .loyalty-form-modal__header {
+  flex-shrink: 0;
+  padding: 1.25rem 1.35rem 0.5rem;
 }
 
 .loyalty-modal__panel {
@@ -2416,6 +2592,20 @@ a.admin-secondary-btn:hover {
   overflow-y: auto;
   padding: 0.25rem 1.35rem 0.5rem;
   -webkit-overflow-scrolling: touch;
+}
+
+.loyalty-form-modal__body > label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.75rem;
+}
+
+.loyalty-form-modal__body > label:last-child {
+  margin-bottom: 0;
 }
 
 .loyalty-form-modal__footer {
@@ -2507,16 +2697,25 @@ a.admin-secondary-btn:hover {
 }
 
 .tenant-store-form .admin-input {
-  padding: 0.55rem 0.65rem;
-  border-radius: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 36rem;
+  padding: var(--pm-control-pad-y) var(--pm-control-pad-x);
+  min-height: var(--pm-control-min-h);
+  border-radius: var(--pm-control-radius);
   border: 1px solid rgba(15, 23, 42, 0.12);
-  font-size: 0.9375rem;
+  font-size: var(--pm-control-font-size);
+  line-height: var(--pm-control-line-height);
+  font-family: inherit;
 }
 
-.tenant-store-form .admin-input--textarea {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+.tenant-store-form textarea.admin-input--textarea {
+  min-height: 5rem;
+  max-height: min(20rem, 50dvh);
+  line-height: 1.45;
   resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
 }
 
 .tenant-store-form .admin-input--color {

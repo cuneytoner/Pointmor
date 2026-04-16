@@ -1,6 +1,6 @@
 import { prisma } from "./prisma.js";
 import type { LoyaltyDomainEventType } from "../generated/prisma/client.js";
-import { getNotificationProvider } from "./notification-provider.js";
+import { sendRetentionMessage } from "./messaging/send-retention-message.js";
 
 /** MVP sabitleri — ileride tenant config veya Campaign ile değiştirilebilir */
 export const INACTIVITY_DAYS = 7;
@@ -30,27 +30,12 @@ async function appendDomainEvent(
   });
 }
 
-async function sendThroughProvider(
-  action: { id: string; tenantId: string; customerId: string; type: string; message: string },
-): Promise<void> {
-  const provider = getNotificationProvider();
-  const res = await provider(action);
-  await prisma.customerAction.update({
-    where: { id: action.id },
-    data: { status: res.ok ? "sent" : "failed" },
+async function tenantDisplayName(tenantId: string): Promise<string> {
+  const t = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    select: { name: true },
   });
-}
-
-async function createCustomerAction(
-  tenantId: string,
-  customerId: string,
-  type: string,
-  message: string,
-): Promise<void> {
-  const row = await prisma.customerAction.create({
-    data: { tenantId, customerId, type, message, status: "pending" },
-  });
-  await sendThroughProvider(row);
+  return t?.name ?? "İşletme";
 }
 
 export async function listTenantCustomerActions(
@@ -111,17 +96,22 @@ export async function processVisitCreatedAutomation(input: {
     pointsEarned,
   });
 
+  const storeName = await tenantDisplayName(tenantId);
+
   if (priorVisitCount === 0) {
     const existing = await prisma.customerAction.findFirst({
       where: { tenantId, customerId, type: ACTION_TYPES.FIRST_VISIT_FOLLOWUP },
     });
     if (!existing) {
-      await createCustomerAction(
+      await sendRetentionMessage({
         tenantId,
         customerId,
-        ACTION_TYPES.FIRST_VISIT_FOLLOWUP,
-        "İlk ziyaretiniz için teşekkürler — bir sonraki gelişinizi dört gözle bekliyoruz.",
-      );
+        actionType: ACTION_TYPES.FIRST_VISIT_FOLLOWUP,
+        templateKey: "DAY_1_REMINDER",
+        templateData: { storeName },
+        fallbackMessage:
+          "İlk ziyaretiniz için teşekkürler — bir sonraki gelişinizi dört gözle bekliyoruz.",
+      });
     }
   }
 
@@ -149,12 +139,18 @@ export async function processVisitCreatedAutomation(input: {
     );
     if (!dup) {
       const gap = near.pointsCost - balance;
-      await createCustomerAction(
+      await sendRetentionMessage({
         tenantId,
         customerId,
-        ACTION_TYPES.REWARD_PROXIMITY,
-        `"${near.name}" ödülüne ${gap} puan kaldı.`,
-      );
+        actionType: ACTION_TYPES.REWARD_PROXIMITY,
+        templateKey: "REWARD_UNLOCKED",
+        templateData: {
+          storeName,
+          rewardName: near.name,
+          remaining: gap,
+        },
+        fallbackMessage: `"${near.name}" ödülüne ${gap} puan kaldı.`,
+      });
     }
   }
 }
@@ -176,6 +172,7 @@ export async function processRewardClaimedAutomation(input: {
     redemptionId,
   });
 
+  const storeName = await tenantDisplayName(tenantId);
   const account = await prisma.loyaltyAccount.findFirst({
     where: { customerId, tenantId },
   });
@@ -199,12 +196,18 @@ export async function processRewardClaimedAutomation(input: {
     );
     if (!dup) {
       const gap = near.pointsCost - balance;
-      await createCustomerAction(
+      await sendRetentionMessage({
         tenantId,
         customerId,
-        ACTION_TYPES.REWARD_PROXIMITY,
-        `"${near.name}" ödülüne ${gap} puan kaldı.`,
-      );
+        actionType: ACTION_TYPES.REWARD_PROXIMITY,
+        templateKey: "REWARD_UNLOCKED",
+        templateData: {
+          storeName,
+          rewardName: near.name,
+          remaining: gap,
+        },
+        fallbackMessage: `"${near.name}" ödülüne ${gap} puan kaldı.`,
+      });
     }
   }
 }
@@ -232,6 +235,8 @@ export async function scanInactivityAndAct(tenantId: string): Promise<{
     cooldownSince.getUTCDate() - INACTIVITY_ACTION_COOLDOWN_DAYS,
   );
 
+  const storeName = await tenantDisplayName(tenantId);
+
   for (const c of customers) {
     if (c.lastVisitAt && c.lastVisitAt > cutoff) continue;
 
@@ -247,12 +252,14 @@ export async function scanInactivityAndAct(tenantId: string): Promise<{
       lastVisitAt: c.lastVisitAt?.toISOString() ?? null,
       cutoff: cutoff.toISOString(),
     });
-    await createCustomerAction(
+    await sendRetentionMessage({
       tenantId,
-      c.id,
-      ACTION_TYPES.INACTIVITY,
-      `${INACTIVITY_DAYS} gündür görüşemedik — uğramayı unutmayın, puanlar sizi bekliyor.`,
-    );
+      customerId: c.id,
+      actionType: ACTION_TYPES.INACTIVITY,
+      templateKey: "DAY_7_WINBACK",
+      templateData: { storeName, days: INACTIVITY_DAYS },
+      fallbackMessage: `${INACTIVITY_DAYS} gündür görüşemedik — uğramayı unutmayın, puanlar sizi bekliyor.`,
+    });
     actionsCreated += 1;
   }
 

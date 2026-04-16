@@ -393,7 +393,8 @@
       "rewards": "Prämien",
       "campaigns": "Kampagnen",
       "menu": "Menü",
-      "redemptions": "Einlösungen"
+      "redemptions": "Einlösungen",
+      "messaging": "Messaging"
     },
     "dash": {
       "eyebrow": "Treue",
@@ -690,6 +691,38 @@
       "emptyPending": "Keine ausstehenden Anfragen.",
       "emptyCompleted": "Keine abgeschlossenen Einlösungen in dieser Liste.",
       "loadError": "Liste konnte nicht geladen werden."
+    },
+    "messaging": {
+      "eyebrow": "Engagement",
+      "title": "Messaging & templates",
+      "description": "SMS/WhatsApp toggles, quiet hours, and per-template overrides.",
+      "loadError": "Could not load messaging settings.",
+      "sectionSettings": "Message settings",
+      "sectionTemplates": "Templates",
+      "smsEnabled": "SMS sending enabled",
+      "whatsappEnabled": "WhatsApp (future)",
+      "allowFallback": "Allow fallback channel",
+      "defaultChannel": "Default channel",
+      "timezone": "Timezone (IANA)",
+      "quietStart": "Quiet start (HH:mm)",
+      "quietEnd": "Quiet end (HH:mm)",
+      "requireVerified": "Require phone verification for sign-in",
+      "save": "Save settings",
+      "saving": "Saving…",
+      "templatesLead": "Use {{variableName}} placeholders.",
+      "colKey": "Key",
+      "colChannel": "Channel",
+      "colVars": "Variables",
+      "colOverride": "Override",
+      "overrideYes": "Custom",
+      "overrideNo": "Default",
+      "overrideDisabled": "Disabled",
+      "edit": "Edit",
+      "editHint": "Workspace-only overrides.",
+      "overrideActive": "Override active",
+      "content": "Message body",
+      "smsLengthWarning": "SMS longer than 160 characters.",
+      "saveOverride": "Save template"
     },
     "common": {
       "loading": "Laden…",

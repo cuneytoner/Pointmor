@@ -16,6 +16,7 @@ import {
   getTenantEntitlementContext,
   sendEntitlementHttpError,
 } from "../lib/entitlement-service.js";
+import { getOrCreateStoreMessagingSettings } from "../lib/messaging/store-messaging-settings.js";
 
 async function ensureCustomerPwaEnabled(
   tenantId: string,
@@ -77,6 +78,18 @@ export async function registerPublicLoyaltyRoutes(app: FastifyInstance): Promise
           });
           if (!customer) {
             return reply.code(404).send({ error: "customer_not_found" });
+          }
+          const messaging = await getOrCreateStoreMessagingSettings(tenant.id);
+          if (messaging.requireVerifiedForSession) {
+            const pref = await prisma.customerContactPreference.findUnique({
+              where: { customerId: customer.id },
+            });
+            if (!pref?.verifiedAt) {
+              return reply.code(403).send({
+                error: "phone_not_verified",
+                message: "Bu işletme telefon doğrulaması gerektiriyor; /verify akışını kullanın.",
+              });
+            }
           }
           const token = signCustomerAccessToken(customer.id, tenant.id);
           const dashboard = await getCustomerPortalData(tenant.id, customer.id);

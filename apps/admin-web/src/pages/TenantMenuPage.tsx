@@ -1,6 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { PageShell } from "../components/PageShell";
+import { FORM_CONTROL_CLASS } from "../components/form";
 import { useTranslation } from "../hooks/useTranslation";
 import {
   deleteMenuCategory,
@@ -335,7 +336,7 @@ export function TenantMenuPage() {
               {t("tenantMenu.name")}
               <input
                 required
-                className="toolbar__search toolbar__search--block loyalty-form-input"
+                className={FORM_CONTROL_CLASS}
                 value={catName}
                 onChange={(e) => setCatName(e.target.value)}
               />
@@ -343,7 +344,7 @@ export function TenantMenuPage() {
             <label>
               {t("tenantMenu.description")}
               <input
-                className="toolbar__search toolbar__search--block loyalty-form-input"
+                className={FORM_CONTROL_CLASS}
                 value={catDesc}
                 onChange={(e) => setCatDesc(e.target.value)}
               />
@@ -351,7 +352,7 @@ export function TenantMenuPage() {
             <label>
               {t("tenantMenu.sortOrder")}
               <input
-                className="toolbar__search toolbar__search--block loyalty-form-input"
+                className={FORM_CONTROL_CLASS}
                 inputMode="numeric"
                 value={catOrder}
                 onChange={(e) => setCatOrder(e.target.value)}
@@ -393,7 +394,7 @@ export function TenantMenuPage() {
               {t("tenantMenu.category")}
               <select
                 required
-                className="toolbar__select toolbar__search--block loyalty-form-input"
+                className={FORM_CONTROL_CLASS}
                 value={itemCategoryId}
                 onChange={(e) => setItemCategoryId(e.target.value)}
               >
@@ -408,7 +409,7 @@ export function TenantMenuPage() {
               {t("tenantMenu.name")}
               <input
                 required
-                className="toolbar__search toolbar__search--block loyalty-form-input"
+                className={FORM_CONTROL_CLASS}
                 value={itemName}
                 onChange={(e) => setItemName(e.target.value)}
               />
@@ -416,7 +417,7 @@ export function TenantMenuPage() {
             <label>
               {t("tenantMenu.description")}
               <input
-                className="toolbar__search toolbar__search--block loyalty-form-input"
+                className={FORM_CONTROL_CLASS}
                 value={itemDesc}
                 onChange={(e) => setItemDesc(e.target.value)}
               />
@@ -425,7 +426,7 @@ export function TenantMenuPage() {
               {t("tenantMenu.price")}
               <input
                 required
-                className="toolbar__search toolbar__search--block loyalty-form-input"
+                className={FORM_CONTROL_CLASS}
                 inputMode="decimal"
                 value={itemPrice}
                 onChange={(e) => setItemPrice(e.target.value)}
@@ -434,7 +435,7 @@ export function TenantMenuPage() {
             <label>
               {t("tenantMenu.currency")}
               <input
-                className="toolbar__search toolbar__search--block loyalty-form-input"
+                className={FORM_CONTROL_CLASS}
                 placeholder={defaultCurrency}
                 value={itemCurrency}
                 onChange={(e) => setItemCurrency(e.target.value)}
@@ -443,7 +444,7 @@ export function TenantMenuPage() {
             <label>
               {t("tenantMenu.imageUrl")}
               <input
-                className="toolbar__search toolbar__search--block loyalty-form-input"
+                className={FORM_CONTROL_CLASS}
                 value={itemImage}
                 onChange={(e) => setItemImage(e.target.value)}
               />
@@ -451,7 +452,7 @@ export function TenantMenuPage() {
             <label>
               {t("tenantMenu.sortOrder")}
               <input
-                className="toolbar__search toolbar__search--block loyalty-form-input"
+                className={FORM_CONTROL_CLASS}
                 inputMode="numeric"
                 value={itemOrder}
                 onChange={(e) => setItemOrder(e.target.value)}

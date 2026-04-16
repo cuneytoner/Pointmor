@@ -40,6 +40,7 @@ import { CustomerProfilePage } from "../pages/customer/CustomerProfilePage";
 import { CustomerRewardsPage } from "../pages/customer/CustomerRewardsPage";
 import { CustomerMenuPage } from "../pages/customer/CustomerMenuPage";
 import { TenantMenuPage } from "../pages/TenantMenuPage";
+import { TenantMessagingPage } from "../pages/TenantMessagingPage";
 import { CUSTOMER_LAST_TENANT_SLUG_KEY } from "../lib/customer-portal-api";
 
 function RootHomeRedirect() {
@@ -158,6 +159,7 @@ export function AppRoutes() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<TenantDashboardPage />} />
             <Route path="growth" element={<TenantGrowthPage />} />
+            <Route path="messaging" element={<TenantMessagingPage />} />
             <Route path="customers" element={<TenantCustomersPage />} />
             <Route path="customers/:customerId" element={<TenantCustomerDetailPage />} />
             <Route path="visits" element={<TenantVisitsPage />} />

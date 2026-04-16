@@ -24,6 +24,7 @@ import {
 } from "../lib/entitlement-service.js";
 import { loadTenantPublicMeta } from "../lib/store-settings-service.js";
 import { getPublicMenuPayload } from "../lib/public-menu-service.js";
+import { getOrCreateStoreMessagingSettings } from "../lib/messaging/store-messaging-settings.js";
 
 const PRODUCT_ANALYTICS_TYPES = new Set<string>([
   "qr_opened",
@@ -318,6 +319,18 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
               "public_api_customer_not_found",
             );
             return reply.code(404).send({ error: "customer_not_found" });
+          }
+          const messaging = await getOrCreateStoreMessagingSettings(tenant.id);
+          if (messaging.requireVerifiedForSession) {
+            const pref = await prisma.customerContactPreference.findUnique({
+              where: { customerId: customer.id },
+            });
+            if (!pref?.verifiedAt) {
+              return reply.code(403).send({
+                error: "phone_not_verified",
+                message: "Bu işletme telefon doğrulaması gerektiriyor; /verify akışını kullanın.",
+              });
+            }
           }
           const token = signCustomerAccessToken(customer.id, tenant.id);
           const dashboard = await getCustomerPortalData(tenant.id, customer.id);

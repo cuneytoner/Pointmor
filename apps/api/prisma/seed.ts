@@ -10,6 +10,7 @@ config({
 });
 
 const { prisma } = await import("../src/lib/prisma.js");
+const { MESSAGE_TEMPLATE_SEED } = await import("./seed-message-templates.js");
 
 /** Senaryo başına ayrı şifre — dokümantasyon: docs/41-ref-001-dev-seed-users.md */
 const DEV_PASSWORDS = {
@@ -147,6 +148,11 @@ await prisma.auditLog.create({
     action: "seed",
     detail: "pointmor_baseline",
   },
+});
+
+await prisma.messageTemplate.createMany({
+  data: MESSAGE_TEMPLATE_SEED,
+  skipDuplicates: true,
 });
 
 console.info("Seed OK: Pointmor demo tenant, plans, users, subscription.");
