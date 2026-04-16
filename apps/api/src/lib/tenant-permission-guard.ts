@@ -3,6 +3,13 @@ import type { SessionPayload } from "./auth-memory.js";
 import type { TenantPermission } from "./tenant-permissions.js";
 import { hasPermissionForSession } from "./tenant-permissions.js";
 
+/** Senkron servis kodu: izin yoksa hata fırlatır. */
+export function assertPermission(session: SessionPayload, permission: TenantPermission): void {
+  if (!session.tenant?.id) throw new Error("tenant_context_required");
+  if (session.user.platformAdmin) throw new Error("tenant_context_required");
+  if (!hasPermissionForSession(session, permission)) throw new Error("permission_denied");
+}
+
 /**
  * Kiracı oturumunda belirtilen izin yoksa 403 `permission_denied`.
  * `authPreHandler` sonrası kullanılmalı.
@@ -68,3 +75,5 @@ export function requireAnyTenantPermission(...permissions: TenantPermission[]) {
     }
   };
 }
+
+export { requireTenantPermission as requirePermission };

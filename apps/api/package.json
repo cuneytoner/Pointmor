@@ -22,6 +22,7 @@
     "db:seed:demo": "tsx prisma/seed-demo.ts"
   },
   "dependencies": {
+    "@pointmor/rbac": "file:../../packages/pointmor-rbac",
     "@fastify/cookie": "^10.0.1",
     "@fastify/cors": "^10.0.1",
     "@fastify/rate-limit": "^10.3.0",

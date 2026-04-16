@@ -11,6 +11,7 @@
     "i18n:validate": "node scripts/validate-i18n.mjs"
   },
   "dependencies": {
+    "@pointmor/rbac": "file:../../packages/pointmor-rbac",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.14.0"

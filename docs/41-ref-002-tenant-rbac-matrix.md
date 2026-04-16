@@ -1,6 +1,6 @@
 # Kiracı uygulaması RBAC — matris ve parity
 
-Tek kaynak sözlük: `apps/admin-web/src/lib/tenant-permissions.ts` ve `apps/api/src/lib/tenant-permissions.ts` (aynı içerik).
+Tek kaynak matris: `packages/pointmor-rbac/src/rbac-config.ts` (`@pointmor/rbac`). Uygulama dosyaları bu paketi re-export eder; route/nav kuralları `tenant-route-access.ts` içinde kalır.
 
 ## Roller (ürün)
 

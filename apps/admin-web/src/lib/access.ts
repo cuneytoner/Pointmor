@@ -6,10 +6,14 @@ export { resolveTenantAppRole, TENANT_MEMBERSHIP_ROLES, type TenantAppRole } fro
 export {
   TENANT_PERMISSIONS,
   hasAnyPermission,
+  hasAnyPermissionForRole,
   hasPermission,
+  hasPermissionForRole,
   permissionsForRole,
   type TenantPermission,
 } from "./tenant-permissions";
+export { hasPermission as canRenderAction } from "./tenant-permissions";
+export { canAccessTenantPath as canAccessRoute } from "./tenant-route-access";
 export type { WorkspaceAdminSection } from "./tenant-route-access";
 export {
   canAccessTenantPath,
