@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
+import { requireTenantPermission } from "../lib/tenant-permission-guard.js";
 import { writeAudit } from "../lib/audit.js";
 import {
   closeCashierShift,
@@ -28,14 +29,14 @@ function requireTenantSession(
 }
 
 export async function registerCashierRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/cashier/bootstrap", { preHandler: [authPreHandler] }, async (req, reply) => {
+  app.get("/cashier/bootstrap", { preHandler: [authPreHandler, requireTenantPermission("visits.create")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     const s = req.authSession as SessionPayload;
     return getCashierBootstrap(tenantId, s.user.id);
   });
 
-  app.get("/cashier/branches", { preHandler: [authPreHandler] }, async (req, reply) => {
+  app.get("/cashier/branches", { preHandler: [authPreHandler, requireTenantPermission("visits.create")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     return listBranches(tenantId);
@@ -43,7 +44,7 @@ export async function registerCashierRoutes(app: FastifyInstance): Promise<void>
 
   app.post<{ Body: { name?: string; slug?: string | null } }>(
     "/cashier/branches",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("visits.create")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -76,7 +77,7 @@ export async function registerCashierRoutes(app: FastifyInstance): Promise<void>
 
   app.post<{
     Body: { deviceLabel?: string; branchId?: string | null };
-  }>("/cashier/device-sessions", { preHandler: [authPreHandler] }, async (req, reply) => {
+  }>("/cashier/device-sessions", { preHandler: [authPreHandler, requireTenantPermission("visits.create")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     const s = req.authSession as SessionPayload;
@@ -107,7 +108,7 @@ export async function registerCashierRoutes(app: FastifyInstance): Promise<void>
 
   app.post<{ Params: { id: string } }>(
     "/cashier/device-sessions/:id/close",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("visits.create")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -130,7 +131,7 @@ export async function registerCashierRoutes(app: FastifyInstance): Promise<void>
 
   app.post<{ Body: { deviceSessionId?: string } }>(
     "/cashier/shifts",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("visits.create")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -167,7 +168,7 @@ export async function registerCashierRoutes(app: FastifyInstance): Promise<void>
 
   app.post<{ Params: { id: string } }>(
     "/cashier/shifts/:id/close",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("visits.create")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -187,7 +188,7 @@ export async function registerCashierRoutes(app: FastifyInstance): Promise<void>
 
   app.get<{ Params: { shiftId: string } }>(
     "/cashier/shifts/:shiftId/summary",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("visits.create")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;

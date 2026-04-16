@@ -3,6 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { PageShell } from "../components/PageShell";
 import { FormField, NumberField, SelectField, TextField } from "../components/form";
 import { useTranslation } from "../hooks/useTranslation";
+import { usePermissions } from "../hooks/usePermissions";
 import {
   deleteMenuCategory,
   deleteMenuItem,
@@ -30,6 +31,8 @@ function parseMajorToMinor(s: string): number | null {
 export function TenantMenuPage() {
   const { t } = useTranslation();
   const { token } = useAuth();
+  const { hasPermission } = usePermissions();
+  const canManageMenu = hasPermission("menu.manage");
   const catDlg = useRef<HTMLDialogElement>(null);
   const itemDlg = useRef<HTMLDialogElement>(null);
 
@@ -77,6 +80,7 @@ export function TenantMenuPage() {
   }, [load]);
 
   const openCatCreate = () => {
+    if (!canManageMenu) return;
     setCatEditing(null);
     setCatName("");
     setCatDesc("");
@@ -86,6 +90,7 @@ export function TenantMenuPage() {
   };
 
   const openCatEdit = (c: MenuCategoryDto) => {
+    if (!canManageMenu) return;
     setCatEditing(c);
     setCatName(c.name);
     setCatDesc(c.description ?? "");
@@ -96,7 +101,7 @@ export function TenantMenuPage() {
 
   const submitCat = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (!token || !canManageMenu) return;
     setSavingCat(true);
     try {
       const body = {
@@ -120,7 +125,7 @@ export function TenantMenuPage() {
   };
 
   const deactivateCat = async (c: MenuCategoryDto) => {
-    if (!token) return;
+    if (!token || !canManageMenu) return;
     if (!window.confirm(`${c.name} — ${t("tenantMenu.deactivate")}?`)) return;
     try {
       await deleteMenuCategory(token, c.id);
@@ -131,6 +136,7 @@ export function TenantMenuPage() {
   };
 
   const openItemCreate = () => {
+    if (!canManageMenu) return;
     if (!categories?.length) {
       window.alert(t("tenantMenu.emptyCategories"));
       return;
@@ -149,6 +155,7 @@ export function TenantMenuPage() {
   };
 
   const openItemEdit = (it: MenuItemDto) => {
+    if (!canManageMenu) return;
     setItemEditing(it);
     setItemCategoryId(it.categoryId);
     setItemName(it.name);
@@ -163,7 +170,7 @@ export function TenantMenuPage() {
 
   const submitItem = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (!token || !canManageMenu) return;
     const minor = parseMajorToMinor(itemPrice);
     if (minor === null) return;
     setSavingItem(true);
@@ -193,7 +200,7 @@ export function TenantMenuPage() {
   };
 
   const deactivateItem = async (it: MenuItemDto) => {
-    if (!token) return;
+    if (!token || !canManageMenu) return;
     if (!window.confirm(`${it.name} — ${t("tenantMenu.deactivate")}?`)) return;
     try {
       await deleteMenuItem(token, it.id);
@@ -218,9 +225,11 @@ export function TenantMenuPage() {
       <div className="admin-app__card admin-app__card--wide">
         <div className="tenant-menu__toolbar">
           <h2 className="admin-app__card-title">{t("tenantMenu.categories")}</h2>
-          <button type="button" className="admin-primary-btn" onClick={openCatCreate}>
-            {t("tenantMenu.addCategory")}
-          </button>
+          {canManageMenu ? (
+            <button type="button" className="admin-primary-btn" onClick={openCatCreate}>
+              {t("tenantMenu.addCategory")}
+            </button>
+          ) : null}
         </div>
         {!categories ? (
           <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
@@ -243,20 +252,26 @@ export function TenantMenuPage() {
                   <td>{c.sortOrder}</td>
                   <td>{c.isActive ? "✓" : "—"}</td>
                   <td className="tenant-menu__actions">
-                    <button
-                      type="button"
-                      className="admin-secondary-btn"
-                      onClick={() => openCatEdit(c)}
-                    >
-                      {t("tenantMenu.edit")}
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-secondary-btn"
-                      onClick={() => void deactivateCat(c)}
-                    >
-                      {t("tenantMenu.deactivate")}
-                    </button>
+                    {canManageMenu ? (
+                      <>
+                        <button
+                          type="button"
+                          className="admin-secondary-btn"
+                          onClick={() => openCatEdit(c)}
+                        >
+                          {t("tenantMenu.edit")}
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-secondary-btn"
+                          onClick={() => void deactivateCat(c)}
+                        >
+                          {t("tenantMenu.deactivate")}
+                        </button>
+                      </>
+                    ) : (
+                      <span className="data-table__muted">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -268,9 +283,11 @@ export function TenantMenuPage() {
       <div className="admin-app__card admin-app__card--wide">
         <div className="tenant-menu__toolbar">
           <h2 className="admin-app__card-title">{t("tenantMenu.items")}</h2>
-          <button type="button" className="admin-primary-btn" onClick={openItemCreate}>
-            {t("tenantMenu.addItem")}
-          </button>
+          {canManageMenu ? (
+            <button type="button" className="admin-primary-btn" onClick={openItemCreate}>
+              {t("tenantMenu.addItem")}
+            </button>
+          ) : null}
         </div>
         {!items ? (
           <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
@@ -301,20 +318,26 @@ export function TenantMenuPage() {
                     <td>{it.sortOrder}</td>
                     <td>{it.isActive ? "✓" : "—"}</td>
                     <td className="tenant-menu__actions">
-                      <button
-                        type="button"
-                        className="admin-secondary-btn"
-                        onClick={() => openItemEdit(it)}
-                      >
-                        {t("tenantMenu.edit")}
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-secondary-btn"
-                        onClick={() => void deactivateItem(it)}
-                      >
-                        {t("tenantMenu.deactivate")}
-                      </button>
+                      {canManageMenu ? (
+                        <>
+                          <button
+                            type="button"
+                            className="admin-secondary-btn"
+                            onClick={() => openItemEdit(it)}
+                          >
+                            {t("tenantMenu.edit")}
+                          </button>
+                          <button
+                            type="button"
+                            className="admin-secondary-btn"
+                            onClick={() => void deactivateItem(it)}
+                          >
+                            {t("tenantMenu.deactivate")}
+                          </button>
+                        </>
+                      ) : (
+                        <span className="data-table__muted">—</span>
+                      )}
                     </td>
                   </tr>
                 );

@@ -27,6 +27,8 @@ type CustomerPanelProps = {
   onQcPhoneChange: (v: string) => void;
   onQuickCreateSubmit: () => void;
   quickCreateBusy: boolean;
+  /** customers.create yoksa hızlı kayıt gizlenir */
+  allowQuickCreate?: boolean;
 };
 
 export function CustomerPanel({
@@ -55,6 +57,7 @@ export function CustomerPanel({
   onQcPhoneChange,
   onQuickCreateSubmit,
   quickCreateBusy,
+  allowQuickCreate = true,
 }: CustomerPanelProps) {
   const displaySelected =
     selectedCustomer ??
@@ -160,15 +163,17 @@ export function CustomerPanel({
         )}
       </div>
 
-      <button
-        type="button"
-        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:ring-2 focus-visible:ring-indigo-500"
-        onClick={onToggleQuickCreate}
-      >
-        {quickCreateLabel}
-      </button>
+      {allowQuickCreate ? (
+        <button
+          type="button"
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:ring-2 focus-visible:ring-indigo-500"
+          onClick={onToggleQuickCreate}
+        >
+          {quickCreateLabel}
+        </button>
+      ) : null}
 
-      {quickCreateOpen ? (
+      {allowQuickCreate && quickCreateOpen ? (
         <div
           className="flex flex-col gap-2 rounded-xl border border-dashed border-slate-300 p-3"
           data-cashier-suppress-enter

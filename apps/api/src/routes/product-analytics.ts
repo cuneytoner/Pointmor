@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
+import { requireTenantPermission } from "../lib/tenant-permission-guard.js";
 import {
   getFunnelAnalytics,
   getGrowthOverview,
@@ -46,7 +47,7 @@ export async function registerProductAnalyticsRoutes(
 ): Promise<void> {
   app.get<{ Querystring: { days?: string } }>(
     "/analytics/funnel",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("analytics.view")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -59,7 +60,7 @@ export async function registerProductAnalyticsRoutes(
 
   app.get<{ Querystring: { cohortDays?: string } }>(
     "/analytics/retention",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("analytics.view")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -78,7 +79,7 @@ export async function registerProductAnalyticsRoutes(
       cohortDays?: string;
       rewardDays?: string;
     };
-  }>("/analytics/overview", { preHandler: [authPreHandler] }, async (req, reply) => {
+  }>("/analytics/overview", { preHandler: [authPreHandler, requireTenantPermission("analytics.view")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     if (!(await requireProductAnalytics(tenantId, reply))) return;
@@ -100,7 +101,7 @@ export async function registerProductAnalyticsRoutes(
 
   app.get<{ Querystring: { days?: string } }>(
     "/analytics/reward-usage",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("analytics.view")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;

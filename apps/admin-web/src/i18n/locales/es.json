@@ -8,6 +8,11 @@
     "id": "ID",
     "cancel": "Cancelar"
   },
+  "rbac": {
+    "actionBlocked": "No tienes permiso para esta acción.",
+    "cashierNoActions": "No tienes permiso para registrar visitas o canjear recompensas aquí.",
+    "redemptionActionsHidden": "Tu rol no puede aprobar en este paso."
+  },
   "auth": {
     "login": {
       "title": "Pointmor",

@@ -11,6 +11,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { useTranslation } from "../hooks/useTranslation";
+import { usePermissions } from "../hooks/usePermissions";
 import {
   getCashierBootstrap,
   getCustomers,
@@ -75,6 +76,12 @@ export function CashierPage() {
   const locale = useLocale();
   const { token } = useAuth();
   const { auth } = useAdminDataContext();
+  const { hasPermission } = usePermissions();
+  const permVisit = hasPermission("visits.create");
+  const permRedeem = hasPermission("redemptions.create");
+  const permApprove = hasPermission("redemptions.approve");
+  const permReject = hasPermission("redemptions.reject");
+  const permCreateCustomer = hasPermission("customers.create");
 
   const [state, dispatch] = useReducer(
     cashierReducer,
@@ -317,6 +324,12 @@ export function CashierPage() {
       dispatch({ type: "SET_PREVIEW_LOADING", payload: false });
       return;
     }
+    if (!permVisit) {
+      dispatch({ type: "SET_PREVIEW", payload: null });
+      dispatch({ type: "SET_PREVIEW_ERROR", payload: null });
+      dispatch({ type: "SET_PREVIEW_LOADING", payload: false });
+      return;
+    }
     if (!hasValidAmount) {
       dispatch({ type: "SET_PREVIEW", payload: null });
       dispatch({ type: "SET_PREVIEW_ERROR", payload: null });
@@ -375,6 +388,7 @@ export function CashierPage() {
     hasValidAmount,
     amountNum,
     networkPhase,
+    permVisit,
     t,
   ]);
 
@@ -440,7 +454,8 @@ export function CashierPage() {
   });
 
   const canCompleteVisit = Boolean(
-    state.selectedCustomerId &&
+    permVisit &&
+      state.selectedCustomerId &&
       hasValidAmount &&
       state.submissionState === "idle" &&
       !state.claimAction &&
@@ -451,7 +466,8 @@ export function CashierPage() {
     (r) => r.id === state.selectedRewardId,
   );
   const canUseReward = Boolean(
-    state.selectedCustomerId &&
+    permRedeem &&
+      state.selectedCustomerId &&
       state.selectedRewardId &&
       selectedReward &&
       balance >= selectedReward.pointsCost &&
@@ -504,7 +520,7 @@ export function CashierPage() {
   }, [draftRestoredVisible]);
 
   const onCompleteVisit = useCallback(async () => {
-    if (!token || !canCompleteVisit || networkPhase !== "online") return;
+    if (!token || !permVisit || !canCompleteVisit || networkPhase !== "online") return;
     const now = Date.now();
     if (now - lastVisitTap.current < 650) return;
     lastVisitTap.current = now;
@@ -552,11 +568,12 @@ export function CashierPage() {
     syncCashierSelection,
     networkPhase,
     cashierOpCtx,
+    permVisit,
     t,
   ]);
 
   const onUseReward = useCallback(async () => {
-    if (!token || !canUseReward || !state.selectedRewardId || networkPhase !== "online")
+    if (!token || !permRedeem || !canUseReward || !state.selectedRewardId || networkPhase !== "online")
       return;
     const now = Date.now();
     if (now - lastRedeemTap.current < 650) return;
@@ -606,12 +623,13 @@ export function CashierPage() {
     syncCashierSelection,
     networkPhase,
     cashierOpCtx,
+    permRedeem,
     t,
   ]);
 
   const onApproveClaim = useCallback(
     async (redemptionId: string) => {
-      if (!token || !state.selectedCustomerId || networkPhase !== "online") return;
+      if (!token || !permApprove || !state.selectedCustomerId || networkPhase !== "online") return;
       const now = Date.now();
       if (now - lastClaimTap.current < 550) return;
       lastClaimTap.current = now;
@@ -656,13 +674,14 @@ export function CashierPage() {
       syncCashierSelection,
       networkPhase,
       cashierOpCtx,
+      permApprove,
       t,
     ],
   );
 
   const onRejectClaim = useCallback(
     async (redemptionId: string) => {
-      if (!token || !state.selectedCustomerId || networkPhase !== "online") return;
+      if (!token || !permReject || !state.selectedCustomerId || networkPhase !== "online") return;
       const now = Date.now();
       if (now - lastClaimTap.current < 550) return;
       lastClaimTap.current = now;
@@ -693,6 +712,7 @@ export function CashierPage() {
       state.selectedCustomerId,
       syncCashierSelection,
       networkPhase,
+      permReject,
       t,
     ],
   );
@@ -730,7 +750,7 @@ export function CashierPage() {
   };
 
   const onQuickCreate = async () => {
-    if (!token || !state.qcName.trim() || !state.qcPhone.trim()) return;
+    if (!token || !permCreateCustomer || !state.qcName.trim() || !state.qcPhone.trim()) return;
     if (networkPhase !== "online") {
       dispatch({
         type: "SET_INLINE_ERROR",
@@ -865,6 +885,11 @@ export function CashierPage() {
                 helperText={actionHelperText}
                 canCompleteVisit={canCompleteVisit}
                 canUseReward={canUseReward}
+                showVisitAction={permVisit}
+                showRedeemAction={permRedeem}
+                noPermissionHint={
+                  !permVisit && !permRedeem ? t("rbac.cashierNoActions") : undefined
+                }
                 loadingTarget={
                   state.submissionState === "visit"
                     ? "visit"
@@ -928,6 +953,7 @@ export function CashierPage() {
                     }
                     onQuickCreateSubmit={() => void onQuickCreate()}
                     quickCreateBusy={state.submissionState === "quick"}
+                    allowQuickCreate={permCreateCustomer}
                   />
                 </div>
                 <div className="max-[767px]:order-1 min-[768px]:order-2 lg:order-2">
@@ -998,6 +1024,8 @@ export function CashierPage() {
                   }
                   onApprove={(id) => void onApproveClaim(id)}
                   onReject={(id) => void onRejectClaim(id)}
+                  canApprove={permApprove}
+                  canReject={permReject}
                   networkBlocked={isSubmitBlocked}
                 />
               ) : null}

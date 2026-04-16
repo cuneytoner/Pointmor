@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
+import { hasPermissionForSession } from "../lib/tenant-permissions.js";
 import { prisma } from "../lib/prisma.js";
 
 export async function registerTenantOnboardingRoutes(app: FastifyInstance): Promise<void> {
@@ -26,6 +27,9 @@ export async function registerTenantOnboardingRoutes(app: FastifyInstance): Prom
     const s = req.authSession as SessionPayload;
     if (!s.tenant) {
       return reply.code(403).send({ error: "forbidden" });
+    }
+    if (!hasPermissionForSession(s, "settings.manage")) {
+      return reply.code(403).send({ error: "permission_denied" });
     }
     const b = req.body ?? {};
     const data: { onboardingStep?: number; onboardingCompletedAt?: Date | null } = {};

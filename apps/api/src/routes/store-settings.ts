@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
+import { requireTenantPermission } from "../lib/tenant-permission-guard.js";
 import type { Prisma } from "../generated/prisma/client.js";
 import {
   ensureStoreSettingsRow,
@@ -22,7 +23,7 @@ function requireTenantSession(
 }
 
 export async function registerStoreSettingsRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/tenant/store-settings", { preHandler: [authPreHandler] }, async (req, reply) => {
+  app.get("/tenant/store-settings", { preHandler: [authPreHandler, requireTenantPermission("settings.view")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     try {
@@ -34,7 +35,7 @@ export async function registerStoreSettingsRoutes(app: FastifyInstance): Promise
     }
   });
 
-  app.put("/tenant/store-settings", { preHandler: [authPreHandler] }, async (req, reply) => {
+  app.put("/tenant/store-settings", { preHandler: [authPreHandler, requireTenantPermission("settings.manage")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     let parsed;

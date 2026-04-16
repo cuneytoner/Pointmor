@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
+import { requireTenantPermission } from "../lib/tenant-permission-guard.js";
 import { prisma } from "../lib/prisma.js";
 import { ensureStoreSettingsRow } from "../lib/store-settings-service.js";
 
@@ -42,7 +43,7 @@ function parsePriceMinor(v: unknown): number | null {
 }
 
 export async function registerTenantMenuRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/tenant/menu/categories", { preHandler: [authPreHandler] }, async (req, reply) => {
+  app.get("/tenant/menu/categories", { preHandler: [authPreHandler, requireTenantPermission("menu.view")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     await ensureStoreSettingsRow(tenantId);
@@ -54,7 +55,7 @@ export async function registerTenantMenuRoutes(app: FastifyInstance): Promise<vo
 
   app.post<{ Body: Record<string, unknown> }>(
     "/tenant/menu/categories",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("menu.manage")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -84,7 +85,7 @@ export async function registerTenantMenuRoutes(app: FastifyInstance): Promise<vo
 
   app.put<{ Params: { categoryId: string }; Body: Record<string, unknown> }>(
     "/tenant/menu/categories/:categoryId",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("menu.manage")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -127,7 +128,7 @@ export async function registerTenantMenuRoutes(app: FastifyInstance): Promise<vo
 
   app.delete<{ Params: { categoryId: string } }>(
     "/tenant/menu/categories/:categoryId",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("menu.manage")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -145,7 +146,7 @@ export async function registerTenantMenuRoutes(app: FastifyInstance): Promise<vo
 
   app.get<{ Querystring: { categoryId?: string } }>(
     "/tenant/menu/items",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("menu.view")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -170,7 +171,7 @@ export async function registerTenantMenuRoutes(app: FastifyInstance): Promise<vo
 
   app.post<{ Body: Record<string, unknown> }>(
     "/tenant/menu/items",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("menu.manage")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -220,7 +221,7 @@ export async function registerTenantMenuRoutes(app: FastifyInstance): Promise<vo
 
   app.put<{ Params: { itemId: string }; Body: Record<string, unknown> }>(
     "/tenant/menu/items/:itemId",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("menu.manage")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -296,7 +297,7 @@ export async function registerTenantMenuRoutes(app: FastifyInstance): Promise<vo
 
   app.delete<{ Params: { itemId: string } }>(
     "/tenant/menu/items/:itemId",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("menu.manage")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;

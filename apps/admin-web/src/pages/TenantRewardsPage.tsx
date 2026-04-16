@@ -4,6 +4,7 @@ import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useTranslation } from "../hooks/useTranslation";
+import { usePermissions } from "../hooks/usePermissions";
 import {
   FORM_FIELD_GRID_FULL_CLASS,
   FormField,
@@ -49,6 +50,8 @@ function percentToBp(percent: number): number {
 export function TenantRewardsPage() {
   const { t } = useTranslation();
   const { token } = useAuth();
+  const { hasPermission } = usePermissions();
+  const canManageRewards = hasPermission("rewards.manage");
   const fid = useId();
   const dlg = useRef<HTMLDialogElement>(null);
   const [rows, setRows] = useState<RewardDto[] | null>(null);
@@ -179,11 +182,13 @@ export function TenantRewardsPage() {
       title={t("tenantLoyalty.rewards.title")}
       description={t("tenantLoyalty.rewards.description")}
     >
-      <div className="toolbar" style={{ marginBottom: "1rem" }}>
-        <button type="button" className="admin-primary-btn" onClick={openCreate}>
-          {t("tenantLoyalty.rewards.add")}
-        </button>
-      </div>
+      {canManageRewards ? (
+        <div className="toolbar" style={{ marginBottom: "1rem" }}>
+          <button type="button" className="admin-primary-btn" onClick={openCreate}>
+            {t("tenantLoyalty.rewards.add")}
+          </button>
+        </div>
+      ) : null}
 
       {loading ? (
         <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
@@ -216,22 +221,30 @@ export function TenantRewardsPage() {
                     </td>
                     <td>{r.pointsCost}</td>
                     <td>
-                      <button
-                        type="button"
-                        className="admin-secondary-btn"
-                        onClick={() => void toggle(r)}
-                      >
-                        {r.isActive ? t("tenantLoyalty.common.yes") : t("tenantLoyalty.common.no")}
-                      </button>
+                      {canManageRewards ? (
+                        <button
+                          type="button"
+                          className="admin-secondary-btn"
+                          onClick={() => void toggle(r)}
+                        >
+                          {r.isActive ? t("tenantLoyalty.common.yes") : t("tenantLoyalty.common.no")}
+                        </button>
+                      ) : (
+                        <span className="data-table__muted">{r.isActive ? t("tenantLoyalty.common.yes") : t("tenantLoyalty.common.no")}</span>
+                      )}
                     </td>
                     <td>
-                      <button
-                        type="button"
-                        className="admin-secondary-btn"
-                        onClick={() => openEdit(r)}
-                      >
-                        {t("tenantLoyalty.rewards.edit")}
-                      </button>
+                      {canManageRewards ? (
+                        <button
+                          type="button"
+                          className="admin-secondary-btn"
+                          onClick={() => openEdit(r)}
+                        >
+                          {t("tenantLoyalty.rewards.edit")}
+                        </button>
+                      ) : (
+                        <span className="data-table__muted">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
+import { requireTenantPermission } from "../lib/tenant-permission-guard.js";
 import { writeAudit } from "../lib/audit.js";
 import { buildEntitlementsPayload } from "../lib/entitlement-service.js";
 import { recordAuditEvent } from "../lib/operational-audit-service.js";
@@ -29,7 +30,7 @@ function demoPlanSwitchAllowed(): boolean {
 export async function registerEntitlementsRoutes(app: FastifyInstance): Promise<void> {
   app.post<{ Body: { planSlug?: string } }>(
     "/tenant/billing/demo-plan-switch",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("billing.manage")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;

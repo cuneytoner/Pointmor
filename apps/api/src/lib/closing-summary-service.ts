@@ -1,8 +1,17 @@
 import { prisma } from "./prisma.js";
+import { TENANT_MEMBERSHIP_ROLES } from "./tenant-app-role.js";
+
+/** Kapanış / denetim: ham `membership.role` (`tenant_*`) ile uyumlu — `resolveTenantAppRole` ile aynı “yönetici çizgisi”. */
+const MANAGER_PRIVILEGE_ROLES = new Set<string>([
+  TENANT_MEMBERSHIP_ROLES.owner,
+  TENANT_MEMBERSHIP_ROLES.admin,
+  TENANT_MEMBERSHIP_ROLES.manager,
+  TENANT_MEMBERSHIP_ROLES.operator,
+]);
 
 export function isManagerRole(membershipRole: string | null | undefined): boolean {
-  const r = (membershipRole ?? "").toLowerCase();
-  return r === "owner" || r === "admin" || r === "manager";
+  const r = String(membershipRole ?? "").trim();
+  return MANAGER_PRIVILEGE_ROLES.has(r);
 }
 
 export function assertCanViewShiftClosing(

@@ -8,6 +8,11 @@
     "id": "ID",
     "cancel": "Abbrechen"
   },
+  "rbac": {
+    "actionBlocked": "Für diese Aktion fehlt Ihre Berechtigung.",
+    "cashierNoActions": "Sie dürfen hier keine Besuche erfassen oder Prämien einlösen.",
+    "redemptionActionsHidden": "Für Ihre Rolle ist keine Freigabe verfügbar."
+  },
   "auth": {
     "login": {
       "title": "Pointmor",

@@ -16,6 +16,7 @@ import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useLocale } from "../contexts/LocaleContext";
 import { useTranslation } from "../hooks/useTranslation";
+import { usePermissions } from "../hooks/usePermissions";
 import { toIntlLocale } from "../lib/locale-intl";
 import {
   getCampaigns,
@@ -143,6 +144,8 @@ export function TenantCampaignsPage() {
   const locale = useLocale();
   const { token } = useAuth();
   const { bootstrap } = useAdminDataContext();
+  const { hasPermission } = usePermissions();
+  const canManageCampaigns = hasPermission("campaigns.manage");
   const ent = bootstrap?.entitlements;
   const dlg = useRef<HTMLDialogElement>(null);
   const formFieldId = useId();
@@ -299,11 +302,13 @@ export function TenantCampaignsPage() {
       title={t("tenantLoyalty.campaigns.title")}
       description={t("tenantLoyalty.campaigns.description")}
     >
-      <div className="toolbar" style={{ marginBottom: "1rem" }}>
-        <button type="button" className="admin-primary-btn" onClick={openCreate}>
-          {t("tenantLoyalty.campaigns.add")}
-        </button>
-      </div>
+      {canManageCampaigns ? (
+        <div className="toolbar" style={{ marginBottom: "1rem" }}>
+          <button type="button" className="admin-primary-btn" onClick={openCreate}>
+            {t("tenantLoyalty.campaigns.add")}
+          </button>
+        </div>
+      ) : null}
 
       {loading ? (
         <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
@@ -341,13 +346,17 @@ export function TenantCampaignsPage() {
                     </td>
                     <td>{c.isActive ? t("tenantLoyalty.common.yes") : t("tenantLoyalty.common.no")}</td>
                     <td>
-                      <button
-                        type="button"
-                        className="admin-secondary-btn"
-                        onClick={() => openEdit(c)}
-                      >
-                        {t("tenantLoyalty.campaigns.edit")}
-                      </button>
+                      {canManageCampaigns ? (
+                        <button
+                          type="button"
+                          className="admin-secondary-btn"
+                          onClick={() => openEdit(c)}
+                        >
+                          {t("tenantLoyalty.campaigns.edit")}
+                        </button>
+                      ) : (
+                        <span className="data-table__muted">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}

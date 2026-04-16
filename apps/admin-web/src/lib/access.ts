@@ -3,6 +3,13 @@ import { resolveTenantAppRole } from "./tenant-app-role";
 import { defaultTenantHomePath } from "./tenant-route-access";
 
 export { resolveTenantAppRole, TENANT_MEMBERSHIP_ROLES, type TenantAppRole } from "./tenant-app-role";
+export {
+  TENANT_PERMISSIONS,
+  hasAnyPermission,
+  hasPermission,
+  permissionsForRole,
+  type TenantPermission,
+} from "./tenant-permissions";
 export type { WorkspaceAdminSection } from "./tenant-route-access";
 export {
   canAccessTenantPath,

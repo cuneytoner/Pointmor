@@ -5,6 +5,7 @@ import { authPreHandler, parseSessionToken } from "../lib/http-auth.js";
 import { SESSION_COOKIE_NAME } from "../lib/session-cookie.js";
 import { getUserActivationMilestones } from "../lib/analytics-service.js";
 import { prisma } from "../lib/prisma.js";
+import { hasPermissionForSession } from "../lib/tenant-permissions.js";
 
 export async function registerSessionRoutes(app: FastifyInstance): Promise<void> {
   app.get("/pricing", async () => ({
@@ -96,6 +97,9 @@ async function loadUsersForSession(s: SessionPayload) {
     });
   }
   if (!s.tenant) return [];
+  if (!hasPermissionForSession(s, "team.view")) {
+    return [];
+  }
   return prisma.user.findMany({
     where: { tenantId: s.tenant.id },
     orderBy: { email: "asc" },
@@ -119,6 +123,9 @@ async function loadSubscriptionsForSession(s: SessionPayload) {
     });
   }
   if (!s.tenant) return [];
+  if (!hasPermissionForSession(s, "billing.view")) {
+    return [];
+  }
   return prisma.subscription.findMany({
     where: { tenantId: s.tenant.id },
     orderBy: { createdAt: "desc" },

@@ -11,6 +11,8 @@ type ClaimListItemProps = {
   busy: boolean;
   busyApprove: boolean;
   busyReject: boolean;
+  showApprove?: boolean;
+  showReject?: boolean;
   onApprove: () => void;
   onReject: () => void;
 };
@@ -25,6 +27,8 @@ export function ClaimListItem({
   busy,
   busyApprove,
   busyReject,
+  showApprove = true,
+  showReject = true,
   onApprove,
   onReject,
 }: ClaimListItemProps) {
@@ -39,24 +43,30 @@ export function ClaimListItem({
           {formatWhen(claim.createdAt)} · {pointsLabel}: {claim.pointsSpent}
         </p>
       </div>
-      <div className="flex shrink-0 gap-2">
-        <button
-          type="button"
-          className="min-h-12 min-w-[3.25rem] touch-manipulation rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-100 disabled:opacity-50"
-          disabled={busy}
-          onClick={onReject}
-        >
-          {busyReject ? "…" : rejectLabel}
-        </button>
-        <button
-          type="button"
-          className="min-h-12 min-w-[3.25rem] touch-manipulation rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
-          disabled={busy}
-          onClick={onApprove}
-        >
-          {busyApprove ? "…" : approveLabel}
-        </button>
-      </div>
+      {showApprove || showReject ? (
+        <div className="flex shrink-0 gap-2">
+          {showReject ? (
+            <button
+              type="button"
+              className="min-h-12 min-w-[3.25rem] touch-manipulation rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-100 disabled:opacity-50"
+              disabled={busy}
+              onClick={onReject}
+            >
+              {busyReject ? "…" : rejectLabel}
+            </button>
+          ) : null}
+          {showApprove ? (
+            <button
+              type="button"
+              className="min-h-12 min-w-[3.25rem] touch-manipulation rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+              disabled={busy}
+              onClick={onApprove}
+            >
+              {busyApprove ? "…" : approveLabel}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </li>
   );
 }

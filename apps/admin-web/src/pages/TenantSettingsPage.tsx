@@ -11,6 +11,7 @@ import {
   TextField,
 } from "../components/form";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
+import { usePermissions } from "../hooks/usePermissions";
 import { useAuth } from "../contexts/AuthContext";
 import { getStoreSettings, putStoreSettings, type StoreSettingsDto } from "../lib/store-settings-api";
 
@@ -33,6 +34,8 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
   const { t } = useTranslation();
   const { auth } = useAdminDataContext();
   const { token } = useAuth();
+  const { hasPermission } = usePermissions();
+  const canSaveSettings = hasPermission("settings.manage");
   const slug = auth?.tenant?.slug ?? "";
   const [copiedPortal, setCopiedPortal] = useState(false);
   const [copiedMenu, setCopiedMenu] = useState(false);
@@ -102,7 +105,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
   };
 
   const save = async () => {
-    if (!token?.trim() || !form) return;
+    if (!token?.trim() || !form || !canSaveSettings) return;
     setSaving(true);
     try {
       let addressPayload: unknown = null;
@@ -158,6 +161,10 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
         <>
           <div className="admin-app__card admin-app__card--wide">
             <h2 className="admin-app__card-title">{t("tenantSettings.section.storeBranding")}</h2>
+            <fieldset
+              disabled={!canSaveSettings}
+              className="min-w-0 border-0 p-0 [&:disabled]:opacity-60"
+            >
             <div className="loyalty-form-stack loyalty-form-stack--relaxed tenant-store-form">
               <FormFieldGrid>
                 <FormField id="ts-store-name" className={FORM_FIELD_GRID_FULL_CLASS} label={t("tenantSettings.store.storeName")}>
@@ -187,10 +194,15 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                 </FormField>
               </FormFieldGrid>
             </div>
+            </fieldset>
           </div>
 
           <div className="admin-app__card admin-app__card--wide">
             <h2 className="admin-app__card-title">{t("tenantSettings.section.localization")}</h2>
+            <fieldset
+              disabled={!canSaveSettings}
+              className="min-w-0 border-0 p-0 [&:disabled]:opacity-60"
+            >
             <div className="loyalty-form-stack loyalty-form-stack--relaxed tenant-store-form">
               <FormFieldGrid>
                 <FormField id="ts-lang" label={t("tenantSettings.store.defaultLanguage")}>
@@ -274,12 +286,17 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                 </FormField>
               </FormFieldGrid>
             </div>
+            </fieldset>
           </div>
 
           <div className="admin-app__card admin-app__card--wide">
             <h2 className="admin-app__card-title">{t("tenantSettings.section.publicAccess")}</h2>
             <p className="admin-app__card-text">{t("tenantSettings.publicAccessLead")}</p>
             <div className="loyalty-form-stack loyalty-form-stack--relaxed tenant-store-form">
+              <fieldset
+                disabled={!canSaveSettings}
+                className="min-w-0 border-0 p-0 [&:disabled]:opacity-60"
+              >
               <FormFieldGrid>
                 <div className={`${FORM_FIELD_GRID_FULL_CLASS} flex flex-col gap-3 sm:flex-row sm:flex-wrap`}>
                   <label className="loyalty-form-toggle">
@@ -302,6 +319,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                   </label>
                 </div>
               </FormFieldGrid>
+              </fieldset>
 
               <FormSection title={t("tenantSettings.portal.title")}>
                 <p className="admin-app__card-text loyalty-form-hint">{t("tenantSettings.portal.description")}</p>
@@ -342,7 +360,12 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
               </FormSection>
 
               <div className="tenant-store-form__actions">
-                <button type="button" className="admin-primary-btn" disabled={saving} onClick={() => void save()}>
+                <button
+                  type="button"
+                  className="admin-primary-btn"
+                  disabled={saving || !canSaveSettings}
+                  onClick={() => void save()}
+                >
                   {saving ? t("tenantSettings.store.saving") : t("tenantSettings.store.save")}
                 </button>
               </div>

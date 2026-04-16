@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
+import { requireTenantPermission } from "../lib/tenant-permission-guard.js";
 import { writeAudit } from "../lib/audit.js";
 import type {
   CampaignType,
@@ -113,7 +114,7 @@ function readCashierCtxFromRequest(req: {
 }
 
 export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/summary", { preHandler: [authPreHandler] }, async (req, reply) => {
+  app.get("/summary", { preHandler: [authPreHandler, requireTenantPermission("customers.view")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     return getLoyaltySummary(tenantId);
@@ -121,7 +122,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.post<{ Body: { name?: string; phone?: string; email?: string } }>(
     "/customers",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("customers.create")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -153,7 +154,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
     },
   );
 
-  app.get("/customers", { preHandler: [authPreHandler] }, async (req, reply) => {
+  app.get("/customers", { preHandler: [authPreHandler, requireTenantPermission("customers.view")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     return listCustomers(tenantId);
@@ -161,7 +162,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.get<{ Querystring: { limit?: string } }>(
     "/actions",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("automation.run")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -180,7 +181,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.get<{ Params: { customerId: string }; Querystring: { limit?: string } }>(
     "/customers/:customerId/actions",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("automation.run")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -203,7 +204,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.post(
     "/automation/scan-inactivity",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("automation.run")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -223,7 +224,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.get<{ Params: { customerId: string } }>(
     "/customers/:customerId/detail",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("customers.view")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -240,7 +241,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.get<{ Params: { customerId: string } }>(
     "/customers/:customerId/account",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("customers.view")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -257,7 +258,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.get<{ Params: { customerId: string } }>(
     "/customers/:customerId/pending-claims",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("rewards.view")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -267,7 +268,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.get<{ Querystring: { limit?: string } }>(
     "/visits",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("visits.view")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -279,7 +280,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.post<{ Body: { customerId?: string; amount?: number } }>(
     "/visits/preview",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("visits.create")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -302,7 +303,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.post<{ Body: { customerId?: string; amount?: number } }>(
     "/visits",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("visits.create")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -353,7 +354,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.get<{ Querystring: { active?: string } }>(
     "/rewards",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("rewards.view")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -373,7 +374,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
       value?: number;
       redemptionMethod?: string;
     };
-  }>("/rewards", { preHandler: [authPreHandler] }, async (req, reply) => {
+  }>("/rewards", { preHandler: [authPreHandler, requireTenantPermission("rewards.manage")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     const s = req.authSession as SessionPayload;
@@ -412,7 +413,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
       value?: number;
       redemptionMethod?: string;
     };
-  }>("/rewards/:rewardId", { preHandler: [authPreHandler] }, async (req, reply) => {
+  }>("/rewards/:rewardId", { preHandler: [authPreHandler, requireTenantPermission("rewards.manage")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     const s = req.authSession as SessionPayload;
@@ -441,7 +442,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
     }
   });
 
-  app.get("/campaigns", { preHandler: [authPreHandler] }, async (req, reply) => {
+  app.get("/campaigns", { preHandler: [authPreHandler, requireTenantPermission("campaigns.view")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     return listCampaigns(tenantId);
@@ -458,7 +459,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
       config?: unknown;
       isActive?: boolean;
     };
-  }>("/campaigns", { preHandler: [authPreHandler] }, async (req, reply) => {
+  }>("/campaigns", { preHandler: [authPreHandler, requireTenantPermission("campaigns.manage")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     const s = req.authSession as SessionPayload;
@@ -511,7 +512,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
       config?: unknown;
       isActive?: boolean;
     };
-  }>("/campaigns/:campaignId", { preHandler: [authPreHandler] }, async (req, reply) => {
+  }>("/campaigns/:campaignId", { preHandler: [authPreHandler, requireTenantPermission("campaigns.manage")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     const s = req.authSession as SessionPayload;
@@ -554,7 +555,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.get<{ Querystring: { limit?: string } }>(
     "/redemptions",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("redemptions.view")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -566,7 +567,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.post<{ Body: { customerId?: string; rewardId?: string } }>(
     "/redemptions",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("redemptions.create")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -615,7 +616,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.post<{ Params: { redemptionId: string } }>(
     "/redemptions/:redemptionId/approve",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("redemptions.approve")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -666,7 +667,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
 
   app.post<{ Params: { redemptionId: string } }>(
     "/redemptions/:redemptionId/reject",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("redemptions.reject")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;

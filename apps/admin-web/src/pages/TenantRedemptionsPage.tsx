@@ -5,6 +5,7 @@ import { PageShell } from "../components/PageShell";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useLocale } from "../contexts/LocaleContext";
 import { useTranslation } from "../hooks/useTranslation";
+import { usePermissions } from "../hooks/usePermissions";
 import { toIntlLocale } from "../lib/locale-intl";
 import {
   getRedemptions,
@@ -28,6 +29,9 @@ export function TenantRedemptionsPage() {
   const { t } = useTranslation();
   const locale = useLocale();
   const { token } = useAuth();
+  const { hasPermission } = usePermissions();
+  const canApprove = hasPermission("redemptions.approve");
+  const canReject = hasPermission("redemptions.reject");
   const [rows, setRows] = useState<RedemptionRow[] | null>(null);
   const [error, setError] = useState(false);
   const [acting, setActing] = useState<string | null>(null);
@@ -226,22 +230,29 @@ export function TenantRedemptionsPage() {
                       <td>
                         {r.status === "pending" ? (
                           <span className="loyalty-redemption-actions">
-                            <button
-                              type="button"
-                              className="admin-primary-btn"
-                              disabled={acting === r.id}
-                              onClick={() => onApprove(r.id)}
-                            >
-                              {t("tenantLoyalty.redemptions.approve")}
-                            </button>
-                            <button
-                              type="button"
-                              className="admin-secondary-btn"
-                              disabled={acting === r.id}
-                              onClick={() => onReject(r.id)}
-                            >
-                              {t("tenantLoyalty.redemptions.reject")}
-                            </button>
+                            {canApprove ? (
+                              <button
+                                type="button"
+                                className="admin-primary-btn"
+                                disabled={acting === r.id}
+                                onClick={() => onApprove(r.id)}
+                              >
+                                {t("tenantLoyalty.redemptions.approve")}
+                              </button>
+                            ) : null}
+                            {canReject ? (
+                              <button
+                                type="button"
+                                className="admin-secondary-btn"
+                                disabled={acting === r.id}
+                                onClick={() => onReject(r.id)}
+                              >
+                                {t("tenantLoyalty.redemptions.reject")}
+                              </button>
+                            ) : null}
+                            {!canApprove && !canReject ? (
+                              <span className="data-table__muted">{t("rbac.redemptionActionsHidden")}</span>
+                            ) : null}
                           </span>
                         ) : (
                           <button
@@ -307,22 +318,26 @@ export function TenantRedemptionsPage() {
               </Link>
               {detail.status === "pending" ? (
                 <>
-                  <button
-                    type="button"
-                    className="admin-primary-btn"
-                    disabled={acting === detail.id}
-                    onClick={() => onApprove(detail.id)}
-                  >
-                    {t("tenantLoyalty.redemptions.approve")}
-                  </button>
-                  <button
-                    type="button"
-                    className="admin-secondary-btn"
-                    disabled={acting === detail.id}
-                    onClick={() => onReject(detail.id)}
-                  >
-                    {t("tenantLoyalty.redemptions.reject")}
-                  </button>
+                  {canApprove ? (
+                    <button
+                      type="button"
+                      className="admin-primary-btn"
+                      disabled={acting === detail.id}
+                      onClick={() => onApprove(detail.id)}
+                    >
+                      {t("tenantLoyalty.redemptions.approve")}
+                    </button>
+                  ) : null}
+                  {canReject ? (
+                    <button
+                      type="button"
+                      className="admin-secondary-btn"
+                      disabled={acting === detail.id}
+                      onClick={() => onReject(detail.id)}
+                    >
+                      {t("tenantLoyalty.redemptions.reject")}
+                    </button>
+                  ) : null}
                 </>
               ) : null}
               <button type="button" className="admin-secondary-btn" onClick={() => setDetail(null)}>

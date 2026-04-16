@@ -16,6 +16,7 @@ export function parseCashierApiError(
       return t("tenantLoyalty.visits.previewError");
     if (code === "validation_error")
       return t("tenantLoyalty.visits.validation");
+    if (code === "permission_denied") return t("rbac.actionBlocked");
   }
   return t("tenantLoyalty.cashier.errorGeneric");
 }

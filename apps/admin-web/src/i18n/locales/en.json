@@ -8,6 +8,11 @@
     "id": "ID",
     "cancel": "Cancel"
   },
+  "rbac": {
+    "actionBlocked": "You don’t have permission for this action.",
+    "cashierNoActions": "You don’t have permission to record visits or redeem rewards here.",
+    "redemptionActionsHidden": "Approval isn’t available for your role."
+  },
   "auth": {
     "login": {
       "title": "Pointmor",

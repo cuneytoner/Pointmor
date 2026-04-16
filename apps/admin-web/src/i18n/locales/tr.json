@@ -8,6 +8,11 @@
     "id": "Kimlik",
     "cancel": "İptal"
   },
+  "rbac": {
+    "actionBlocked": "Bu işlem için yetkiniz yok.",
+    "cashierNoActions": "Ziyaret kaydı veya ödül kullanımı için burada yetkiniz yok.",
+    "redemptionActionsHidden": "Rolünüz için onay adımı kullanılamıyor."
+  },
   "auth": {
     "login": {
       "title": "Pointmor",

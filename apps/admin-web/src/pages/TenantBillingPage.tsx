@@ -6,6 +6,7 @@ import { useLocale } from "../contexts/LocaleContext";
 import { PageShell } from "../components/PageShell";
 import { FORM_FIELD_GRID_FULL_CLASS, FormField, FormFieldGrid, FormSection, SelectField } from "../components/form";
 import { useTranslation } from "../hooks/useTranslation";
+import { usePermissions } from "../hooks/usePermissions";
 import { toIntlLocale } from "../lib/locale-intl";
 import { postDemoPlanSwitch } from "../lib/entitlements-api";
 import type { EntitlementsPayload } from "../lib/entitlements-api";
@@ -81,6 +82,8 @@ export function TenantBillingPage({ embedded }: TenantBillingPageProps = {}) {
   const locale = useLocale();
   const { auth, bootstrap } = useAdminDataContext();
   const { token, bumpRefresh } = useAuth();
+  const { hasPermission } = usePermissions();
+  const canManageBilling = hasPermission("billing.manage");
   const tenantId = auth?.tenant?.id ?? null;
 
   const sub = useMemo(() => {
@@ -112,7 +115,7 @@ export function TenantBillingPage({ embedded }: TenantBillingPageProps = {}) {
 
   const runDemoUpgrade = async () => {
     const slug = pickSlug.trim();
-    if (!token?.trim() || !slug) return;
+    if (!token?.trim() || !slug || !canManageBilling) return;
     setBusy(true);
     setErr(null);
     setMsg(null);
@@ -125,6 +128,8 @@ export function TenantBillingPage({ embedded }: TenantBillingPageProps = {}) {
       const body = (e as { body?: { error?: string } }).body;
       if (body?.error === "demo_plan_switch_disabled") {
         setErr(t("plan.upgrade.disabledEnv"));
+      } else if (body?.error === "permission_denied") {
+        setErr(t("rbac.actionBlocked"));
       } else {
         setErr(t("plan.upgrade.error"));
       }
@@ -219,25 +224,27 @@ export function TenantBillingPage({ embedded }: TenantBillingPageProps = {}) {
               <FeatureList ent={ent} />
             </div>
 
-            <div className="admin-app__card admin-app__card--wide">
-              <h2 className="admin-app__card-title">{t("billing.sectionPlanActions")}</h2>
-              <p className="admin-app__card-text">{t("billing.planActionsLead")}</p>
-              <div className="billing-actions">
-                <button
-                  type="button"
-                  className="admin-primary-btn"
-                  onClick={() => {
-                    setPickSlug(planChoices[0]?.slug ?? "");
-                    setUpgradeOpen(true);
-                  }}
-                >
-                  {t("plan.upgrade.cta")}
-                </button>
-                <Link to="/pricing" className="admin-secondary-btn">
-                  {t("usage.upgradeCta")}
-                </Link>
+            {canManageBilling ? (
+              <div className="admin-app__card admin-app__card--wide">
+                <h2 className="admin-app__card-title">{t("billing.sectionPlanActions")}</h2>
+                <p className="admin-app__card-text">{t("billing.planActionsLead")}</p>
+                <div className="billing-actions">
+                  <button
+                    type="button"
+                    className="admin-primary-btn"
+                    onClick={() => {
+                      setPickSlug(planChoices[0]?.slug ?? "");
+                      setUpgradeOpen(true);
+                    }}
+                  >
+                    {t("plan.upgrade.cta")}
+                  </button>
+                  <Link to="/pricing" className="admin-secondary-btn">
+                    {t("usage.upgradeCta")}
+                  </Link>
+                </div>
               </div>
-            </div>
+            ) : null}
           </>
         ) : (
           <div className="admin-app__card admin-app__card--wide">
@@ -246,7 +253,7 @@ export function TenantBillingPage({ embedded }: TenantBillingPageProps = {}) {
         )}
       </div>
 
-      {upgradeOpen ? (
+      {canManageBilling && upgradeOpen ? (
         <div className="modal-backdrop" role="presentation" onClick={() => !busy && setUpgradeOpen(false)}>
           <div
             className="modal-card modal-card--form"

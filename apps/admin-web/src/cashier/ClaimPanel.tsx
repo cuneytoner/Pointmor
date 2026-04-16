@@ -23,6 +23,8 @@ type ClaimPanelProps = {
   onRefresh: () => void;
   onApprove: (redemptionId: string) => void;
   onReject: (redemptionId: string) => void;
+  canApprove?: boolean;
+  canReject?: boolean;
   /** Ağ yokken onay/red ve yenileme kapalı */
   networkBlocked?: boolean;
 };
@@ -48,6 +50,8 @@ export function ClaimPanel({
   onRefresh,
   onApprove,
   onReject,
+  canApprove = true,
+  canReject = true,
   networkBlocked = false,
 }: ClaimPanelProps) {
   const busy = claimAction !== null || networkBlocked;
@@ -108,6 +112,8 @@ export function ClaimPanel({
                 busyReject={busyReject}
                 onApprove={() => onApprove(c.id)}
                 onReject={() => onReject(c.id)}
+                showApprove={canApprove}
+                showReject={canReject}
               />
             );
           })}

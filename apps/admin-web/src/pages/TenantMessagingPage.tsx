@@ -11,6 +11,7 @@ import {
   TextField,
 } from "../components/form";
 import { useTranslation } from "../hooks/useTranslation";
+import { usePermissions } from "../hooks/usePermissions";
 import {
   getMessageTemplates,
   getMessagingSettings,
@@ -27,6 +28,8 @@ export type TenantMessagingPageProps = {
 export function TenantMessagingPage({ embedded }: TenantMessagingPageProps = {}) {
   const { t } = useTranslation();
   const { token } = useAuth();
+  const { hasPermission } = usePermissions();
+  const canEditMessaging = hasPermission("messaging.manage");
   const dlg = useRef<HTMLDialogElement>(null);
   const [settings, setSettings] = useState<MessagingSettingsDto | null>(null);
   const [templates, setTemplates] = useState<MessageTemplateRow[] | null>(null);
@@ -53,7 +56,7 @@ export function TenantMessagingPage({ embedded }: TenantMessagingPageProps = {})
 
   const onSaveSettings = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token || !settings) return;
+    if (!token || !settings || !canEditMessaging) return;
     setSaving(true);
     try {
       const next = await putMessagingSettings(token, {
@@ -75,6 +78,7 @@ export function TenantMessagingPage({ embedded }: TenantMessagingPageProps = {})
   };
 
   const openEdit = (row: MessageTemplateRow) => {
+    if (!canEditMessaging) return;
     setEditing(row);
     setEditContent(row.override?.content ?? row.defaultContent);
     setEditEnabled(row.override?.isEnabled ?? true);
@@ -83,7 +87,7 @@ export function TenantMessagingPage({ embedded }: TenantMessagingPageProps = {})
 
   const saveOverride = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token || !editing) return;
+    if (!token || !editing || !canEditMessaging) return;
     const c = editContent.trim();
     if (!c) return;
     setSaving(true);
@@ -119,6 +123,10 @@ export function TenantMessagingPage({ embedded }: TenantMessagingPageProps = {})
             style={{ marginBottom: "1.25rem" }}
           >
             <h2 className="admin-app__card-title">{t("tenantLoyalty.messaging.sectionSettings")}</h2>
+            <fieldset
+              disabled={!canEditMessaging}
+              className="min-w-0 border-0 p-0 [&:disabled]:opacity-60"
+            >
             <div className="loyalty-form-stack loyalty-form-stack--relaxed">
               <FormSection title={t("tenantLoyalty.messaging.sectionChannels")}>
                 <FormFieldGrid>
@@ -233,8 +241,9 @@ export function TenantMessagingPage({ embedded }: TenantMessagingPageProps = {})
                 </label>
               </FormSection>
             </div>
+            </fieldset>
             <div className="toolbar" style={{ marginTop: "1rem" }}>
-              <button type="submit" className="admin-primary-btn" disabled={saving}>
+              <button type="submit" className="admin-primary-btn" disabled={saving || !canEditMessaging}>
                 {saving ? t("tenantLoyalty.messaging.saving") : t("tenantLoyalty.messaging.save")}
               </button>
             </div>
@@ -277,13 +286,17 @@ export function TenantMessagingPage({ embedded }: TenantMessagingPageProps = {})
                             : t("tenantLoyalty.messaging.overrideNo")}
                         </td>
                         <td>
-                          <button
-                            type="button"
-                            className="admin-secondary-btn"
-                            onClick={() => openEdit(row)}
-                          >
-                            {t("tenantLoyalty.messaging.edit")}
-                          </button>
+                          {canEditMessaging ? (
+                            <button
+                              type="button"
+                              className="admin-secondary-btn"
+                              onClick={() => openEdit(row)}
+                            >
+                              {t("tenantLoyalty.messaging.edit")}
+                            </button>
+                          ) : (
+                            <span className="data-table__muted">—</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -343,7 +356,7 @@ export function TenantMessagingPage({ embedded }: TenantMessagingPageProps = {})
                 >
                   {t("common.cancel")}
                 </button>
-                <button type="submit" className="admin-primary-btn" disabled={saving}>
+                <button type="submit" className="admin-primary-btn" disabled={saving || !canEditMessaging}>
                   {t("tenantLoyalty.messaging.saveOverride")}
                 </button>
               </div>

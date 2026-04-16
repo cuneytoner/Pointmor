@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { NotificationChannel } from "../generated/prisma/client.js";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
+import { requireTenantPermission } from "../lib/tenant-permission-guard.js";
 import { prisma } from "../lib/prisma.js";
 import { getOrCreateStoreMessagingSettings } from "../lib/messaging/store-messaging-settings.js";
 import { extractTemplateVariableNames } from "../lib/messaging/template-render.js";
@@ -20,7 +21,7 @@ function requireTenantSession(
 }
 
 export async function registerTenantMessagingRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/tenant/messaging/settings", { preHandler: [authPreHandler] }, async (req, reply) => {
+  app.get("/tenant/messaging/settings", { preHandler: [authPreHandler, requireTenantPermission("messaging.view")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     const row = await getOrCreateStoreMessagingSettings(tenantId);
@@ -44,7 +45,7 @@ export async function registerTenantMessagingRoutes(app: FastifyInstance): Promi
 
   app.put<{ Body: Record<string, unknown> }>(
     "/tenant/messaging/settings",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("messaging.manage")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -140,7 +141,7 @@ export async function registerTenantMessagingRoutes(app: FastifyInstance): Promi
     },
   );
 
-  app.get("/tenant/message-templates", { preHandler: [authPreHandler] }, async (req, reply) => {
+  app.get("/tenant/message-templates", { preHandler: [authPreHandler, requireTenantPermission("messaging.view")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     const [defaults, overrides] = await Promise.all([
@@ -168,7 +169,7 @@ export async function registerTenantMessagingRoutes(app: FastifyInstance): Promi
 
   app.put<{ Body: Record<string, unknown> }>(
     "/tenant/message-templates/override",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("messaging.manage")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -235,7 +236,7 @@ export async function registerTenantMessagingRoutes(app: FastifyInstance): Promi
 
   app.get<{ Querystring: { take?: string } }>(
     "/tenant/notifications/deliveries",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("messaging.view")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
