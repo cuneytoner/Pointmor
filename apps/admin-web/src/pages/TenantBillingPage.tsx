@@ -141,7 +141,7 @@ export function TenantBillingPage() {
     <PageShell
       eyebrow={t("billing.eyebrow")}
       title={t("billing.title")}
-      description={t("billing.descriptionExtended")}
+      description={t("billing.pageIntro")}
     >
       {msg ? (
         <p className="admin-app__card-text billing-flash billing-flash--ok" role="status">
@@ -154,79 +154,91 @@ export function TenantBillingPage() {
         </p>
       ) : null}
 
-      <div className="admin-app__card admin-app__card--wide billing-summary">
-        <h2 className="billing-h2">{t("billing.currentPlan")}</h2>
-        {!sub ? (
-          <p className="admin-app__card-text">{t("billing.empty")}</p>
-        ) : (
-          <div className="metric-grid metric-grid--3">
-            <div className="metric-card">
-              <div className="metric-card__label">{t("billing.plan")}</div>
-              <div className="metric-card__value">{sub.plan.name}</div>
-              <div className="metric-card__hint">{sub.plan.slug}</div>
+      <div className="billing-page-stack">
+        <div className="admin-app__card admin-app__card--wide billing-summary">
+          <h2 className="admin-app__card-title">{t("billing.sectionSubscription")}</h2>
+          {!sub ? (
+            <p className="admin-app__card-text">{t("billing.empty")}</p>
+          ) : (
+            <div className="metric-grid metric-grid--3">
+              <div className="metric-card">
+                <div className="metric-card__label">{t("billing.plan")}</div>
+                <div className="metric-card__value">{sub.plan.name}</div>
+                <div className="metric-card__hint">{t("billing.planCode", { code: sub.plan.slug })}</div>
+              </div>
+              <div className="metric-card">
+                <div className="metric-card__label">{t("billing.status")}</div>
+                <div className="metric-card__value">{sub.status}</div>
+              </div>
+              <div className="metric-card">
+                <div className="metric-card__label">{t("billing.renews")}</div>
+                <div className="metric-card__value">{renewsLabel}</div>
+              </div>
             </div>
-            <div className="metric-card">
-              <div className="metric-card__label">{t("billing.status")}</div>
-              <div className="metric-card__value">{sub.status}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-card__label">{t("billing.renews")}</div>
-              <div className="metric-card__value">{renewsLabel}</div>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {ent ? (
           <>
-            <h2 className="billing-h2">{t("billing.usageTitle")}</h2>
-            <div className="usage-stack">
-              <UsageRow
-                label={t("billing.usage.customers")}
-                used={ent.usage.customerCount}
-                cap={ent.limits.maxCustomers}
-                t={t}
-              />
-              <UsageRow
-                label={t("billing.usage.campaignsActive")}
-                used={ent.usage.activeCampaignCount}
-                cap={ent.limits.maxActiveCampaigns}
-                t={t}
-              />
-              <UsageRow
-                label={t("billing.usage.visitsMonth")}
-                used={ent.usage.monthlyVisitCount}
-                cap={ent.limits.maxVisitsPerMonth}
-                t={t}
-              />
-              <UsageRow
-                label={t("billing.usage.staff")}
-                used={ent.usage.staffUserCount}
-                cap={ent.limits.maxStaffUsers}
-                t={t}
-              />
+            <div className="admin-app__card admin-app__card--wide">
+              <h2 className="admin-app__card-title">{t("billing.sectionUsage")}</h2>
+              <div className="usage-stack">
+                <UsageRow
+                  label={t("billing.usage.customers")}
+                  used={ent.usage.customerCount}
+                  cap={ent.limits.maxCustomers}
+                  t={t}
+                />
+                <UsageRow
+                  label={t("billing.usage.campaignsActive")}
+                  used={ent.usage.activeCampaignCount}
+                  cap={ent.limits.maxActiveCampaigns}
+                  t={t}
+                />
+                <UsageRow
+                  label={t("billing.usage.visitsMonth")}
+                  used={ent.usage.monthlyVisitCount}
+                  cap={ent.limits.maxVisitsPerMonth}
+                  t={t}
+                />
+                <UsageRow
+                  label={t("billing.usage.staff")}
+                  used={ent.usage.staffUserCount}
+                  cap={ent.limits.maxStaffUsers}
+                  t={t}
+                />
+              </div>
             </div>
 
-            <h2 className="billing-h2">{t("billing.featuresTitle")}</h2>
-            <FeatureList ent={ent} />
+            <div className="admin-app__card admin-app__card--wide">
+              <h2 className="admin-app__card-title">{t("billing.sectionFeatures")}</h2>
+              <FeatureList ent={ent} />
+            </div>
 
-            <div className="billing-actions">
-              <button
-                type="button"
-                className="admin-primary-btn"
-                onClick={() => {
-                  setPickSlug(planChoices[0]?.slug ?? "");
-                  setUpgradeOpen(true);
-                }}
-              >
-                {t("plan.upgrade.cta")}
-              </button>
-              <Link to="/pricing" className="admin-secondary-btn">
-                {t("usage.upgradeCta")}
-              </Link>
+            <div className="admin-app__card admin-app__card--wide">
+              <h2 className="admin-app__card-title">{t("billing.sectionPlanActions")}</h2>
+              <p className="admin-app__card-text">{t("billing.planActionsLead")}</p>
+              <div className="billing-actions">
+                <button
+                  type="button"
+                  className="admin-primary-btn"
+                  onClick={() => {
+                    setPickSlug(planChoices[0]?.slug ?? "");
+                    setUpgradeOpen(true);
+                  }}
+                >
+                  {t("plan.upgrade.cta")}
+                </button>
+                <Link to="/pricing" className="admin-secondary-btn">
+                  {t("usage.upgradeCta")}
+                </Link>
+              </div>
             </div>
           </>
         ) : (
-          <p className="admin-app__card-text">{t("billing.entitlementsLoadHint")}</p>
+          <div className="admin-app__card admin-app__card--wide">
+            <p className="admin-app__card-text">{t("billing.entitlementsLoadHint")}</p>
+          </div>
         )}
       </div>
 

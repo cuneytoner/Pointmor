@@ -176,16 +176,18 @@
   "billing": {
     "eyebrow": "Billing",
     "title": "Billing & plan",
-    "description": "Subscription summary from bootstrap data.",
-    "descriptionExtended": "Your subscription, usage against plan limits, and included features. Payments are not processed in this environment — upgrades are for demo or set by a platform admin.",
-    "empty": "No subscription row for this workspace in bootstrap.",
+    "pageIntro": "Subscription status, usage against your limits, included features, and how to change plan.",
+    "empty": "No subscription on file for this workspace.",
+    "sectionSubscription": "Subscription",
+    "sectionUsage": "Usage & limits",
+    "sectionFeatures": "Included features",
+    "sectionPlanActions": "Plan & upgrades",
+    "planActionsLead": "Switch plans for demos or open the catalog — no payment is processed in this app.",
+    "planCode": "{{code}}",
     "plan": "Plan",
     "status": "Status",
     "renews": "Renews",
     "renewsUnknown": "—",
-    "currentPlan": "Subscription",
-    "usageTitle": "Usage vs limits",
-    "featuresTitle": "Features in your plan",
     "entitlementsLoadHint": "Plan details could not be loaded. Refresh the page or sign in again.",
     "usage": {
       "customers": "Customers",
@@ -255,7 +257,13 @@
   "tenantSettings": {
     "eyebrow": "Workspace",
     "title": "Settings",
-    "description": "Workspace preferences and customer entry.",
+    "description": "Store profile, languages & region, contact details, and public customer links.",
+    "section": {
+      "storeBranding": "Store & branding",
+      "localization": "Languages, region & contact",
+      "publicAccess": "Public links & visibility"
+    },
+    "publicAccessLead": "Choose what guests can open, then share QR codes and links.",
     "portal": {
       "title": "Customer entry (QR)",
       "description": "Share this link or QR code; customers see points and can request rewards for staff approval.",
@@ -263,22 +271,23 @@
       "copied": "Copied"
     },
     "store": {
-      "title": "Store & branding",
       "save": "Save",
       "saving": "Saving…",
       "loadError": "Could not load store settings.",
+      "addressInvalidJson": "The address field must be valid JSON, or left empty.",
       "storeName": "Store display name",
-      "logoUrl": "Logo URL",
+      "logoUrl": "Logo image URL",
       "primaryColor": "Primary color",
       "defaultLanguage": "Default language",
-      "supportedLanguages": "Supported languages (comma-separated, e.g. en,tr)",
-      "currency": "Currency (ISO)",
-      "timezone": "Timezone",
-      "addressJson": "Address (JSON)",
+      "supportedLanguages": "Supported languages (comma-separated, e.g. en, tr)",
+      "currency": "Currency code (e.g. EUR)",
+      "timezone": "Time zone",
+      "addressStructured": "Business address (structured JSON)",
+      "addressStructuredHint": "Optional. Use JSON for lines, city, and country — or leave blank.",
       "contactPhone": "Phone",
       "contactEmail": "Email",
-      "loyaltyPublic": "Loyalty catalog public",
-      "menuPublic": "Public menu page enabled"
+      "loyaltyPublic": "Show loyalty catalog to guests",
+      "menuPublic": "Publish the read-only menu page"
     },
     "menuQr": {
       "title": "Public menu (QR)",

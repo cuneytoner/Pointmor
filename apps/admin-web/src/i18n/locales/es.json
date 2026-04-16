@@ -176,16 +176,18 @@
   "billing": {
     "eyebrow": "Facturación",
     "title": "Facturación y plan",
-    "description": "Resumen de suscripción desde bootstrap.",
-    "descriptionExtended": "Tu suscripción, uso frente a límites del plan y funciones incluidas. No se procesan pagos aquí: las mejoras son demo o las asigna un administrador de plataforma.",
-    "empty": "Sin fila de suscripción para este espacio en bootstrap.",
+    "pageIntro": "Estado de la suscripción, uso frente a límites, funciones incluidas y cómo cambiar de plan.",
+    "empty": "No hay suscripción registrada para este espacio de trabajo.",
+    "sectionSubscription": "Suscripción",
+    "sectionUsage": "Uso y límites",
+    "sectionFeatures": "Funciones incluidas",
+    "sectionPlanActions": "Plan y mejoras",
+    "planActionsLead": "Cambia el plan en demos o abre el catálogo — aquí no se procesa ningún pago.",
+    "planCode": "{{code}}",
     "plan": "Plan",
     "status": "Estado",
     "renews": "Renovación",
     "renewsUnknown": "—",
-    "currentPlan": "Suscripción",
-    "usageTitle": "Uso vs límites",
-    "featuresTitle": "Funciones de tu plan",
     "entitlementsLoadHint": "No se pudo cargar el plan. Actualiza la página o vuelve a iniciar sesión.",
     "usage": {
       "customers": "Clientes",
@@ -255,7 +257,13 @@
   "tenantSettings": {
     "eyebrow": "Espacio",
     "title": "Ajustes",
-    "description": "Espacio de trabajo y enlace de acceso para clientes.",
+    "description": "Perfil del negocio, idiomas y región, contacto y enlaces públicos para clientes.",
+    "section": {
+      "storeBranding": "Negocio e imagen",
+      "localization": "Idiomas, región y contacto",
+      "publicAccess": "Enlaces públicos y visibilidad"
+    },
+    "publicAccessLead": "Elige qué pueden abrir los invitados y luego comparte códigos QR y enlaces.",
     "portal": {
       "title": "Acceso de clientes (QR)",
       "description": "Comparte el enlace o el QR; los clientes ven puntos y pueden solicitar recompensas para aprobación en caja.",
@@ -263,22 +271,23 @@
       "copied": "Copiado"
     },
     "store": {
-      "title": "Tienda y marca",
       "save": "Guardar",
       "saving": "Guardando…",
       "loadError": "No se pudieron cargar los ajustes de la tienda.",
-      "storeName": "Nombre visible de la tienda",
-      "logoUrl": "URL del logo",
+      "addressInvalidJson": "El campo de dirección debe ser JSON válido o estar vacío.",
+      "storeName": "Nombre visible del negocio",
+      "logoUrl": "URL de la imagen del logo",
       "primaryColor": "Color principal",
       "defaultLanguage": "Idioma predeterminado",
-      "supportedLanguages": "Idiomas admitidos (separados por comas, p. ej. es,en)",
-      "currency": "Moneda (ISO)",
+      "supportedLanguages": "Idiomas admitidos (separados por comas, p. ej. es, en)",
+      "currency": "Código de moneda (p. ej. EUR)",
       "timezone": "Zona horaria",
-      "addressJson": "Dirección (JSON)",
+      "addressStructured": "Dirección del negocio (JSON estructurado)",
+      "addressStructuredHint": "Opcional. Usa JSON para líneas, ciudad y país — o déjalo vacío.",
       "contactPhone": "Teléfono",
       "contactEmail": "Correo",
-      "loyaltyPublic": "Catálogo de fidelidad público",
-      "menuPublic": "Página de menú público activada"
+      "loyaltyPublic": "Mostrar el catálogo de fidelidad a invitados",
+      "menuPublic": "Publicar la página de menú de solo lectura"
     },
     "menuQr": {
       "title": "Menú público (QR)",

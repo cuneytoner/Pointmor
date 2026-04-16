@@ -6,6 +6,7 @@ import {
   FORM_FIELD_GRID_FULL_CLASS,
   FormField,
   FormFieldGrid,
+  FormSection,
   TextAreaField,
   TextField,
 } from "../components/form";
@@ -107,7 +108,7 @@ export function TenantSettingsPage() {
         try {
           addressPayload = JSON.parse(raw);
         } catch {
-          window.alert("Invalid JSON in address field.");
+          window.alert(t("tenantSettings.store.addressInvalidJson"));
           setSaving(false);
           return;
         }
@@ -142,20 +143,23 @@ export function TenantSettingsPage() {
       title={t("tenantSettings.title")}
       description={t("tenantSettings.description")}
     >
-      <div className="admin-app__card admin-app__card--wide">
-        <h2 className="admin-app__card-title">{t("tenantSettings.store.title")}</h2>
-        {loadError ? (
+      {loading ? (
+        <div className="admin-app__card admin-app__card--wide">
+          <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
+        </div>
+      ) : loadError || !form ? (
+        <div className="admin-app__card admin-app__card--wide">
           <p className="admin-app__card-text" role="alert">
             {t("tenantSettings.store.loadError")}
           </p>
-        ) : null}
-        {loading || !form ? (
-          <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
-        ) : (
-          <div className="loyalty-form-stack loyalty-form-stack--relaxed tenant-store-form">
-            <div className="loyalty-form-section">
+        </div>
+      ) : (
+        <>
+          <div className="admin-app__card admin-app__card--wide">
+            <h2 className="admin-app__card-title">{t("tenantSettings.section.storeBranding")}</h2>
+            <div className="loyalty-form-stack loyalty-form-stack--relaxed tenant-store-form">
               <FormFieldGrid>
-                <FormField id="ts-store-name" label={t("tenantSettings.store.storeName")}>
+                <FormField id="ts-store-name" className={FORM_FIELD_GRID_FULL_CLASS} label={t("tenantSettings.store.storeName")}>
                   <TextField
                     id="ts-store-name"
                     value={form.storeName}
@@ -167,9 +171,7 @@ export function TenantSettingsPage() {
                   <TextField
                     id="ts-logo"
                     value={form.logoUrl ?? ""}
-                    onChange={(e) =>
-                      setForm((f) => (f ? { ...f, logoUrl: e.target.value || null } : f))
-                    }
+                    onChange={(e) => setForm((f) => (f ? { ...f, logoUrl: e.target.value || null } : f))}
                     autoComplete="off"
                   />
                 </FormField>
@@ -179,19 +181,57 @@ export function TenantSettingsPage() {
                     type="color"
                     className={`${FORM_CONTROL_CLASS} h-10 max-w-[5.5rem] cursor-pointer p-1`}
                     value={form.primaryColor}
-                    onChange={(e) =>
-                      setForm((f) => (f ? { ...f, primaryColor: e.target.value } : f))
-                    }
+                    onChange={(e) => setForm((f) => (f ? { ...f, primaryColor: e.target.value } : f))}
                   />
                 </FormField>
+              </FormFieldGrid>
+            </div>
+          </div>
+
+          <div className="admin-app__card admin-app__card--wide">
+            <h2 className="admin-app__card-title">{t("tenantSettings.section.localization")}</h2>
+            <div className="loyalty-form-stack loyalty-form-stack--relaxed tenant-store-form">
+              <FormFieldGrid>
                 <FormField id="ts-lang" label={t("tenantSettings.store.defaultLanguage")}>
                   <TextField
                     id="ts-lang"
                     value={form.defaultLanguage}
-                    onChange={(e) =>
-                      setForm((f) => (f ? { ...f, defaultLanguage: e.target.value } : f))
-                    }
+                    onChange={(e) => setForm((f) => (f ? { ...f, defaultLanguage: e.target.value } : f))}
                     autoComplete="off"
+                  />
+                </FormField>
+                <FormField id="ts-currency" label={t("tenantSettings.store.currency")}>
+                  <TextField
+                    id="ts-currency"
+                    maxLength={3}
+                    value={form.currency}
+                    onChange={(e) => setForm((f) => (f ? { ...f, currency: e.target.value } : f))}
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField id="ts-tz" label={t("tenantSettings.store.timezone")}>
+                  <TextField
+                    id="ts-tz"
+                    value={form.timezone}
+                    onChange={(e) => setForm((f) => (f ? { ...f, timezone: e.target.value } : f))}
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField id="ts-phone" label={t("tenantSettings.store.contactPhone")}>
+                  <TextField
+                    id="ts-phone"
+                    value={form.contactPhone ?? ""}
+                    onChange={(e) => setForm((f) => (f ? { ...f, contactPhone: e.target.value || null } : f))}
+                    autoComplete="tel"
+                  />
+                </FormField>
+                <FormField id="ts-email" label={t("tenantSettings.store.contactEmail")}>
+                  <TextField
+                    id="ts-email"
+                    type="email"
+                    value={form.contactEmail ?? ""}
+                    onChange={(e) => setForm((f) => (f ? { ...f, contactEmail: e.target.value || null } : f))}
+                    autoComplete="email"
                   />
                 </FormField>
                 <FormField
@@ -218,31 +258,11 @@ export function TenantSettingsPage() {
                     autoComplete="off"
                   />
                 </FormField>
-                <FormField id="ts-currency" label={t("tenantSettings.store.currency")}>
-                  <TextField
-                    id="ts-currency"
-                    maxLength={3}
-                    value={form.currency}
-                    onChange={(e) =>
-                      setForm((f) => (f ? { ...f, currency: e.target.value } : f))
-                    }
-                    autoComplete="off"
-                  />
-                </FormField>
-                <FormField id="ts-tz" label={t("tenantSettings.store.timezone")}>
-                  <TextField
-                    id="ts-tz"
-                    value={form.timezone}
-                    onChange={(e) =>
-                      setForm((f) => (f ? { ...f, timezone: e.target.value } : f))
-                    }
-                    autoComplete="off"
-                  />
-                </FormField>
                 <FormField
                   id="ts-address"
                   className={FORM_FIELD_GRID_FULL_CLASS}
-                  label={t("tenantSettings.store.addressJson")}
+                  label={t("tenantSettings.store.addressStructured")}
+                  hint={t("tenantSettings.store.addressStructuredHint")}
                 >
                   <TextAreaField
                     id="ts-address"
@@ -251,28 +271,16 @@ export function TenantSettingsPage() {
                     onChange={(e) => setAddressText(e.target.value)}
                   />
                 </FormField>
-                <FormField id="ts-phone" label={t("tenantSettings.store.contactPhone")}>
-                  <TextField
-                    id="ts-phone"
-                    value={form.contactPhone ?? ""}
-                    onChange={(e) =>
-                      setForm((f) => (f ? { ...f, contactPhone: e.target.value || null } : f))
-                    }
-                    autoComplete="tel"
-                  />
-                </FormField>
-                <FormField id="ts-email" label={t("tenantSettings.store.contactEmail")}>
-                  <TextField
-                    id="ts-email"
-                    type="email"
-                    value={form.contactEmail ?? ""}
-                    onChange={(e) =>
-                      setForm((f) => (f ? { ...f, contactEmail: e.target.value || null } : f))
-                    }
-                    autoComplete="email"
-                  />
-                </FormField>
-                <div className={`${FORM_FIELD_GRID_FULL_CLASS} flex flex-col gap-3 sm:flex-row`}>
+              </FormFieldGrid>
+            </div>
+          </div>
+
+          <div className="admin-app__card admin-app__card--wide">
+            <h2 className="admin-app__card-title">{t("tenantSettings.section.publicAccess")}</h2>
+            <p className="admin-app__card-text">{t("tenantSettings.publicAccessLead")}</p>
+            <div className="loyalty-form-stack loyalty-form-stack--relaxed tenant-store-form">
+              <FormFieldGrid>
+                <div className={`${FORM_FIELD_GRID_FULL_CLASS} flex flex-col gap-3 sm:flex-row sm:flex-wrap`}>
                   <label className="loyalty-form-toggle">
                     <input
                       type="checkbox"
@@ -287,68 +295,60 @@ export function TenantSettingsPage() {
                     <input
                       type="checkbox"
                       checked={form.menuPublicEnabled}
-                      onChange={(e) =>
-                        setForm((f) => (f ? { ...f, menuPublicEnabled: e.target.checked } : f))
-                      }
+                      onChange={(e) => setForm((f) => (f ? { ...f, menuPublicEnabled: e.target.checked } : f))}
                     />
                     <span>{t("tenantSettings.store.menuPublic")}</span>
                   </label>
                 </div>
               </FormFieldGrid>
-            </div>
-            <div className="tenant-store-form__actions">
-              <button
-                type="button"
-                className="admin-primary-btn"
-                disabled={saving}
-                onClick={() => void save()}
-              >
-                {saving ? t("tenantSettings.store.saving") : t("tenantSettings.store.save")}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
 
-      <div className="admin-app__card admin-app__card--wide">
-        <h2 className="admin-app__card-title">{t("tenantSettings.portal.title")}</h2>
-        <p className="admin-app__card-text">{t("tenantSettings.portal.description")}</p>
-        {portalUrl ? (
-          <div className="tenant-portal-share">
-            <code className="tenant-portal-share__url">{portalUrl}</code>
-            <button type="button" className="admin-secondary-btn" onClick={copyPortal}>
-              {copiedPortal ? t("tenantSettings.portal.copied") : t("tenantSettings.portal.copy")}
-            </button>
-            {portalQrSrc ? (
-              <div className="tenant-portal-share__qr">
-                <img src={portalQrSrc} width={180} height={180} alt="" />
-              </div>
-            ) : null}
-          </div>
-        ) : (
-          <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
-        )}
-      </div>
+              <FormSection title={t("tenantSettings.portal.title")}>
+                <p className="admin-app__card-text loyalty-form-hint">{t("tenantSettings.portal.description")}</p>
+                {portalUrl ? (
+                  <div className="tenant-portal-share">
+                    <code className="tenant-portal-share__url">{portalUrl}</code>
+                    <button type="button" className="admin-secondary-btn" onClick={copyPortal}>
+                      {copiedPortal ? t("tenantSettings.portal.copied") : t("tenantSettings.portal.copy")}
+                    </button>
+                    {portalQrSrc ? (
+                      <div className="tenant-portal-share__qr">
+                        <img src={portalQrSrc} width={180} height={180} alt="" />
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
+                )}
+              </FormSection>
 
-      <div className="admin-app__card admin-app__card--wide">
-        <h2 className="admin-app__card-title">{t("tenantSettings.menuQr.title")}</h2>
-        <p className="admin-app__card-text">{t("tenantSettings.menuQr.description")}</p>
-        {menuUrl ? (
-          <div className="tenant-portal-share">
-            <code className="tenant-portal-share__url">{menuUrl}</code>
-            <button type="button" className="admin-secondary-btn" onClick={copyMenu}>
-              {copiedMenu ? t("tenantSettings.menuQr.copied") : t("tenantSettings.menuQr.copy")}
-            </button>
-            {menuQrSrc ? (
-              <div className="tenant-portal-share__qr">
-                <img src={menuQrSrc} width={180} height={180} alt="" />
+              <FormSection title={t("tenantSettings.menuQr.title")}>
+                <p className="admin-app__card-text loyalty-form-hint">{t("tenantSettings.menuQr.description")}</p>
+                {menuUrl ? (
+                  <div className="tenant-portal-share">
+                    <code className="tenant-portal-share__url">{menuUrl}</code>
+                    <button type="button" className="admin-secondary-btn" onClick={copyMenu}>
+                      {copiedMenu ? t("tenantSettings.menuQr.copied") : t("tenantSettings.menuQr.copy")}
+                    </button>
+                    {menuQrSrc ? (
+                      <div className="tenant-portal-share__qr">
+                        <img src={menuQrSrc} width={180} height={180} alt="" />
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
+                )}
+              </FormSection>
+
+              <div className="tenant-store-form__actions">
+                <button type="button" className="admin-primary-btn" disabled={saving} onClick={() => void save()}>
+                  {saving ? t("tenantSettings.store.saving") : t("tenantSettings.store.save")}
+                </button>
               </div>
-            ) : null}
+            </div>
           </div>
-        ) : (
-          <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
-        )}
-      </div>
+        </>
+      )}
     </PageShell>
   );
 }

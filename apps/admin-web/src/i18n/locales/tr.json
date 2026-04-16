@@ -176,16 +176,18 @@
   "billing": {
     "eyebrow": "Faturalama",
     "title": "Faturalama ve plan",
-    "description": "Bootstrap verisinden abonelik özeti.",
-    "descriptionExtended": "Aboneliğiniz, plan limitlerine göre kullanımınız ve dahil özellikler. Bu ortamda ödeme alınmaz — yükseltmeler demo amaçlıdır veya platform yöneticisi tarafından atanır.",
-    "empty": "Bu çalışma alanı için bootstrap’ta abonelik satırı yok.",
+    "pageIntro": "Abonelik durumu, limitlere göre kullanım, dahil özellikler ve plan değiştirme.",
+    "empty": "Bu çalışma alanı için kayıtlı abonelik yok.",
+    "sectionSubscription": "Abonelik",
+    "sectionUsage": "Kullanım ve limitler",
+    "sectionFeatures": "Dahil özellikler",
+    "sectionPlanActions": "Plan ve yükseltmeler",
+    "planActionsLead": "Demo için plan değiştirin veya kataloğu açın — bu uygulamada ödeme alınmaz.",
+    "planCode": "{{code}}",
     "plan": "Plan",
     "status": "Durum",
     "renews": "Yenileme",
     "renewsUnknown": "—",
-    "currentPlan": "Abonelik",
-    "usageTitle": "Kullanım ve limitler",
-    "featuresTitle": "Plandaki özellikler",
     "entitlementsLoadHint": "Plan bilgisi yüklenemedi. Sayfayı yenileyin veya tekrar oturum açın.",
     "usage": {
       "customers": "Müşteriler",
@@ -255,7 +257,13 @@
   "tenantSettings": {
     "eyebrow": "Çalışma alanı",
     "title": "Ayarlar",
-    "description": "Çalışma alanı ve müşteri giriş bağlantısı.",
+    "description": "İşletme profili, dil ve bölge, iletişim ve müşteriye açık bağlantılar.",
+    "section": {
+      "storeBranding": "İşletme ve görünüm",
+      "localization": "Diller, bölge ve iletişim",
+      "publicAccess": "Herkese açık bağlantılar ve görünürlük"
+    },
+    "publicAccessLead": "Misafirlere neyin açık olacağını seçin, ardından QR ve bağlantıları paylaşın.",
     "portal": {
       "title": "Müşteri girişi (QR)",
       "description": "Bu bağlantı veya QR ile müşteriler puanlarını görür ve kasiyer onaylı ödül talebi oluşturur.",
@@ -263,22 +271,23 @@
       "copied": "Kopyalandı"
     },
     "store": {
-      "title": "Mağaza ve görünüm",
       "save": "Kaydet",
       "saving": "Kaydediliyor…",
       "loadError": "Mağaza ayarları yüklenemedi.",
-      "storeName": "Görünen mağaza adı",
-      "logoUrl": "Logo URL",
+      "addressInvalidJson": "Adres alanı geçerli JSON olmalı veya boş bırakılmalıdır.",
+      "storeName": "Görünen işletme adı",
+      "logoUrl": "Logo görseli URL’si",
       "primaryColor": "Ana renk",
       "defaultLanguage": "Varsayılan dil",
-      "supportedLanguages": "Desteklenen diller (virgülle, örn. en,tr)",
-      "currency": "Para birimi (ISO)",
+      "supportedLanguages": "Desteklenen diller (virgülle, örn. en, tr)",
+      "currency": "Para birimi kodu (ör. TRY)",
       "timezone": "Saat dilimi",
-      "addressJson": "Adres (JSON)",
+      "addressStructured": "İşletme adresi (yapılandırılmış JSON)",
+      "addressStructuredHint": "İsteğe bağlı. Satır, şehir ve ülke için JSON kullanın — veya boş bırakın.",
       "contactPhone": "Telefon",
       "contactEmail": "E-posta",
-      "loyaltyPublic": "Sadakat vitrini herkese açık",
-      "menuPublic": "Herkese açık menü sayfası"
+      "loyaltyPublic": "Sadakat vitrinini misafirlere göster",
+      "menuPublic": "Salt okunur menü sayfasını yayınla"
     },
     "menuQr": {
       "title": "Herkese açık menü (QR)",

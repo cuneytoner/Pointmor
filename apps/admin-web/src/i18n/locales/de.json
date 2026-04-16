@@ -176,16 +176,18 @@
   "billing": {
     "eyebrow": "Abrechnung",
     "title": "Abrechnung & Plan",
-    "description": "Abonnement aus Bootstrap-Daten.",
-    "descriptionExtended": "Ihr Abonnement, Nutzung gegen Planlimits und enthaltene Funktionen. In dieser Umgebung werden keine Zahlungen verarbeitet — Upgrades sind Demo oder werden von einem Plattform-Admin gesetzt.",
-    "empty": "Kein Abonnement-Eintrag für diesen Workspace im Bootstrap.",
+    "pageIntro": "Abonnementstatus, Nutzung gegen Limits, enthaltene Funktionen und Planwechsel.",
+    "empty": "Kein Abonnement für diesen Workspace hinterlegt.",
+    "sectionSubscription": "Abonnement",
+    "sectionUsage": "Nutzung & Limits",
+    "sectionFeatures": "Enthaltene Funktionen",
+    "sectionPlanActions": "Plan & Upgrades",
+    "planActionsLead": "Plan für Demos wechseln oder Katalog öffnen — hier erfolgt keine Zahlung.",
+    "planCode": "{{code}}",
     "plan": "Plan",
     "status": "Status",
     "renews": "Verlängerung",
     "renewsUnknown": "—",
-    "currentPlan": "Abonnement",
-    "usageTitle": "Nutzung vs. Limits",
-    "featuresTitle": "Funktionen in Ihrem Plan",
     "entitlementsLoadHint": "Plandaten konnten nicht geladen werden. Seite neu laden oder erneut anmelden.",
     "usage": {
       "customers": "Kunden",
@@ -255,7 +257,13 @@
   "tenantSettings": {
     "eyebrow": "Workspace",
     "title": "Einstellungen",
-    "description": "Workspace-Einstellungen und Kundeneinstieg.",
+    "description": "Geschäftsprofil, Sprachen & Region, Kontakt und öffentliche Kundenlinks.",
+    "section": {
+      "storeBranding": "Geschäft & Auftritt",
+      "localization": "Sprachen, Region & Kontakt",
+      "publicAccess": "Öffentliche Links & Sichtbarkeit"
+    },
+    "publicAccessLead": "Legen Sie fest, was Gäste öffnen dürfen, und teilen Sie dann QR-Codes und Links.",
     "portal": {
       "title": "Kundeneinstieg (QR)",
       "description": "Link oder QR teilen; Kunden sehen Punkte und können Prämien zur Freigabe durch Personal anfragen.",
@@ -263,22 +271,23 @@
       "copied": "Kopiert"
     },
     "store": {
-      "title": "Geschäft & Erscheinungsbild",
       "save": "Speichern",
       "saving": "Speichern…",
       "loadError": "Laden der Geschäftseinstellungen fehlgeschlagen.",
+      "addressInvalidJson": "Das Adressfeld muss gültiges JSON sein oder leer bleiben.",
       "storeName": "Anzeigename des Geschäfts",
-      "logoUrl": "Logo-URL",
+      "logoUrl": "Logo-Bild-URL",
       "primaryColor": "Primärfarbe",
       "defaultLanguage": "Standardsprache",
-      "supportedLanguages": "Unterstützte Sprachen (kommagetrennt, z. B. de,en)",
-      "currency": "Währung (ISO)",
+      "supportedLanguages": "Unterstützte Sprachen (kommagetrennt, z. B. de, en)",
+      "currency": "Währungscode (z. B. EUR)",
       "timezone": "Zeitzone",
-      "addressJson": "Adresse (JSON)",
+      "addressStructured": "Geschäftsadresse (strukturiertes JSON)",
+      "addressStructuredHint": "Optional. JSON für Zeilen, Stadt und Land — oder leer lassen.",
       "contactPhone": "Telefon",
       "contactEmail": "E-Mail",
-      "loyaltyPublic": "Treuekatalog öffentlich",
-      "menuPublic": "Öffentliche Menüseite aktiv"
+      "loyaltyPublic": "Treuekatalog für Gäste anzeigen",
+      "menuPublic": "Öffentliche Nur-Lese-Menüseite veröffentlichen"
     },
     "menuQr": {
       "title": "Öffentliches Menü (QR)",

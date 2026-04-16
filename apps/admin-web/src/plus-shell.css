@@ -3449,6 +3449,18 @@ a.admin-secondary-btn:hover {
   text-decoration: underline;
 }
 
+.billing-page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 720px) {
+  .billing-page-stack {
+    gap: 1.25rem;
+  }
+}
+
 .billing-h2 {
   margin: 1.25rem 0 0.65rem;
   font-size: 1rem;
