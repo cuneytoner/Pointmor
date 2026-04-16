@@ -292,7 +292,12 @@ export function TenantRewardsPage() {
                 <p className="loyalty-form-hint">{t("tenantLoyalty.rewards.typeHint")}</p>
 
                 {rewardType === "FIXED_DISCOUNT" ? (
-                  <FormField id={`${fid}-val`} label={t("tenantLoyalty.rewards.discountAmount")} required>
+                  <FormField
+                    id={`${fid}-val`}
+                    label={t("tenantLoyalty.rewards.discountAmount")}
+                    required
+                    hint={t("tenantLoyalty.rewards.minorUnitsHint")}
+                  >
                     <NumberField
                       id={`${fid}-val`}
                       required
@@ -300,14 +305,16 @@ export function TenantRewardsPage() {
                       value={value}
                       onChange={(e) => setValue(e.target.value)}
                     />
-                    <span className="loyalty-form-hint loyalty-form-hint--inline">
-                      {t("tenantLoyalty.rewards.minorUnitsHint")}
-                    </span>
                   </FormField>
                 ) : null}
 
                 {rewardType === "PERCENT_DISCOUNT" ? (
-                  <FormField id={`${fid}-pct`} label={t("tenantLoyalty.rewards.percentLabel")} required>
+                  <FormField
+                    id={`${fid}-pct`}
+                    label={t("tenantLoyalty.rewards.percentLabel")}
+                    required
+                    hint={t("tenantLoyalty.rewards.percentHint")}
+                  >
                     <NumberField
                       id={`${fid}-pct`}
                       required
@@ -315,9 +322,6 @@ export function TenantRewardsPage() {
                       value={percentStr}
                       onChange={(e) => setPercentStr(e.target.value)}
                     />
-                    <span className="loyalty-form-hint loyalty-form-hint--inline">
-                      {t("tenantLoyalty.rewards.percentHint")}
-                    </span>
                   </FormField>
                 ) : null}
               </div>

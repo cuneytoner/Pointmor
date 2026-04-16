@@ -32,7 +32,19 @@ Aşağıdaki tablo **yalnızca** `npm run db:seed` (`prisma/seed.ts`) çalışt�
    SELECT email, "platformAdmin" FROM "User" ORDER BY email;
    ```
 
-   Beklenen: `admin@pointmor.local`, `owner@demo.pointmor.local`.
+   Beklenen: en az `admin@pointmor.local`, `owner@demo.pointmor.local` ve aşağıdaki senaryo sahipleri.
+
+## Demo senaryo kiracıları (`seed-demo-scenarios.ts`)
+
+`npm run db:seed` ayrıca üç **demo tenant** oluşturur (menü, müşteri, ziyaret, ödül, kampanya). Şifre: `SEED_DEV_OPERATOR_PASSWORD` yoksa **`PointmorDev!Demo`** (demo işletme ile aynı).
+
+| Workspace (`slug`) | İşletme | Owner e-posta | Plan (seed) |
+|--------------------|---------|----------------|-------------|
+| `demo-small-cafe` | Artisan Small Cafe (FREE) | `owner@small.pointmor.local` | `starter` (FREE) |
+| `demo-busy-cafe` | Busy Corner Cafe (PRO) | `owner@busy.pointmor.local` | `growth` (PRO) |
+| `demo-coffee-chain` | Metro Coffee Chain (TEAM) | `owner@chain.pointmor.local` | `scale` (TEAM) |
+
+Yeniden doldurmak (mevcut senaryo verisini silip baştan): `FORCE_RESEED_DEMO=1 npm run db:seed`. Üretimde ağır seed varsayılan olarak **kapalıdır**; açmak için `SEED_FULL_DEMO=1` gerekir.
 
 ## Kimlik bilgileri (yerel / staging)
 

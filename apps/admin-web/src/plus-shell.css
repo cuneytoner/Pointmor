@@ -2365,10 +2365,6 @@ a.admin-secondary-btn:hover {
   line-height: 1.4;
 }
 
-.loyalty-form-hint--inline {
-  margin-top: 0.35rem;
-}
-
 .loyalty-form-input {
   max-width: 22rem;
 }
@@ -2446,6 +2442,31 @@ a.admin-secondary-btn:hover {
 
 .admin-app .loyalty-form-control[aria-invalid="true"] {
   border-color: rgba(220, 38, 38, 0.55);
+}
+
+/** Sayısal alan — tam genişlik (nadir); sağa hizalı */
+.admin-app .loyalty-form-control--numeric-default {
+  width: 100%;
+  max-width: 22rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/** Sayısal alan — kompakt sabit genişlik (Tailwind `w-28` ≈ 7rem); stack içinde sola hizalı */
+.admin-app .loyalty-form-control--numeric-compact {
+  display: block;
+  box-sizing: border-box;
+  width: 7rem;
+  max-width: 100%;
+  align-self: flex-start;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 480px) {
+  .admin-app .loyalty-form-control--numeric-compact {
+    width: min(100%, 7rem);
+  }
 }
 
 .admin-app select.loyalty-form-control {

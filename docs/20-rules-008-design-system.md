@@ -4,6 +4,12 @@
 
 ---
 
+## Sayısal alan (`NumberField`)
+
+- **Varsayılan:** `size="compact"` — sabit genişlik (**~7rem**, Tailwind `w-28` ile uyumlu), **değer sağa** (`text-align: right`, `tabular-nums`), alan **stack içinde sola** hizalı (`align-self: flex-start`).
+- **Tam genişlik:** `size="default"` — nadir kullanım.
+- **Form düzeni:** `FormField` her zaman **stack** — etiket üstte, kontrol altta; sayı alanları da aynı ritimde (inline etiket+kontrol kullanılmaz).
+
 ## Tek satır kontroller
 
 - **Sınıf:** `loyalty-form-control loyalty-form-input` (veya `components/form` içindeki `TextField`, `NumberField`, `SelectField`, `DateTimeLocalField`).

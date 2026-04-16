@@ -429,6 +429,7 @@ export function TenantCampaignsPage() {
                       id={`${formFieldId}-threshold-minor`}
                       label={t("tenantLoyalty.campaigns.fieldMinSpend")}
                       required
+                      hint={t("tenantLoyalty.campaigns.minorUnitsHint")}
                     >
                       <NumberField
                         id={`${formFieldId}-threshold-minor`}
@@ -437,9 +438,6 @@ export function TenantCampaignsPage() {
                         value={thresholdMinor}
                         onChange={(e) => setThresholdMinor(e.target.value)}
                       />
-                      <span className="loyalty-form-hint loyalty-form-hint--inline">
-                        {t("tenantLoyalty.campaigns.minorUnitsHint")}
-                      </span>
                     </FormField>
                     <FormField
                       id={`${formFieldId}-threshold-bonus`}

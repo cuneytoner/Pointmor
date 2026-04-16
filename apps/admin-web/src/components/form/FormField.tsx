@@ -12,7 +12,8 @@ export type FormFieldProps = {
 };
 
 /**
- * Etiket + yardım + hata ritmi; kontrol yüksekliği `loyalty-form-control` ile gelir.
+ * Stack düzeni: etiket üstte, kontrol altta (tüm alan tipleri için varsayılan).
+ * Kontrol yüksekliği `loyalty-form-control` ile gelir.
  */
 export function FormField({
   id,
@@ -23,17 +24,21 @@ export function FormField({
   className,
   children,
 }: FormFieldProps) {
+  const labelEl = (
+    <span className="pm-form-field__label">
+      {label}
+      {required ? (
+        <span className="pm-form-field__req" aria-hidden="true">
+          {" "}
+          *
+        </span>
+      ) : null}
+    </span>
+  );
+
   return (
     <label className={cx("pm-form-field", className)} htmlFor={id}>
-      <span className="pm-form-field__label">
-        {label}
-        {required ? (
-          <span className="pm-form-field__req" aria-hidden="true">
-            {" "}
-            *
-          </span>
-        ) : null}
-      </span>
+      {labelEl}
       {children}
       {hint ? <p className="loyalty-form-hint">{hint}</p> : null}
       {error ? (

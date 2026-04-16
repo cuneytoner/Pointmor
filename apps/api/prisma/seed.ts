@@ -158,4 +158,7 @@ await prisma.messageTemplate.createMany({
 console.info("Seed OK: Pointmor demo tenant, plans, users, subscription.");
 console.info("  Dev kullanıcılar: docs/41-ref-001-dev-seed-users.md");
 
+const { seedDemoScenarios } = await import("./seed-demo-scenarios.js");
+await seedDemoScenarios(prisma);
+
 await prisma.$disconnect();

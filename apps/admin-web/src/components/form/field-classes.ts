@@ -9,3 +9,9 @@ export const TEXTAREA_CLASS = "loyalty-form-control loyalty-form-control--textar
 
 export const TEXTAREA_LARGE_CLASS =
   "loyalty-form-control loyalty-form-control--textarea loyalty-form-control--textarea-lg loyalty-form-input";
+
+/** Sayısal alan — kompakt sabit genişlik (~w-28), değer sağa (`text-align: right`), alan sola */
+export const NUMERIC_COMPACT_CONTROL_CLASS = `${FORM_CONTROL_CLASS} loyalty-form-control--numeric-compact`;
+
+/** Tam genişlik sayı (nadir) */
+export const NUMERIC_DEFAULT_CONTROL_CLASS = `${FORM_CONTROL_CLASS} loyalty-form-control--numeric-default`;

@@ -1,7 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { PageShell } from "../components/PageShell";
-import { FORM_CONTROL_CLASS } from "../components/form";
+import { FORM_CONTROL_CLASS, NUMERIC_COMPACT_CONTROL_CLASS } from "../components/form";
 import { useTranslation } from "../hooks/useTranslation";
 import {
   deleteMenuCategory,
@@ -352,7 +352,7 @@ export function TenantMenuPage() {
             <label>
               {t("tenantMenu.sortOrder")}
               <input
-                className={FORM_CONTROL_CLASS}
+                className={NUMERIC_COMPACT_CONTROL_CLASS}
                 inputMode="numeric"
                 value={catOrder}
                 onChange={(e) => setCatOrder(e.target.value)}
@@ -452,7 +452,7 @@ export function TenantMenuPage() {
             <label>
               {t("tenantMenu.sortOrder")}
               <input
-                className={FORM_CONTROL_CLASS}
+                className={NUMERIC_COMPACT_CONTROL_CLASS}
                 inputMode="numeric"
                 value={itemOrder}
                 onChange={(e) => setItemOrder(e.target.value)}
