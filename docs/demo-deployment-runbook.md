@@ -26,4 +26,6 @@ curl -sfS "http://127.0.0.1:${API_HOST_PORT:-3000}/health"
 | CI | `.github/workflows/ci.yml` |
 | Demo deploy (SSH) | `.github/workflows/deploy-demo.yml` |
 
-**Seed** yalnızca manuel (`seed-demo.sh`); production’a taşınmaz. Demo DB, dev DB’den ayrı volume ile tanımlıdır (`postgres_demo_data`).
+**Seed** yalnızca manuel (`seed-demo.sh`); production’a taşınmaz. Script **`npm run db:seed:demo`** çalıştırır ([`seed-demo.ts`](../apps/api/prisma/seed-demo.ts)) — demo hesaplar + `demo-cafe`; **üç senaryolu kiracı ve ağır demo veri** (`seed-demo-scenarios.ts`) **dahil değildir**. O veri yalnızca yerelde `npm run db:seed` ile veya üretim benzeri ortamda bilinçli olarak `SEED_FULL_DEMO=1` ile gelir; ayrıntı [`41-ref-001-dev-seed-users.md`](./41-ref-001-dev-seed-users.md).
+
+Demo DB, dev DB’den ayrı volume ile tanımlıdır (`postgres_demo_data`).

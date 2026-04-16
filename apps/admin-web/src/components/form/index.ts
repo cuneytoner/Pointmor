@@ -1,5 +1,9 @@
 export { FormField } from "./FormField";
 export type { FormFieldProps } from "./FormField";
+export { FormFieldGrid, FORM_FIELD_GRID_FULL_CLASS } from "./FormFieldGrid";
+export type { FormFieldGridProps } from "./FormFieldGrid";
+export { FormSection } from "./FormSection";
+export type { FormSectionProps } from "./FormSection";
 export { TextField } from "./TextField";
 export { NumberField } from "./NumberField";
 export type { NumberFieldProps } from "./NumberField";

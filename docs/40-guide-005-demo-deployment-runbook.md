@@ -92,6 +92,8 @@ cd /opt/pointmor-demo
 ./infra/scripts/seed-demo.sh
 ```
 
+**Ne yüklenir / yüklenmez:** `seed-demo.sh` → `db:seed:demo` → [`seed-demo.ts`](../apps/api/prisma/seed-demo.ts) (demo hesaplar, `demo-cafe`). Üç ek demo kiracı ve ağır senaryo verisi [`seed-demo-scenarios.ts`](../apps/api/prisma/seed-demo-scenarios.ts) **bu komutla çalışmaz**; yalnızca yerel `npm run db:seed` veya bilinçli `SEED_FULL_DEMO` akışı: [`41-ref-001-dev-seed-users.md`](./41-ref-001-dev-seed-users.md).
+
 ---
 
 ## 6. Health check

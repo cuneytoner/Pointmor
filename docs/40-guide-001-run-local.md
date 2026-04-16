@@ -78,7 +78,7 @@ cd d:\Projects\Pointmor\apps\api
 | `npm.cmd run db:reset` | Veriyi siler, migration’ları baştan uygular (`migrate reset --force`). **Dikkat: veri kaybı.** |
 | `npm.cmd run db:clean` | `public` şemasını SQL ile sıfırlar; ardından genelde `db:migrate` veya `db:deploy` gerekir. |
 | `npm.cmd run db:fresh` | `db:clean` + `prisma migrate dev --name init` — özel senaryolar; ilk kurulumda dikkatli kullanın. |
-| `npm.cmd run db:seed` | Örnek kiracı / kullanıcı / plan. Senaryo başına kullanıcı ve şifreler: [`41-ref-001-dev-seed-users.md`](./41-ref-001-dev-seed-users.md). `prisma.config.ts` içinde seed komutu tanımlı. |
+| `npm.cmd run db:seed` | `seed.ts` + `seed-demo-scenarios.ts`: örnek kiracı(lar), planlar, üç senaryolu demo tenant (menü / müşteri / kampanya vb.). Kullanıcı ve şifreler: [`41-ref-001-dev-seed-users.md`](./41-ref-001-dev-seed-users.md). `prisma.config.ts` içinde seed komutu tanımlı. **Uzak demo VM’deki** `db:seed:demo` ile aynı değildir — ayrıntı aynı ref dosyasında “İki seed akışı”. |
 
 **Not:** Yalnızca seed verisi değiştiğinde (yeni kullanıcı vb.) **migration gerekmez**; `db:seed` yeterlidir. Şema (`schema.prisma`) değiştiyse `db:migrate` kullanın.
 

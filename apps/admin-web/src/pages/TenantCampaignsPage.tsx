@@ -5,7 +5,9 @@ import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import {
   DateTimeLocalField,
+  FORM_FIELD_GRID_FULL_CLASS,
   FormField,
+  FormFieldGrid,
   NumberField,
   SelectField,
   TextField,
@@ -369,62 +371,70 @@ export function TenantCampaignsPage() {
                 <h3 className="loyalty-form-section__title">
                   {t("tenantLoyalty.campaigns.sectionBasic")}
                 </h3>
-                <FormField id={`${formFieldId}-name`} label={t("tenantLoyalty.campaigns.name")} required>
-                  <TextField
+                <FormFieldGrid>
+                  <FormField
                     id={`${formFieldId}-name`}
+                    className={FORM_FIELD_GRID_FULL_CLASS}
+                    label={t("tenantLoyalty.campaigns.name")}
                     required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    autoComplete="off"
-                  />
-                </FormField>
-                <FormField id={`${formFieldId}-description`} label={t("tenantLoyalty.rewards.descriptionField")}>
-                  <TextField
+                  >
+                    <TextField
+                      id={`${formFieldId}-name`}
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      autoComplete="off"
+                    />
+                  </FormField>
+                  <FormField
                     id={`${formFieldId}-description`}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder={t("tenantLoyalty.campaigns.descriptionPlaceholder")}
-                  />
-                </FormField>
+                    className={FORM_FIELD_GRID_FULL_CLASS}
+                    label={t("tenantLoyalty.rewards.descriptionField")}
+                  >
+                    <TextField
+                      id={`${formFieldId}-description`}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder={t("tenantLoyalty.campaigns.descriptionPlaceholder")}
+                    />
+                  </FormField>
+                </FormFieldGrid>
               </div>
 
               <div className="loyalty-form-section">
                 <h3 className="loyalty-form-section__title">
                   {t("tenantLoyalty.campaigns.sectionType")}
                 </h3>
-                <FormField id={`${formFieldId}-type`} label={t("tenantLoyalty.campaigns.type")}>
-                  <SelectField
-                    id={`${formFieldId}-type`}
-                    value={type}
-                    onChange={(e) => applyCampaignType(e.target.value as CampaignTypeId, true)}
-                  >
-                    {TYPES.map((x) => (
-                      <option key={x} value={x}>
-                        {campaignTypeLabel(x, t)}
-                      </option>
-                    ))}
-                  </SelectField>
-                </FormField>
-                <p className="loyalty-form-hint">{t("tenantLoyalty.campaigns.typeHint")}</p>
-
-                {type === "BONUS_POINTS" ? (
-                  <FormField
-                    id={`${formFieldId}-points-bonus`}
-                    label={t("tenantLoyalty.campaigns.fieldBonusPoints")}
-                    required
-                  >
-                    <NumberField
-                      id={`${formFieldId}-points-bonus`}
-                      required
-                      inputMode="numeric"
-                      value={pointsBonus}
-                      onChange={(e) => setPointsBonus(e.target.value)}
-                    />
+                <FormFieldGrid>
+                  <FormField id={`${formFieldId}-type`} label={t("tenantLoyalty.campaigns.type")}>
+                    <SelectField
+                      id={`${formFieldId}-type`}
+                      value={type}
+                      onChange={(e) => applyCampaignType(e.target.value as CampaignTypeId, true)}
+                    >
+                      {TYPES.map((x) => (
+                        <option key={x} value={x}>
+                          {campaignTypeLabel(x, t)}
+                        </option>
+                      ))}
+                    </SelectField>
                   </FormField>
-                ) : null}
-
-                {type === "SPEND_THRESHOLD_BONUS" ? (
-                  <>
+                  {type === "BONUS_POINTS" ? (
+                    <FormField
+                      id={`${formFieldId}-points-bonus`}
+                      label={t("tenantLoyalty.campaigns.fieldBonusPoints")}
+                      required
+                    >
+                      <NumberField
+                        id={`${formFieldId}-points-bonus`}
+                        required
+                        inputMode="numeric"
+                        value={pointsBonus}
+                        onChange={(e) => setPointsBonus(e.target.value)}
+                      />
+                    </FormField>
+                  ) : null}
+                  {type === "SPEND_THRESHOLD_BONUS" ? (
                     <FormField
                       id={`${formFieldId}-threshold-minor`}
                       label={t("tenantLoyalty.campaigns.fieldMinSpend")}
@@ -439,8 +449,29 @@ export function TenantCampaignsPage() {
                         onChange={(e) => setThresholdMinor(e.target.value)}
                       />
                     </FormField>
+                  ) : null}
+                  {type === "FIRST_VISIT_BONUS" ? (
+                    <FormField
+                      id={`${formFieldId}-first-visit`}
+                      label={t("tenantLoyalty.campaigns.fieldFirstVisitBonus")}
+                      required
+                    >
+                      <NumberField
+                        id={`${formFieldId}-first-visit`}
+                        required
+                        inputMode="numeric"
+                        value={firstVisitBonus}
+                        onChange={(e) => setFirstVisitBonus(e.target.value)}
+                      />
+                    </FormField>
+                  ) : null}
+                  <div className={FORM_FIELD_GRID_FULL_CLASS}>
+                    <p className="loyalty-form-hint">{t("tenantLoyalty.campaigns.typeHint")}</p>
+                  </div>
+                  {type === "SPEND_THRESHOLD_BONUS" ? (
                     <FormField
                       id={`${formFieldId}-threshold-bonus`}
+                      className={FORM_FIELD_GRID_FULL_CLASS}
                       label={t("tenantLoyalty.campaigns.fieldThresholdBonus")}
                       required
                     >
@@ -452,31 +483,15 @@ export function TenantCampaignsPage() {
                         onChange={(e) => setThresholdBonusPts(e.target.value)}
                       />
                     </FormField>
-                  </>
-                ) : null}
-
-                {type === "FIRST_VISIT_BONUS" ? (
-                  <FormField
-                    id={`${formFieldId}-first-visit`}
-                    label={t("tenantLoyalty.campaigns.fieldFirstVisitBonus")}
-                    required
-                  >
-                    <NumberField
-                      id={`${formFieldId}-first-visit`}
-                      required
-                      inputMode="numeric"
-                      value={firstVisitBonus}
-                      onChange={(e) => setFirstVisitBonus(e.target.value)}
-                    />
-                  </FormField>
-                ) : null}
+                  ) : null}
+                </FormFieldGrid>
               </div>
 
               <div className="loyalty-form-section">
                 <h3 className="loyalty-form-section__title">
                   {t("tenantLoyalty.campaigns.sectionSchedule")}
                 </h3>
-                <div className="loyalty-schedule-grid">
+                <FormFieldGrid>
                   <FormField id={`${formFieldId}-start`} label={t("tenantLoyalty.campaigns.periodStart")}>
                     <DateTimeLocalField
                       id={`${formFieldId}-start`}
@@ -493,42 +508,53 @@ export function TenantCampaignsPage() {
                       aria-describedby={`${formFieldId}-schedule-hint`}
                     />
                   </FormField>
-                </div>
-                <p className="loyalty-form-hint" id={`${formFieldId}-schedule-hint`}>
-                  {t("tenantLoyalty.campaigns.scheduleHint")}
-                </p>
+                  <div className={FORM_FIELD_GRID_FULL_CLASS}>
+                    <p className="loyalty-form-hint" id={`${formFieldId}-schedule-hint`}>
+                      {t("tenantLoyalty.campaigns.scheduleHint")}
+                    </p>
+                  </div>
+                </FormFieldGrid>
               </div>
 
               <div className="loyalty-form-section">
                 <h3 className="loyalty-form-section__title">
                   {t("tenantLoyalty.campaigns.sectionStatus")}
                 </h3>
-                <FormField id={`${formFieldId}-status`} label={t("tenantLoyalty.campaigns.workflowStatus")}>
-                  <SelectField
+                <FormFieldGrid>
+                  <FormField
                     id={`${formFieldId}-status`}
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    aria-describedby={`${formFieldId}-status-hint`}
+                    label={t("tenantLoyalty.campaigns.workflowStatus")}
                   >
-                    {statusOptions.map((x) => (
-                      <option key={x} value={x}>
-                        {statusLabel(x, t)}
-                      </option>
-                    ))}
-                  </SelectField>
-                </FormField>
-                <p className="loyalty-form-hint" id={`${formFieldId}-status-hint`}>
-                  {t("tenantLoyalty.campaigns.statusHint")}
-                </p>
-                <label className="loyalty-form-toggle" htmlFor={`${formFieldId}-active`}>
-                  <input
-                    id={`${formFieldId}-active`}
-                    type="checkbox"
-                    checked={isActive}
-                    onChange={(e) => setIsActive(e.target.checked)}
-                  />
-                  <span>{t("tenantLoyalty.campaigns.activeInProgram")}</span>
-                </label>
+                    <SelectField
+                      id={`${formFieldId}-status`}
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      aria-describedby={`${formFieldId}-status-hint`}
+                    >
+                      {statusOptions.map((x) => (
+                        <option key={x} value={x}>
+                          {statusLabel(x, t)}
+                        </option>
+                      ))}
+                    </SelectField>
+                  </FormField>
+                  <div className="flex min-w-0 flex-col justify-end md:pt-[1.75rem]">
+                    <label className="loyalty-form-toggle" htmlFor={`${formFieldId}-active`}>
+                      <input
+                        id={`${formFieldId}-active`}
+                        type="checkbox"
+                        checked={isActive}
+                        onChange={(e) => setIsActive(e.target.checked)}
+                      />
+                      <span>{t("tenantLoyalty.campaigns.activeInProgram")}</span>
+                    </label>
+                  </div>
+                  <div className={FORM_FIELD_GRID_FULL_CLASS}>
+                    <p className="loyalty-form-hint" id={`${formFieldId}-status-hint`}>
+                      {t("tenantLoyalty.campaigns.statusHint")}
+                    </p>
+                  </div>
+                </FormFieldGrid>
               </div>
             </div>
           </div>

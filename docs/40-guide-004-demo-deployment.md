@@ -51,6 +51,8 @@ Pre-alpha demo ortamı: Debian VM üzerinde Docker Compose, PostgreSQL ayrı vol
 1. `infra/docker/.env.demo` içinde **`DATABASE_URL_DEMO`** (compose ağı: `postgres-demo`) ve **`DEMO_ADMIN_PASSWORD`**, **`DEMO_OPERATOR_PASSWORD`** (≥12 karakter).
 2. `./infra/scripts/seed-demo.sh`
 
+Bu işlem yalnızca **`seed-demo.ts`** (`db:seed:demo`) çalıştırır: ortam şifreli admin/işletme kullanıcıları ve `demo-cafe`. **Yerel `db:seed` ile gelen üç senaryolu kiracı** (`demo-small-cafe`, `demo-busy-cafe`, `demo-coffee-chain`) ve menü / müşteri / kampanya yığını **bu script’te yoktur**; ihtiyaç halinde ayrı süreç veya geliştirme veritabanı: [`41-ref-001-dev-seed-users.md`](./41-ref-001-dev-seed-users.md) (“İki seed akışı”).
+
 İsteğe bağlı e-postalar: `DEMO_ADMIN_EMAIL`, `DEMO_OPERATOR_EMAIL`.
 
 Yerel geliştirici makinede doğrudan Postgres’e bağlanıp seed çalıştırmak isterseniz: `DATABASE_URL=... npm run db:seed:demo -w api` (`apps/api`); `DATABASE_URL_SEED` artık `seed-demo.sh` için zorunlu değildir.

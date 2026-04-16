@@ -32,11 +32,25 @@
 - **`FormField`:** etiket tipografisi (`0.8125rem`, weight `600`), alt boşluk `gap: 0.35rem`, isteğe bağlı `hint` (`loyalty-form-hint` ile uyumlu), `error` (`pm-form-field__error`).
 - **Zorunlu alan:** `required` prop ile `*` gösterimi (`pm-form-field__req`).
 
+## Bölüm içi grid (`FormFieldGrid`)
+
+- **Bileşen:** `FormFieldGrid` — `grid-cols-1` mobilde, `md:grid-cols-2` masaüstünde; `gap-x-6` / `gap-y-4`.
+- **Tam genişlik satır:** `FormField` üzerinde `className={FORM_FIELD_GRID_FULL_CLASS}` (`md:col-span-2`) — ad, açıklama, bölüm ipucu.
+- **Stil:** `.pm-form-field-grid` içinde `pm-form-field` alt margin sıfır (boşluk grid `gap` ile).
+
 ## Modal form yoğunluğu
 
-- Bölüm başlıkları: `loyalty-form-section__title`.
-- Alanlar arası dikey ritim: `loyalty-form-section` içinde `pm-form-field` için `margin-bottom` (CSS’te tanımlı).
+- Bölüm başlıkları: `loyalty-form-section__title` veya `FormSection` bileşeni (aynı sınıflar).
+- Alanlar arası dikey ritim: `loyalty-form-section` içinde `pm-form-field` için `margin-bottom` (grid dışı); `loyalty-form-stack--relaxed` bölümler arası ayırıcı ve padding artırılmıştır.
+- Ödül / kampanya modalları: genişlik `max-width: min(42rem, 100vw - 2rem)`.
+- **Uzun modal (plan seçimi vb.):** kök `modal-card modal-card--form`; başlık `modal-card__head`, kaydırılan içerik `modal-card__body`, eylemler `modal-card__footer` — kaydırma yalnız gövdede; footer üst kenarı ince ayırıcı ile sabit kalır.
+
+## Uzun sayfa formları (`FormSection` + `FormFieldGrid`)
+
+- **Bölüm:** `FormSection` — tek tip bölüm başlığı ve üst/alt boşluk; gereksiz divider kullanma.
+- **İki kolon:** ilişkili kısa alanlar `FormFieldGrid` içinde; ad, açıklama, şablon gövdesi gibi tam genişlik alanlar `FORM_FIELD_GRID_FULL_CLASS`.
+- **Tekrarlayan etiketten kaçın:** bölüm başlığı zaten bağlamı veriyorsa, alt alanda yalnızca kontrol + `aria-label` yeterli olabilir.
 
 ---
 
-**Referans kod:** `apps/admin-web/src/components/form/`, `apps/admin-web/src/plus-shell.css` (`.loyalty-form-control`, `.pm-form-field`).
+**Referans kod:** `apps/admin-web/src/components/form/`, `apps/admin-web/src/plus-shell.css` (`.loyalty-form-control`, `.pm-form-field`, `.modal-card--form`).

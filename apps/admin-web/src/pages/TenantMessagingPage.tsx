@@ -1,7 +1,15 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { PageShell } from "../components/PageShell";
-import { TextAreaField } from "../components/form";
+import {
+  FORM_FIELD_GRID_FULL_CLASS,
+  FormField,
+  FormFieldGrid,
+  FormSection,
+  SelectField,
+  TextAreaField,
+  TextField,
+} from "../components/form";
 import { useTranslation } from "../hooks/useTranslation";
 import {
   getMessageTemplates,
@@ -110,102 +118,120 @@ export function TenantMessagingPage() {
             onSubmit={onSaveSettings}
             style={{ marginBottom: "1.25rem" }}
           >
-            <h3 className="gov-card__title" style={{ marginTop: 0 }}>
-              {t("tenantLoyalty.messaging.sectionSettings")}
-            </h3>
+            <h2 className="admin-app__card-title">{t("tenantLoyalty.messaging.sectionSettings")}</h2>
             <div className="loyalty-form-stack loyalty-form-stack--relaxed">
-              <label className="loyalty-form-toggle">
-                <input
-                  type="checkbox"
-                  checked={settings.smsEnabled}
-                  onChange={(e) =>
-                    setSettings({ ...settings, smsEnabled: e.target.checked })
-                  }
-                />
-                <span>{t("tenantLoyalty.messaging.smsEnabled")}</span>
-              </label>
-              <label className="loyalty-form-toggle">
-                <input
-                  type="checkbox"
-                  checked={settings.whatsappEnabled}
-                  onChange={(e) =>
-                    setSettings({ ...settings, whatsappEnabled: e.target.checked })
-                  }
-                />
-                <span>{t("tenantLoyalty.messaging.whatsappEnabled")}</span>
-              </label>
-              <label className="loyalty-form-toggle">
-                <input
-                  type="checkbox"
-                  checked={settings.allowFallbackChannel}
-                  onChange={(e) =>
-                    setSettings({ ...settings, allowFallbackChannel: e.target.checked })
-                  }
-                />
-                <span>{t("tenantLoyalty.messaging.allowFallback")}</span>
-              </label>
-              <label>
-                {t("tenantLoyalty.messaging.defaultChannel")}
-                <select
-                  className="loyalty-form-control loyalty-form-input"
-                  value={settings.defaultChannel}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      defaultChannel: e.target.value as MessagingSettingsDto["defaultChannel"],
-                    })
-                  }
-                >
-                  <option value="sms">SMS</option>
-                  <option value="whatsapp">WhatsApp</option>
-                </select>
-              </label>
-              <label>
-                {t("tenantLoyalty.messaging.timezone")}
-                <input
-                  className="loyalty-form-control loyalty-form-input"
-                  value={settings.timezone}
-                  onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
-                  placeholder="Europe/Istanbul"
-                />
-              </label>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-                <label>
-                  {t("tenantLoyalty.messaging.quietStart")}
+              <FormSection title={t("tenantLoyalty.messaging.sectionChannels")}>
+                <FormFieldGrid>
+                  <div className="min-w-0">
+                    <label className="loyalty-form-toggle">
+                      <input
+                        type="checkbox"
+                        checked={settings.smsEnabled}
+                        onChange={(e) =>
+                          setSettings({ ...settings, smsEnabled: e.target.checked })
+                        }
+                      />
+                      <span>{t("tenantLoyalty.messaging.smsEnabled")}</span>
+                    </label>
+                  </div>
+                  <div className="min-w-0">
+                    <label className="loyalty-form-toggle">
+                      <input
+                        type="checkbox"
+                        checked={settings.whatsappEnabled}
+                        onChange={(e) =>
+                          setSettings({ ...settings, whatsappEnabled: e.target.checked })
+                        }
+                      />
+                      <span>{t("tenantLoyalty.messaging.whatsappEnabled")}</span>
+                    </label>
+                  </div>
+                  <div className={FORM_FIELD_GRID_FULL_CLASS}>
+                    <label className="loyalty-form-toggle">
+                      <input
+                        type="checkbox"
+                        checked={settings.allowFallbackChannel}
+                        onChange={(e) =>
+                          setSettings({ ...settings, allowFallbackChannel: e.target.checked })
+                        }
+                      />
+                      <span>{t("tenantLoyalty.messaging.allowFallback")}</span>
+                    </label>
+                  </div>
+                </FormFieldGrid>
+              </FormSection>
+
+              <FormSection title={t("tenantLoyalty.messaging.sectionRouting")}>
+                <FormFieldGrid>
+                  <FormField id="messaging-default-channel" label={t("tenantLoyalty.messaging.defaultChannel")}>
+                    <SelectField
+                      id="messaging-default-channel"
+                      value={settings.defaultChannel}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          defaultChannel: e.target.value as MessagingSettingsDto["defaultChannel"],
+                        })
+                      }
+                    >
+                      <option value="sms">SMS</option>
+                      <option value="whatsapp">WhatsApp</option>
+                    </SelectField>
+                  </FormField>
+                  <FormField id="messaging-timezone" label={t("tenantLoyalty.messaging.timezone")}>
+                    <TextField
+                      id="messaging-timezone"
+                      value={settings.timezone}
+                      onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
+                      placeholder="Europe/Istanbul"
+                      autoComplete="off"
+                    />
+                  </FormField>
+                </FormFieldGrid>
+              </FormSection>
+
+              <FormSection title={t("tenantLoyalty.messaging.sectionQuietHours")}>
+                <FormFieldGrid>
+                  <FormField id="messaging-quiet-start" label={t("tenantLoyalty.messaging.quietStart")}>
+                    <TextField
+                      id="messaging-quiet-start"
+                      value={settings.quietHoursStart ?? ""}
+                      onChange={(e) =>
+                        setSettings({ ...settings, quietHoursStart: e.target.value || null })
+                      }
+                      placeholder="22:00"
+                      autoComplete="off"
+                    />
+                  </FormField>
+                  <FormField id="messaging-quiet-end" label={t("tenantLoyalty.messaging.quietEnd")}>
+                    <TextField
+                      id="messaging-quiet-end"
+                      value={settings.quietHoursEnd ?? ""}
+                      onChange={(e) =>
+                        setSettings({ ...settings, quietHoursEnd: e.target.value || null })
+                      }
+                      placeholder="08:00"
+                      autoComplete="off"
+                    />
+                  </FormField>
+                </FormFieldGrid>
+              </FormSection>
+
+              <FormSection title={t("tenantLoyalty.messaging.sectionSignIn")}>
+                <label className="loyalty-form-toggle">
                   <input
-                    className="loyalty-form-control loyalty-form-input"
-                    value={settings.quietHoursStart ?? ""}
+                    type="checkbox"
+                    checked={settings.requireVerifiedForSession}
                     onChange={(e) =>
-                      setSettings({ ...settings, quietHoursStart: e.target.value || null })
+                      setSettings({
+                        ...settings,
+                        requireVerifiedForSession: e.target.checked,
+                      })
                     }
-                    placeholder="22:00"
                   />
+                  <span>{t("tenantLoyalty.messaging.requireVerified")}</span>
                 </label>
-                <label>
-                  {t("tenantLoyalty.messaging.quietEnd")}
-                  <input
-                    className="loyalty-form-control loyalty-form-input"
-                    value={settings.quietHoursEnd ?? ""}
-                    onChange={(e) =>
-                      setSettings({ ...settings, quietHoursEnd: e.target.value || null })
-                    }
-                    placeholder="08:00"
-                  />
-                </label>
-              </div>
-              <label className="loyalty-form-toggle">
-                <input
-                  type="checkbox"
-                  checked={settings.requireVerifiedForSession}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      requireVerifiedForSession: e.target.checked,
-                    })
-                  }
-                />
-                <span>{t("tenantLoyalty.messaging.requireVerified")}</span>
-              </label>
+              </FormSection>
             </div>
             <div className="toolbar" style={{ marginTop: "1rem" }}>
               <button type="submit" className="admin-primary-btn" disabled={saving}>
@@ -215,9 +241,7 @@ export function TenantMessagingPage() {
           </form>
 
           <div className="admin-app__card admin-app__card--wide">
-            <h3 className="gov-card__title" style={{ marginTop: 0 }}>
-              {t("tenantLoyalty.messaging.sectionTemplates")}
-            </h3>
+            <h2 className="admin-app__card-title">{t("tenantLoyalty.messaging.sectionTemplates")}</h2>
             <p className="admin-app__card-text" style={{ marginBottom: "1rem" }}>
               {t("tenantLoyalty.messaging.templatesLead")}
             </p>
@@ -279,32 +303,37 @@ export function TenantMessagingPage() {
                 </h2>
               </div>
               <div className="loyalty-form-modal__body">
-                <p className="admin-app__card-text" style={{ marginTop: 0 }}>
+                <p className="admin-app__card-text loyalty-form-modal__lead">
                   {t("tenantLoyalty.messaging.editHint")}
                 </p>
-                <label className="loyalty-form-toggle">
-                  <input
-                    type="checkbox"
-                    checked={editEnabled}
-                    onChange={(e) => setEditEnabled(e.target.checked)}
-                  />
-                  <span>{t("tenantLoyalty.messaging.overrideActive")}</span>
-                </label>
-                <label>
-                  {t("tenantLoyalty.messaging.content")}
-                  <TextAreaField
-                    rows={5}
-                    sizeVariant="large"
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                    required
-                  />
-                </label>
-                {editing && editContent.length > 160 && editing.channel === "sms" ? (
-                  <p className="loyalty-form-hint" role="status">
-                    {t("tenantLoyalty.messaging.smsLengthWarning")}
-                  </p>
-                ) : null}
+                <div className="loyalty-form-stack loyalty-form-stack--relaxed">
+                  <FormSection title={t("tenantLoyalty.messaging.modalSectionOverride")}>
+                    <label className="loyalty-form-toggle">
+                      <input
+                        type="checkbox"
+                        checked={editEnabled}
+                        onChange={(e) => setEditEnabled(e.target.checked)}
+                      />
+                      <span>{t("tenantLoyalty.messaging.overrideActive")}</span>
+                    </label>
+                  </FormSection>
+                  <FormSection title={t("tenantLoyalty.messaging.content")}>
+                    <TextAreaField
+                      id="messaging-template-content"
+                      rows={5}
+                      sizeVariant="large"
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      required
+                      aria-label={t("tenantLoyalty.messaging.content")}
+                    />
+                    {editing && editContent.length > 160 && editing.channel === "sms" ? (
+                      <p className="loyalty-form-hint" role="status">
+                        {t("tenantLoyalty.messaging.smsLengthWarning")}
+                      </p>
+                    ) : null}
+                  </FormSection>
+                </div>
               </div>
               <div className="loyalty-form-modal__footer">
                 <button

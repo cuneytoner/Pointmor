@@ -5,7 +5,9 @@ import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useTranslation } from "../hooks/useTranslation";
 import {
+  FORM_FIELD_GRID_FULL_CLASS,
   FormField,
+  FormFieldGrid,
   NumberField,
   SelectField,
   TextField,
@@ -253,97 +255,108 @@ export function TenantRewardsPage() {
                 <h3 className="loyalty-form-section__title">
                   {t("tenantLoyalty.rewards.sectionBasic")}
                 </h3>
-                <FormField id={`${fid}-name`} label={t("tenantLoyalty.rewards.name")} required>
-                  <TextField
+                <FormFieldGrid>
+                  <FormField
                     id={`${fid}-name`}
+                    className={FORM_FIELD_GRID_FULL_CLASS}
+                    label={t("tenantLoyalty.rewards.name")}
                     required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    autoComplete="off"
-                  />
-                </FormField>
-                <FormField id={`${fid}-desc`} label={t("tenantLoyalty.rewards.descriptionField")}>
-                  <TextField
+                  >
+                    <TextField
+                      id={`${fid}-name`}
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      autoComplete="off"
+                    />
+                  </FormField>
+                  <FormField
                     id={`${fid}-desc`}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder={t("tenantLoyalty.rewards.descriptionPlaceholder")}
-                  />
-                </FormField>
+                    className={FORM_FIELD_GRID_FULL_CLASS}
+                    label={t("tenantLoyalty.rewards.descriptionField")}
+                  >
+                    <TextField
+                      id={`${fid}-desc`}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder={t("tenantLoyalty.rewards.descriptionPlaceholder")}
+                    />
+                  </FormField>
+                </FormFieldGrid>
               </div>
 
               <div className="loyalty-form-section">
                 <h3 className="loyalty-form-section__title">
                   {t("tenantLoyalty.rewards.sectionType")}
                 </h3>
-                <FormField id={`${fid}-type`} label={t("tenantLoyalty.rewards.type")}>
-                  <SelectField
-                    id={`${fid}-type`}
-                    value={rewardType}
-                    onChange={(e) => applyRewardType(e.target.value as RewardTypeId, true)}
-                  >
-                    {REWARD_TYPES.map((x) => (
-                      <option key={x} value={x}>
-                        {t(`tenantLoyalty.rewards.types.${x}` as const)}
-                      </option>
-                    ))}
-                  </SelectField>
-                </FormField>
-                <p className="loyalty-form-hint">{t("tenantLoyalty.rewards.typeHint")}</p>
-
-                {rewardType === "FIXED_DISCOUNT" ? (
+                <FormFieldGrid>
+                  <FormField id={`${fid}-type`} label={t("tenantLoyalty.rewards.type")}>
+                    <SelectField
+                      id={`${fid}-type`}
+                      value={rewardType}
+                      onChange={(e) => applyRewardType(e.target.value as RewardTypeId, true)}
+                    >
+                      {REWARD_TYPES.map((x) => (
+                        <option key={x} value={x}>
+                          {t(`tenantLoyalty.rewards.types.${x}` as const)}
+                        </option>
+                      ))}
+                    </SelectField>
+                  </FormField>
                   <FormField
-                    id={`${fid}-val`}
-                    label={t("tenantLoyalty.rewards.discountAmount")}
+                    id={`${fid}-points`}
+                    label={t("tenantLoyalty.rewards.pointsCost")}
                     required
-                    hint={t("tenantLoyalty.rewards.minorUnitsHint")}
+                    hint={t("tenantLoyalty.rewards.pointsCostHelp")}
                   >
                     <NumberField
-                      id={`${fid}-val`}
+                      id={`${fid}-points`}
                       required
                       inputMode="numeric"
-                      value={value}
-                      onChange={(e) => setValue(e.target.value)}
+                      value={pointsCost}
+                      onChange={(e) => setPointsCost(e.target.value)}
                     />
                   </FormField>
-                ) : null}
+                  <div className={FORM_FIELD_GRID_FULL_CLASS}>
+                    <p className="loyalty-form-hint">{t("tenantLoyalty.rewards.typeHint")}</p>
+                  </div>
 
-                {rewardType === "PERCENT_DISCOUNT" ? (
-                  <FormField
-                    id={`${fid}-pct`}
-                    label={t("tenantLoyalty.rewards.percentLabel")}
-                    required
-                    hint={t("tenantLoyalty.rewards.percentHint")}
-                  >
-                    <NumberField
-                      id={`${fid}-pct`}
+                  {rewardType === "FIXED_DISCOUNT" ? (
+                    <FormField
+                      id={`${fid}-val`}
+                      className={FORM_FIELD_GRID_FULL_CLASS}
+                      label={t("tenantLoyalty.rewards.discountAmount")}
                       required
-                      inputMode="decimal"
-                      value={percentStr}
-                      onChange={(e) => setPercentStr(e.target.value)}
-                    />
-                  </FormField>
-                ) : null}
-              </div>
+                      hint={t("tenantLoyalty.rewards.minorUnitsHint")}
+                    >
+                      <NumberField
+                        id={`${fid}-val`}
+                        required
+                        inputMode="numeric"
+                        value={value}
+                        onChange={(e) => setValue(e.target.value)}
+                      />
+                    </FormField>
+                  ) : null}
 
-              <div className="loyalty-form-section">
-                <h3 className="loyalty-form-section__title">
-                  {t("tenantLoyalty.rewards.sectionCost")}
-                </h3>
-                <FormField
-                  id={`${fid}-points`}
-                  label={t("tenantLoyalty.rewards.pointsCost")}
-                  required
-                  hint={t("tenantLoyalty.rewards.pointsCostHelp")}
-                >
-                  <NumberField
-                    id={`${fid}-points`}
-                    required
-                    inputMode="numeric"
-                    value={pointsCost}
-                    onChange={(e) => setPointsCost(e.target.value)}
-                  />
-                </FormField>
+                  {rewardType === "PERCENT_DISCOUNT" ? (
+                    <FormField
+                      id={`${fid}-pct`}
+                      className={FORM_FIELD_GRID_FULL_CLASS}
+                      label={t("tenantLoyalty.rewards.percentLabel")}
+                      required
+                      hint={t("tenantLoyalty.rewards.percentHint")}
+                    >
+                      <NumberField
+                        id={`${fid}-pct`}
+                        required
+                        inputMode="decimal"
+                        value={percentStr}
+                        onChange={(e) => setPercentStr(e.target.value)}
+                      />
+                    </FormField>
+                  ) : null}
+                </FormFieldGrid>
               </div>
 
               <div className="loyalty-form-section">

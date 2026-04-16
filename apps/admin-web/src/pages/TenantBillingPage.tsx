@@ -4,6 +4,7 @@ import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocale } from "../contexts/LocaleContext";
 import { PageShell } from "../components/PageShell";
+import { FORM_FIELD_GRID_FULL_CLASS, FormField, FormFieldGrid, FormSection, SelectField } from "../components/form";
 import { useTranslation } from "../hooks/useTranslation";
 import { toIntlLocale } from "../lib/locale-intl";
 import { postDemoPlanSwitch } from "../lib/entitlements-api";
@@ -232,31 +233,42 @@ export function TenantBillingPage() {
       {upgradeOpen ? (
         <div className="modal-backdrop" role="presentation" onClick={() => !busy && setUpgradeOpen(false)}>
           <div
-            className="modal-card"
+            className="modal-card modal-card--form"
             role="dialog"
             aria-labelledby="upgrade-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="upgrade-title" className="billing-h2">
-              {t("plan.upgrade.modalTitle")}
-            </h2>
-            <p className="admin-app__card-text">{t("plan.upgrade.modalHint")}</p>
-            <label className="billing-select-label">
-              <span>{t("plan.upgrade.pickPlan")}</span>
-              <select
-                className="billing-select"
-                value={pickSlug}
-                onChange={(e) => setPickSlug(e.target.value)}
-                disabled={busy}
-              >
-                {planChoices.map((p) => (
-                  <option key={p.id} value={p.slug}>
-                    {p.name} ({p.slug})
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="billing-modal-actions">
+            <div className="modal-card__head">
+              <h2 id="upgrade-title" className="billing-h2">
+                {t("plan.upgrade.modalTitle")}
+              </h2>
+              <p className="admin-app__card-text">{t("plan.upgrade.modalHint")}</p>
+            </div>
+            <div className="modal-card__body">
+              <FormSection title={t("plan.upgrade.sectionPlan")}>
+                <FormFieldGrid>
+                  <FormField
+                    id="billing-upgrade-plan"
+                    className={FORM_FIELD_GRID_FULL_CLASS}
+                    label={t("plan.upgrade.pickPlan")}
+                  >
+                    <SelectField
+                      id="billing-upgrade-plan"
+                      value={pickSlug}
+                      onChange={(e) => setPickSlug(e.target.value)}
+                      disabled={busy}
+                    >
+                      {planChoices.map((p) => (
+                        <option key={p.id} value={p.slug}>
+                          {p.name} ({p.slug})
+                        </option>
+                      ))}
+                    </SelectField>
+                  </FormField>
+                </FormFieldGrid>
+              </FormSection>
+            </div>
+            <div className="modal-card__footer billing-modal-actions">
               <button type="button" className="admin-secondary-btn" onClick={() => setUpgradeOpen(false)} disabled={busy}>
                 {t("common.cancel")}
               </button>

@@ -31,7 +31,7 @@ Bu doküman, projeye ölçeklenebilir test katmanlarını tanımlar. Henüz otom
 
 - **Origin:** `localhost` ile `127.0.0.1` farklı origin sayılır; localStorage paylaşılmaz. Testleri tek adreste yürütün.
 - **`.env`:** Repoda yok; `.env.example` ve ekip içi güvenli kanaldan gerçek değerler.
-- **API seed kullanıcıları (admin / paid / free):** [`41-ref-001-dev-seed-users.md`](./41-ref-001-dev-seed-users.md).
+- **API seed:** platform admin, `demo-cafe` işletme kullanıcısı ve isteğe bağlı üç senaryolu kiracı — [`41-ref-001-dev-seed-users.md`](./41-ref-001-dev-seed-users.md) (kimlikler ve veri envanteri).
 
 ## Gelecek (ürün olgunlaştıkça)
 

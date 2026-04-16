@@ -1,7 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { PageShell } from "../components/PageShell";
-import { FORM_CONTROL_CLASS, NUMERIC_COMPACT_CONTROL_CLASS } from "../components/form";
+import { FormField, NumberField, SelectField, TextField } from "../components/form";
 import { useTranslation } from "../hooks/useTranslation";
 import {
   deleteMenuCategory,
@@ -332,40 +332,45 @@ export function TenantMenuPage() {
             </h2>
           </div>
           <div className="loyalty-form-modal__body">
-            <label>
-              {t("tenantMenu.name")}
-              <input
-                required
-                className={FORM_CONTROL_CLASS}
-                value={catName}
-                onChange={(e) => setCatName(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantMenu.description")}
-              <input
-                className={FORM_CONTROL_CLASS}
-                value={catDesc}
-                onChange={(e) => setCatDesc(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantMenu.sortOrder")}
-              <input
-                className={NUMERIC_COMPACT_CONTROL_CLASS}
-                inputMode="numeric"
-                value={catOrder}
-                onChange={(e) => setCatOrder(e.target.value)}
-              />
-            </label>
-            <label className="loyalty-form-toggle">
-              <input
-                type="checkbox"
-                checked={catActive}
-                onChange={(e) => setCatActive(e.target.checked)}
-              />
-              <span>{t("tenantMenu.active")}</span>
-            </label>
+            <div className="loyalty-form-stack loyalty-form-stack--relaxed">
+              <div className="loyalty-form-section">
+                <FormField id="menu-cat-name" label={t("tenantMenu.name")} required>
+                  <TextField
+                    id="menu-cat-name"
+                    required
+                    value={catName}
+                    onChange={(e) => setCatName(e.target.value)}
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField id="menu-cat-desc" label={t("tenantMenu.description")}>
+                  <TextField
+                    id="menu-cat-desc"
+                    value={catDesc}
+                    onChange={(e) => setCatDesc(e.target.value)}
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField id="menu-cat-order" label={t("tenantMenu.sortOrder")}>
+                  <NumberField
+                    id="menu-cat-order"
+                    inputMode="numeric"
+                    value={catOrder}
+                    onChange={(e) => setCatOrder(e.target.value)}
+                  />
+                </FormField>
+              </div>
+              <div className="loyalty-form-section">
+                <label className="loyalty-form-toggle">
+                  <input
+                    type="checkbox"
+                    checked={catActive}
+                    onChange={(e) => setCatActive(e.target.checked)}
+                  />
+                  <span>{t("tenantMenu.active")}</span>
+                </label>
+              </div>
+            </div>
           </div>
           <div className="loyalty-form-modal__footer">
             <button
@@ -390,82 +395,85 @@ export function TenantMenuPage() {
             </h2>
           </div>
           <div className="loyalty-form-modal__body">
-            <label>
-              {t("tenantMenu.category")}
-              <select
-                required
-                className={FORM_CONTROL_CLASS}
-                value={itemCategoryId}
-                onChange={(e) => setItemCategoryId(e.target.value)}
-              >
-                {(categories ?? []).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              {t("tenantMenu.name")}
-              <input
-                required
-                className={FORM_CONTROL_CLASS}
-                value={itemName}
-                onChange={(e) => setItemName(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantMenu.description")}
-              <input
-                className={FORM_CONTROL_CLASS}
-                value={itemDesc}
-                onChange={(e) => setItemDesc(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantMenu.price")}
-              <input
-                required
-                className={FORM_CONTROL_CLASS}
-                inputMode="decimal"
-                value={itemPrice}
-                onChange={(e) => setItemPrice(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantMenu.currency")}
-              <input
-                className={FORM_CONTROL_CLASS}
-                placeholder={defaultCurrency}
-                value={itemCurrency}
-                onChange={(e) => setItemCurrency(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantMenu.imageUrl")}
-              <input
-                className={FORM_CONTROL_CLASS}
-                value={itemImage}
-                onChange={(e) => setItemImage(e.target.value)}
-              />
-            </label>
-            <label>
-              {t("tenantMenu.sortOrder")}
-              <input
-                className={NUMERIC_COMPACT_CONTROL_CLASS}
-                inputMode="numeric"
-                value={itemOrder}
-                onChange={(e) => setItemOrder(e.target.value)}
-              />
-            </label>
-            <label className="loyalty-form-toggle">
-              <input
-                type="checkbox"
-                checked={itemActive}
-                onChange={(e) => setItemActive(e.target.checked)}
-              />
-              <span>{t("tenantMenu.active")}</span>
-            </label>
+            <div className="loyalty-form-stack loyalty-form-stack--relaxed">
+              <div className="loyalty-form-section">
+                <FormField id="menu-item-category" label={t("tenantMenu.category")} required>
+                  <SelectField
+                    id="menu-item-category"
+                    required
+                    value={itemCategoryId}
+                    onChange={(e) => setItemCategoryId(e.target.value)}
+                  >
+                    {(categories ?? []).map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </SelectField>
+                </FormField>
+                <FormField id="menu-item-name" label={t("tenantMenu.name")} required>
+                  <TextField
+                    id="menu-item-name"
+                    required
+                    value={itemName}
+                    onChange={(e) => setItemName(e.target.value)}
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField id="menu-item-desc" label={t("tenantMenu.description")}>
+                  <TextField
+                    id="menu-item-desc"
+                    value={itemDesc}
+                    onChange={(e) => setItemDesc(e.target.value)}
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField id="menu-item-price" label={t("tenantMenu.price")} required>
+                  <TextField
+                    id="menu-item-price"
+                    required
+                    inputMode="decimal"
+                    value={itemPrice}
+                    onChange={(e) => setItemPrice(e.target.value)}
+                  />
+                </FormField>
+                <FormField id="menu-item-currency" label={t("tenantMenu.currency")}>
+                  <TextField
+                    id="menu-item-currency"
+                    placeholder={defaultCurrency}
+                    value={itemCurrency}
+                    onChange={(e) => setItemCurrency(e.target.value)}
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField id="menu-item-image" label={t("tenantMenu.imageUrl")}>
+                  <TextField
+                    id="menu-item-image"
+                    value={itemImage}
+                    onChange={(e) => setItemImage(e.target.value)}
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField id="menu-item-order" label={t("tenantMenu.sortOrder")}>
+                  <NumberField
+                    id="menu-item-order"
+                    inputMode="numeric"
+                    value={itemOrder}
+                    onChange={(e) => setItemOrder(e.target.value)}
+                  />
+                </FormField>
+              </div>
+              <div className="loyalty-form-section">
+                <label className="loyalty-form-toggle">
+                  <input
+                    type="checkbox"
+                    checked={itemActive}
+                    onChange={(e) => setItemActive(e.target.checked)}
+                  />
+                  <span>{t("tenantMenu.active")}</span>
+                </label>
+              </div>
+            </div>
           </div>
           <div className="loyalty-form-modal__footer">
             <button

@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "../hooks/useTranslation";
 import { PageShell } from "../components/PageShell";
+import {
+  FORM_CONTROL_CLASS,
+  FORM_FIELD_GRID_FULL_CLASS,
+  FormField,
+  FormFieldGrid,
+  TextAreaField,
+  TextField,
+} from "../components/form";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { useAuth } from "../contexts/AuthContext";
 import { getStoreSettings, putStoreSettings, type StoreSettingsDto } from "../lib/store-settings-api";
@@ -144,137 +152,150 @@ export function TenantSettingsPage() {
         {loading || !form ? (
           <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
         ) : (
-          <div className="tenant-store-form">
-            <label className="admin-field">
-              <span>{t("tenantSettings.store.storeName")}</span>
-              <input
-                className="admin-input"
-                value={form.storeName}
-                onChange={(e) => setForm((f) => (f ? { ...f, storeName: e.target.value } : f))}
-              />
-            </label>
-            <label className="admin-field">
-              <span>{t("tenantSettings.store.logoUrl")}</span>
-              <input
-                className="admin-input"
-                value={form.logoUrl ?? ""}
-                onChange={(e) =>
-                  setForm((f) => (f ? { ...f, logoUrl: e.target.value || null } : f))
-                }
-              />
-            </label>
-            <label className="admin-field">
-              <span>{t("tenantSettings.store.primaryColor")}</span>
-              <input
-                type="color"
-                className="admin-input admin-input--color"
-                value={form.primaryColor}
-                onChange={(e) =>
-                  setForm((f) => (f ? { ...f, primaryColor: e.target.value } : f))
-                }
-              />
-            </label>
-            <label className="admin-field">
-              <span>{t("tenantSettings.store.defaultLanguage")}</span>
-              <input
-                className="admin-input"
-                value={form.defaultLanguage}
-                onChange={(e) =>
-                  setForm((f) => (f ? { ...f, defaultLanguage: e.target.value } : f))
-                }
-              />
-            </label>
-            <label className="admin-field">
-              <span>{t("tenantSettings.store.supportedLanguages")}</span>
-              <input
-                className="admin-input"
-                value={form.supportedLanguages.join(",")}
-                onChange={(e) =>
-                  setForm((f) =>
-                    f
-                      ? {
-                          ...f,
-                          supportedLanguages: e.target.value
-                            .split(",")
-                            .map((s) => s.trim().toLowerCase())
-                            .filter(Boolean),
-                        }
-                      : f,
-                  )
-                }
-              />
-            </label>
-            <label className="admin-field">
-              <span>{t("tenantSettings.store.currency")}</span>
-              <input
-                className="admin-input"
-                maxLength={3}
-                value={form.currency}
-                onChange={(e) =>
-                  setForm((f) => (f ? { ...f, currency: e.target.value } : f))
-                }
-              />
-            </label>
-            <label className="admin-field">
-              <span>{t("tenantSettings.store.timezone")}</span>
-              <input
-                className="admin-input"
-                value={form.timezone}
-                onChange={(e) =>
-                  setForm((f) => (f ? { ...f, timezone: e.target.value } : f))
-                }
-              />
-            </label>
-            <label className="admin-field">
-              <span>{t("tenantSettings.store.addressJson")}</span>
-              <textarea
-                className="admin-input admin-input--textarea"
-                rows={4}
-                value={addressText}
-                onChange={(e) => setAddressText(e.target.value)}
-              />
-            </label>
-            <label className="admin-field">
-              <span>{t("tenantSettings.store.contactPhone")}</span>
-              <input
-                className="admin-input"
-                value={form.contactPhone ?? ""}
-                onChange={(e) =>
-                  setForm((f) => (f ? { ...f, contactPhone: e.target.value || null } : f))
-                }
-              />
-            </label>
-            <label className="admin-field">
-              <span>{t("tenantSettings.store.contactEmail")}</span>
-              <input
-                className="admin-input"
-                type="email"
-                value={form.contactEmail ?? ""}
-                onChange={(e) =>
-                  setForm((f) => (f ? { ...f, contactEmail: e.target.value || null } : f))
-                }
-              />
-            </label>
-            <label className="admin-field admin-field--inline">
-              <input
-                type="checkbox"
-                checked={form.loyaltyPublicEnabled}
-                onChange={(e) =>
-                  setForm((f) => (f ? { ...f, loyaltyPublicEnabled: e.target.checked } : f))
-                }
-              />
-              <span>{t("tenantSettings.store.loyaltyPublic")}</span>
-            </label>
-            <label className="admin-field admin-field--inline">
-              <input
-                type="checkbox"
-                checked={form.menuPublicEnabled}
-                onChange={(e) =>
-                  setForm((f) => (f ? { ...f, menuPublicEnabled: e.target.checked } : f))
-                }
-              />
-              <span>{t("tenantSettings.store.menuPublic")}</span>
-            </label>
+          <div className="loyalty-form-stack loyalty-form-stack--relaxed tenant-store-form">
+            <div className="loyalty-form-section">
+              <FormFieldGrid>
+                <FormField id="ts-store-name" label={t("tenantSettings.store.storeName")}>
+                  <TextField
+                    id="ts-store-name"
+                    value={form.storeName}
+                    onChange={(e) => setForm((f) => (f ? { ...f, storeName: e.target.value } : f))}
+                    autoComplete="organization"
+                  />
+                </FormField>
+                <FormField id="ts-logo" label={t("tenantSettings.store.logoUrl")}>
+                  <TextField
+                    id="ts-logo"
+                    value={form.logoUrl ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => (f ? { ...f, logoUrl: e.target.value || null } : f))
+                    }
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField id="ts-color" label={t("tenantSettings.store.primaryColor")}>
+                  <input
+                    id="ts-color"
+                    type="color"
+                    className={`${FORM_CONTROL_CLASS} h-10 max-w-[5.5rem] cursor-pointer p-1`}
+                    value={form.primaryColor}
+                    onChange={(e) =>
+                      setForm((f) => (f ? { ...f, primaryColor: e.target.value } : f))
+                    }
+                  />
+                </FormField>
+                <FormField id="ts-lang" label={t("tenantSettings.store.defaultLanguage")}>
+                  <TextField
+                    id="ts-lang"
+                    value={form.defaultLanguage}
+                    onChange={(e) =>
+                      setForm((f) => (f ? { ...f, defaultLanguage: e.target.value } : f))
+                    }
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField
+                  id="ts-supported"
+                  className={FORM_FIELD_GRID_FULL_CLASS}
+                  label={t("tenantSettings.store.supportedLanguages")}
+                >
+                  <TextField
+                    id="ts-supported"
+                    value={form.supportedLanguages.join(",")}
+                    onChange={(e) =>
+                      setForm((f) =>
+                        f
+                          ? {
+                              ...f,
+                              supportedLanguages: e.target.value
+                                .split(",")
+                                .map((s) => s.trim().toLowerCase())
+                                .filter(Boolean),
+                            }
+                          : f,
+                      )
+                    }
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField id="ts-currency" label={t("tenantSettings.store.currency")}>
+                  <TextField
+                    id="ts-currency"
+                    maxLength={3}
+                    value={form.currency}
+                    onChange={(e) =>
+                      setForm((f) => (f ? { ...f, currency: e.target.value } : f))
+                    }
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField id="ts-tz" label={t("tenantSettings.store.timezone")}>
+                  <TextField
+                    id="ts-tz"
+                    value={form.timezone}
+                    onChange={(e) =>
+                      setForm((f) => (f ? { ...f, timezone: e.target.value } : f))
+                    }
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField
+                  id="ts-address"
+                  className={FORM_FIELD_GRID_FULL_CLASS}
+                  label={t("tenantSettings.store.addressJson")}
+                >
+                  <TextAreaField
+                    id="ts-address"
+                    rows={4}
+                    value={addressText}
+                    onChange={(e) => setAddressText(e.target.value)}
+                  />
+                </FormField>
+                <FormField id="ts-phone" label={t("tenantSettings.store.contactPhone")}>
+                  <TextField
+                    id="ts-phone"
+                    value={form.contactPhone ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => (f ? { ...f, contactPhone: e.target.value || null } : f))
+                    }
+                    autoComplete="tel"
+                  />
+                </FormField>
+                <FormField id="ts-email" label={t("tenantSettings.store.contactEmail")}>
+                  <TextField
+                    id="ts-email"
+                    type="email"
+                    value={form.contactEmail ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => (f ? { ...f, contactEmail: e.target.value || null } : f))
+                    }
+                    autoComplete="email"
+                  />
+                </FormField>
+                <div className={`${FORM_FIELD_GRID_FULL_CLASS} flex flex-col gap-3 sm:flex-row`}>
+                  <label className="loyalty-form-toggle">
+                    <input
+                      type="checkbox"
+                      checked={form.loyaltyPublicEnabled}
+                      onChange={(e) =>
+                        setForm((f) => (f ? { ...f, loyaltyPublicEnabled: e.target.checked } : f))
+                      }
+                    />
+                    <span>{t("tenantSettings.store.loyaltyPublic")}</span>
+                  </label>
+                  <label className="loyalty-form-toggle">
+                    <input
+                      type="checkbox"
+                      checked={form.menuPublicEnabled}
+                      onChange={(e) =>
+                        setForm((f) => (f ? { ...f, menuPublicEnabled: e.target.checked } : f))
+                      }
+                    />
+                    <span>{t("tenantSettings.store.menuPublic")}</span>
+                  </label>
+                </div>
+              </FormFieldGrid>
+            </div>
             <div className="tenant-store-form__actions">
               <button
                 type="button"
