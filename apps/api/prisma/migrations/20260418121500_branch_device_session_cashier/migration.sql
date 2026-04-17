@@ -77,18 +77,18 @@ ALTER TABLE "Campaign" ADD CONSTRAINT "Campaign_branchId_fkey" FOREIGN KEY ("bra
 CREATE INDEX IF NOT EXISTS "Visit_tenantId_branchId_idx" ON "Visit"("tenantId", "branchId");
 CREATE INDEX IF NOT EXISTS "Campaign_tenantId_branchId_idx" ON "Campaign"("tenantId", "branchId");
 
+ALTER TABLE "Visit" ADD COLUMN "deviceSessionId" TEXT;
+ALTER TABLE "Visit" ADD COLUMN "cashierShiftId" TEXT;
+
+ALTER TABLE "Redemption" ADD COLUMN "deviceSessionId" TEXT;
+ALTER TABLE "Redemption" ADD COLUMN "cashierShiftId" TEXT;
+
 UPDATE "Visit" v
 SET "branchId" = ds."branchId"
 FROM "DeviceSession" ds
 WHERE v."deviceSessionId" = ds."id"
   AND v."branchId" IS NULL
   AND ds."branchId" IS NOT NULL;
-
-ALTER TABLE "Visit" ADD COLUMN "deviceSessionId" TEXT;
-ALTER TABLE "Visit" ADD COLUMN "cashierShiftId" TEXT;
-
-ALTER TABLE "Redemption" ADD COLUMN "deviceSessionId" TEXT;
-ALTER TABLE "Redemption" ADD COLUMN "cashierShiftId" TEXT;
 
 CREATE INDEX "Visit_cashierShiftId_idx" ON "Visit"("cashierShiftId");
 CREATE INDEX "Visit_deviceSessionId_idx" ON "Visit"("deviceSessionId");
