@@ -59,6 +59,31 @@ ALTER TABLE "CashierShift" ADD CONSTRAINT "CashierShift_tenantId_fkey" FOREIGN K
 ALTER TABLE "CashierShift" ADD CONSTRAINT "CashierShift_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "CashierShift" ADD CONSTRAINT "CashierShift_deviceSessionId_fkey" FOREIGN KEY ("deviceSessionId") REFERENCES "DeviceSession"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
+-- 20260417190000_multi_location_franchise migration'ından taşınan Branch bağlı genişletmeler
+ALTER TABLE "Branch" ADD COLUMN IF NOT EXISTS "address" JSONB;
+ALTER TABLE "Branch" ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "Visit" ADD COLUMN IF NOT EXISTS "branchId" TEXT;
+ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "branchId" TEXT;
+
+ALTER TABLE "UserBranchAccess" DROP CONSTRAINT IF EXISTS "UserBranchAccess_branchId_fkey";
+ALTER TABLE "UserBranchAccess" ADD CONSTRAINT "UserBranchAccess_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "Visit" DROP CONSTRAINT IF EXISTS "Visit_branchId_fkey";
+ALTER TABLE "Visit" ADD CONSTRAINT "Visit_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE "Campaign" DROP CONSTRAINT IF EXISTS "Campaign_branchId_fkey";
+ALTER TABLE "Campaign" ADD CONSTRAINT "Campaign_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+CREATE INDEX IF NOT EXISTS "Visit_tenantId_branchId_idx" ON "Visit"("tenantId", "branchId");
+CREATE INDEX IF NOT EXISTS "Campaign_tenantId_branchId_idx" ON "Campaign"("tenantId", "branchId");
+
+UPDATE "Visit" v
+SET "branchId" = ds."branchId"
+FROM "DeviceSession" ds
+WHERE v."deviceSessionId" = ds."id"
+  AND v."branchId" IS NULL
+  AND ds."branchId" IS NOT NULL;
+
 ALTER TABLE "Visit" ADD COLUMN "deviceSessionId" TEXT;
 ALTER TABLE "Visit" ADD COLUMN "cashierShiftId" TEXT;
 
