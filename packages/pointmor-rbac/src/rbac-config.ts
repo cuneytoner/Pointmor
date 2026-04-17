@@ -40,6 +40,14 @@ export const TENANT_PERMISSIONS = [
   "menu.view",
   "menu.manage",
   "automation.run",
+  /** Operasyonel audit CSV/PDF — yalnızca owner. */
+  "audit.export",
+  /** Loyalty / operasyon özeti PDF — manager + owner. */
+  "summary.export",
+  /** Anomali raporu PDF — manager + owner. */
+  "anomaly.export",
+  /** Tek müşteri GDPR veri dışa aktarımı — yalnızca owner. */
+  "gdpr.customer_export",
 ] as const;
 
 export type TenantPermission = (typeof TENANT_PERMISSIONS)[number];
@@ -51,9 +59,15 @@ function permSet(...items: TenantPermission[]): Set<TenantPermission> {
 }
 
 /** Rol → izin kümesi — tek doğruluk kaynağı. */
+const MANAGER_EXCLUDED: ReadonlySet<TenantPermission> = new Set([
+  "billing.manage",
+  "audit.export",
+  "gdpr.customer_export",
+]);
+
 const PERMISSIONS_BY_ROLE: Record<TenantAppRole, Set<TenantPermission>> = {
   owner: ALL,
-  manager: new Set(TENANT_PERMISSIONS.filter((p) => p !== "billing.manage")),
+  manager: new Set(TENANT_PERMISSIONS.filter((p) => !MANAGER_EXCLUDED.has(p))),
   staff: permSet(
     "customers.view",
     "customers.create",

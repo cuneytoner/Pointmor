@@ -196,7 +196,26 @@
       "planHint": "From subscription",
       "subscription": "Status",
       "subscriptionHint": "Billing lifecycle"
-    }
+    },
+    "complianceExports": "Compliance exports"
+  },
+  "compliance": {
+    "exportsHint": "Exports are permission-gated and redacted. Confirm each download.",
+    "exportSummaryPdfDay": "Summary PDF (today, UTC)",
+    "exportSummaryPdfWeek": "Summary PDF (7 days, UTC)",
+    "exportAuditCsv": "Audit CSV",
+    "exportAuditPdf": "Audit PDF (summary)",
+    "exportAnomalyPdf": "Anomaly PDF",
+    "exportConfirmSummaryPdf": "Download loyalty summary as PDF? Data is redacted for compliance.",
+    "exportConfirmAuditCsv": "Download audit events as CSV? Rows are redacted; no raw PII dump.",
+    "exportConfirmAuditPdf": "Download audit summary as PDF?",
+    "exportConfirmAnomalyPdf": "Download anomaly report as PDF?",
+    "exportFailed": "Could not complete the request.",
+    "sectionCustomer": "Data & privacy",
+    "gdprExport": "Download customer data (JSON)",
+    "anonymize": "Anonymize customer",
+    "anonymizeConfirm": "Anonymize this customer? Name and phone will be replaced; points reset. This cannot be undone.",
+    "anonymizeDone": "Customer anonymized."
   },
   "usage": {
     "upgradeCta": "View plans & upgrade"

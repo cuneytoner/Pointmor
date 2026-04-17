@@ -23,6 +23,7 @@ import { registerStoreSettingsRoutes } from "./routes/store-settings.js";
 import { registerTenantMenuRoutes } from "./routes/tenant-menu.js";
 import { registerPublicVerifyRoutes } from "./routes/public-verify.js";
 import { registerTenantMessagingRoutes } from "./routes/tenant-messaging.js";
+import { registerComplianceExportRoutes } from "./routes/compliance-exports.js";
 
 export type BuildAppOptions = {
   /** Testlerde konsol gürültüsünü kapatmak için (`false`). */
@@ -81,6 +82,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerStoreSettingsRoutes(app);
   await registerTenantMenuRoutes(app);
   await registerTenantMessagingRoutes(app);
+  await registerComplianceExportRoutes(app);
 
   const isProd = process.env.NODE_ENV === "production";
   app.setErrorHandler((error: unknown, request, reply) => {

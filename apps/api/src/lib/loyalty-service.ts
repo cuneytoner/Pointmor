@@ -1416,3 +1416,81 @@ export async function getLoyaltySummary(tenantId: string) {
     activeCampaigns,
   };
 }
+
+/** PDF özetleri: günlük (UTC bugün) veya son N gün (dahil) penceresi. */
+export async function getLoyaltySummaryForWindow(
+  tenantId: string,
+  mode: "day" | "week",
+) {
+  const now = new Date();
+  let start: Date;
+  let end: Date;
+  if (mode === "day") {
+    const r = utcDayRange();
+    start = r.start;
+    end = r.end;
+  } else {
+    const endNow = new Date();
+    start = new Date(endNow);
+    start.setUTCDate(start.getUTCDate() - 6);
+    start.setUTCHours(0, 0, 0, 0);
+    end = endNow;
+  }
+
+  const [
+    totalCustomers,
+    visitsInWindow,
+    pointsIssuedAgg,
+    redemptionsInWindow,
+    campaignRows,
+  ] = await Promise.all([
+    prisma.customer.count({ where: { tenantId } }),
+    prisma.visit.count({
+      where: {
+        tenantId,
+        createdAt:
+          mode === "day"
+            ? { gte: start, lt: end }
+            : { gte: start, lte: end },
+      },
+    }),
+    prisma.pointsLedger.aggregate({
+      where: {
+        tenantId,
+        type: "earn",
+        createdAt:
+          mode === "day"
+            ? { gte: start, lt: end }
+            : { gte: start, lte: end },
+      },
+      _sum: { points: true },
+    }),
+    prisma.redemption.count({
+      where: {
+        tenantId,
+        status: "completed",
+        createdAt:
+          mode === "day"
+            ? { gte: start, lt: end }
+            : { gte: start, lte: end },
+      },
+    }),
+    prisma.campaign.findMany({
+      where: { tenantId, isActive: true, status: "active" },
+    }),
+  ]);
+
+  const activeCampaigns = campaignRows.filter((c) => isCampaignRunnable(c, now))
+    .length;
+
+  return {
+    periodLabel: mode === "day" ? "utc_today" : "rolling_7d_utc",
+    windowStart: start.toISOString(),
+    windowEnd: end.toISOString(),
+    totalCustomers,
+    visitsInWindow,
+    pointsIssuedInWindow: pointsIssuedAgg._sum.points ?? 0,
+    redemptionsInWindow,
+    activeCampaigns,
+  };
+}

@@ -34,6 +34,17 @@ describe("RBAC matrix", () => {
     expect(hasPermissionForRole("staff", "billing.view")).toBe(false);
   });
 
+  it("export: staff yok; manager özet/anomali; owner tam + GDPR export", () => {
+    expect(hasPermissionForRole("staff", "audit.export")).toBe(false);
+    expect(hasPermissionForRole("staff", "summary.export")).toBe(false);
+    expect(hasPermissionForRole("manager", "summary.export")).toBe(true);
+    expect(hasPermissionForRole("manager", "anomaly.export")).toBe(true);
+    expect(hasPermissionForRole("manager", "audit.export")).toBe(false);
+    expect(hasPermissionForRole("manager", "gdpr.customer_export")).toBe(false);
+    expect(hasPermissionForRole("owner", "audit.export")).toBe(true);
+    expect(hasPermissionForRole("owner", "gdpr.customer_export")).toBe(true);
+  });
+
   it("ops has campaigns.manage and messaging but not redemptions.approve", () => {
     expect(hasPermissionForRole("ops", "campaigns.manage")).toBe(true);
     expect(hasPermissionForRole("ops", "messaging.manage")).toBe(true);

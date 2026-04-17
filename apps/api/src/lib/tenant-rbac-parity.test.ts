@@ -30,6 +30,12 @@ describe("hasPermissionForSession parity (UI ile aynı matris)", () => {
     expect(hasPermissionForSession(s, "billing.manage")).toBe(true);
   });
 
+  it("manager audit.export reddeder, summary.export verir", () => {
+    const s = tenantSession(TENANT_MEMBERSHIP_ROLES.manager);
+    expect(hasPermissionForSession(s, "audit.export")).toBe(false);
+    expect(hasPermissionForSession(s, "summary.export")).toBe(true);
+  });
+
   it("ops campaigns.manage verir, redemptions.approve reddeder", () => {
     const s = tenantSession(TENANT_MEMBERSHIP_ROLES.ops);
     expect(hasPermissionForSession(s, "campaigns.manage")).toBe(true);

@@ -52,52 +52,52 @@
     "visits": "Son ziyaretler",
     "rewards": "Ödüller",
     "rewardsTitle": "Ödüller",
-    "rewardsLead": "Kazandığınız puanlarla kullanın. Kasiyer kasada onaylar.",
+    "rewardsLead": "Kazandığınız puanları kullanın. Personel kasada onay verir.",
     "campaigns": "Kampanyalar",
-    "pendingClaims": "Kasiyer onayı bekleyen",
+    "pendingClaims": "Personel onayı bekleyen",
     "recentRedemptions": "Kullanılan",
-    "claim": "Ödül iste",
+    "claim": "Ödül talep et",
     "claiming": "Gönderiliyor…",
-    "claimNote": "İstekten sonra kasiyer pos’ta onaylar.",
-    "claimTitle": "Ödülü kullan",
-    "claimHint": "Kasiyerin görmesi için bu ekranı gösterin.",
-    "claimPendingCashier": "Kasiyer bekleniyor — referans:",
-    "startClaim": "Ödül iste",
+    "claimNote": "Talebin ardından personel kasada onay verir.",
+    "claimTitle": "Ödül kullan",
+    "claimHint": "Talebinizi onaylaması için bu ekranı personele gösterin.",
+    "claimPendingCashier": "Personel onayı bekleniyor — referans:",
+    "startClaim": "Ödül talep et",
     "rewardNotFound": "Ödül bulunamadı.",
     "backToRewards": "Ödüllere dön",
     "pointsCost": "{{n}} p",
-    "needMorePoints": "{{n}} puan daha — ödül kapıda",
+    "needMorePoints": "Kilidi açmak için {{n}} puan daha",
     "useReward": "Kullan",
     "showCashierScreen": "Kasiyer ekranı",
     "statusPending": "Beklemede",
     "ctaUseReward": "Ödül kullan",
-    "ctaActivity": "Hareketler",
+    "ctaActivity": "Aktivite",
     "seeAll": "Tümü",
     "navHome": "Ana sayfa",
     "navRewards": "Ödüller",
-    "navActivity": "Hareketler",
+    "navActivity": "Aktivite",
     "viewMenu": "Menüyü görüntüle",
     "navAria": "Müşteri bölümleri",
     "offlineStale": "Çevrimdışı — son kayıtlı veriler gösteriliyor.",
-    "activityTitle": "Hareketler",
+    "activityTitle": "Aktivite",
     "activityVisit": "Ziyaret",
-    "activityEmpty": "Henüz hareket yok.",
-    "activityFilterAria": "Hareket filtresi",
+    "activityEmpty": "Henüz aktivite yok.",
+    "activityFilterAria": "Aktiviteyi filtrele",
     "filterAll": "Tümü",
     "filterEarned": "Kazanılan",
     "filterRedeemed": "Kullanılan",
     "profileTitle": "Üyelik",
     "profileLead": "Bu cihazdaki son giriş bilgileri.",
-    "noRewards": "Uygun ödül yok.",
+    "noRewards": "Kullanılabilir ödül yok.",
     "noVisits": "Henüz ziyaret yok.",
-    "noVisitsYet": "Bir alışverişte puan biriktirmeye başlayın.",
+    "noVisitsYet": "Bir kez alışveriş yapın, puanlarınız burada görünsün.",
     "noCampaigns": "Aktif kampanya yok.",
     "loadError": "Yüklenemedi. Tekrar deneyin.",
-    "notFoundTenant": "Geçersiz mağaza bağlantısı.",
+    "notFoundTenant": "Bu işletme bağlantısı geçersiz.",
     "customerNotFound": "Bu numara için kayıt yok.",
     "insufficientPoints": "Yetersiz puan.",
-    "duplicatePendingClaim": "Bu ödül için zaten bekleyen bir talebiniz var. Kasiyer onayı bekleyin veya önce iptal edin.",
-    "celebrateGain": "+{{points}} p — ivme kazanıyorsunuz",
+    "duplicatePendingClaim": "Bu ödül için zaten bekleyen bir talebiniz var. Personelin onaylamasını bekleyin ya da önce talebi iptal edin.",
+    "celebrateGain": "+{{points}} p — puan kazandınız",
     "celebrateDismiss": "Harika",
     "visitSuccess": {
       "kicker": "Puan eklendi",
@@ -112,7 +112,7 @@
       "ctaRewards": "Ödüllere göz at",
       "closeAria": "Kapat"
     },
-    "almostFreeLine": "Bu kahve neredeyse bedava.",
+    "almostFreeLine": "Hedefe düşündüğünüzden daha yakınsınız.",
     "nextRewardTitle": "Sıradaki ödül",
     "nextRewardProgress": "%{{pct}} — {{name}}",
     "nextRewardPointsAway": "{{name}} için {{points}} puan kaldı",
@@ -127,19 +127,19 @@
   "shell": {
     "brandAria": "Ana gezinme",
     "platformConsole": "Platform konsolu",
-    "tenantApp": "Çalışma alanı uygulaması",
+    "tenantApp": "İşletme paneli",
     "statusOnline": "Çevrimiçi",
     "language": "Dil",
     "signOut": "Çıkış",
     "envBanner": "Geliştirme — örnek veriler.",
     "sessionAria": "Oturum",
-    "workspaceLine": "Çalışma alanı: {{name}} ({{slug}})",
+    "workspaceLine": "İşletme: {{name}} ({{slug}})",
     "platformSession": "Platform yöneticisi oturumu"
   },
   "nav": {
     "platformDashboard": "Özet",
     "tenantDashboard": "Özet",
-    "workspaces": "Çalışma alanları",
+    "workspaces": "İşletmeler",
     "usersGlobal": "Kullanıcılar (global)",
     "plans": "Planlar",
     "subscriptions": "Abonelikler",
@@ -149,9 +149,9 @@
     "workspaceAdmin": "Yönetim"
   },
   "workspaceAdmin": {
-    "eyebrow": "Çalışma alanı",
+    "eyebrow": "İşletme",
     "title": "Yönetim",
-    "description": "Mağaza profili, takım, mesajlaşma ve faturalama — çalışma alanı ayarları tek yerde.",
+    "description": "İşletme profili, ekip, mesajlaşma kanalları ve faturalama — işletme yönetimi için tek merkez.",
     "subnavAria": "Yönetim bölümleri",
     "tab": {
       "general": "Genel",
@@ -176,27 +176,46 @@
     "description": "API bootstrap’tan kiracılar arası metrikler; aşağıdaki tablo örnek veridir.",
     "hero": {
       "title": "SaaS operasyon özeti",
-      "subtitle": "Çalışma alanları, faturalama ve denetim — operatör kapsamı."
+      "subtitle": "İşletmeler, faturalama ve denetim — operatör görünümü."
     }
   },
   "tenantDashboard": {
-    "eyebrow": "Çalışma alanınız",
+    "eyebrow": "İşletmeniz",
     "title": "{{name}} — özet",
-    "description": "Bu çalışma alanı için ekip boyutu ve abonelik özeti.",
+    "description": "Bu işletme için ekip boyutu ve abonelik özeti.",
     "onboardingHint": "Hazır olduğunuzda kenar çubuktan Yönetim üzerinden faturalama, mesajlaşma ve mağaza ayarlarına gidebilirsiniz.",
     "hero": {
-      "title": "Çalışma alanı özeti",
+      "title": "İşletme özeti",
       "subtitle": "İşletmeniz için sadakat yönetimi — yeni özellikler yakında."
     },
     "badgeTrialing": "Deneme",
     "metrics": {
       "team": "Ekip üyeleri",
-      "teamHint": "Bu çalışma alanındaki kullanıcılar",
+      "teamHint": "Bu işletmedeki kullanıcılar",
       "plan": "Plan",
       "planHint": "Abonelikten",
       "subscription": "Durum",
       "subscriptionHint": "Yaşam döngüsü"
-    }
+    },
+    "complianceExports": "Uyumluluk dışa aktarımları"
+  },
+  "compliance": {
+    "exportsHint": "Dışa aktarımlar izinle sınırlı ve redakte edilir. Her indirmede onay istenir.",
+    "exportSummaryPdfDay": "Özet PDF (bugün, UTC)",
+    "exportSummaryPdfWeek": "Özet PDF (7 gün, UTC)",
+    "exportAuditCsv": "Denetim CSV",
+    "exportAuditPdf": "Denetim PDF (özet)",
+    "exportAnomalyPdf": "Anomali PDF",
+    "exportConfirmSummaryPdf": "Sadakat özetini PDF olarak indirmek istiyor musunuz? Veri uyumluluk için redakte edilir.",
+    "exportConfirmAuditCsv": "Denetim olaylarını CSV olarak indirmek istiyor musunuz? Satırlar redakte edilir.",
+    "exportConfirmAuditPdf": "Denetim özetini PDF olarak indirmek istiyor musunuz?",
+    "exportConfirmAnomalyPdf": "Anomali raporunu PDF olarak indirmek istiyor musunuz?",
+    "exportFailed": "İşlem tamamlanamadı.",
+    "sectionCustomer": "Veri ve gizlilik",
+    "gdprExport": "Müşteri verisini indir (JSON)",
+    "anonymize": "Müşteriyi anonimleştir",
+    "anonymizeConfirm": "Bu müşteri anonimleştirilsin mi? Ad ve telefon değiştirilir; puan sıfırlanır. Geri alınamaz.",
+    "anonymizeDone": "Müşteri anonimleştirildi."
   },
   "usage": {
     "upgradeCta": "Planları gör ve yükselt"
@@ -205,7 +224,7 @@
     "eyebrow": "Faturalama",
     "title": "Faturalama ve plan",
     "pageIntro": "Abonelik durumu, limitlere göre kullanım, dahil özellikler ve plan değiştirme.",
-    "empty": "Bu çalışma alanı için kayıtlı abonelik yok.",
+    "empty": "Bu işletme için kayıtlı abonelik yok.",
     "sectionSubscription": "Abonelik",
     "sectionUsage": "Kullanım ve limitler",
     "sectionFeatures": "Dahil özellikler",
@@ -255,7 +274,7 @@
       "cta": "Planı yükselt",
       "modalTitle": "Plan seç (demo)",
       "sectionPlan": "Plan seçimi",
-      "modalHint": "Ödeme alınmaz. Bu işlem çalışma alanı aboneliğini gösterim amaçlı değiştirir.",
+      "modalHint": "Ödeme alınmaz. Bu işlem, gösterim amacıyla işletme aboneliğini değiştirir.",
       "pickPlan": "Plan",
       "confirm": "Değişikliği onayla",
       "success": "Planınız güncellendi.",
@@ -283,7 +302,7 @@
     }
   },
   "tenantSettings": {
-    "eyebrow": "Çalışma alanı",
+    "eyebrow": "İşletme",
     "title": "Ayarlar",
     "description": "İşletme profili, dil ve bölge, iletişim ve müşteriye açık bağlantılar.",
     "section": {
@@ -294,7 +313,7 @@
     "publicAccessLead": "Misafirlere neyin açık olacağını seçin, ardından QR ve bağlantıları paylaşın.",
     "portal": {
       "title": "Müşteri girişi (QR)",
-      "description": "Bu bağlantı veya QR ile müşteriler puanlarını görür ve kasiyer onaylı ödül talebi oluşturur.",
+      "description": "Bu bağlantıyı veya QR kodunu paylaşın; müşteriler puanlarını görür ve personel onayı için ödül talep edebilir.",
       "copy": "Bağlantıyı kopyala",
       "copied": "Kopyalandı"
     },
@@ -327,7 +346,7 @@
   "tenantMenu": {
     "eyebrow": "Menü",
     "title": "Menü yönetimi",
-    "description": "Mağaza ayarlarında açıkken herkese açık menü sayfasında görünen kategoriler ve ürünler.",
+    "description": "Açıklama",
     "loadError": "Menü yüklenemedi.",
     "categories": "Kategoriler",
     "items": "Ürünler",
@@ -336,7 +355,6 @@
     "edit": "Düzenle",
     "deactivate": "Pasifleştir",
     "name": "Ad",
-    "description": "Açıklama",
     "sortOrder": "Sıra",
     "active": "Aktif",
     "category": "Kategori",
@@ -371,7 +389,7 @@
   "dashboard": {
     "badgeLive": "Canlı API",
     "metrics": {
-      "workspaces": "Çalışma alanları",
+      "workspaces": "İşletmeler",
       "workspacesHint": "Kayıtlar",
       "users": "Kullanıcılar",
       "usersHint": "Görünür liste",
@@ -381,10 +399,10 @@
       "trialingHint": "durum = trialing"
     },
     "activity": {
-      "title": "Örnek çalışma alanı aktivitesi",
+      "title": "Örnek işletme aktivitesi",
       "badgeDemo": "Demo",
       "columns": {
-        "workspace": "Çalışma alanı",
+        "workspace": "İşletme",
         "event": "Olay",
         "time": "Zaman",
         "status": "Durum"
@@ -417,11 +435,11 @@
   },
   "workspaces": {
     "eyebrow": "Dizin",
-    "title": "Çalışma alanları",
+    "title": "İşletmeler",
     "description": "`GET /tenants` ve bootstrap verisinden.",
     "searchPlaceholder": "Ad veya kısa ad ara…",
-    "searchAria": "Çalışma alanı ara",
-    "emptyTitle": "Çalışma alanı yok",
+    "searchAria": "İşletme ara",
+    "emptyTitle": "İşletme yok",
     "emptyDescription": "Veri yok veya filtreye uymadı.",
     "columns": {
       "name": "Ad",
@@ -440,10 +458,10 @@
     "columns": {
       "name": "Ad",
       "role": "Rol",
-      "workspace": "Çalışma alanı"
+      "workspace": "İşletme"
     },
     "roles": {
-      "platform_admin": "Platform",
+      "platform_admin": "Platform yöneticisi",
       "tenant_operator": "Operatör",
       "viewer": "İzleyici"
     }
@@ -466,9 +484,9 @@
   "subscriptions": {
     "eyebrow": "Yaşam döngüsü",
     "title": "Abonelikler",
-    "description": "`GET /subscriptions` — çalışma alanı ve plan.",
+    "description": "`GET /subscriptions` çıktısından — işletme ve plan.",
     "columns": {
-      "workspace": "Çalışma alanı",
+      "workspace": "İşletme",
       "plan": "Plan",
       "status": "Durum",
       "renews": "Yenileme",
@@ -604,7 +622,7 @@
       "eyebrow": "Kasa",
       "title": "Kasa",
       "lead": "Tek ekran: üye seçin, tutarı girin, puanı görün, hazırsanız ödül kullanın.",
-      "fallbackTenant": "Çalışma alanı",
+      "fallbackTenant": "İşletme",
       "online": "Çevrimiçi",
       "offline": "Çevrimdışı",
       "reconnecting": "Yeniden bağlanıyor…",
@@ -743,7 +761,7 @@
     "growth": {
       "eyebrow": "Analitik",
       "title": "Büyüme ve tutma",
-      "description": "Huni dönüşümü, kohort tutması (D1/D3/D7) ve ödül etkileşimi — çalışma alanınıza kaydedilen ürün olaylarından.",
+      "description": "Huni dönüşümü, kohort geri dönüşü (D1/D3/D7) ve ödül etkileşimi — işletmenizde kaydedilen ürün olaylarından.",
       "periodNote": "Huni: son {{funnelDays}} gün. Tutma kohortu, aşağıdaki pencerede ilk kayıtlı ziyareti kullanır. Ödül metrikleri: son {{rewardDays}} gün.",
       "funnelTitle": "Huni (adım başına benzersiz müşteri)",
       "transitionsTitle": "Adım geçişleri (sıralı)",

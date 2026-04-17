@@ -1,5 +1,7 @@
-import type { AuditActorType, AuditEntityType } from "../generated/prisma/client.js";
+import { randomUUID } from "node:crypto";
+import type { AuditActorType, AuditEntityType, Prisma } from "../generated/prisma/client.js";
 import { prisma } from "./prisma.js";
+import { redactJsonForExport } from "./export-redaction.js";
 
 export type RecordAuditEventInput = {
   tenantId: string;
@@ -96,4 +98,103 @@ export async function listAuditEventsForTenant(
     })),
     nextCursor,
   };
+}
+
+export type AuditExportFilters = {
+  maxRows: number;
+  from?: Date;
+  to?: Date;
+  eventType?: string;
+  actorUserId?: string;
+  branchId?: string;
+  entityType?: AuditEntityType;
+};
+
+/**
+ * Dışa aktarım için audit sorgusu — tenant izolasyonlu; payload redakte edilir.
+ */
+export async function queryAuditEventsForExport(
+  tenantId: string,
+  filters: AuditExportFilters,
+): Promise<
+  Array<{
+    id: string;
+    createdAt: string;
+    eventType: string;
+    entityType: AuditEntityType;
+    entityId: string;
+    actorType: string;
+    actorUserId: string | null;
+    payload: Record<string, unknown>;
+  }>
+> {
+  const take = Math.min(Math.max(filters.maxRows, 1), 5000);
+  const createdAt: Prisma.DateTimeFilter | undefined =
+    filters.from || filters.to
+      ? {
+          ...(filters.from ? { gte: filters.from } : {}),
+          ...(filters.to ? { lte: filters.to } : {}),
+        }
+      : undefined;
+  const where: Prisma.AuditEventWhereInput = {
+    tenantId,
+    ...(createdAt ? { createdAt } : {}),
+    ...(filters.eventType ? { eventType: filters.eventType } : {}),
+    ...(filters.actorUserId ? { actorUserId: filters.actorUserId } : {}),
+    ...(filters.branchId ? { branchId: filters.branchId } : {}),
+    ...(filters.entityType ? { entityType: filters.entityType } : {}),
+  };
+  const rows = await prisma.auditEvent.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+    take,
+    select: {
+      id: true,
+      createdAt: true,
+      eventType: true,
+      entityType: true,
+      entityId: true,
+      actorType: true,
+      actorUserId: true,
+      payload: true,
+    },
+  });
+  return rows.map((r) => ({
+    id: r.id,
+    createdAt: r.createdAt.toISOString(),
+    eventType: r.eventType,
+    entityType: r.entityType,
+    entityId: r.entityId,
+    actorType: r.actorType,
+    actorUserId: r.actorUserId,
+    payload: redactJsonForExport(r.payload ?? {}) as Record<string, unknown>,
+  }));
+}
+
+/**
+ * Dışa aktarım audit kaydı — içerik yok, yalnızca tür + filtre özeti (PII riski yok).
+ */
+export async function recordDataExportEvent(input: {
+  tenantId: string;
+  actorUserId: string;
+  kind: string;
+  format: "csv" | "pdf" | "json";
+  filters: Record<string, unknown>;
+}) {
+  return recordAuditEvent({
+    tenantId: input.tenantId,
+    actorUserId: input.actorUserId,
+    actorType: "manager",
+    branchId: null,
+    deviceSessionId: null,
+    cashierShiftId: null,
+    eventType: "data_export",
+    entityType: "other",
+    entityId: randomUUID(),
+    payload: {
+      exportKind: input.kind,
+      format: input.format,
+      filters: input.filters,
+    },
+  });
 }

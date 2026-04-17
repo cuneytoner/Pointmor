@@ -1,0 +1,61 @@
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import type { FastifyInstance } from "fastify";
+import { buildApp } from "./app.js";
+import { issueSession } from "./lib/auth-memory.js";
+import { TENANT_MEMBERSHIP_ROLES } from "./lib/tenant-app-role.js";
+
+describe("Compliance export permissions", () => {
+  let app: FastifyInstance;
+
+  beforeAll(async () => {
+    app = await buildApp({ logger: false });
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it("staff cannot GET /tenant/audit/export/csv", async () => {
+    const token = issueSession({
+      user: { id: "u-staff", email: "s@test", name: "S", platformAdmin: false },
+      tenant: { id: "t1", slug: "acme", name: "Acme" },
+      membership: { role: TENANT_MEMBERSHIP_ROLES.staff },
+    });
+    const res = await app.inject({
+      method: "GET",
+      url: "/tenant/audit/export/csv",
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body).error).toBe("permission_denied");
+  });
+
+  it("manager cannot GET /tenant/audit/export/csv (owner-only)", async () => {
+    const token = issueSession({
+      user: { id: "u-mgr", email: "m@test", name: "M", platformAdmin: false },
+      tenant: { id: "t1", slug: "acme", name: "Acme" },
+      membership: { role: TENANT_MEMBERSHIP_ROLES.manager },
+    });
+    const res = await app.inject({
+      method: "GET",
+      url: "/tenant/audit/export/csv",
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body).error).toBe("permission_denied");
+  });
+
+  it("staff cannot GET /tenant/summary/export/pdf", async () => {
+    const token = issueSession({
+      user: { id: "u-staff2", email: "s2@test", name: "S", platformAdmin: false },
+      tenant: { id: "t1", slug: "acme", name: "Acme" },
+      membership: { role: TENANT_MEMBERSHIP_ROLES.staff },
+    });
+    const res = await app.inject({
+      method: "GET",
+      url: "/tenant/summary/export/pdf",
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(res.statusCode).toBe(403);
+  });
+});

@@ -127,19 +127,19 @@
   "shell": {
     "brandAria": "Navegación principal",
     "platformConsole": "Consola de plataforma",
-    "tenantApp": "App del espacio",
+    "tenantApp": "App del negocio",
     "statusOnline": "En línea",
     "language": "Idioma",
     "signOut": "Cerrar sesión",
     "envBanner": "Desarrollo: los datos pueden ser de ejemplo o estar vacíos.",
     "sessionAria": "Sesión",
-    "workspaceLine": "Espacio de trabajo: {{name}} ({{slug}})",
+    "workspaceLine": "Negocio: {{name}} ({{slug}})",
     "platformSession": "Sesión de administrador de plataforma"
   },
   "nav": {
     "platformDashboard": "Panel",
     "tenantDashboard": "Panel",
-    "workspaces": "Espacios de trabajo",
+    "workspaces": "Negocios",
     "usersGlobal": "Usuarios (global)",
     "plans": "Planes",
     "subscriptions": "Suscripciones",
@@ -149,9 +149,9 @@
     "workspaceAdmin": "Administración"
   },
   "workspaceAdmin": {
-    "eyebrow": "Espacio de trabajo",
+    "eyebrow": "Negocio",
     "title": "Administración",
-    "description": "Perfil del negocio, equipo, mensajería y facturación — gestión del espacio en un solo lugar.",
+    "description": "Perfil del negocio, equipo, canales de mensajería y facturación: todo en un solo lugar para gestionar el negocio.",
     "subnavAria": "Secciones de administración",
     "tab": {
       "general": "General",
@@ -176,27 +176,46 @@
     "description": "Métricas multi-inquilino del bootstrap; la tabla es demo.",
     "hero": {
       "title": "Instantánea de operaciones SaaS",
-      "subtitle": "Espacios, facturación y auditoría — alcance operador."
+      "subtitle": "Negocios, facturación y auditoría: alcance del operador."
     }
   },
   "tenantDashboard": {
-    "eyebrow": "Su espacio",
+    "eyebrow": "Su negocio",
     "title": "{{name}} — resumen",
-    "description": "Tamaño del equipo y suscripción de este espacio.",
+    "description": "Resumen del equipo y la suscripción de este negocio.",
     "onboardingHint": "En la barra lateral, Administración agrupa facturación, mensajería y ajustes del negocio.",
     "hero": {
-      "title": "Instantánea del espacio",
+      "title": "Resumen del negocio",
       "subtitle": "Fidelización para su local — más funciones próximamente."
     },
     "badgeTrialing": "Prueba",
     "metrics": {
       "team": "Miembros",
-      "teamHint": "Usuarios en este espacio",
+      "teamHint": "Usuarios de este negocio",
       "plan": "Plan",
       "planHint": "Desde la suscripción",
       "subscription": "Estado",
       "subscriptionHint": "Ciclo de vida"
-    }
+    },
+    "complianceExports": "Exportaciones de cumplimiento"
+  },
+  "compliance": {
+    "exportsHint": "Los exportes dependen de permisos y están redactados. Confirma cada descarga.",
+    "exportSummaryPdfDay": "Resumen PDF (hoy, UTC)",
+    "exportSummaryPdfWeek": "Resumen PDF (7 días, UTC)",
+    "exportAuditCsv": "Auditoría CSV",
+    "exportAuditPdf": "Auditoría PDF (resumen)",
+    "exportAnomalyPdf": "Anomalías PDF",
+    "exportConfirmSummaryPdf": "¿Descargar el resumen de fidelización en PDF? Los datos están redactados.",
+    "exportConfirmAuditCsv": "¿Descargar eventos de auditoría en CSV? Las filas están redactadas.",
+    "exportConfirmAuditPdf": "¿Descargar el resumen de auditoría en PDF?",
+    "exportConfirmAnomalyPdf": "¿Descargar el informe de anomalías en PDF?",
+    "exportFailed": "No se pudo completar la solicitud.",
+    "sectionCustomer": "Datos y privacidad",
+    "gdprExport": "Descargar datos del cliente (JSON)",
+    "anonymize": "Anonimizar cliente",
+    "anonymizeConfirm": "¿Anonimizar este cliente? Se sustituirán nombre y teléfono; puntos a cero. No se puede deshacer.",
+    "anonymizeDone": "Cliente anonimizado."
   },
   "usage": {
     "upgradeCta": "Ver planes y mejorar"
@@ -205,7 +224,7 @@
     "eyebrow": "Facturación",
     "title": "Facturación y plan",
     "pageIntro": "Estado de la suscripción, uso frente a límites, funciones incluidas y cómo cambiar de plan.",
-    "empty": "No hay suscripción registrada para este espacio de trabajo.",
+    "empty": "No hay ninguna suscripción registrada para este negocio.",
     "sectionSubscription": "Suscripción",
     "sectionUsage": "Uso y límites",
     "sectionFeatures": "Funciones incluidas",
@@ -255,7 +274,7 @@
       "cta": "Mejorar plan",
       "modalTitle": "Elegir plan (demo)",
       "sectionPlan": "Selección de plan",
-      "modalHint": "No se procesa ningún pago. Cambia la suscripción del espacio solo para demostración.",
+      "modalHint": "Aquí no se procesa ningún pago. Esto cambia la suscripción del negocio solo con fines de demostración.",
       "pickPlan": "Plan",
       "confirm": "Confirmar cambio",
       "success": "Tu plan se ha actualizado.",
@@ -283,7 +302,7 @@
     }
   },
   "tenantSettings": {
-    "eyebrow": "Espacio",
+    "eyebrow": "Negocio",
     "title": "Ajustes",
     "description": "Perfil del negocio, idiomas y región, contacto y enlaces públicos para clientes.",
     "section": {
@@ -327,7 +346,7 @@
   "tenantMenu": {
     "eyebrow": "Menú",
     "title": "Gestión del menú",
-    "description": "Categorías y platos en la página de menú público cuando está activada en los ajustes de la tienda.",
+    "description": "Descripción",
     "loadError": "No se pudo cargar el menú.",
     "categories": "Categorías",
     "items": "Platos",
@@ -336,7 +355,6 @@
     "edit": "Editar",
     "deactivate": "Desactivar",
     "name": "Nombre",
-    "description": "Descripción",
     "sortOrder": "Orden",
     "active": "Activo",
     "category": "Categoría",
@@ -371,7 +389,7 @@
   "dashboard": {
     "badgeLive": "API en vivo",
     "metrics": {
-      "workspaces": "Espacios de trabajo",
+      "workspaces": "Negocios",
       "workspacesHint": "Registros",
       "users": "Usuarios",
       "usersHint": "Lista visible",
@@ -381,10 +399,10 @@
       "trialingHint": "estado = trialing"
     },
     "activity": {
-      "title": "Actividad de ejemplo del espacio de trabajo",
+      "title": "Actividad de ejemplo del negocio",
       "badgeDemo": "Demo",
       "columns": {
-        "workspace": "Espacio de trabajo",
+        "workspace": "Negocio",
         "event": "Evento",
         "time": "Hora",
         "status": "Estado"
@@ -417,11 +435,11 @@
   },
   "workspaces": {
     "eyebrow": "Directorio",
-    "title": "Espacios de trabajo",
+    "title": "Negocios",
     "description": "Desde `GET /tenants` y el bootstrap.",
     "searchPlaceholder": "Buscar por nombre o slug…",
-    "searchAria": "Buscar espacios de trabajo",
-    "emptyTitle": "Sin espacios de trabajo",
+    "searchAria": "Buscar negocios",
+    "emptyTitle": "No hay negocios",
     "emptyDescription": "Sin datos o sin coincidencias.",
     "columns": {
       "name": "Nombre",
@@ -440,7 +458,7 @@
     "columns": {
       "name": "Nombre",
       "role": "Rol",
-      "workspace": "Espacio de trabajo"
+      "workspace": "Negocio"
     },
     "roles": {
       "platform_admin": "Plataforma",
@@ -466,9 +484,9 @@
   "subscriptions": {
     "eyebrow": "Ciclo de vida",
     "title": "Suscripciones",
-    "description": "Desde `GET /subscriptions`: espacio de trabajo y plan.",
+    "description": "De `GET /subscriptions`: negocio y plan.",
     "columns": {
-      "workspace": "Espacio de trabajo",
+      "workspace": "Negocio",
       "plan": "Plan",
       "status": "Estado",
       "renews": "Renueva",
@@ -493,7 +511,7 @@
     "badgeSource": "Base de datos",
     "columns": {
       "time": "Hora",
-      "actor": "Actor",
+      "actor": "Responsable",
       "action": "Acción",
       "detail": "Detalle"
     }
@@ -604,7 +622,7 @@
       "eyebrow": "Caja",
       "title": "Caja",
       "lead": "Una sola pantalla: elija un miembro, importe, previsualice puntos y use recompensas.",
-      "fallbackTenant": "Espacio de trabajo",
+      "fallbackTenant": "Negocio",
       "online": "En línea",
       "offline": "Sin conexión",
       "reconnecting": "Reconectando…",
@@ -743,7 +761,7 @@
     "growth": {
       "eyebrow": "Analítica",
       "title": "Crecimiento y retención",
-      "description": "Embudo, retención de cohorte (D1/D3/D7) y uso de recompensas — a partir de eventos de producto en su espacio de trabajo.",
+      "description": "Embudo, retención de cohortes (D1/D3/D7) y uso de recompensas: a partir de los eventos del producto guardados en su negocio.",
       "periodNote": "Embudo: últimos {{funnelDays}} días. La cohorte de retención usa la primera visita registrada en la ventana indicada. Recompensas: últimos {{rewardDays}} días.",
       "funnelTitle": "Embudo (clientes únicos por paso)",
       "transitionsTitle": "Transiciones entre pasos (secuenciales)",
@@ -812,41 +830,41 @@
       "loadError": "No se pudo cargar la lista."
     },
     "messaging": {
-      "eyebrow": "Engagement",
-      "title": "Messaging & templates",
-      "description": "SMS/WhatsApp toggles, quiet hours, and per-template overrides.",
-      "loadError": "Could not load messaging settings.",
-      "sectionSettings": "Message settings",
+      "eyebrow": "Interacción",
+      "title": "Mensajería y plantillas",
+      "description": "Controles de SMS/WhatsApp, horas de silencio y ajustes por plantilla. Los valores del sistema no se pueden eliminar.",
+      "loadError": "No se pudieron cargar los ajustes de mensajería.",
+      "sectionSettings": "Ajustes de mensajes",
       "sectionChannels": "Canales",
       "sectionRouting": "Canal predeterminado y zona horaria",
       "sectionQuietHours": "Horas silenciosas",
       "sectionSignIn": "Inicio de sesión y verificación",
       "modalSectionOverride": "Opciones de sobrescritura",
-      "sectionTemplates": "Templates",
-      "smsEnabled": "SMS sending enabled",
-      "whatsappEnabled": "WhatsApp (future)",
+      "sectionTemplates": "Plantillas",
+      "smsEnabled": "Envío de SMS activado",
+      "whatsappEnabled": "WhatsApp (futuro): preferencia guardada",
       "allowFallback": "Allow fallback channel",
-      "defaultChannel": "Default channel",
-      "timezone": "Timezone (IANA)",
-      "quietStart": "Quiet start (HH:mm)",
-      "quietEnd": "Quiet end (HH:mm)",
-      "requireVerified": "Require phone verification for sign-in",
-      "save": "Save settings",
-      "saving": "Saving…",
-      "templatesLead": "Use {{variableName}} placeholders.",
-      "colKey": "Key",
-      "colChannel": "Channel",
+      "defaultChannel": "Canal predeterminado",
+      "timezone": "Zona horaria (IANA, p. ej. Europe/Istanbul)",
+      "quietStart": "Inicio de horas de silencio (HH:mm)",
+      "quietEnd": "Fin de horas de silencio (HH:mm)",
+      "requireVerified": "Exigir verificación del teléfono para iniciar sesión",
+      "save": "Guardar ajustes",
+      "saving": "Guardando…",
+      "templatesLead": "Usa marcadores {{variableName}}. En SMS, conviene mantener el texto breve.",
+      "colKey": "Clave",
+      "colChannel": "Canal",
       "colVars": "Variables",
-      "colOverride": "Override",
-      "overrideYes": "Custom",
-      "overrideNo": "Default",
-      "overrideDisabled": "Disabled",
-      "edit": "Edit",
-      "editHint": "Workspace-only overrides.",
-      "overrideActive": "Override active",
-      "content": "Message body",
-      "smsLengthWarning": "SMS longer than 160 characters.",
-      "saveOverride": "Save template"
+      "colOverride": "Sobrescritura",
+      "overrideYes": "Texto personalizado",
+      "overrideNo": "Predeterminado",
+      "overrideDisabled": "Desactivado",
+      "edit": "Editar",
+      "editHint": "Los cambios se aplican solo a este negocio.",
+      "overrideActive": "Sobrescritura activa",
+      "content": "Cuerpo del mensaje",
+      "smsLengthWarning": "El SMS supera los 160 caracteres y puede dividirse en varias partes.",
+      "saveOverride": "Guardar plantilla"
     },
     "common": {
       "loading": "Cargando…",

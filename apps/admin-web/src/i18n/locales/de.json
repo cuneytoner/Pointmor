@@ -127,19 +127,19 @@
   "shell": {
     "brandAria": "Hauptnavigation",
     "platformConsole": "Plattform-Konsole",
-    "tenantApp": "Workspace-App",
+    "tenantApp": "Betriebs-App",
     "statusOnline": "Online",
     "language": "Sprache",
     "signOut": "Abmelden",
     "envBanner": "Entwicklung — Daten können Beispiele oder leer sein.",
     "sessionAria": "Sitzung",
-    "workspaceLine": "Workspace: {{name}} ({{slug}})",
+    "workspaceLine": "Betrieb: {{name}} ({{slug}})",
     "platformSession": "Plattform-Administrator-Sitzung"
   },
   "nav": {
     "platformDashboard": "Dashboard",
     "tenantDashboard": "Dashboard",
-    "workspaces": "Workspaces",
+    "workspaces": "Betriebe",
     "usersGlobal": "Benutzer (global)",
     "plans": "Pläne",
     "subscriptions": "Abonnements",
@@ -149,14 +149,14 @@
     "workspaceAdmin": "Verwaltung"
   },
   "workspaceAdmin": {
-    "eyebrow": "Workspace",
+    "eyebrow": "Betrieb",
     "title": "Verwaltung",
-    "description": "Geschäftsprofil, Team, Messaging und Abrechnung — zentrale Workspace-Verwaltung.",
+    "description": "Geschäftsprofil, Team, Nachrichtenkanäle und Abrechnung: alles an einem Ort für die Verwaltung Ihres Betriebs.",
     "subnavAria": "Verwaltungsbereiche",
     "tab": {
       "general": "Allgemein",
       "team": "Team",
-      "messaging": "Messaging",
+      "messaging": "Nachrichten",
       "billing": "Abrechnung & Plan"
     },
     "team": {
@@ -176,27 +176,46 @@
     "description": "Mandantenübergreifende Kennzahlen aus dem API-Bootstrap; Aktivitätstabelle ist Demo.",
     "hero": {
       "title": "SaaS-Betriebsübersicht",
-      "subtitle": "Workspaces, Abrechnung und Audit — Operator-Sicht."
+      "subtitle": "Betriebe, Abrechnung und Audit: Operator-Sicht."
     }
   },
   "tenantDashboard": {
-    "eyebrow": "Ihr Workspace",
+    "eyebrow": "Ihr Betrieb",
     "title": "{{name}} — Übersicht",
-    "description": "Teamgröße und Abonnement für diesen Workspace.",
+    "description": "Teamgröße und Abonnementübersicht für diesen Betrieb.",
     "onboardingHint": "Unter „Verwaltung“ in der Seitenleiste finden Sie Abrechnung, Messaging und Geschäftseinstellungen.",
     "hero": {
-      "title": "Workspace-Snapshot",
+      "title": "Betriebsübersicht",
       "subtitle": "Treueprogramm für Ihren Betrieb — weitere Funktionen folgen."
     },
     "badgeTrialing": "Testphase",
     "metrics": {
       "team": "Teammitglieder",
-      "teamHint": "Benutzer in diesem Workspace",
+      "teamHint": "Benutzer in diesem Betrieb",
       "plan": "Plan",
       "planHint": "Aus dem Abonnement",
       "subscription": "Status",
       "subscriptionHint": "Lebenszyklus"
-    }
+    },
+    "complianceExports": "Compliance-Exporte"
+  },
+  "compliance": {
+    "exportsHint": "Exporte sind rollenbasiert und redigiert. Jeder Download erfordert eine Bestätigung.",
+    "exportSummaryPdfDay": "Zusammenfassung PDF (heute, UTC)",
+    "exportSummaryPdfWeek": "Zusammenfassung PDF (7 Tage, UTC)",
+    "exportAuditCsv": "Audit CSV",
+    "exportAuditPdf": "Audit PDF (Kurzfassung)",
+    "exportAnomalyPdf": "Anomalien PDF",
+    "exportConfirmSummaryPdf": "Treue-Zusammenfassung als PDF herunterladen? Daten sind redigiert.",
+    "exportConfirmAuditCsv": "Audit-Ereignisse als CSV herunterladen? Zeilen sind redigiert.",
+    "exportConfirmAuditPdf": "Audit-Kurzfassung als PDF herunterladen?",
+    "exportConfirmAnomalyPdf": "Anomalienbericht als PDF herunterladen?",
+    "exportFailed": "Anfrage konnte nicht abgeschlossen werden.",
+    "sectionCustomer": "Daten & Datenschutz",
+    "gdprExport": "Kundendaten herunterladen (JSON)",
+    "anonymize": "Kunde anonymisieren",
+    "anonymizeConfirm": "Diesen Kunden anonymisieren? Name und Telefon werden ersetzt; Punkte auf 0. Nicht rückgängig zu machen.",
+    "anonymizeDone": "Kunde anonymisiert."
   },
   "usage": {
     "upgradeCta": "Pläne ansehen & upgraden"
@@ -205,7 +224,7 @@
     "eyebrow": "Abrechnung",
     "title": "Abrechnung & Plan",
     "pageIntro": "Abonnementstatus, Nutzung gegen Limits, enthaltene Funktionen und Planwechsel.",
-    "empty": "Kein Abonnement für diesen Workspace hinterlegt.",
+    "empty": "Für diesen Betrieb ist kein Abonnement hinterlegt.",
     "sectionSubscription": "Abonnement",
     "sectionUsage": "Nutzung & Limits",
     "sectionFeatures": "Enthaltene Funktionen",
@@ -227,7 +246,7 @@
   },
   "plan": {
     "badge": {
-      "free": "Free",
+      "free": "Kostenlos",
       "pro": "Pro",
       "team": "Team"
     },
@@ -255,7 +274,7 @@
       "cta": "Plan upgraden",
       "modalTitle": "Plan wählen (Demo)",
       "sectionPlan": "Planauswahl",
-      "modalHint": "Es wird keine Zahlung verarbeitet. Wechselt das Workspace-Abonnement nur zur Demonstration.",
+      "modalHint": "Es wird keine Zahlung verarbeitet. Damit wird das Abonnement des Betriebs nur zu Demonstrationszwecken umgestellt.",
       "pickPlan": "Plan",
       "confirm": "Änderung bestätigen",
       "success": "Ihr Plan wurde aktualisiert.",
@@ -283,7 +302,7 @@
     }
   },
   "tenantSettings": {
-    "eyebrow": "Workspace",
+    "eyebrow": "Betrieb",
     "title": "Einstellungen",
     "description": "Geschäftsprofil, Sprachen & Region, Kontakt und öffentliche Kundenlinks.",
     "section": {
@@ -327,7 +346,7 @@
   "tenantMenu": {
     "eyebrow": "Menü",
     "title": "Menüverwaltung",
-    "description": "Kategorien und Artikel auf der öffentlichen Menüseite, wenn in den Geschäftseinstellungen aktiviert.",
+    "description": "Beschreibung",
     "loadError": "Menü konnte nicht geladen werden.",
     "categories": "Kategorien",
     "items": "Artikel",
@@ -336,7 +355,6 @@
     "edit": "Bearbeiten",
     "deactivate": "Deaktivieren",
     "name": "Name",
-    "description": "Beschreibung",
     "sortOrder": "Reihenfolge",
     "active": "Aktiv",
     "category": "Kategorie",
@@ -371,7 +389,7 @@
   "dashboard": {
     "badgeLive": "Live-API",
     "metrics": {
-      "workspaces": "Workspaces",
+      "workspaces": "Betriebe",
       "workspacesHint": "Datensätze",
       "users": "Benutzer",
       "usersHint": "Sichtbare Liste",
@@ -381,10 +399,10 @@
       "trialingHint": "Status = trialing"
     },
     "activity": {
-      "title": "Beispielaktivität im Workspace",
+      "title": "Beispielaktivität eines Betriebs",
       "badgeDemo": "Demo",
       "columns": {
-        "workspace": "Workspace",
+        "workspace": "Betrieb",
         "event": "Ereignis",
         "time": "Zeit",
         "status": "Status"
@@ -417,11 +435,11 @@
   },
   "workspaces": {
     "eyebrow": "Verzeichnis",
-    "title": "Workspaces",
+    "title": "Betriebe",
     "description": "Aus `GET /tenants` und Bootstrap.",
     "searchPlaceholder": "Name oder Kurzname suchen…",
-    "searchAria": "Workspaces durchsuchen",
-    "emptyTitle": "Keine Workspaces",
+    "searchAria": "Betriebe durchsuchen",
+    "emptyTitle": "Keine Betriebe",
     "emptyDescription": "Keine Daten oder keine Treffer.",
     "columns": {
       "name": "Name",
@@ -440,11 +458,11 @@
     "columns": {
       "name": "Name",
       "role": "Rolle",
-      "workspace": "Workspace"
+      "workspace": "Betrieb"
     },
     "roles": {
       "platform_admin": "Plattform",
-      "tenant_operator": "Operator",
+      "tenant_operator": "Betreiber",
       "viewer": "Betrachter"
     }
   },
@@ -454,7 +472,7 @@
     "description": "Aus `GET /plans`. Wochenkontingent vs. monatliche Abrechnung.",
     "featured": "Hervorgehoben",
     "planType": {
-      "free": "Free",
+      "free": "Kostenlos",
       "pro": "Pro",
       "team": "Team"
     },
@@ -466,9 +484,9 @@
   "subscriptions": {
     "eyebrow": "Lebenszyklus",
     "title": "Abonnements",
-    "description": "Aus `GET /subscriptions` — Workspace und Plan.",
+    "description": "Aus `GET /subscriptions`: Betrieb und Plan.",
     "columns": {
-      "workspace": "Workspace",
+      "workspace": "Betrieb",
       "plan": "Plan",
       "status": "Status",
       "renews": "Verlängerung",
@@ -495,7 +513,7 @@
       "time": "Zeit",
       "actor": "Akteur",
       "action": "Aktion",
-      "detail": "Detail"
+      "detail": "Details"
     }
   },
   "pricing": {
@@ -513,7 +531,7 @@
       "campaigns": "Kampagnen",
       "menu": "Menü",
       "redemptions": "Einlösungen",
-      "messaging": "Messaging"
+      "messaging": "Nachrichten"
     },
     "dash": {
       "eyebrow": "Treue",
@@ -604,7 +622,7 @@
       "eyebrow": "Kasse",
       "title": "Kasse",
       "lead": "Ein Bildschirm: Mitglied wählen, Betrag eingeben, Punkte sehen und Prämien einlösen.",
-      "fallbackTenant": "Arbeitsbereich",
+      "fallbackTenant": "Betrieb",
       "online": "Online",
       "offline": "Offline",
       "reconnecting": "Verbindung wird wiederhergestellt…",
@@ -743,7 +761,7 @@
     "growth": {
       "eyebrow": "Analytik",
       "title": "Wachstum & Retention",
-      "description": "Trichter, Kohorten-Retention (D1/D3/D7) und Prämien-Engagement — aus in Ihrem Workspace gespeicherten Produkt-Events.",
+      "description": "Trichter, Kohortenbindung (D1/D3/D7) und Prämiennutzung: basierend auf Produkt-Ereignissen, die in Ihrem Betrieb gespeichert sind.",
       "periodNote": "Trichter: letzte {{funnelDays}} Tage. Retention-Kohorte nutzt den ersten erfassten Besuch im unten beschriebenen Fenster. Prämien: letzte {{rewardDays}} Tage.",
       "funnelTitle": "Trichter (eindeutige Kunden pro Schritt)",
       "transitionsTitle": "Schritt-Übergänge (sequenziell)",
@@ -753,18 +771,18 @@
         "eventsApprox": "Ereignisse (ca.)",
         "transition": "Übergang",
         "sequentialUsers": "Sequenzielle Nutzer",
-        "conversion": "Conversion",
+        "conversion": "Konversion",
         "dropOff": "Abbruch"
       },
       "biggestDropOff": "Größter Abbruch:",
-      "retentionTitle": "Retention (D1 / D3 / D7)",
+      "retentionTitle": "Bindung (D1 / D3 / D7)",
       "cohortSize": "Kohortengröße",
       "rewardTitle": "Prämien-Nutzung",
       "redemptionCompleted": "Abgeschlossene Einlösungen (DB)",
       "rewardClaimedEvents": "reward_claimed-Ereignisse",
       "rewardViewedEvents": "reward_viewed-Ereignisse",
       "claimPerView": "Claims pro Ansicht (ca.)",
-      "insightsTitle": "Insights",
+      "insightsTitle": "Erkenntnisse",
       "loadError": "Wachstums-Analytik konnte nicht geladen werden.",
       "stepLabels": {
         "qr_opened": "QR geöffnet",
@@ -812,41 +830,41 @@
       "loadError": "Liste konnte nicht geladen werden."
     },
     "messaging": {
-      "eyebrow": "Engagement",
-      "title": "Messaging & templates",
-      "description": "SMS/WhatsApp toggles, quiet hours, and per-template overrides.",
-      "loadError": "Could not load messaging settings.",
-      "sectionSettings": "Message settings",
+      "eyebrow": "Interaktion",
+      "title": "Nachrichten & Vorlagen",
+      "description": "SMS-/WhatsApp-Schalter, Ruhezeiten und Vorlagen-spezifische Überschreibungen. Systemvorgaben können nicht gelöscht werden.",
+      "loadError": "Nachrichteneinstellungen konnten nicht geladen werden.",
+      "sectionSettings": "Nachrichteneinstellungen",
       "sectionChannels": "Kanäle",
       "sectionRouting": "Standardkanal & Zeitzone",
       "sectionQuietHours": "Ruhezeiten",
       "sectionSignIn": "Anmeldung & Verifizierung",
       "modalSectionOverride": "Überschreibungsoptionen",
-      "sectionTemplates": "Templates",
-      "smsEnabled": "SMS sending enabled",
-      "whatsappEnabled": "WhatsApp (future)",
+      "sectionTemplates": "Vorlagen",
+      "smsEnabled": "SMS-Versand aktiviert",
+      "whatsappEnabled": "WhatsApp (zukünftig): Präferenz gespeichert",
       "allowFallback": "Allow fallback channel",
-      "defaultChannel": "Default channel",
-      "timezone": "Timezone (IANA)",
-      "quietStart": "Quiet start (HH:mm)",
-      "quietEnd": "Quiet end (HH:mm)",
-      "requireVerified": "Require phone verification for sign-in",
-      "save": "Save settings",
-      "saving": "Saving…",
-      "templatesLead": "Use {{variableName}} placeholders.",
-      "colKey": "Key",
-      "colChannel": "Channel",
-      "colVars": "Variables",
-      "colOverride": "Override",
-      "overrideYes": "Custom",
-      "overrideNo": "Default",
-      "overrideDisabled": "Disabled",
-      "edit": "Edit",
-      "editHint": "Workspace-only overrides.",
-      "overrideActive": "Override active",
-      "content": "Message body",
-      "smsLengthWarning": "SMS longer than 160 characters.",
-      "saveOverride": "Save template"
+      "defaultChannel": "Standardkanal",
+      "timezone": "Zeitzone (IANA, z. B. Europe/Istanbul)",
+      "quietStart": "Beginn der Ruhezeit (HH:mm)",
+      "quietEnd": "Ende der Ruhezeit (HH:mm)",
+      "requireVerified": "Telefonverifizierung für die Anmeldung verlangen",
+      "save": "Einstellungen speichern",
+      "saving": "Speichern…",
+      "templatesLead": "Verwenden Sie Platzhalter wie {{variableName}}. SMS-Texte sollten kurz bleiben.",
+      "colKey": "Schlüssel",
+      "colChannel": "Kanal",
+      "colVars": "Variablen",
+      "colOverride": "Überschreibung",
+      "overrideYes": "Eigener Text",
+      "overrideNo": "Standard",
+      "overrideDisabled": "Deaktiviert",
+      "edit": "Bearbeiten",
+      "editHint": "Änderungen gelten nur für diesen Betrieb.",
+      "overrideActive": "Überschreibung aktiv",
+      "content": "Nachrichtentext",
+      "smsLengthWarning": "Die SMS ist länger als 160 Zeichen und wird möglicherweise in mehrere Teile aufgeteilt.",
+      "saveOverride": "Vorlage speichern"
     },
     "common": {
       "loading": "Laden…",

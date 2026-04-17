@@ -1,5 +1,6 @@
-import type { AuditActorType } from "../generated/prisma/client.js";
+import type { AuditActorType, Prisma } from "../generated/prisma/client.js";
 import { prisma } from "./prisma.js";
+import { redactJsonForExport } from "./export-redaction.js";
 import { recordAuditEvent } from "./operational-audit-service.js";
 
 /** Tamamlanan ödül kullanımı (vardiya başına) — olağanüstü yüksek hacim. */
@@ -217,4 +218,53 @@ export async function listAnomalySignalsForTenant(
     })),
     nextCursor,
   };
+}
+
+export async function listAnomalySignalsForExport(
+  tenantId: string,
+  opts: {
+    maxRows: number;
+    from?: Date;
+    to?: Date;
+    branchId?: string;
+  },
+) {
+  const take = Math.min(Math.max(opts.maxRows, 1), 5000);
+  const createdAt: Prisma.DateTimeFilter | undefined =
+    opts.from || opts.to
+      ? {
+          ...(opts.from ? { gte: opts.from } : {}),
+          ...(opts.to ? { lte: opts.to } : {}),
+        }
+      : undefined;
+  const where: Prisma.AnomalySignalWhereInput = {
+    tenantId,
+    ...(createdAt ? { createdAt } : {}),
+    ...(opts.branchId ? { branchId: opts.branchId } : {}),
+  };
+  const rows = await prisma.anomalySignal.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+    take,
+    select: {
+      id: true,
+      type: true,
+      severity: true,
+      branchId: true,
+      cashierShiftId: true,
+      customerId: true,
+      payload: true,
+      createdAt: true,
+    },
+  });
+  return rows.map((r) => ({
+    id: r.id,
+    type: r.type,
+    severity: r.severity,
+    branchId: r.branchId,
+    cashierShiftId: r.cashierShiftId,
+    customerId: r.customerId,
+    payload: redactJsonForExport(r.payload ?? {}) as Record<string, unknown>,
+    createdAt: r.createdAt.toISOString(),
+  }));
 }

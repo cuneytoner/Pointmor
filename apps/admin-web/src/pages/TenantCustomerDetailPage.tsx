@@ -5,7 +5,10 @@ import { PageShell } from "../components/PageShell";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useLocale } from "../contexts/LocaleContext";
 import { useTranslation } from "../hooks/useTranslation";
+import { usePermissions } from "../hooks/usePermissions";
 import { toIntlLocale } from "../lib/locale-intl";
+import { getApiBaseUrl } from "../lib/api-base";
+import { downloadComplianceExport } from "../lib/compliance-api";
 import { getCustomerDetail, type CustomerDetail } from "../lib/tenant-loyalty-api";
 
 export function TenantCustomerDetailPage() {
@@ -13,8 +16,11 @@ export function TenantCustomerDetailPage() {
   const { t } = useTranslation();
   const locale = useLocale();
   const { token } = useAuth();
+  const { hasPermission } = usePermissions();
   const [data, setData] = useState<CustomerDetail | null>(null);
   const [error, setError] = useState(false);
+  const [complianceMsg, setComplianceMsg] = useState<string | null>(null);
+  const [complianceBusy, setComplianceBusy] = useState(false);
 
   useEffect(() => {
     if (!token?.trim() || !customerId) return;
@@ -169,6 +175,72 @@ export function TenantCustomerDetailPage() {
               </div>
             )}
           </div>
+
+          {customerId &&
+          (hasPermission("gdpr.customer_export") || hasPermission("settings.manage")) ? (
+            <div className="admin-app__card admin-app__card--wide" style={{ marginTop: "1.25rem" }}>
+              <p className="admin-app__card-title">{t("compliance.sectionCustomer")}</p>
+              <div className="metric-grid metric-grid--2" style={{ alignItems: "end" }}>
+                {hasPermission("gdpr.customer_export") ? (
+                  <button
+                    type="button"
+                    className="admin-primary-btn"
+                    disabled={complianceBusy}
+                    onClick={() => {
+                      if (!token?.trim()) return;
+                      setComplianceBusy(true);
+                      setComplianceMsg(null);
+                      downloadComplianceExport(
+                        token,
+                        `/tenant/customers/${customerId}/gdpr-export`,
+                        `customer-${customerId}-export.json`,
+                      )
+                        .catch(() => setComplianceMsg(t("compliance.exportFailed")))
+                        .finally(() => setComplianceBusy(false));
+                    }}
+                  >
+                    {t("compliance.gdprExport")}
+                  </button>
+                ) : null}
+                {hasPermission("settings.manage") ? (
+                  <button
+                    type="button"
+                    className="admin-secondary-btn"
+                    disabled={complianceBusy}
+                    onClick={async () => {
+                      if (!window.confirm(t("compliance.anonymizeConfirm"))) return;
+                      if (!token?.trim()) return;
+                      setComplianceBusy(true);
+                      setComplianceMsg(null);
+                      try {
+                        const base = getApiBaseUrl().replace(/\/$/, "");
+                        const res = await fetch(`${base}/tenant/customers/${customerId}/anonymize`, {
+                          method: "POST",
+                          headers: { Authorization: `Bearer ${token}` },
+                          credentials: "include",
+                        });
+                        if (!res.ok) throw new Error("fail");
+                        setComplianceMsg(t("compliance.anonymizeDone"));
+                        const refreshed = await getCustomerDetail(token, customerId);
+                        setData(refreshed);
+                      } catch {
+                        setComplianceMsg(t("compliance.exportFailed"));
+                      } finally {
+                        setComplianceBusy(false);
+                      }
+                    }}
+                  >
+                    {t("compliance.anonymize")}
+                  </button>
+                ) : null}
+              </div>
+              {complianceMsg ? (
+                <p className="admin-app__card-text" style={{ marginTop: "0.75rem" }}>
+                  {complianceMsg}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </>
       )}
     </PageShell>
