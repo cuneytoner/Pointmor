@@ -94,6 +94,21 @@ cd /opt/pointmor-demo
 
 **Ne yüklenir / yüklenmez:** `seed-demo.sh` → `db:seed:demo` → [`seed-demo.ts`](../apps/api/prisma/seed-demo.ts) (demo hesaplar, `demo-cafe`). Üç ek demo kiracı ve ağır senaryo verisi [`seed-demo-scenarios.ts`](../apps/api/prisma/seed-demo-scenarios.ts) **bu komutla çalışmaz**; yalnızca yerel `npm run db:seed` veya bilinçli `SEED_FULL_DEMO` akışı: [`41-ref-001-dev-seed-users.md`](./41-ref-001-dev-seed-users.md).
 
+Full senaryo verisini demo konteyneri içinde çalıştırmak için:
+
+```bash
+cd /opt/pointmor-demo/Pointmor
+./infra/scripts/seed-full-demo.sh
+```
+
+Doğrudan konteyner içinde kısayol komut:
+
+```bash
+docker compose -f infra/docker/docker-compose.demo.yml --env-file infra/docker/.env.demo exec -T \
+  -e FORCE_RESEED_DEMO=1 \
+  api-demo sh -c 'cd /app && npm run db:seed:full:demo -w api'
+```
+
 ---
 
 ## 6. Health check

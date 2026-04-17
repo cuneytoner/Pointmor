@@ -7,6 +7,7 @@ Bu sayfadaki **e-posta / şifre tablosunun çoğu** **yerel geliştirme** için 
 | Komut | Giriş dosyası | Ne oluşturur? |
 |--------|----------------|---------------|
 | **`npm run db:seed`** (`apps/api`) | [`prisma/seed.ts`](../apps/api/prisma/seed.ts) | Temel planlar, `demo-cafe` kiracısı, `admin@pointmor.local` / `owner@demo.pointmor.local`, mesaj şablonları; ardından **[`seed-demo-scenarios.ts`](../apps/api/prisma/seed-demo-scenarios.ts)** — üç senaryolu kiracı (küçük / yoğun / zincir), menü, müşteri, ziyaret, ödül, kampanya. |
+| **`npm run db:seed:full:demo`** (`apps/api`) | [`prisma/seed.ts`](../apps/api/prisma/seed.ts) | `SEED_FULL_DEMO=1` ile `db:seed` kısayolu; özellikle demo konteyneri içinde “full” senaryo verisini açmak için. İsteğe bağlı `FORCE_RESEED_DEMO=1` ile mevcut senaryo verisini silip yeniden yükler. |
 | **`npm run db:seed:demo`** | [`prisma/seed-demo.ts`](../apps/api/prisma/seed-demo.ts) | Demo VM / izole DB için: env şifreli **platform + işletme** kullanıcıları, `demo-cafe` + abonelik. **`seed-demo-scenarios` çalışmaz** (üç ek kiracı ve ağır veri yok). |
 
 **Üretim benzeri DB’de** `seed-demo-scenarios` varsayılan olarak **atlanır**: `NODE_ENV=production` iken yalnızca `SEED_FULL_DEMO=1` ile açılır (aşağıdaki bölüm).

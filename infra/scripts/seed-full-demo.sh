@@ -34,12 +34,11 @@ if ! docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" ps -q "$SERVICE_NA
   exit 1
 fi
 
-echo "seed-full-demo: docker compose exec → npm run db:seed -w api"
+echo "seed-full-demo: docker compose exec → npm run db:seed:full:demo -w api"
 echo "seed-full-demo: FORCE_RESEED_DEMO=$FORCE_RESEED_DEMO (1 = mevcut senaryo verisini temizleyip yeniden yükler)"
 
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" exec -T \
   -e DATABASE_URL="$DATABASE_URL_DEMO" \
-  -e SEED_FULL_DEMO=1 \
   -e FORCE_RESEED_DEMO="$FORCE_RESEED_DEMO" \
   "$SERVICE_NAME" \
-  sh -c 'cd /app && npm run db:seed -w api'
+  sh -c 'cd /app && npm run db:seed:full:demo -w api'

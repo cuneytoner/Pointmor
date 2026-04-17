@@ -20,7 +20,8 @@
     "db:reset": "prisma migrate reset --force",
     "db:fresh": "npm run db:clean && prisma migrate dev --name init",
     "db:seed": "prisma db seed",
-    "db:seed:demo": "tsx prisma/seed-demo.ts"
+    "db:seed:demo": "tsx prisma/seed-demo.ts",
+    "db:seed:full:demo": "SEED_FULL_DEMO=1 prisma db seed"
   },
   "dependencies": {
     "@pointmor/rbac": "file:../../packages/pointmor-rbac",

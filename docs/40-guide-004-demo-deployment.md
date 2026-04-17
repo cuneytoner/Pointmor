@@ -17,6 +17,7 @@ Pre-alpha demo ortamı: Debian VM üzerinde Docker Compose, PostgreSQL ayrı vol
 | `infra/scripts/health-check-demo.sh` | `127.0.0.1:${API_HOST_PORT}/health` yeniden denemeli |
 | `infra/scripts/healthcheck-demo.sh` | Aynı script (prompt/doküman uyumu için kısa isim) |
 | `infra/scripts/seed-demo.sh` | Yalnızca manuel/ilk kurulum; deploy ile çağrılmaz |
+| `infra/scripts/seed-full-demo.sh` | Full senaryo seed (`SEED_FULL_DEMO=1`): çok kiracı + ağır örnek veri |
 | `.github/workflows/deploy-demo.yml` | `main` push / `workflow_dispatch` → SSH ile `deploy-demo.sh` |
 | `apps/api/prisma/seed-demo.ts` | Demo kullanıcıları; şifreler yalnızca ortam değişkeni |
 
