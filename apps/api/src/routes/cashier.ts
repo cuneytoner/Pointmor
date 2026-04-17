@@ -9,7 +9,8 @@ import {
   createBranch,
   getCashierBootstrap,
   getCashierShiftSummary,
-  listBranches,
+  listBranchesForUser,
+  updateBranch,
   startCashierShift,
   startDeviceSession,
 } from "../lib/cashier-operation-service.js";
@@ -33,18 +34,54 @@ export async function registerCashierRoutes(app: FastifyInstance): Promise<void>
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
     const s = req.authSession as SessionPayload;
-    return getCashierBootstrap(tenantId, s.user.id);
+    return getCashierBootstrap(tenantId, s.user.id, s);
   });
 
-  app.get("/cashier/branches", { preHandler: [authPreHandler, requireTenantPermission("visits.create")] }, async (req, reply) => {
+  app.get("/cashier/branches", { preHandler: [authPreHandler, requireTenantPermission("customers.view")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
-    return listBranches(tenantId);
+    const s = req.authSession as SessionPayload;
+    return listBranchesForUser(tenantId, s);
+  });
+
+  app.patch<{
+    Params: { branchId: string };
+    Body: {
+      name?: string;
+      slug?: string | null;
+      address?: unknown | null;
+      isActive?: boolean;
+    };
+  }>("/cashier/branches/:branchId", { preHandler: [authPreHandler, requireTenantPermission("settings.manage")] }, async (req, reply) => {
+    const tenantId = requireTenantSession(req, reply);
+    if (!tenantId) return;
+    const s = req.authSession as SessionPayload;
+    const b = req.body ?? {};
+    try {
+      const row = await updateBranch(tenantId, req.params.branchId, {
+        ...(b.name !== undefined ? { name: String(b.name) } : {}),
+        ...(b.slug !== undefined ? { slug: b.slug } : {}),
+        ...(b.address !== undefined ? { address: b.address } : {}),
+        ...(b.isActive !== undefined ? { isActive: Boolean(b.isActive) } : {}),
+      });
+      await writeAudit(s.user.email, "cashier.branch.update", row.id);
+      return row;
+    } catch (e) {
+      const code = (e as Error & { statusCode?: number }).statusCode;
+      if (code === 400) return reply.code(400).send({ error: "validation_error" });
+      if (code === 404) return reply.code(404).send({ error: "not_found" });
+      if (code === 409) {
+        return reply.code(409).send({
+          error: (e as Error).message === "branch_name_taken" ? "branch_name_taken" : "conflict",
+        });
+      }
+      throw e;
+    }
   });
 
   app.post<{ Body: { name?: string; slug?: string | null } }>(
     "/cashier/branches",
-    { preHandler: [authPreHandler, requireTenantPermission("visits.create")] },
+    { preHandler: [authPreHandler, requireTenantPermission("settings.manage")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;

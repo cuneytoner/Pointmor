@@ -24,7 +24,9 @@ export function TenantAuditPage() {
   const [rows, setRows] = useState<ManagerAuditEventItem[] | null>(null);
   const [error, setError] = useState<"load" | "forbidden" | null>(null);
 
-  const featureOk = Boolean(ent?.features.includes("manager_closing"));
+  const complianceLevel = ent?.compliance?.level ?? "none";
+  const featureOk = complianceLevel !== "none";
+  const fullPack = complianceLevel === "full";
 
   useEffect(() => {
     if (!token?.trim() || !featureOk) return;
@@ -97,19 +99,28 @@ export function TenantAuditPage() {
           <p className="admin-app__card-text data-table__muted" style={{ marginBottom: "0.75rem" }}>
             {t("tenantAudit.exportHint")}
           </p>
-          <button
-            type="button"
-            className="admin-primary-btn"
-            onClick={() => {
-              if (!token?.trim()) return;
-              if (!window.confirm(t("compliance.exportConfirmAuditCsv"))) return;
-              downloadComplianceExport(token, "/audit/export/csv", "audit-export.csv").catch(
-                () => undefined,
-              );
-            }}
-          >
-            {t("compliance.exportAuditCsv")}
-          </button>
+          {fullPack ? (
+            <button
+              type="button"
+              className="admin-primary-btn"
+              onClick={() => {
+                if (!token?.trim()) return;
+                if (!window.confirm(t("compliance.exportConfirmAuditCsv"))) return;
+                downloadComplianceExport(token, "/audit/export/csv", "audit-export.csv").catch(
+                  () => undefined,
+                );
+              }}
+            >
+              {t("compliance.exportAuditCsv")}
+            </button>
+          ) : (
+            <div className="feature-plan-gate" style={{ padding: 0 }}>
+              <p className="admin-app__card-text">{t("compliance.upgradeUnlockFullPack")}</p>
+              <Link to="/app/admin/billing" className="admin-primary-btn">
+                {t("compliancePack.ctaPlans")}
+              </Link>
+            </div>
+          )}
         </div>
       ) : null}
 

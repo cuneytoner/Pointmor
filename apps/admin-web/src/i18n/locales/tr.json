@@ -134,7 +134,8 @@
     "envBanner": "Geliştirme — örnek veriler.",
     "sessionAria": "Oturum",
     "workspaceLine": "İşletme: {{name}} ({{slug}})",
-    "platformSession": "Platform yöneticisi oturumu"
+    "platformSession": "Platform yöneticisi oturumu",
+    "activeLocation": "Şube"
   },
   "nav": {
     "platformDashboard": "Özet",
@@ -155,6 +156,7 @@
     "subnavAria": "Yönetim bölümleri",
     "tab": {
       "general": "Genel",
+      "locations": "Şubeler",
       "team": "Takım",
       "messaging": "Mesajlaşma",
       "billing": "Faturalama ve plan"
@@ -169,6 +171,28 @@
       "sectionInvites": "Davetler",
       "invitesPlaceholder": "E-posta ile davet — yakında."
     }
+  },
+  "tenantLocations": {
+    "loading": "Şubeler yükleniyor…",
+    "loadError": "Şubeler yüklenemedi.",
+    "metricsTitle": "Şube karşılaştırması (ziyaret)",
+    "metricsHint": "Son {{days}} gün, oturum şube yetkisine göre.",
+    "unassignedVisits": "Şubesi atanmamış ziyaret kaydı: {{n}}",
+    "colBranch": "Şube",
+    "colVisits7d": "Ziyaret (dönem)",
+    "addTitle": "Yeni şube",
+    "name": "Ad",
+    "slugOptional": "Slug (isteğe bağlı)",
+    "addButton": "Şube ekle",
+    "listTitle": "Şube listesi",
+    "empty": "Henüz şube yok.",
+    "active": "aktif",
+    "inactive": "pasif",
+    "activate": "Aktifleştir",
+    "deactivate": "Pasifleştir",
+    "editAddress": "Adres (JSON)",
+    "cancelEdit": "İptal",
+    "saveAddress": "Adresi kaydet"
   },
   "dashboardPlatform": {
     "eyebrow": "Operasyon",
@@ -217,7 +241,22 @@
     "gdprExport": "Müşteri verisini indir (JSON)",
     "anonymize": "Müşteriyi anonimleştir",
     "anonymizeConfirm": "Bu müşteri anonimleştirilsin mi? Ad ve telefon değiştirilir; puan sıfırlanır. Geri alınamaz.",
-    "anonymizeDone": "Müşteri anonimleştirildi."
+    "anonymizeDone": "Müşteri anonimleştirildi.",
+    "upgradeUnlockFullPack": "Tam Compliance Pack için yükseltin: audit CSV/PDF, anomali exportu, gelişmiş saklama ve yapılandırılmış veri dışa aktarma."
+  },
+  "compliancePack": {
+    "bundleTitle": "Compliance Pack",
+    "limitedBadge": "Özet katmanı",
+    "fullBadge": "Tam katman",
+    "sectionTitle": "Compliance Pack",
+    "sectionLead": "Dahil olanlar plana göre değişir: Free’de yok; Pro’da özet PDF ve kısıtlı saklama; Growth’ta tam paket.",
+    "ctaPlans": "Planları gör ve yükselt",
+    "row": {
+      "auditExport": "Audit CSV/PDF ve yapılandırılmış müşteri exportu",
+      "summaryPdf": "Sadakat özeti PDF",
+      "retentionControl": "Yapılandırılabilir veri saklama",
+      "gdprExport": "Gizlilik exportları ve anonimleştirme"
+    }
   },
   "usage": {
     "upgradeCta": "Planları gör ve yükselt"
@@ -302,8 +341,100 @@
       "growthBody": "Ürün analitiği Pro ve üzeri planlarda. Büyüme panosunu açmak için yükseltin.",
       "auditTitle": "Operasyonel denetim",
       "auditLead": "Şube ve kasa olayları için denetim günlüğü.",
-      "auditBody": "Yönetici kapanış özeti Pro ve üzeri planlarda. Denetim günlüğünü görmek için yükseltin.",
+      "auditBody": "Compliance Pack (Pro ve üzeri) operasyonel denetim izini açar. Son olaylar ve exportlar için yükseltin.",
+      "hqTitle": "Merkez paneli (HQ)",
+      "hqLead": "Tüm şubeleri tek ekranda karşılaştırın.",
+      "hqBody": "HQ paneli Pro ve üzeri planlarda. Franchise özetini açmak için yükseltin.",
       "ctaBilling": "Faturalama ve plana git"
+    }
+  },
+  "hq": {
+    "eyebrow": "Franchise",
+    "title": "Merkez paneli (HQ)",
+    "description": "Özet KPI, şube sıralaması ve (Büyüme planında) trend ve anomali özeti.",
+    "basicNote": "Pro: özet ve sıralama. Büyüme: tam trend, kampanya şube kırılımı ve daha fazla anomali.",
+    "loadError": "HQ verisi yüklenemedi.",
+    "kpi": {
+      "visits": "Ziyaretler",
+      "points": "Verilen puan",
+      "redemptions": "Kullanımlar",
+      "campaigns": "Aktif kampanyalar"
+    },
+    "leaderboard": {
+      "title": "Şube sıralaması",
+      "hint": "Seçili dönemdeki ziyaret sayısına göre.",
+      "colBranch": "Şube",
+      "colVisits": "Ziyaret"
+    },
+    "badge": {
+      "best": "En iyi",
+      "watch": "Takip"
+    },
+    "trends": {
+      "title": "Trendler",
+      "visits": "Ziyaret",
+      "points": "Puan",
+      "redemptions": "Kullanım"
+    },
+    "insights": {
+      "title": "Öne çıkanlar"
+    },
+    "insight": {
+      "low_vs_median": "{{name}} ortalamanın altında — önceliklendirin.",
+      "period_drop_visits": "Toplam ziyaret önceki döneme göre belirgin düştü."
+    },
+    "anomalies": {
+      "title": "Anomali sinyalleri"
+    },
+    "aiInsights": {
+      "title": "Yapay zekâ önerileri",
+      "subtitle": "HQ verilerinizden kural tabanlı öneriler (toplu iş; anlık değil).",
+      "empty": "Henüz AI önerisi yok. hq-insights zamanlı işinin çalıştığından ve yeterli aktivite olduğundan emin olun.",
+      "loadError": "AI önerileri yüklenemedi.",
+      "dismiss": "Kapat",
+      "cta": "İlerle",
+      "ctaCreateCampaign": "Kampanya taslağı oluştur",
+      "ctaMessaging": "Mesajlaşma",
+      "ctaAudit": "Denetim",
+      "ctaCampaigns": "Kampanyalar",
+      "ctaGrowth": "Büyüme",
+      "ctaAnomalies": "Sinyalleri incele"
+    },
+    "automation": {
+      "title": "Otomatik aksiyonlar",
+      "subtitle": "Insight’lar bekleyen aksiyon oluşturabilir veya moda göre otomatik uygulanır.",
+      "mode": "Mod",
+      "maxDay": "Günlük üst sınır",
+      "cooldown": "Bekleme (dk)",
+      "pendingTitle": "Onay bekleyen",
+      "recentTitle": "Son uygulananlar",
+      "colRule": "Kural",
+      "colAction": "Aksiyon",
+      "colStatus": "Durum",
+      "approve": "Onayla",
+      "reject": "Reddet",
+      "emptyPending": "Bekleyen aksiyon yok.",
+      "emptyRecent": "Henüz tamamlanan kayıt yok.",
+      "loadError": "Otomasyon yüklenemedi."
+    },
+    "campaigns": {
+      "title": "Kampanya performansı",
+      "byLocation": "Kampanya × şube",
+      "colName": "Kampanya",
+      "colScope": "Kapsam",
+      "colBonus": "Bonus puan",
+      "colApps": "Uygulama",
+      "colLocation": "Şube",
+      "branchOnly": "Şube",
+      "allBranches": "Tüm şubeler"
+    },
+    "location": {
+      "eyebrow": "Şube",
+      "title": "Şube detayı",
+      "description": "Seçili dönem metrikleri.",
+      "missing": "Şube bulunamadı.",
+      "back": "HQ paneline dön",
+      "activeCampaigns": "Aktif kampanya (bu şube)"
     }
   },
   "tenantAudit": {
@@ -329,6 +460,7 @@
     "section": {
       "storeBranding": "İşletme ve görünüm",
       "localization": "Diller, bölge ve iletişim",
+      "dataRetention": "Veri saklama süreleri",
       "publicAccess": "Herkese açık bağlantılar ve görünürlük"
     },
     "publicAccessLead": "Misafirlere neyin açık olacağını seçin, ardından QR ve bağlantıları paylaşın.",
@@ -362,6 +494,20 @@
       "description": "Misafirler için salt okunur menü — sadakat PWA’dan ayrıdır.",
       "copy": "Menü bağlantısını kopyala",
       "copied": "Kopyalandı"
+    },
+    "retention": {
+      "lead": "Operasyonel denetim, dışa aktarma, mesaj iletimi ve anomali kayıtlarının otomatik silinmeden önce ne kadar tutulacağı. Süre kısaltılırsa uygulama bir sonraki zamanlanmış temizlik döngüsünde yapılır.",
+      "loadError": "Saklama ayarları yüklenemedi.",
+      "upgradeCta": "Süreleri özelleştirmek için yükseltin:",
+      "upgradeLink": "Planlara git",
+      "operationalAudit": "Operasyonel denetim olayları",
+      "exportAudit": "Dışa aktarma ve uyumluluk denetimi",
+      "messaging": "Mesaj iletim günlükleri",
+      "anomaly": "Anomali sinyalleri",
+      "daysHint": "Süre (gün).",
+      "save": "Saklamayı kaydet",
+      "saving": "Kaydediliyor…",
+      "complianceHintShort": "Daha uzun saklama ve tam export seçenekleri Growth planındaki tam Compliance Pack ile gelir."
     }
   },
   "tenantMenu": {
@@ -545,6 +691,7 @@
   "tenantLoyalty": {
     "nav": {
       "dashboard": "Özet",
+      "hq": "Merkez (HQ)",
       "audit": "Denetim",
       "growth": "Büyüme",
       "customers": "Müşteriler",

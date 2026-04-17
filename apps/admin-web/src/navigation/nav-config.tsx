@@ -75,6 +75,13 @@ export const TENANT_NAV: NavItemConfig[] = [
     end: true,
   },
   {
+    to: "/app/hq",
+    labelKey: "tenantLoyalty.nav.hq",
+    Icon: IconBuilding,
+    tenant: true,
+    navActivePrefix: "/app/hq",
+  },
+  {
     to: "/app/audit",
     labelKey: "tenantLoyalty.nav.audit",
     Icon: IconShield,

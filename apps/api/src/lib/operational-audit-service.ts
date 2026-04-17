@@ -210,18 +210,17 @@ export async function recordDataExportEvent(input: {
 
 /**
  * İsteğe bağlı saklama politikası — cron / yönetim işi ile çağrılabilir.
- * @returns silinen satır sayısı
+ * @returns silinen toplam satır (export + operasyonel audit); süreler env ile.
  */
 export async function purgeAuditEventsOlderThan(params: {
   olderThanDays: number;
   tenantId?: string;
 }): Promise<number> {
-  const days = Math.max(1, Math.min(params.olderThanDays, 3650));
-  const cutoff = new Date(Date.now() - days * 86_400_000);
-  const where: Prisma.AuditEventWhereInput = {
-    createdAt: { lt: cutoff },
-    ...(params.tenantId ? { tenantId: params.tenantId } : {}),
-  };
-  const res = await prisma.auditEvent.deleteMany({ where });
-  return res.count;
+  void params.olderThanDays;
+  const { runRetentionCleanup } = await import("./retention-cleanup-service.js");
+  const r = await runRetentionCleanup({
+    tenantId: params.tenantId,
+    only: ["export_audit", "operational_audit"],
+  });
+  return r.tables.reduce((s, t) => s + t.deleted, 0);
 }

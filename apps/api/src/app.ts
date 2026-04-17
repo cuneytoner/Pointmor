@@ -17,6 +17,7 @@ import { registerCashierRoutes } from "./routes/cashier.js";
 import { registerManagerRoutes } from "./routes/manager.js";
 import { registerEntitlementsRoutes } from "./routes/entitlements.js";
 import { registerProductAnalyticsRoutes } from "./routes/product-analytics.js";
+import { registerPublicDiscoveryRoutes } from "./routes/public-discovery.js";
 import { registerPublicLoyaltyRoutes } from "./routes/public-loyalty.js";
 import { registerPublicTenantRoutes } from "./routes/public-tenants.js";
 import { registerStoreSettingsRoutes } from "./routes/store-settings.js";
@@ -24,6 +25,13 @@ import { registerTenantMenuRoutes } from "./routes/tenant-menu.js";
 import { registerPublicVerifyRoutes } from "./routes/public-verify.js";
 import { registerTenantMessagingRoutes } from "./routes/tenant-messaging.js";
 import { registerComplianceExportRoutes } from "./routes/compliance-exports.js";
+import { registerTenantRetentionRoutes } from "./routes/retention.js";
+import { registerInternalRetentionJobRoutes } from "./routes/internal-retention-job.js";
+import { registerTenantBranchMetricsRoutes } from "./routes/tenant-branch-metrics.js";
+import { registerHqDashboardRoutes } from "./routes/hq-dashboard.js";
+import { registerHqInsightRoutes } from "./routes/hq-insights.js";
+import { registerTenantAutomationRoutes } from "./routes/tenant-automation.js";
+import { registerInternalHqInsightsJobRoutes } from "./routes/internal-hq-insights-job.js";
 
 export type BuildAppOptions = {
   /** Testlerde konsol gürültüsünü kapatmak için (`false`). */
@@ -57,7 +65,14 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     global: true,
     max: Number(process.env.API_RATE_LIMIT_MAX ?? 400),
     timeWindow: "1 minute",
-    allowList: (req) => (req.url.split("?")[0] ?? "") === "/health",
+    allowList: (req) => {
+      const p = req.url.split("?")[0] ?? "";
+      return (
+        p === "/health" ||
+        p === "/internal/jobs/retention" ||
+        p === "/internal/jobs/hq-insights"
+      );
+    },
   });
 
   app.get("/health", async () => ({ ok: true }));
@@ -71,6 +86,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerUserRoutes(app);
   await registerAuditRoutes(app);
   await registerWebhookRoutes(app);
+  await registerPublicDiscoveryRoutes(app);
   await registerPublicLoyaltyRoutes(app);
   await registerPublicTenantRoutes(app);
   await registerPublicVerifyRoutes(app);
@@ -83,6 +99,13 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerTenantMenuRoutes(app);
   await registerTenantMessagingRoutes(app);
   await registerComplianceExportRoutes(app);
+  await registerTenantRetentionRoutes(app);
+  await registerInternalRetentionJobRoutes(app);
+  await registerTenantBranchMetricsRoutes(app);
+  await registerHqDashboardRoutes(app);
+  await registerHqInsightRoutes(app);
+  await registerTenantAutomationRoutes(app);
+  await registerInternalHqInsightsJobRoutes(app);
 
   const isProd = process.env.NODE_ENV === "production";
   app.setErrorHandler((error: unknown, request, reply) => {

@@ -1,7 +1,7 @@
 import type { AdminAuth } from "../hooks/useAdminData";
 import { resolveTenantAppRole, type TenantAppRole } from "./tenant-app-role";
 
-export type WorkspaceAdminSection = "general" | "team" | "messaging" | "billing";
+export type WorkspaceAdminSection = "general" | "team" | "messaging" | "billing" | "locations";
 
 function normPath(p: string): string {
   if (p.length > 1 && p.endsWith("/")) return p.replace(/\/+$/, "");
@@ -42,6 +42,8 @@ export function canAccessWorkspaceAdminSection(
       return role === "owner" || role === "manager";
     case "messaging":
       return role === "owner" || role === "manager" || role === "ops";
+    case "locations":
+      return role === "owner" || role === "manager";
     default:
       return false;
   }
@@ -71,6 +73,14 @@ export function canAccessTenantNavTarget(to: string, auth: AdminAuth): boolean {
   if (t.startsWith("/app/admin/billing")) {
     if (role === "staff" || role === "viewer") return false;
     return role === "owner";
+  }
+  if (t.startsWith("/app/admin/locations")) {
+    if (role === "staff" || role === "viewer") return false;
+    return role === "owner" || role === "manager";
+  }
+  if (t.startsWith("/app/hq")) {
+    if (role === "staff" || role === "viewer") return false;
+    return role === "owner" || role === "manager" || role === "ops";
   }
 
   if (t === "/app/dashboard" || t.startsWith("/app/dashboard")) {
@@ -135,6 +145,12 @@ export function canAccessTenantPath(pathname: string, auth: AdminAuth): boolean 
     if (seg === "general") return canAccessWorkspaceAdminSection("general", auth);
     if (seg === "team") return canAccessWorkspaceAdminSection("team", auth);
     if (seg === "messaging") return canAccessWorkspaceAdminSection("messaging", auth);
+    if (seg === "locations") return canAccessWorkspaceAdminSection("locations", auth);
+    return role === "owner" || role === "manager" || role === "ops";
+  }
+
+  if (p.startsWith("/app/hq")) {
+    if (role === "staff" || role === "viewer") return false;
     return role === "owner" || role === "manager" || role === "ops";
   }
 

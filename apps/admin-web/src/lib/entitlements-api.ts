@@ -1,11 +1,17 @@
 import { getApiBaseUrl } from "./api-base";
 
+export type CompliancePackLevel = "none" | "limited" | "full";
+
 export type EntitlementsPayload = {
   plan: {
     id: string;
     slug: string;
     name: string;
     planType: string;
+  };
+  /** Yoksa `none` kabul edilir (eski API yanıtları). */
+  compliance?: {
+    level: CompliancePackLevel;
   };
   features: string[];
   limits: {

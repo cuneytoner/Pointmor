@@ -227,13 +227,32 @@ export function postVisit(
   });
 }
 
+const ACTIVE_BRANCH_STORAGE = "pointmor.activeBranchId";
+
 export function postVisitPreview(
   token: string,
   body: { customerId: string; amount: number },
+  cashierCtx?: CashierOperationIds | null,
 ) {
+  let activeBranch: string | undefined;
+  try {
+    activeBranch = localStorage.getItem(ACTIVE_BRANCH_STORAGE) ?? undefined;
+  } catch {
+    activeBranch = undefined;
+  }
+  const headers: Record<string, string> = { ...cashierHeaders(cashierCtx) };
+  if (!cashierCtx?.deviceSessionId && activeBranch?.trim()) {
+    headers["X-Pointmor-Active-Branch"] = activeBranch.trim();
+  }
   return loyaltyFetch<VisitPreviewResult>(token, "/visits/preview", {
     method: "POST",
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      ...body,
+      ...(!cashierCtx?.deviceSessionId && activeBranch?.trim()
+        ? { branchId: activeBranch.trim() }
+        : {}),
+    }),
+    headers,
   });
 }
 

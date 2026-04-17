@@ -9,7 +9,7 @@ import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
 import { toIntlLocale } from "../lib/locale-intl";
 import { postDemoPlanSwitch } from "../lib/entitlements-api";
-import type { EntitlementsPayload } from "../lib/entitlements-api";
+import type { CompliancePackLevel, EntitlementsPayload } from "../lib/entitlements-api";
 
 function formatCap(n: number | null): string {
   if (n === null) return "∞";
@@ -50,8 +50,15 @@ function UsageRow({
   );
 }
 
+function compliancePackLabel(level: CompliancePackLevel): string {
+  if (level === "full") return "✓";
+  if (level === "limited") return "◐";
+  return "—";
+}
+
 function FeatureList({ ent }: { ent: EntitlementsPayload }) {
   const { t } = useTranslation();
+  const level = ent.compliance?.level ?? "none";
   const labels: Array<{ tag: string; labelKey: string }> = [
     { tag: "customer_pwa", labelKey: "plan.features.customer_pwa" },
     { tag: "campaigns", labelKey: "plan.features.campaigns" },
@@ -64,6 +71,15 @@ function FeatureList({ ent }: { ent: EntitlementsPayload }) {
   const set = new Set(ent.features);
   return (
     <ul className="plan-feature-list">
+      <li className={level !== "none" ? "plan-feature-list__on" : "plan-feature-list__off"}>
+        {compliancePackLabel(level)} {t("compliancePack.bundleTitle")}
+        {level === "limited" ? (
+          <span className="data-table__muted"> — {t("compliancePack.limitedBadge")}</span>
+        ) : null}
+        {level === "full" ? (
+          <span className="data-table__muted"> — {t("compliancePack.fullBadge")}</span>
+        ) : null}
+      </li>
       {labels.map(({ tag, labelKey }) => (
         <li key={tag} className={set.has(tag) ? "plan-feature-list__on" : "plan-feature-list__off"}>
           {set.has(tag) ? "✓" : "—"} {t(labelKey)}
@@ -222,6 +238,58 @@ export function TenantBillingPage({ embedded }: TenantBillingPageProps = {}) {
             <div className="admin-app__card admin-app__card--wide">
               <h2 className="admin-app__card-title">{t("billing.sectionFeatures")}</h2>
               <FeatureList ent={ent} />
+            </div>
+
+            <div className="admin-app__card admin-app__card--wide">
+              <h2 className="admin-app__card-title">{t("compliancePack.sectionTitle")}</h2>
+              <p className="admin-app__card-text">{t("compliancePack.sectionLead")}</p>
+              <ul className="plan-feature-list">
+                <li
+                  className={
+                    (ent.compliance?.level ?? "none") === "full"
+                      ? "plan-feature-list__on"
+                      : "plan-feature-list__off"
+                  }
+                >
+                  {(ent.compliance?.level ?? "none") === "full" ? "✓" : "—"}{" "}
+                  {t("compliancePack.row.auditExport")}
+                </li>
+                <li
+                  className={
+                    (ent.compliance?.level ?? "none") !== "none"
+                      ? "plan-feature-list__on"
+                      : "plan-feature-list__off"
+                  }
+                >
+                  {(ent.compliance?.level ?? "none") !== "none" ? "✓" : "—"}{" "}
+                  {t("compliancePack.row.summaryPdf")}
+                </li>
+                <li
+                  className={
+                    (ent.compliance?.level ?? "none") === "full"
+                      ? "plan-feature-list__on"
+                      : "plan-feature-list__off"
+                  }
+                >
+                  {(ent.compliance?.level ?? "none") === "full" ? "✓" : "—"}{" "}
+                  {t("compliancePack.row.retentionControl")}
+                </li>
+                <li
+                  className={
+                    (ent.compliance?.level ?? "none") === "full"
+                      ? "plan-feature-list__on"
+                      : "plan-feature-list__off"
+                  }
+                >
+                  {(ent.compliance?.level ?? "none") === "full" ? "✓" : "—"}{" "}
+                  {t("compliancePack.row.gdprExport")}
+                </li>
+              </ul>
+              {(ent.compliance?.level ?? "none") === "none" ? (
+                <p className="admin-app__card-text data-table__muted">
+                  <Link to="/app/admin/billing">{t("compliancePack.ctaPlans")}</Link>
+                </p>
+              ) : null}
             </div>
 
             {canManageBilling ? (

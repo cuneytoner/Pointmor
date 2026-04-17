@@ -2,13 +2,26 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { FastifyInstance } from "fastify";
 import { buildApp } from "./app.js";
 import { issueSession } from "./lib/auth-memory.js";
+import { prisma } from "./lib/prisma.js";
 import { TENANT_MEMBERSHIP_ROLES } from "./lib/tenant-app-role.js";
+
+/** Seed’de `compliance_full` ile growth aboneliği olan demo kiracı (yoksa null). */
+let complianceTenantId: string | null = null;
 
 describe("Compliance export permissions", () => {
   let app: FastifyInstance;
 
   beforeAll(async () => {
     app = await buildApp({ logger: false });
+    try {
+      const row = await prisma.tenant.findUnique({
+        where: { slug: "demo-cafe" },
+        select: { id: true },
+      });
+      complianceTenantId = row?.id ?? null;
+    } catch {
+      complianceTenantId = null;
+    }
   });
 
   afterAll(async () => {
@@ -59,10 +72,14 @@ describe("Compliance export permissions", () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it("owner GET /audit/export/csv (alias) returns CSV header", async () => {
+  it("owner GET /audit/export/csv (alias) returns CSV header when Compliance Pack full", async () => {
+    if (!complianceTenantId) {
+      console.warn("skip: demo-cafe tenant not in DB");
+      return;
+    }
     const token = issueSession({
       user: { id: "u-own", email: "o@test", name: "O", platformAdmin: false },
-      tenant: { id: "t1", slug: "acme", name: "Acme" },
+      tenant: { id: complianceTenantId, slug: "demo-cafe", name: "Demo" },
       membership: { role: TENANT_MEMBERSHIP_ROLES.owner },
     });
     const res = await app.inject({
@@ -75,10 +92,31 @@ describe("Compliance export permissions", () => {
     expect(res.body).toContain("payload_summary");
   });
 
-  it("manager GET /summary/export/pdf returns PDF", async () => {
+  it("owner on starter plan gets plan_feature_disabled for audit csv", async () => {
+    const token = issueSession({
+      user: { id: "u-free-own", email: "free@test", name: "F", platformAdmin: false },
+      tenant: { id: "t-starter-only", slug: "starterco", name: "Starter Co" },
+      membership: { role: TENANT_MEMBERSHIP_ROLES.owner },
+    });
+    const res = await app.inject({
+      method: "GET",
+      url: "/audit/export/csv",
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(res.statusCode).toBe(403);
+    const body = JSON.parse(res.body) as { error?: string; feature?: string };
+    expect(body.error).toBe("plan_feature_disabled");
+    expect(body.feature).toBe("compliance_full");
+  });
+
+  it("manager GET /summary/export/pdf returns PDF with Compliance Pack", async () => {
+    if (!complianceTenantId) {
+      console.warn("skip: demo-cafe tenant not in DB");
+      return;
+    }
     const token = issueSession({
       user: { id: "u-mgr2", email: "m2@test", name: "M", platformAdmin: false },
-      tenant: { id: "t1", slug: "acme", name: "Acme" },
+      tenant: { id: complianceTenantId, slug: "demo-cafe", name: "Demo" },
       membership: { role: TENANT_MEMBERSHIP_ROLES.manager },
     });
     const res = await app.inject({
@@ -91,9 +129,13 @@ describe("Compliance export permissions", () => {
   });
 
   it("owner GET /tenant/audit/export/csv matches alias /audit/export/csv", async () => {
+    if (!complianceTenantId) {
+      console.warn("skip: demo-cafe tenant not in DB");
+      return;
+    }
     const token = issueSession({
       user: { id: "u-own3", email: "o3@test", name: "O", platformAdmin: false },
-      tenant: { id: "t-alias", slug: "alias", name: "Alias Co" },
+      tenant: { id: complianceTenantId, slug: "demo-cafe", name: "Demo" },
       membership: { role: TENANT_MEMBERSHIP_ROLES.owner },
     });
     const a = await app.inject({

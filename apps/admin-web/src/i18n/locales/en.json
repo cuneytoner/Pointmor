@@ -134,7 +134,8 @@
     "envBanner": "Development — sample data.",
     "sessionAria": "Session",
     "workspaceLine": "Workspace: {{name}} ({{slug}})",
-    "platformSession": "Platform administrator session"
+    "platformSession": "Platform administrator session",
+    "activeLocation": "Location"
   },
   "nav": {
     "platformDashboard": "Dashboard",
@@ -155,6 +156,7 @@
     "subnavAria": "Administration sections",
     "tab": {
       "general": "General",
+      "locations": "Locations",
       "team": "Team",
       "messaging": "Messaging",
       "billing": "Billing & plan"
@@ -169,6 +171,28 @@
       "sectionInvites": "Invites",
       "invitesPlaceholder": "Invite colleagues by email — coming soon."
     }
+  },
+  "tenantLocations": {
+    "loading": "Loading locations…",
+    "loadError": "Could not load locations.",
+    "metricsTitle": "Location comparison (visits)",
+    "metricsHint": "Last {{days}} days, scoped to your session’s branch access.",
+    "unassignedVisits": "Visits without a branch: {{n}}",
+    "colBranch": "Location",
+    "colVisits7d": "Visits (period)",
+    "addTitle": "New location",
+    "name": "Name",
+    "slugOptional": "Slug (optional)",
+    "addButton": "Add location",
+    "listTitle": "Locations",
+    "empty": "No locations yet.",
+    "active": "active",
+    "inactive": "inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "editAddress": "Address (JSON)",
+    "cancelEdit": "Cancel",
+    "saveAddress": "Save address"
   },
   "dashboardPlatform": {
     "eyebrow": "Operations",
@@ -217,7 +241,22 @@
     "gdprExport": "Download customer data (JSON)",
     "anonymize": "Anonymize customer",
     "anonymizeConfirm": "Anonymize this customer? Name and phone will be replaced; points reset. This cannot be undone.",
-    "anonymizeDone": "Customer anonymized."
+    "anonymizeDone": "Customer anonymized.",
+    "upgradeUnlockFullPack": "Upgrade to unlock the full Compliance Pack (audit CSV/PDF, anomaly export, advanced retention, structured data export)."
+  },
+  "compliancePack": {
+    "bundleTitle": "Compliance Pack",
+    "limitedBadge": "Summary tier",
+    "fullBadge": "Full tier",
+    "sectionTitle": "Compliance Pack",
+    "sectionLead": "What’s included depends on your plan: Free has no pack; Pro includes summary exports and limited retention; Growth unlocks the full set.",
+    "ctaPlans": "View plans & upgrade",
+    "row": {
+      "auditExport": "Audit CSV/PDF & structured customer export",
+      "summaryPdf": "Loyalty summary PDF",
+      "retentionControl": "Configurable data retention",
+      "gdprExport": "Privacy exports & anonymization"
+    }
   },
   "usage": {
     "upgradeCta": "View plans & upgrade"
@@ -302,8 +341,100 @@
       "growthBody": "Product analytics is available on Pro and higher. Upgrade to unlock the Growth dashboard.",
       "auditTitle": "Operational audit",
       "auditLead": "Audit log for branch and register activity.",
-      "auditBody": "Manager closing summaries require Pro or higher. Upgrade to view the audit log.",
+      "auditBody": "The Compliance Pack (Pro or higher) unlocks the operational audit trail. Upgrade to view recent events and exports.",
+      "hqTitle": "HQ dashboard",
+      "hqLead": "Compare all branches in one place.",
+      "hqBody": "The HQ dashboard is available on Pro and higher. Upgrade to unlock the franchise overview.",
       "ctaBilling": "Open billing & plan"
+    }
+  },
+  "hq": {
+    "eyebrow": "Franchise",
+    "title": "HQ dashboard",
+    "description": "Summary KPIs, branch leaderboard, and (on Growth) trend and anomaly highlights.",
+    "basicNote": "Pro: summary and ranking. Growth: full trends, campaign-by-branch breakdown, and richer anomaly signals.",
+    "loadError": "Could not load HQ data.",
+    "kpi": {
+      "visits": "Visits",
+      "points": "Points issued",
+      "redemptions": "Redemptions",
+      "campaigns": "Active campaigns"
+    },
+    "leaderboard": {
+      "title": "Branch leaderboard",
+      "hint": "Ranked by visits in the selected period.",
+      "colBranch": "Branch",
+      "colVisits": "Visits"
+    },
+    "badge": {
+      "best": "Top",
+      "watch": "Watch"
+    },
+    "trends": {
+      "title": "Trends",
+      "visits": "Visits",
+      "points": "Points",
+      "redemptions": "Redemptions"
+    },
+    "insights": {
+      "title": "Highlights"
+    },
+    "insight": {
+      "low_vs_median": "{{name}} is below median — prioritize.",
+      "period_drop_visits": "Total visits dropped sharply vs the previous period."
+    },
+    "anomalies": {
+      "title": "Anomaly signals"
+    },
+    "aiInsights": {
+      "title": "AI insights",
+      "subtitle": "Rule-based recommendations from your HQ data (batch job; not real-time).",
+      "empty": "No AI insights yet. Ensure the hq-insights scheduled job runs and you have recent activity.",
+      "loadError": "Could not load AI insights.",
+      "dismiss": "Dismiss",
+      "cta": "Act",
+      "ctaCreateCampaign": "Create campaign draft",
+      "ctaMessaging": "Messaging",
+      "ctaAudit": "Audit",
+      "ctaCampaigns": "Campaigns",
+      "ctaGrowth": "Growth",
+      "ctaAnomalies": "Review signals"
+    },
+    "automation": {
+      "title": "Auto actions",
+      "subtitle": "Insights can create pending actions or run automatically (per tenant mode).",
+      "mode": "Mode",
+      "maxDay": "Max / day",
+      "cooldown": "Cooldown (min)",
+      "pendingTitle": "Pending approval",
+      "recentTitle": "Recent",
+      "colRule": "Rule",
+      "colAction": "Action",
+      "colStatus": "Status",
+      "approve": "Approve",
+      "reject": "Reject",
+      "emptyPending": "No pending actions.",
+      "emptyRecent": "No completed actions yet.",
+      "loadError": "Could not load automation."
+    },
+    "campaigns": {
+      "title": "Campaign performance",
+      "byLocation": "Campaign × branch",
+      "colName": "Campaign",
+      "colScope": "Scope",
+      "colBonus": "Bonus points",
+      "colApps": "Applications",
+      "colLocation": "Branch",
+      "branchOnly": "Branch",
+      "allBranches": "All branches"
+    },
+    "location": {
+      "eyebrow": "Branch",
+      "title": "Branch detail",
+      "description": "Metrics for the selected period.",
+      "missing": "Branch not found.",
+      "back": "Back to HQ",
+      "activeCampaigns": "Active campaigns (this branch)"
     }
   },
   "tenantAudit": {
@@ -329,6 +460,7 @@
     "section": {
       "storeBranding": "Store & branding",
       "localization": "Languages, region & contact",
+      "dataRetention": "Data retention",
       "publicAccess": "Public links & visibility"
     },
     "publicAccessLead": "Choose what guests can open, then share QR codes and links.",
@@ -362,6 +494,20 @@
       "description": "Read-only menu for guests — separate from the loyalty PWA.",
       "copy": "Copy menu link",
       "copied": "Copied"
+    },
+    "retention": {
+      "lead": "How long operational audit, export, messaging delivery, and anomaly records are kept before automatic deletion. Shorter retention applies on the next scheduled cleanup run.",
+      "loadError": "Could not load retention settings.",
+      "upgradeCta": "Upgrade to customize retention.",
+      "upgradeLink": "View plans",
+      "operationalAudit": "Operational audit events",
+      "exportAudit": "Export & compliance audit events",
+      "messaging": "Messaging delivery logs",
+      "anomaly": "Anomaly signals",
+      "daysHint": "Duration in days.",
+      "save": "Save retention",
+      "saving": "Saving…",
+      "complianceHintShort": "Longer retention and full export options are part of the full Compliance Pack on Growth."
     }
   },
   "tenantMenu": {
@@ -546,6 +692,7 @@
   "tenantLoyalty": {
     "nav": {
       "dashboard": "Dashboard",
+      "hq": "HQ",
       "audit": "Audit",
       "growth": "Growth",
       "customers": "Customers",

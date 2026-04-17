@@ -32,9 +32,15 @@ import {
   maybeFlagOperationOutsideSession,
 } from "./operational-anomaly-service.js";
 import {
+  assertVisitBranchForSession,
+  redemptionWhereForSession,
+  visitWhereForSession,
+} from "./branch-scope.js";
+import {
   recordAuditEvent,
   resolveBranchFromDeviceSession,
 } from "./operational-audit-service.js";
+import type { SessionPayload } from "./auth-memory.js";
 import {
   assertFeature,
   assertWithinLimit,
@@ -121,12 +127,19 @@ export type RecordVisitResult = {
   priorVisitCount: number;
 };
 
+function campaignAppliesAtBranch(c: Campaign, branchId: string | null): boolean {
+  if (!c.branchId) return true;
+  if (!branchId) return false;
+  return c.branchId === branchId;
+}
+
 export async function recordVisit(
   tenantId: string,
   customerId: string,
   amount: number,
   cashierCtx?: CashierOperationContext | null,
   actor?: LoyaltyAuditActor | null,
+  session?: SessionPayload | null,
 ): Promise<RecordVisitResult> {
   if (!Number.isFinite(amount) || amount <= 0) {
     const err = Object.assign(new Error("validation_error"), { statusCode: 400 });
@@ -138,6 +151,14 @@ export async function recordVisit(
 
   const entCtx = await getTenantEntitlementContext(tenantId);
   const { start: monthStart, end: monthEnd } = utcMonthRange(now);
+
+  const resolvedBranchId = await resolveBranchFromDeviceSession(
+    tenantId,
+    cashierCtx?.deviceSessionId,
+  );
+  if (session) {
+    assertVisitBranchForSession(session, resolvedBranchId);
+  }
 
   const result = await prisma.$transaction(async (tx) => {
     const visitsMonth = await tx.visit.count({
@@ -162,7 +183,9 @@ export async function recordVisit(
       orderBy: { id: "asc" },
     });
 
-    const runnable = campaigns.filter((c) => isCampaignRunnable(c, now));
+    const runnable = campaigns.filter(
+      (c) => isCampaignRunnable(c, now) && campaignAppliesAtBranch(c, resolvedBranchId),
+    );
 
     const evalCtx = {
       amountMinor,
@@ -191,6 +214,7 @@ export async function recordVisit(
       data: {
         tenantId,
         customerId,
+        branchId: resolvedBranchId ?? undefined,
         amount: amountMinor,
         basePointsEarned: basePoints,
         bonusPointsEarned: bonusTotal,
@@ -347,6 +371,8 @@ export async function previewVisitPoints(
   tenantId: string,
   customerId: string,
   amount: number,
+  atBranchId?: string | null,
+  session?: SessionPayload | null,
 ): Promise<PreviewVisitResult> {
   if (!Number.isFinite(amount) || amount <= 0) {
     const err = Object.assign(new Error("validation_error"), { statusCode: 400 });
@@ -364,6 +390,10 @@ export async function previewVisitPoints(
     throw err;
   }
 
+  if (session) {
+    assertVisitBranchForSession(session, atBranchId ?? null);
+  }
+
   const priorVisitCount = await prisma.visit.count({
     where: { tenantId, customerId },
   });
@@ -373,7 +403,9 @@ export async function previewVisitPoints(
     orderBy: { id: "asc" },
   });
 
-  const runnable = campaigns.filter((c) => isCampaignRunnable(c, now));
+  const runnable = campaigns
+    .filter((c) => isCampaignRunnable(c, now))
+    .filter((c) => campaignAppliesAtBranch(c, atBranchId ?? null));
 
   const evalCtx = {
     amountMinor,
@@ -579,12 +611,23 @@ export async function createCampaign(
     endAt?: Date | null;
     config: unknown;
     isActive?: boolean;
+    /** null = merkezi (tüm şubeler); id = şube override */
+    branchId?: string | null;
   },
 ) {
   const name = data.name.trim();
   if (!name) {
     const err = Object.assign(new Error("validation_error"), { statusCode: 400 });
     throw err;
+  }
+  if (data.branchId) {
+    const br = await prisma.branch.findFirst({
+      where: { id: data.branchId, tenantId },
+    });
+    if (!br) {
+      const err = Object.assign(new Error("not_found"), { statusCode: 404 });
+      throw err;
+    }
   }
   const cfg = assertCampaignConfigMatchesType(data.type, data.config);
   const ctx = await getTenantEntitlementContext(tenantId);
@@ -608,6 +651,7 @@ export async function createCampaign(
       endAt: data.endAt ?? null,
       config: cfg as object,
       isActive: data.isActive ?? true,
+      ...(data.branchId ? { branchId: data.branchId } : {}),
     },
   });
 }
@@ -631,6 +675,7 @@ export async function updateCampaign(
     endAt: Date | null;
     config: unknown;
     isActive: boolean;
+    branchId: string | null;
   }>,
 ): Promise<Campaign> {
   const existing = await prisma.campaign.findFirst({
@@ -645,6 +690,16 @@ export async function updateCampaign(
   const nextConfig = patch.config !== undefined ? patch.config : existing.config;
 
   const cfg = assertCampaignConfigMatchesType(nextType, nextConfig);
+
+  if (patch.branchId) {
+    const br = await prisma.branch.findFirst({
+      where: { id: patch.branchId, tenantId },
+    });
+    if (!br) {
+      const err = Object.assign(new Error("not_found"), { statusCode: 404 });
+      throw err;
+    }
+  }
 
   if (patch.name !== undefined && !patch.name.trim()) {
     const err = Object.assign(new Error("validation_error"), { statusCode: 400 });
@@ -675,6 +730,7 @@ export async function updateCampaign(
       ...(patch.startAt !== undefined ? { startAt: patch.startAt } : {}),
       ...(patch.endAt !== undefined ? { endAt: patch.endAt } : {}),
       ...(patch.isActive !== undefined ? { isActive: patch.isActive } : {}),
+      ...(patch.branchId !== undefined ? { branchId: patch.branchId } : {}),
       ...(patch.type !== undefined || patch.config !== undefined
         ? { config: cfg as object }
         : {}),
@@ -1333,25 +1389,41 @@ export async function getCustomerDetail(tenantId: string, customerId: string) {
   return { ...base, recentVisits, recentLedger, rewardClaims };
 }
 
-export async function listVisitsForTenant(tenantId: string, take = 100) {
+export async function listVisitsForTenant(
+  tenantId: string,
+  take = 100,
+  session?: SessionPayload,
+) {
+  const where = session
+    ? visitWhereForSession(tenantId, session)
+    : { tenantId };
   return prisma.visit.findMany({
-    where: { tenantId },
+    where,
     orderBy: { createdAt: "desc" },
     take,
     include: {
       customer: { select: { id: true, name: true, phone: true } },
+      branch: { select: { id: true, name: true, slug: true } },
     },
   });
 }
 
-export async function listRedemptionsForTenant(tenantId: string, take = 100) {
+export async function listRedemptionsForTenant(
+  tenantId: string,
+  take = 100,
+  session?: SessionPayload,
+) {
+  const where = session
+    ? redemptionWhereForSession(tenantId, session)
+    : { tenantId };
   return prisma.redemption.findMany({
-    where: { tenantId },
+    where,
     orderBy: { createdAt: "desc" },
     take,
     include: {
       customer: { select: { id: true, name: true, phone: true } },
       reward: { select: { id: true, name: true } },
+      deviceSession: { select: { branchId: true } },
     },
   });
 }

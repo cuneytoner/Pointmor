@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useLocale } from "../contexts/LocaleContext";
@@ -16,7 +17,9 @@ export function TenantCustomerDetailPage() {
   const { t } = useTranslation();
   const locale = useLocale();
   const { token } = useAuth();
+  const { bootstrap } = useAdminDataContext();
   const { hasPermission } = usePermissions();
+  const complianceFull = bootstrap?.entitlements?.compliance?.level === "full";
   const [data, setData] = useState<CustomerDetail | null>(null);
   const [error, setError] = useState(false);
   const [complianceMsg, setComplianceMsg] = useState<string | null>(null);
@@ -185,7 +188,8 @@ export function TenantCustomerDetailPage() {
                   <button
                     type="button"
                     className="admin-primary-btn"
-                    disabled={complianceBusy}
+                    disabled={complianceBusy || !complianceFull}
+                    title={!complianceFull ? t("compliance.upgradeUnlockFullPack") : undefined}
                     onClick={() => {
                       if (!window.confirm(t("compliance.exportConfirmGdprJson"))) return;
                       if (!token?.trim()) return;
@@ -207,7 +211,8 @@ export function TenantCustomerDetailPage() {
                   <button
                     type="button"
                     className="admin-secondary-btn"
-                    disabled={complianceBusy}
+                    disabled={complianceBusy || !complianceFull}
+                    title={!complianceFull ? t("compliance.upgradeUnlockFullPack") : undefined}
                     onClick={async () => {
                       if (!window.confirm(t("compliance.anonymizeConfirm"))) return;
                       if (!token?.trim()) return;
@@ -235,6 +240,12 @@ export function TenantCustomerDetailPage() {
                   </button>
                 ) : null}
               </div>
+              {!complianceFull ? (
+                <p className="admin-app__card-text data-table__muted" style={{ marginTop: "0.75rem" }}>
+                  {t("compliance.upgradeUnlockFullPack")}{" "}
+                  <Link to="/app/admin/billing">{t("compliancePack.ctaPlans")}</Link>
+                </p>
+              ) : null}
               {complianceMsg ? (
                 <p className="admin-app__card-text" style={{ marginTop: "0.75rem" }}>
                   {complianceMsg}

@@ -12,7 +12,46 @@ export const FEATURE = {
   MULTI_BRANCH: "multi_branch",
   WEBHOOKS: "webhooks",
   PRODUCT_ANALYTICS: "product_analytics",
+  /** Franchise / HQ paneli — Pro: özet + leaderboard; Growth + product_analytics: tam insight */
+  HQ_DASHBOARD: "hq_dashboard",
+  /** HQ AI önerileri (kural tabanlı); batch job + dismiss */
+  HQ_AI_INSIGHTS: "hq_ai_insights",
+  /** HQ otomasyon motoru (insight → kampanya / denetim kaydı); güvenlik + onay */
+  HQ_AUTOMATION: "hq_automation",
+  /** Pro: denetim özeti, kısa saklama, PDF özet export — tam CSV/GDPR yok */
+  COMPLIANCE_LIMITED: "compliance_limited",
+  /** Growth+: tam Compliance Pack (audit CSV/PDF, anomali, GDPR yapılandırılmış export, gelişmiş saklama) */
+  COMPLIANCE_FULL: "compliance_full",
 } as const;
+
+export type CompliancePackLevel = "none" | "limited" | "full";
+
+export function compliancePackLevelFromContext(ctx: TenantEntitlementContext): CompliancePackLevel {
+  if (ctx.features.has(FEATURE.COMPLIANCE_FULL)) return "full";
+  if (ctx.features.has(FEATURE.COMPLIANCE_LIMITED)) return "limited";
+  return "none";
+}
+
+/** Kiracının Compliance Pack satırı var mı (limited veya full). */
+export async function hasCompliancePack(tenantId: string): Promise<boolean> {
+  const ctx = await getTenantEntitlementContext(tenantId);
+  return compliancePackLevelFromContext(ctx) !== "none";
+}
+
+export function assertComplianceLimited(ctx: TenantEntitlementContext): void {
+  if (
+    !ctx.features.has(FEATURE.COMPLIANCE_FULL) &&
+    !ctx.features.has(FEATURE.COMPLIANCE_LIMITED)
+  ) {
+    throw planFeatureError(FEATURE.COMPLIANCE_LIMITED);
+  }
+}
+
+export function assertComplianceFull(ctx: TenantEntitlementContext): void {
+  if (!ctx.features.has(FEATURE.COMPLIANCE_FULL)) {
+    throw planFeatureError(FEATURE.COMPLIANCE_FULL);
+  }
+}
 
 export type LimitMetric =
   | "maxCustomers"
@@ -85,13 +124,38 @@ function readSoftPct(raw: Record<string, unknown>, fallback: number): number {
 
 /** Slug / planType için taban limitler (JSON boşsa). */
 function defaultLimitsForPlan(slug: string, planType: PlanType): EffectiveLimits {
-  if (slug === "growth" || planType === "pro" || planType === "team") {
+  const unlimited: EffectiveLimits = {
+    maxCustomers: null,
+    maxActiveRewards: null,
+    maxActiveCampaigns: null,
+    maxVisitsPerMonth: null,
+    maxBranches: null,
+    maxStaffUsers: null,
+    softWarningPercent: 80,
+  };
+  /** Growth+: çoklu lokasyon sınırsız (slug öncelikli — growth planType’ı da `pro` olabilir). */
+  if (slug === "growth" || slug === "scale" || slug === "enterprise") {
+    return unlimited;
+  }
+  /** Pro: çoklu lokasyon ücretli paket — sınırlı şube. */
+  if (slug === "pro") {
     return {
       maxCustomers: null,
       maxActiveRewards: null,
       maxActiveCampaigns: null,
       maxVisitsPerMonth: null,
-      maxBranches: null,
+      maxBranches: 5,
+      maxStaffUsers: null,
+      softWarningPercent: 80,
+    };
+  }
+  if (planType === "pro" || planType === "team") {
+    return {
+      maxCustomers: null,
+      maxActiveRewards: null,
+      maxActiveCampaigns: null,
+      maxVisitsPerMonth: null,
+      maxBranches: 5,
       maxStaffUsers: null,
       softWarningPercent: 80,
     };
@@ -254,12 +318,16 @@ export async function buildEntitlementsPayload(tenantId: string) {
   const usage = await getUsageSnapshot(tenantId);
   const { limits, plan } = ctx;
   const warnings = buildSoftWarnings(limits, usage);
+  const complianceLevel = compliancePackLevelFromContext(ctx);
   return {
     plan: {
       id: plan.id,
       slug: plan.slug,
       name: plan.name,
       planType: plan.planType,
+    },
+    compliance: {
+      level: complianceLevel,
     },
     features: Array.from(ctx.features),
     limits: {

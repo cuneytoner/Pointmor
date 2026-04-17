@@ -4,6 +4,8 @@ import type { CashierNetworkPhase } from "./useCashierNetworkResilience";
 
 type CashierLayoutProps = {
   tenantName: string;
+  /** Açık vardiyanın cihaz şubesi — kasiyer bağlamı sabit lokasyon. */
+  branchName?: string | null;
   connectionPhase: CashierNetworkPhase;
   onlineLabel: string;
   offlineLabel: string;
@@ -16,6 +18,7 @@ type CashierLayoutProps = {
 
 export function CashierLayout({
   tenantName,
+  branchName,
   connectionPhase,
   onlineLabel,
   offlineLabel,
@@ -37,9 +40,14 @@ export function CashierLayout({
   return (
     <div className="cashier-root flex min-h-[min(78vh,840px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm">
       <header className="flex shrink-0 flex-wrap items-center gap-2 border-b border-slate-200 bg-white px-4 py-3 md:gap-3 md:px-5 md:py-3.5">
-        <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-slate-900 md:text-lg">
-          {tenantName}
-        </h1>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-base font-semibold text-slate-900 md:text-lg">
+            {tenantName}
+          </h1>
+          {branchName?.trim() ? (
+            <p className="truncate text-xs font-medium text-slate-500 md:text-sm">{branchName}</p>
+          ) : null}
+        </div>
         {syncSlot ? (
           <div className="flex shrink-0 items-center md:order-none">{syncSlot}</div>
         ) : null}

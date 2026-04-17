@@ -3,6 +3,7 @@ import rateLimit from "@fastify/rate-limit";
 import { compare } from "bcryptjs";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { issueSession } from "../lib/auth-memory.js";
+import { buildSessionMembership } from "../lib/session-branch-membership.js";
 import { prisma } from "../lib/prisma.js";
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from "../lib/session-cookie.js";
 
@@ -69,6 +70,11 @@ export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
           });
         }
 
+        const membership = await buildSessionMembership(
+          user.id,
+          user.tenant.id,
+          user.role,
+        );
         const payload: SessionPayload = {
           user: {
             id: user.id,
@@ -81,7 +87,7 @@ export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
             slug: user.tenant.slug,
             name: user.tenant.name,
           },
-          membership: { role: user.role },
+          membership,
         };
         const token = issueSession(payload);
         reply.setCookie(SESSION_COOKIE_NAME, token, sessionCookieOptions());

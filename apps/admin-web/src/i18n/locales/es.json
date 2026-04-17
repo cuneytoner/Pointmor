@@ -134,7 +134,8 @@
     "envBanner": "Desarrollo: los datos pueden ser de ejemplo o estar vacíos.",
     "sessionAria": "Sesión",
     "workspaceLine": "Negocio: {{name}} ({{slug}})",
-    "platformSession": "Sesión de administrador de plataforma"
+    "platformSession": "Sesión de administrador de plataforma",
+    "activeLocation": "Sucursal"
   },
   "nav": {
     "platformDashboard": "Panel",
@@ -155,6 +156,7 @@
     "subnavAria": "Secciones de administración",
     "tab": {
       "general": "General",
+      "locations": "Sucursales",
       "team": "Equipo",
       "messaging": "Mensajería",
       "billing": "Facturación y plan"
@@ -169,6 +171,28 @@
       "sectionInvites": "Invitaciones",
       "invitesPlaceholder": "Invitar por correo — próximamente."
     }
+  },
+  "tenantLocations": {
+    "loading": "Cargando sucursales…",
+    "loadError": "No se pudieron cargar las sucursales.",
+    "metricsTitle": "Comparación de sucursales (visitas)",
+    "metricsHint": "Últimos {{days}} días, según el acceso a sucursales de tu sesión.",
+    "unassignedVisits": "Visitas sin sucursal: {{n}}",
+    "colBranch": "Sucursal",
+    "colVisits7d": "Visitas (periodo)",
+    "addTitle": "Nueva sucursal",
+    "name": "Nombre",
+    "slugOptional": "Slug (opcional)",
+    "addButton": "Añadir sucursal",
+    "listTitle": "Sucursales",
+    "empty": "Aún no hay sucursales.",
+    "active": "activa",
+    "inactive": "inactiva",
+    "activate": "Activar",
+    "deactivate": "Desactivar",
+    "editAddress": "Dirección (JSON)",
+    "cancelEdit": "Cancelar",
+    "saveAddress": "Guardar dirección"
   },
   "dashboardPlatform": {
     "eyebrow": "Operaciones",
@@ -217,7 +241,22 @@
     "gdprExport": "Descargar datos del cliente (JSON)",
     "anonymize": "Anonimizar cliente",
     "anonymizeConfirm": "¿Anonimizar este cliente? Se sustituirán nombre y teléfono; puntos a cero. No se puede deshacer.",
-    "anonymizeDone": "Cliente anonimizado."
+    "anonymizeDone": "Cliente anonimizado.",
+    "upgradeUnlockFullPack": "Mejora el plan para el Compliance Pack completo: exportes CSV/PDF de auditoría, informe de anomalías, retención avanzada y export estructurado."
+  },
+  "compliancePack": {
+    "bundleTitle": "Compliance Pack",
+    "limitedBadge": "Nivel resumen",
+    "fullBadge": "Nivel completo",
+    "sectionTitle": "Compliance Pack",
+    "sectionLead": "Según el plan: Free sin paquete; Pro con PDF de resumen y retención limitada; Growth con el conjunto completo.",
+    "ctaPlans": "Ver planes",
+    "row": {
+      "auditExport": "Export CSV/PDF de auditoría y export estructurado de clientes",
+      "summaryPdf": "Resumen de fidelización PDF",
+      "retentionControl": "Retención de datos configurable",
+      "gdprExport": "Exportes de privacidad y anonimización"
+    }
   },
   "usage": {
     "upgradeCta": "Ver planes y mejorar"
@@ -302,8 +341,100 @@
       "growthBody": "La analítica de producto está en Pro o superior. Mejora para desbloquear el panel de Crecimiento.",
       "auditTitle": "Auditoría operativa",
       "auditLead": "Registro de auditoría para actividad de sucursal y caja.",
-      "auditBody": "Los cierres de manager requieren Pro o superior. Mejora para ver el registro de auditoría.",
+      "auditBody": "El Compliance Pack (Pro o superior) desbloquea la auditoría operativa. Mejora para ver eventos y exportaciones.",
+      "hqTitle": "Panel HQ",
+      "hqLead": "Compara todas las sucursales en un solo lugar.",
+      "hqBody": "El panel HQ está en Pro o superior. Mejora para desbloquear la vista de franquicia.",
       "ctaBilling": "Abrir facturación y plan"
+    }
+  },
+  "hq": {
+    "eyebrow": "Franquicia",
+    "title": "Panel HQ",
+    "description": "KPIs de resumen, ranking de sucursales y (en Growth) tendencias y anomalías.",
+    "basicNote": "Pro: resumen y ranking. Growth: tendencias completas, desglose por sucursal y más señales de anomalía.",
+    "loadError": "No se pudo cargar el panel HQ.",
+    "kpi": {
+      "visits": "Visitas",
+      "points": "Puntos emitidos",
+      "redemptions": "Canjes",
+      "campaigns": "Campañas activas"
+    },
+    "leaderboard": {
+      "title": "Ranking de sucursales",
+      "hint": "Ordenado por visitas en el periodo seleccionado.",
+      "colBranch": "Sucursal",
+      "colVisits": "Visitas"
+    },
+    "badge": {
+      "best": "Top",
+      "watch": "Seguimiento"
+    },
+    "trends": {
+      "title": "Tendencias",
+      "visits": "Visitas",
+      "points": "Puntos",
+      "redemptions": "Canjes"
+    },
+    "insights": {
+      "title": "Destacados"
+    },
+    "insight": {
+      "low_vs_median": "{{name}} está por debajo de la mediana — priorizar.",
+      "period_drop_visits": "Las visitas totales cayeron mucho respecto al periodo anterior."
+    },
+    "anomalies": {
+      "title": "Señales de anomalía"
+    },
+    "aiInsights": {
+      "title": "Insights de IA",
+      "subtitle": "Recomendaciones basadas en reglas (lote; no en tiempo real).",
+      "empty": "Aún no hay insights. Ejecuta el job hq-insights o vuelve cuando haya actividad.",
+      "loadError": "No se pudieron cargar los insights de IA.",
+      "dismiss": "Descartar",
+      "cta": "Actuar",
+      "ctaCreateCampaign": "Borrador de campaña",
+      "ctaMessaging": "Mensajería",
+      "ctaAudit": "Auditoría",
+      "ctaCampaigns": "Campañas",
+      "ctaGrowth": "Crecimiento",
+      "ctaAnomalies": "Ver señales"
+    },
+    "automation": {
+      "title": "Acciones automáticas",
+      "subtitle": "Los insights pueden crear acciones pendientes o ejecutarse según el modo.",
+      "mode": "Modo",
+      "maxDay": "Máx / día",
+      "cooldown": "Enfriamiento (min)",
+      "pendingTitle": "Pendiente de aprobación",
+      "recentTitle": "Recientes",
+      "colRule": "Regla",
+      "colAction": "Acción",
+      "colStatus": "Estado",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "emptyPending": "Sin acciones pendientes.",
+      "emptyRecent": "Sin acciones completadas.",
+      "loadError": "No se pudo cargar la automatización."
+    },
+    "campaigns": {
+      "title": "Rendimiento de campañas",
+      "byLocation": "Campaña × sucursal",
+      "colName": "Campaña",
+      "colScope": "Ámbito",
+      "colBonus": "Puntos bonus",
+      "colApps": "Aplicaciones",
+      "colLocation": "Sucursal",
+      "branchOnly": "Sucursal",
+      "allBranches": "Todas las sucursales"
+    },
+    "location": {
+      "eyebrow": "Sucursal",
+      "title": "Detalle de sucursal",
+      "description": "Métricas del periodo seleccionado.",
+      "missing": "Sucursal no encontrada.",
+      "back": "Volver al HQ",
+      "activeCampaigns": "Campañas activas (esta sucursal)"
     }
   },
   "tenantAudit": {
@@ -329,6 +460,7 @@
     "section": {
       "storeBranding": "Negocio e imagen",
       "localization": "Idiomas, región y contacto",
+      "dataRetention": "Retención de datos",
       "publicAccess": "Enlaces públicos y visibilidad"
     },
     "publicAccessLead": "Elige qué pueden abrir los invitados y luego comparte códigos QR y enlaces.",
@@ -362,6 +494,20 @@
       "description": "Menú de solo lectura para invitados — distinto de la PWA de fidelidad.",
       "copy": "Copiar enlace del menú",
       "copied": "Copiado"
+    },
+    "retention": {
+      "lead": "Cuánto se conservan auditoría operativa, exportación, entrega de mensajes y anomalías antes del borrado automático. Una retención más corta se aplica en la siguiente pasada programada.",
+      "loadError": "No se pudieron cargar los ajustes de retención.",
+      "upgradeCta": "Mejora el plan para personalizar la retención.",
+      "upgradeLink": "Ver planes",
+      "operationalAudit": "Eventos de auditoría operativa",
+      "exportAudit": "Auditoría de exportación y cumplimiento",
+      "messaging": "Registros de entrega de mensajes",
+      "anomaly": "Señales de anomalía",
+      "daysHint": "Duración en días.",
+      "save": "Guardar retención",
+      "saving": "Guardando…",
+      "complianceHintShort": "Una retención más larga y exportes completos forman parte del Compliance Pack completo en Growth."
     }
   },
   "tenantMenu": {
@@ -545,6 +691,7 @@
   "tenantLoyalty": {
     "nav": {
       "dashboard": "Resumen",
+      "hq": "HQ",
       "audit": "Auditoría",
       "growth": "Crecimiento",
       "customers": "Clientes",

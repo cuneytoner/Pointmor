@@ -70,6 +70,34 @@ const starterLimitsDemo = {
   softWarningPercent: 80,
 };
 
+const proFeaturesDemo = [
+  "loyalty_core",
+  "customer_pwa",
+  "campaigns",
+  "manager_closing",
+  "compliance_limited",
+  "multi_branch",
+  "hq_dashboard",
+  "hq_ai_insights",
+  "hq_automation",
+];
+
+await prisma.plan.upsert({
+  where: { slug: "pro" },
+  create: {
+    slug: "pro",
+    name: "Pro",
+    description: "Orta seviye — Compliance (özet)",
+    priceCents: 4900,
+    currency: "EUR",
+    interval: "month",
+    planType: "pro",
+    featureTags: proFeaturesDemo,
+    limits: {},
+  },
+  update: { planType: "pro", featureTags: proFeaturesDemo, limits: {} },
+});
+
 const growthFeaturesDemo = [
   "loyalty_core",
   "customer_pwa",
@@ -79,6 +107,10 @@ const growthFeaturesDemo = [
   "multi_branch",
   "webhooks",
   "product_analytics",
+  "hq_dashboard",
+  "hq_ai_insights",
+  "hq_automation",
+  "compliance_full",
 ];
 
 await prisma.plan.upsert({

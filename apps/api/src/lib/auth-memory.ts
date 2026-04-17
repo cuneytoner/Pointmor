@@ -13,8 +13,14 @@ export type SessionTenant = {
   name: string;
 };
 
+/** Çoklu lokasyon: `all` veya şube id listesi (staff / atanmış manager). */
+export type SessionBranchScope =
+  | "all"
+  | { restrictedTo: string[] };
+
 export type SessionMembership = {
   role: string;
+  branchScope?: SessionBranchScope;
 };
 
 export type SessionPayload = {

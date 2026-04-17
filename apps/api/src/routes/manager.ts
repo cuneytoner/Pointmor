@@ -9,9 +9,12 @@ import {
 import { listAuditEventsForTenant } from "../lib/operational-audit-service.js";
 import { listAnomalySignalsForTenant } from "../lib/operational-anomaly-service.js";
 import {
+  assertComplianceFull,
+  assertComplianceLimited,
   assertFeature,
   FEATURE,
   getTenantEntitlementContext,
+  sendEntitlementHttpError,
 } from "../lib/entitlement-service.js";
 
 function requireTenantSession(
@@ -61,12 +64,9 @@ export async function registerManagerRoutes(app: FastifyInstance): Promise<void>
     }
     try {
       const ent = await getTenantEntitlementContext(tenantId);
-      assertFeature(ent, FEATURE.MANAGER_CLOSING);
+      assertComplianceLimited(ent);
     } catch (e) {
-      const er = e as Error & { code?: string; feature?: string; statusCode?: number };
-      if (er.code === "plan_feature_disabled") {
-        return reply.code(403).send({ error: er.code, feature: er.feature });
-      }
+      if (sendEntitlementHttpError(reply, e)) return;
       throw e;
     }
     const lim = req.query.limit ? Number.parseInt(req.query.limit, 10) : 50;
@@ -100,12 +100,9 @@ export async function registerManagerRoutes(app: FastifyInstance): Promise<void>
     }
     try {
       const ent = await getTenantEntitlementContext(tenantId);
-      assertFeature(ent, FEATURE.MANAGER_CLOSING);
+      assertComplianceFull(ent);
     } catch (e) {
-      const er = e as Error & { code?: string; feature?: string; statusCode?: number };
-      if (er.code === "plan_feature_disabled") {
-        return reply.code(403).send({ error: er.code, feature: er.feature });
-      }
+      if (sendEntitlementHttpError(reply, e)) return;
       throw e;
     }
     const lim = req.query.limit ? Number.parseInt(req.query.limit, 10) : 50;

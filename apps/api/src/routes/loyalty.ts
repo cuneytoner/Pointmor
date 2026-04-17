@@ -35,6 +35,8 @@ import {
   listTenantCustomerActions,
   scanInactivityAndAct,
 } from "../lib/automation-engine.js";
+import { prisma } from "../lib/prisma.js";
+import { assertVisitBranchForSession } from "../lib/branch-scope.js";
 import {
   assertCashierOperationContext,
   type CashierOperationContext,
@@ -90,6 +92,54 @@ function requireTenantSession(
     return null;
   }
   return tenantId;
+}
+
+async function resolvePreviewBranchId(
+  tenantId: string,
+  req: {
+    headers: Record<string, string | string[] | undefined>;
+    body?: unknown;
+  },
+  s: SessionPayload,
+): Promise<string | null> {
+  const pick = (name: string) => {
+    const v = req.headers[name];
+    if (Array.isArray(v)) return v[0];
+    return v;
+  };
+  let ctx: CashierOperationContext | undefined;
+  try {
+    ctx = readCashierCtxFromRequest(req);
+  } catch {
+    ctx = undefined;
+  }
+  if (ctx) {
+    await assertCashierOperationContext(tenantId, s.user.id, ctx, s);
+    const ds = await prisma.deviceSession.findFirst({
+      where: { id: ctx.deviceSessionId, tenantId, status: "open" },
+      select: { branchId: true },
+    });
+    return ds?.branchId ?? null;
+  }
+  const b = (req.body ?? {}) as { branchId?: string | null };
+  const fromBody =
+    b.branchId !== undefined && b.branchId !== null && String(b.branchId).trim() !== ""
+      ? String(b.branchId).trim()
+      : "";
+  const fromHeader = String(pick("x-pointmor-active-branch") ?? "").trim();
+  const chosen = fromBody || fromHeader || null;
+  if (chosen) {
+    const br = await prisma.branch.findFirst({
+      where: { id: chosen, tenantId },
+      select: { id: true },
+    });
+    if (!br) {
+      const err = Object.assign(new Error("validation_error"), { statusCode: 400 });
+      throw err;
+    }
+  }
+  assertVisitBranchForSession(s, chosen);
+  return chosen;
 }
 
 /** İkisi birlikte veya yok; kısmi header 400. */
@@ -272,26 +322,30 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
+      const s = req.authSession as SessionPayload;
       const lim = req.query.limit ? Number.parseInt(req.query.limit, 10) : 100;
       const take = Number.isFinite(lim) && lim > 0 && lim <= 500 ? lim : 100;
-      return listVisitsForTenant(tenantId, take);
+      return listVisitsForTenant(tenantId, take, s);
     },
   );
 
-  app.post<{ Body: { customerId?: string; amount?: number } }>(
+  app.post<{ Body: { customerId?: string; amount?: number; branchId?: string | null } }>(
     "/visits/preview",
     { preHandler: [authPreHandler, requireTenantPermission("visits.create")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
+      const s = req.authSession as SessionPayload;
       const b = req.body ?? {};
       const customerId = String(b.customerId ?? "").trim();
       const amount = Number(b.amount);
       try {
-        return await previewVisitPoints(tenantId, customerId, amount);
+        const atBranch = await resolvePreviewBranchId(tenantId, req, s);
+        return await previewVisitPoints(tenantId, customerId, amount, atBranch, s);
       } catch (e) {
         const code = (e as Error & { statusCode?: number }).statusCode;
         if (code === 400) return reply.code(400).send({ error: "validation_error" });
+        if (code === 403) return reply.code(403).send({ error: (e as Error).message });
         if (code === 404) return reply.code(404).send({ error: "not_found" });
         if (code === 500) {
           return reply.code(500).send({ error: "campaign_config_corrupt" });
@@ -323,9 +377,12 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
       }
       if (ctx) {
         try {
-          await assertCashierOperationContext(tenantId, s.user.id, ctx);
+          await assertCashierOperationContext(tenantId, s.user.id, ctx, s);
         } catch (e) {
           const code = (e as Error & { statusCode?: number }).statusCode;
+          if (code === 403) {
+            return reply.code(403).send({ error: (e as Error).message });
+          }
           if (code === 409) {
             return reply.code(409).send({ error: (e as Error).message });
           }
@@ -333,16 +390,24 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
         }
       }
       try {
-        const result = await recordVisit(tenantId, customerId, amount, ctx, {
-          userId: s.user.id,
-          actorType: "cashier",
-        });
+        const result = await recordVisit(
+          tenantId,
+          customerId,
+          amount,
+          ctx,
+          {
+            userId: s.user.id,
+            actorType: "cashier",
+          },
+          s,
+        );
         await writeAudit(s.user.email, "loyalty.visit.create", result.visitId);
         return result;
       } catch (e) {
         if (sendEntitlementHttpError(reply, e)) return;
         const code = (e as Error & { statusCode?: number }).statusCode;
         if (code === 400) return reply.code(400).send({ error: "validation_error" });
+        if (code === 403) return reply.code(403).send({ error: (e as Error).message });
         if (code === 404) return reply.code(404).send({ error: "not_found" });
         if (code === 500) {
           return reply.code(500).send({ error: "campaign_config_corrupt" });
@@ -458,6 +523,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
       endAt?: string | null;
       config?: unknown;
       isActive?: boolean;
+      branchId?: string | null;
     };
   }>("/campaigns", { preHandler: [authPreHandler, requireTenantPermission("campaigns.manage")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
@@ -482,6 +548,10 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
         endAt: endAt === undefined ? undefined : endAt,
         config: b.config,
         isActive: b.isActive,
+        branchId:
+          b.branchId === undefined || b.branchId === null || String(b.branchId).trim() === ""
+            ? undefined
+            : String(b.branchId).trim(),
       });
       await writeAudit(s.user.email, "loyalty.campaign.create", row.id);
       return row;
@@ -511,6 +581,7 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
       endAt?: string | null;
       config?: unknown;
       isActive?: boolean;
+      branchId?: string | null;
     };
   }>("/campaigns/:campaignId", { preHandler: [authPreHandler, requireTenantPermission("campaigns.manage")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
@@ -533,6 +604,13 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
       if (b.endAt !== undefined) patch.endAt = parseOptionalIsoDate(b.endAt);
       if (b.config !== undefined) patch.config = b.config;
       if (b.isActive !== undefined) patch.isActive = Boolean(b.isActive);
+      if (b.branchId !== undefined) {
+        if (b.branchId === null || String(b.branchId).trim() === "") {
+          patch.branchId = null;
+        } else {
+          patch.branchId = String(b.branchId).trim();
+        }
+      }
 
       const row = await updateCampaign(tenantId, req.params.campaignId, patch);
       await writeAudit(s.user.email, "loyalty.campaign.update", row.id);
@@ -559,9 +637,10 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
+      const s = req.authSession as SessionPayload;
       const lim = req.query.limit ? Number.parseInt(req.query.limit, 10) : 100;
       const take = Number.isFinite(lim) && lim > 0 && lim <= 500 ? lim : 100;
-      return listRedemptionsForTenant(tenantId, take);
+      return listRedemptionsForTenant(tenantId, take, s);
     },
   );
 
@@ -587,9 +666,12 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
       }
       if (ctx) {
         try {
-          await assertCashierOperationContext(tenantId, s.user.id, ctx);
+          await assertCashierOperationContext(tenantId, s.user.id, ctx, s);
         } catch (e) {
           const code = (e as Error & { statusCode?: number }).statusCode;
+          if (code === 403) {
+            return reply.code(403).send({ error: (e as Error).message });
+          }
           if (code === 409) {
             return reply.code(409).send({ error: (e as Error).message });
           }
@@ -633,9 +715,12 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
       }
       if (ctx) {
         try {
-          await assertCashierOperationContext(tenantId, s.user.id, ctx);
+          await assertCashierOperationContext(tenantId, s.user.id, ctx, s);
         } catch (e) {
           const code = (e as Error & { statusCode?: number }).statusCode;
+          if (code === 403) {
+            return reply.code(403).send({ error: (e as Error).message });
+          }
           if (code === 409) {
             return reply.code(409).send({ error: (e as Error).message });
           }
@@ -684,9 +769,12 @@ export async function registerLoyaltyRoutes(app: FastifyInstance): Promise<void>
       }
       if (ctx) {
         try {
-          await assertCashierOperationContext(tenantId, s.user.id, ctx);
+          await assertCashierOperationContext(tenantId, s.user.id, ctx, s);
         } catch (e) {
           const code = (e as Error & { statusCode?: number }).statusCode;
+          if (code === 403) {
+            return reply.code(403).send({ error: (e as Error).message });
+          }
           if (code === 409) {
             return reply.code(409).send({ error: (e as Error).message });
           }

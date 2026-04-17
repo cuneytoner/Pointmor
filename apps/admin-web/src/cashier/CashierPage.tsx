@@ -95,6 +95,7 @@ export function CashierPage() {
   const [cashierOpCtx, setCashierOpCtx] = useState<CashierOperationIds | null>(
     () => loadCashierOperationIds(),
   );
+  const [cashierBranchName, setCashierBranchName] = useState<string | null>(null);
   const reconnectToastAt = useRef(0);
   const lastVisitTap = useRef(0);
   const lastRedeemTap = useRef(0);
@@ -213,6 +214,7 @@ export function CashierPage() {
     if (!token?.trim()) return;
     void getCashierBootstrap(token)
       .then((b) => {
+        setCashierBranchName(b.myOpenShift?.deviceSession?.branch?.name ?? null);
         if (b.myOpenShift) {
           const next: CashierOperationIds = {
             deviceSessionId: b.myOpenShift.deviceSessionId,
@@ -353,10 +355,14 @@ export function CashierPage() {
     dispatch({ type: "SET_PREVIEW_LOADING", payload: true });
     dispatch({ type: "SET_PREVIEW_ERROR", payload: null });
     const tid = window.setTimeout(() => {
-      postVisitPreview(token, {
-        customerId: state.selectedCustomerId,
-        amount: amountNum,
-      })
+      postVisitPreview(
+        token,
+        {
+          customerId: state.selectedCustomerId,
+          amount: amountNum,
+        },
+        cashierOpCtx,
+      )
         .then((p) => {
           if (!cancelled) {
             dispatch({ type: "SET_PREVIEW", payload: p });
@@ -390,6 +396,7 @@ export function CashierPage() {
     networkPhase,
     permVisit,
     t,
+    cashierOpCtx,
   ]);
 
   useEffect(() => {
@@ -852,6 +859,7 @@ export function CashierPage() {
         <div className="flex min-h-[min(85vh,920px)] flex-col">
           <CashierLayout
             tenantName={tenantName}
+            branchName={cashierBranchName}
             connectionPhase={networkPhase}
             onlineLabel={t("tenantLoyalty.cashier.online")}
             offlineLabel={t("tenantLoyalty.cashier.offline")}

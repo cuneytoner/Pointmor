@@ -18,6 +18,8 @@ export type AuthTenant = {
 
 export type AuthMembership = {
   role: string;
+  /** API oturumu — çoklu lokasyon kapsamı */
+  branchScope?: "all" | { restrictedTo: string[] };
 } | null;
 
 export type ActivationMilestones = {

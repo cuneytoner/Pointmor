@@ -30,7 +30,7 @@ Aşağıdaki yollar **çift kayıtlıdır**: `/tenant/...` (mevcut) ve kök alia
 
 ## Saklama (isteğe bağlı)
 
-`purgeAuditEventsOlderThan` (`operational-audit-service`) ile eski `AuditEvent` kayıtları silinebilir; cron / operasyon işi olarak planlanmalıdır.
+Eski audit satırları için bkz. [41-ref-007-data-retention.md](./41-ref-007-data-retention.md) — `runRetentionCleanup` / `purgeAuditEventsOlderThan` (env tabanlı süreler).
 
 ## Oran sınırı
 

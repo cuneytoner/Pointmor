@@ -4,6 +4,7 @@ import { useTranslation } from "../hooks/useTranslation";
 import { canAccessWorkspaceAdmin, canAccessWorkspaceAdminSection } from "../lib/access";
 
 const TAB_GENERAL = "general";
+const TAB_LOCATIONS = "locations";
 const TAB_TEAM = "team";
 const TAB_MESSAGING = "messaging";
 const TAB_BILLING = "billing";
@@ -20,6 +21,9 @@ export function WorkspaceAdminLayout() {
   const tabs: Array<{ path: string; labelKey: string }> = [
     ...(canAccessWorkspaceAdminSection("general", auth)
       ? [{ path: TAB_GENERAL, labelKey: "workspaceAdmin.tab.general" as const }]
+      : []),
+    ...(canAccessWorkspaceAdminSection("locations", auth)
+      ? [{ path: TAB_LOCATIONS, labelKey: "workspaceAdmin.tab.locations" as const }]
       : []),
     ...(canAccessWorkspaceAdminSection("team", auth)
       ? [{ path: TAB_TEAM, labelKey: "workspaceAdmin.tab.team" as const }]

@@ -74,6 +74,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
             req.log.warn({ slug, route: "public.tenants.get" }, "public_api_not_found");
             return reply.code(404).send({ error: "not_found" });
           }
+          if (!(await ensureCustomerPwaEnabled(tenant.id, reply))) return;
           await recordProductAnalyticsEvent({
             tenantId: tenant.id,
             customerId: null,
@@ -102,6 +103,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
           if (!tenant) {
             return reply.code(404).send({ error: "not_found" });
           }
+          if (!(await ensureCustomerPwaEnabled(tenant.id, reply))) return;
           const rewards = await listRewards(tenant.id, true);
           return { items: rewards.map(toPublicRewardDto) };
         },
@@ -115,6 +117,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
           if (!tenant) {
             return reply.code(404).send({ error: "not_found" });
           }
+          if (!(await ensureCustomerPwaEnabled(tenant.id, reply))) return;
           const campaigns = await getPublicCampaignsCatalog(tenant.id);
           return { items: campaigns.map(toPublicCampaignDto) };
         },

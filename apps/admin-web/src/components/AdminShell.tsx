@@ -11,6 +11,7 @@ import { PLATFORM_NAV, TENANT_NAV } from "../navigation/nav-config";
 import { canAccessTenantNavTarget, getAppSurface } from "../lib/access";
 import { PlanTypeBadge, planBadgeFromEntitlements } from "./PlanTypeBadge";
 import { EntitlementAlerts } from "./EntitlementAlerts";
+import { LocationBranchSwitcher } from "./LocationBranchSwitcher";
 
 type AdminShellProps = {
   auth: AdminAuth;
@@ -24,6 +25,7 @@ function filterTenantNav(
   return items.filter((item) => {
     if (featureList && featureList.length > 0) {
       const f = new Set(featureList);
+      if (item.to === "/app/hq" && !f.has("hq_dashboard")) return false;
       if (item.to === "/app/growth" && !f.has("product_analytics")) return false;
       if (item.to === "/app/campaigns" && !f.has("campaigns")) return false;
       if (item.to === "/app/audit" && !f.has("manager_closing")) return false;
@@ -108,6 +110,7 @@ export function AdminShell({ auth }: AdminShellProps) {
       <div className="admin-app__main">
         <header className="admin-app__topbar">
           <span className="admin-app__topbar-title">{t(topbarKey)}</span>
+          {surface === "tenant" ? <LocationBranchSwitcher /> : null}
           {surface === "tenant" && planType ? (
             <span className="admin-app__topbar-plan-wrap">
               <PlanTypeBadge planType={planType} />

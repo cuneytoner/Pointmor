@@ -14,9 +14,10 @@ import {
   buildCustomerGdprExport,
 } from "../lib/gdpr-customer-service.js";
 import {
-  assertFeature,
-  FEATURE,
+  assertComplianceFull,
+  assertComplianceLimited,
   getTenantEntitlementContext,
+  sendEntitlementHttpError,
 } from "../lib/entitlement-service.js";
 import { prisma } from "../lib/prisma.js";
 import { AuditEntityType } from "../generated/prisma/client.js";
@@ -74,6 +75,13 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
       const tenantId = requireTenantId(req, reply);
       if (!tenantId) return;
       const s = req.authSession as SessionPayload;
+      try {
+        const ent = await getTenantEntitlementContext(tenantId);
+        assertComplianceFull(ent);
+      } catch (e) {
+        if (sendEntitlementHttpError(reply, e)) return;
+        throw e;
+      }
       const from = parseIsoDate(req.query.from);
       const to = parseIsoDate(req.query.to);
       const maxRows = req.query.maxRows ? Number.parseInt(req.query.maxRows, 10) : 5000;
@@ -155,6 +163,13 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
       const tenantId = requireTenantId(req, reply);
       if (!tenantId) return;
       const s = req.authSession as SessionPayload;
+      try {
+        const ent = await getTenantEntitlementContext(tenantId);
+        assertComplianceFull(ent);
+      } catch (e) {
+        if (sendEntitlementHttpError(reply, e)) return;
+        throw e;
+      }
       const from = parseIsoDate(req.query.from);
       const to = parseIsoDate(req.query.to);
       const maxRows = req.query.maxRows ? Number.parseInt(req.query.maxRows, 10) : 200;
@@ -227,6 +242,13 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
       const tenantId = requireTenantId(req, reply);
       if (!tenantId) return;
       const s = req.authSession as SessionPayload;
+      try {
+        const ent = await getTenantEntitlementContext(tenantId);
+        assertComplianceLimited(ent);
+      } catch (e) {
+        if (sendEntitlementHttpError(reply, e)) return;
+        throw e;
+      }
       const mode = req.query.period === "week" ? "week" : "day";
       const summary = await getLoyaltySummaryForWindow(tenantId, mode);
       const tenant = await prisma.tenant.findUnique({
@@ -277,12 +299,9 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
       const s = req.authSession as SessionPayload;
       try {
         const ent = await getTenantEntitlementContext(tenantId);
-        assertFeature(ent, FEATURE.MANAGER_CLOSING);
+        assertComplianceFull(ent);
       } catch (e) {
-        const er = e as Error & { code?: string; feature?: string };
-        if (er.code === "plan_feature_disabled") {
-          return reply.code(403).send({ error: er.code, feature: er.feature });
-        }
+        if (sendEntitlementHttpError(reply, e)) return;
         throw e;
       }
       const from = parseIsoDate(req.query.from);
@@ -342,6 +361,8 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
       const s = req.authSession as SessionPayload;
       const customerId = req.params.customerId;
       try {
+        const ent = await getTenantEntitlementContext(tenantId);
+        assertComplianceFull(ent);
         const data = await buildCustomerGdprExport(tenantId, customerId);
         await recordDataExportEvent({
           tenantId,
@@ -358,6 +379,7 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
           )
           .send(JSON.stringify(data, null, 2));
       } catch (e) {
+        if (sendEntitlementHttpError(reply, e)) return;
         const er = e as Error & { statusCode?: number };
         if (er.statusCode === 404) return reply.code(404).send({ error: "not_found" });
         throw e;
@@ -376,6 +398,13 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
       if (!tenantId) return;
       const s = req.authSession as SessionPayload;
       const customerId = req.params.customerId;
+      try {
+        const ent = await getTenantEntitlementContext(tenantId);
+        assertComplianceFull(ent);
+      } catch (e) {
+        if (sendEntitlementHttpError(reply, e)) return;
+        throw e;
+      }
       const row = await prisma.customer.findFirst({
         where: { id: customerId, tenantId },
         select: { id: true },

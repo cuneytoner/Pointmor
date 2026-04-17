@@ -28,11 +28,14 @@ import { TenantCampaignsPage } from "../pages/TenantCampaignsPage";
 import { TenantCustomerDetailPage } from "../pages/TenantCustomerDetailPage";
 import { TenantCustomersPage } from "../pages/TenantCustomersPage";
 import { TenantDashboardPage } from "../pages/TenantDashboardPage";
+import { TenantHqDashboardPage } from "../pages/TenantHqDashboardPage";
+import { TenantHqLocationPage } from "../pages/TenantHqLocationPage";
 import { TenantGrowthPage } from "../pages/TenantGrowthPage";
 import { TenantAuditPage } from "../pages/TenantAuditPage";
 import { TenantRedemptionsPage } from "../pages/TenantRedemptionsPage";
 import { TenantRewardsPage } from "../pages/TenantRewardsPage";
 import { TenantSettingsPage } from "../pages/TenantSettingsPage";
+import { TenantLocationsPage } from "../pages/TenantLocationsPage";
 import { TenantVisitsPage } from "../pages/TenantVisitsPage";
 import { TenantsPage } from "../pages/TenantsPage";
 import { UsersPage } from "../pages/UsersPage";
@@ -165,6 +168,8 @@ export function AppRoutes() {
             <Route element={<RequireTenantRouteAccess />}>
               <Route index element={<TenantAppHomeRedirect />} />
               <Route path="dashboard" element={<TenantDashboardPage />} />
+              <Route path="hq" element={<TenantHqDashboardPage />} />
+              <Route path="hq/locations/:branchId" element={<TenantHqLocationPage />} />
               <Route path="audit" element={<TenantAuditPage />} />
               <Route path="growth" element={<TenantGrowthPage />} />
               <Route path="messaging" element={<Navigate to="/app/admin/messaging" replace />} />
@@ -179,8 +184,9 @@ export function AppRoutes() {
               <Route path="settings" element={<Navigate to="/app/admin/general" replace />} />
               <Route path="admin" element={<WorkspaceAdminLayout />}>
                 <Route index element={<WorkspaceAdminIndexRedirect />} />
-                <Route path="general" element={<TenantSettingsPage embedded />} />
-                <Route path="team" element={<TenantAdminTeamPage />} />
+              <Route path="general" element={<TenantSettingsPage embedded />} />
+              <Route path="locations" element={<TenantLocationsPage />} />
+              <Route path="team" element={<TenantAdminTeamPage />} />
                 <Route path="messaging" element={<TenantMessagingPage embedded />} />
                 <Route path="billing" element={<TenantBillingPage embedded />} />
               </Route>

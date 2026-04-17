@@ -27,6 +27,10 @@ export function TenantDashboardPage() {
     return bootstrap.subscriptions.find((s) => s.tenant.id === tenantId) ?? null;
   }, [bootstrap?.subscriptions, tenantId]);
 
+  const complianceLevel = bootstrap?.entitlements?.compliance?.level ?? "none";
+  const canComplianceSummary = complianceLevel !== "none";
+  const canComplianceFull = complianceLevel === "full";
+
   useEffect(() => {
     if (!token?.trim()) {
       setLoading(false);
@@ -143,14 +147,24 @@ export function TenantDashboardPage() {
           <p className="admin-app__card-text data-table__muted" style={{ marginBottom: "0.75rem" }}>
             {t("compliance.exportsHint")}
           </p>
+          {complianceLevel === "none" ? (
+            <p className="admin-app__card-text">
+              {t("compliance.upgradeUnlockFullPack")}{" "}
+              <Link to="/app/admin/billing" className="admin-secondary-btn">
+                {t("compliancePack.ctaPlans")}
+              </Link>
+            </p>
+          ) : null}
           <div className="metric-grid metric-grid--3" style={{ alignItems: "end" }}>
             {hasPermission("summary.export") ? (
               <>
                 <button
                   type="button"
                   className="admin-secondary-btn"
+                  disabled={!canComplianceSummary}
+                  title={!canComplianceSummary ? t("compliance.upgradeUnlockFullPack") : undefined}
                   onClick={() => {
-                    if (!token?.trim()) return;
+                    if (!token?.trim() || !canComplianceSummary) return;
                     if (!window.confirm(t("compliance.exportConfirmSummaryPdf"))) return;
                     downloadComplianceExport(token, "/summary/export/pdf?period=day", "summary-day.pdf").catch(
                       () => undefined,
@@ -162,8 +176,10 @@ export function TenantDashboardPage() {
                 <button
                   type="button"
                   className="admin-secondary-btn"
+                  disabled={!canComplianceSummary}
+                  title={!canComplianceSummary ? t("compliance.upgradeUnlockFullPack") : undefined}
                   onClick={() => {
-                    if (!token?.trim()) return;
+                    if (!token?.trim() || !canComplianceSummary) return;
                     if (!window.confirm(t("compliance.exportConfirmSummaryPdf"))) return;
                     downloadComplianceExport(
                       token,
@@ -181,8 +197,10 @@ export function TenantDashboardPage() {
                 <button
                   type="button"
                   className="admin-primary-btn"
+                  disabled={!canComplianceFull}
+                  title={!canComplianceFull ? t("compliance.upgradeUnlockFullPack") : undefined}
                   onClick={() => {
-                    if (!token?.trim()) return;
+                    if (!token?.trim() || !canComplianceFull) return;
                     if (!window.confirm(t("compliance.exportConfirmAuditCsv"))) return;
                     downloadComplianceExport(token, "/audit/export/csv", "audit-export.csv").catch(
                       () => undefined,
@@ -194,8 +212,10 @@ export function TenantDashboardPage() {
                 <button
                   type="button"
                   className="admin-secondary-btn"
+                  disabled={!canComplianceFull}
+                  title={!canComplianceFull ? t("compliance.upgradeUnlockFullPack") : undefined}
                   onClick={() => {
-                    if (!token?.trim()) return;
+                    if (!token?.trim() || !canComplianceFull) return;
                     if (!window.confirm(t("compliance.exportConfirmAuditPdf"))) return;
                     downloadComplianceExport(token, "/audit/export/pdf", "audit-summary.pdf").catch(
                       () => undefined,
@@ -210,8 +230,10 @@ export function TenantDashboardPage() {
               <button
                 type="button"
                 className="admin-secondary-btn"
+                disabled={!canComplianceFull}
+                title={!canComplianceFull ? t("compliance.upgradeUnlockFullPack") : undefined}
                 onClick={() => {
-                  if (!token?.trim()) return;
+                  if (!token?.trim() || !canComplianceFull) return;
                   if (!window.confirm(t("compliance.exportConfirmAnomalyPdf"))) return;
                   downloadComplianceExport(token, "/anomalies/export/pdf", "anomalies.pdf").catch(
                     () => undefined,

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "../hooks/useTranslation";
 import { PageShell } from "../components/PageShell";
 import {
@@ -14,6 +15,58 @@ import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { usePermissions } from "../hooks/usePermissions";
 import { useAuth } from "../contexts/AuthContext";
 import { getStoreSettings, putStoreSettings, type StoreSettingsDto } from "../lib/store-settings-api";
+import {
+  getTenantRetentionSettings,
+  putTenantRetentionSettings,
+  type RetentionFieldLimit,
+  type TenantRetentionPutBody,
+  type TenantRetentionSettingsDto,
+} from "../lib/tenant-retention-api";
+
+function RetentionDaysControl(props: {
+  limit: RetentionFieldLimit;
+  value: number;
+  onChange: (n: number) => void;
+  disabled?: boolean;
+}) {
+  const { limit, value, onChange, disabled } = props;
+  if (limit.kind === "fixed") {
+    return (
+      <TextField readOnly value={String(limit.value)} onChange={() => {}} disabled={disabled} />
+    );
+  }
+  if (limit.kind === "enum") {
+    return (
+      <select
+        className={FORM_CONTROL_CLASS}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(Number(e.target.value))}
+      >
+        {limit.values.map((v) => (
+          <option key={v} value={v}>
+            {v}
+          </option>
+        ))}
+      </select>
+    );
+  }
+  return (
+    <input
+      type="number"
+      className={FORM_CONTROL_CLASS}
+      min={limit.min}
+      max={limit.max}
+      step={1}
+      value={value}
+      disabled={disabled}
+      onChange={(e) => {
+        const n = Number(e.target.value);
+        if (Number.isFinite(n)) onChange(Math.floor(n));
+      }}
+    />
+  );
+}
 
 function addressToText(a: unknown): string {
   if (a === null || a === undefined) return "";
@@ -32,7 +85,8 @@ export type TenantSettingsPageProps = {
 
 export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
   const { t } = useTranslation();
-  const { auth } = useAdminDataContext();
+  const { auth, bootstrap } = useAdminDataContext();
+  const complianceLevel = bootstrap?.entitlements?.compliance?.level ?? "none";
   const { token } = useAuth();
   const { hasPermission } = usePermissions();
   const canSaveSettings = hasPermission("settings.manage");
@@ -44,6 +98,10 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
   const [loadError, setLoadError] = useState(false);
   const [form, setForm] = useState<StoreSettingsDto | null>(null);
   const [addressText, setAddressText] = useState("");
+  const [retention, setRetention] = useState<TenantRetentionSettingsDto | null>(null);
+  const [retentionDraft, setRetentionDraft] = useState<TenantRetentionPutBody | null>(null);
+  const [retentionLoadError, setRetentionLoadError] = useState(false);
+  const [retentionSaving, setRetentionSaving] = useState(false);
 
   const portalUrl = useMemo(() => {
     if (typeof window === "undefined" || !slug) return "";
@@ -69,13 +127,26 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
     if (!token?.trim()) return;
     setLoading(true);
     setLoadError(false);
-    getStoreSettings(token)
-      .then((row) => {
+    setRetentionLoadError(false);
+    void Promise.allSettled([
+      getStoreSettings(token).then((row) => {
         setForm(row);
         setAddressText(addressToText(row.address));
-      })
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
+      }),
+      getTenantRetentionSettings(token).then((r) => {
+        setRetention(r);
+        setRetentionDraft({
+          operationalAuditDays: r.operationalAuditDays,
+          exportAuditDays: r.exportAuditDays,
+          messagingDays: r.messagingDays,
+          anomalyDays: r.anomalyDays,
+        });
+      }),
+    ]).then((results) => {
+      if (results[0].status === "rejected") setLoadError(true);
+      if (results[1].status === "rejected") setRetentionLoadError(true);
+      setLoading(false);
+    });
   }, [token]);
 
   useEffect(() => {
@@ -145,20 +216,43 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
     }
   };
 
+  const canEditRetention =
+    Boolean(retention?.canCustomize && canSaveSettings && retentionDraft);
+  const saveRetention = async () => {
+    if (!token?.trim() || !retentionDraft || !canEditRetention) return;
+    setRetentionSaving(true);
+    try {
+      const next = await putTenantRetentionSettings(token, retentionDraft);
+      setRetention(next);
+      setRetentionDraft({
+        operationalAuditDays: next.operationalAuditDays,
+        exportAuditDays: next.exportAuditDays,
+        messagingDays: next.messagingDays,
+        anomalyDays: next.anomalyDays,
+      });
+    } catch {
+      /* ignore */
+    } finally {
+      setRetentionSaving(false);
+    }
+  };
+
   const body = (
     <>
       {loading ? (
         <div className="admin-app__card admin-app__card--wide">
           <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
         </div>
-      ) : loadError || !form ? (
-        <div className="admin-app__card admin-app__card--wide">
-          <p className="admin-app__card-text" role="alert">
-            {t("tenantSettings.store.loadError")}
-          </p>
-        </div>
       ) : (
         <>
+          {loadError || !form ? (
+            <div className="admin-app__card admin-app__card--wide">
+              <p className="admin-app__card-text" role="alert">
+                {t("tenantSettings.store.loadError")}
+              </p>
+            </div>
+          ) : (
+            <>
           <div className="admin-app__card admin-app__card--wide">
             <h2 className="admin-app__card-title">{t("tenantSettings.section.storeBranding")}</h2>
             <fieldset
@@ -289,6 +383,115 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
             </fieldset>
           </div>
 
+            </>
+          )}
+
+          <div className="admin-app__card admin-app__card--wide">
+            <h2 className="admin-app__card-title">{t("tenantSettings.section.dataRetention")}</h2>
+            <p className="admin-app__card-text">{t("tenantSettings.retention.lead")}</p>
+            {complianceLevel !== "full" ? (
+              <p className="admin-app__card-text data-table__muted">
+                {t("tenantSettings.retention.complianceHintShort")}
+                {complianceLevel === "none" ? (
+                  <>
+                    {" "}
+                    <Link to="/app/admin/billing" className="text-primary-600 underline hover:no-underline">
+                      {t("compliancePack.ctaPlans")}
+                    </Link>
+                  </>
+                ) : null}
+              </p>
+            ) : null}
+            {retentionLoadError ? (
+              <p className="admin-app__card-text" role="alert">
+                {t("tenantSettings.retention.loadError")}
+              </p>
+            ) : retention && retentionDraft ? (
+              <div className="loyalty-form-stack loyalty-form-stack--relaxed tenant-store-form">
+                {!retention.canCustomize ? (
+                  <p className="admin-app__card-text">
+                    <span className="text-neutral-600 dark:text-neutral-400">
+                      {t("tenantSettings.retention.upgradeCta")}{" "}
+                    </span>
+                    <Link to="/app/admin/billing" className="text-primary-600 underline hover:no-underline">
+                      {t("tenantSettings.retention.upgradeLink")}
+                    </Link>
+                  </p>
+                ) : null}
+                <fieldset
+                  disabled={!canEditRetention}
+                  className="min-w-0 border-0 p-0 [&:disabled]:opacity-60"
+                >
+                  <FormFieldGrid>
+                    <FormField
+                      id="ts-ret-op"
+                      label={t("tenantSettings.retention.operationalAudit")}
+                      hint={t("tenantSettings.retention.daysHint")}
+                    >
+                      <RetentionDaysControl
+                        limit={retention.limits.operationalAudit}
+                        value={retentionDraft.operationalAuditDays}
+                        onChange={(n) =>
+                          setRetentionDraft((d) => (d ? { ...d, operationalAuditDays: n } : d))
+                        }
+                        disabled={!canEditRetention}
+                      />
+                    </FormField>
+                    <FormField
+                      id="ts-ret-ex"
+                      label={t("tenantSettings.retention.exportAudit")}
+                      hint={t("tenantSettings.retention.daysHint")}
+                    >
+                      <RetentionDaysControl
+                        limit={retention.limits.exportAudit}
+                        value={retentionDraft.exportAuditDays}
+                        onChange={(n) => setRetentionDraft((d) => (d ? { ...d, exportAuditDays: n } : d))}
+                        disabled={!canEditRetention}
+                      />
+                    </FormField>
+                    <FormField
+                      id="ts-ret-msg"
+                      label={t("tenantSettings.retention.messaging")}
+                      hint={t("tenantSettings.retention.daysHint")}
+                    >
+                      <RetentionDaysControl
+                        limit={retention.limits.messaging}
+                        value={retentionDraft.messagingDays}
+                        onChange={(n) => setRetentionDraft((d) => (d ? { ...d, messagingDays: n } : d))}
+                        disabled={!canEditRetention}
+                      />
+                    </FormField>
+                    <FormField
+                      id="ts-ret-anom"
+                      label={t("tenantSettings.retention.anomaly")}
+                      hint={t("tenantSettings.retention.daysHint")}
+                    >
+                      <RetentionDaysControl
+                        limit={retention.limits.anomaly}
+                        value={retentionDraft.anomalyDays}
+                        onChange={(n) => setRetentionDraft((d) => (d ? { ...d, anomalyDays: n } : d))}
+                        disabled={!canEditRetention}
+                      />
+                    </FormField>
+                  </FormFieldGrid>
+                </fieldset>
+                {canEditRetention ? (
+                  <div className="tenant-store-form__actions mt-4">
+                    <button
+                      type="button"
+                      className="admin-primary-btn"
+                      disabled={retentionSaving}
+                      onClick={() => void saveRetention()}
+                    >
+                      {retentionSaving ? t("tenantSettings.retention.saving") : t("tenantSettings.retention.save")}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
+          {!loadError && form ? (
           <div className="admin-app__card admin-app__card--wide">
             <h2 className="admin-app__card-title">{t("tenantSettings.section.publicAccess")}</h2>
             <p className="admin-app__card-text">{t("tenantSettings.publicAccessLead")}</p>
@@ -371,6 +574,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
               </div>
             </div>
           </div>
+          ) : null}
         </>
       )}
     </>

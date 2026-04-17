@@ -1,3 +1,9 @@
+import { Prisma } from "../generated/prisma/client.js";
+import type { SessionPayload } from "./auth-memory.js";
+import {
+  assertDeviceSessionBranchAllowed,
+  branchScopeFromSession,
+} from "./branch-scope.js";
 import { prisma } from "./prisma.js";
 import { recordAuditEvent } from "./operational-audit-service.js";
 import { getShiftClosingSummary } from "./closing-summary-service.js";
@@ -39,11 +45,80 @@ export async function createBranch(
   });
 }
 
+export async function updateBranch(
+  tenantId: string,
+  branchId: string,
+  patch: {
+    name?: string;
+    slug?: string | null;
+    address?: unknown | null;
+    isActive?: boolean;
+  },
+) {
+  const existing = await prisma.branch.findFirst({
+    where: { id: branchId, tenantId },
+  });
+  if (!existing) {
+    const err = Object.assign(new Error("not_found"), { statusCode: 404 });
+    throw err;
+  }
+  const name =
+    patch.name !== undefined ? patch.name.trim() : undefined;
+  if (name !== undefined && !name) {
+    const err = Object.assign(new Error("validation_error"), { statusCode: 400 });
+    throw err;
+  }
+  try {
+    return await prisma.branch.update({
+      where: { id: branchId },
+      data: {
+        ...(name !== undefined ? { name } : {}),
+        ...(patch.slug !== undefined ? { slug: patch.slug?.trim() || null } : {}),
+        ...(patch.address !== undefined
+          ? {
+              address:
+                patch.address === null
+                  ? Prisma.JsonNull
+                  : (patch.address as Prisma.InputJsonValue),
+            }
+          : {}),
+        ...(patch.isActive !== undefined ? { isActive: patch.isActive } : {}),
+      },
+    });
+  } catch (e) {
+    const code =
+      typeof e === "object" && e !== null && "code" in e
+        ? (e as { code?: string }).code
+        : undefined;
+    if (code === "P2002") {
+      const err = Object.assign(new Error("branch_name_taken"), { statusCode: 409 });
+      throw err;
+    }
+    throw e;
+  }
+}
+
 export async function listBranches(tenantId: string) {
   return prisma.branch.findMany({
     where: { tenantId },
     orderBy: { name: "asc" },
   });
+}
+
+/** Oturum şube kapsamına göre (staff tek şube; manager çoklu; owner tümü). */
+export async function listBranchesForUser(
+  tenantId: string,
+  session: SessionPayload,
+) {
+  const all = await prisma.branch.findMany({
+    where: { tenantId },
+    orderBy: { name: "asc" },
+  });
+  const scope = branchScopeFromSession(session);
+  if (scope === "all") return all;
+  if (scope.restrictedTo.length === 0) return [];
+  const allowed = new Set(scope.restrictedTo);
+  return all.filter((b) => allowed.has(b.id));
 }
 
 /** Aynı tenant + deviceLabel ile açık oturum varsa hata (tek aktif tablet oturumu). */
@@ -264,6 +339,7 @@ export async function assertCashierOperationContext(
   tenantId: string,
   userId: string,
   ctx: CashierOperationContext,
+  session?: SessionPayload,
 ): Promise<void> {
   const ds = await prisma.deviceSession.findFirst({
     where: { id: ctx.deviceSessionId, tenantId, status: "open" },
@@ -290,11 +366,18 @@ export async function assertCashierOperationContext(
     });
     throw err;
   }
+  if (session) {
+    assertDeviceSessionBranchAllowed(session, ds.branchId);
+  }
 }
 
-export async function getCashierBootstrap(tenantId: string, userId: string) {
+export async function getCashierBootstrap(
+  tenantId: string,
+  userId: string,
+  session?: SessionPayload,
+) {
   const [branches, myOpenShift] = await Promise.all([
-    listBranches(tenantId),
+    session ? listBranchesForUser(tenantId, session) : listBranches(tenantId),
     prisma.cashierShift.findFirst({
       where: { tenantId, userId, status: "open" },
       include: {

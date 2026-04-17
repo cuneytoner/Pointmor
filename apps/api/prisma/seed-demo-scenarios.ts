@@ -14,6 +14,7 @@ const GROWTH_FEATURES = [
   "multi_branch",
   "webhooks",
   "product_analytics",
+  "compliance_full",
 ] as const;
 
 function pointsFromAmountMinor(amountMinor: number): number {

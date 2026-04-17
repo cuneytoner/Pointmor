@@ -63,6 +63,38 @@ const starter = await prisma.plan.upsert({
   },
 });
 
+const proFeatures = [
+  "loyalty_core",
+  "customer_pwa",
+  "campaigns",
+  "manager_closing",
+  "compliance_limited",
+  "multi_branch",
+  "hq_dashboard",
+  "hq_ai_insights",
+  "hq_automation",
+];
+
+await prisma.plan.upsert({
+  where: { slug: "pro" },
+  create: {
+    slug: "pro",
+    name: "Pro",
+    description: "Orta seviye — uyumluluk özeti ve kısa saklama",
+    priceCents: 4900,
+    currency: "EUR",
+    interval: "month",
+    planType: "pro",
+    featureTags: proFeatures,
+    limits: {},
+  },
+  update: {
+    planType: "pro",
+    featureTags: proFeatures,
+    limits: {},
+  },
+});
+
 const growthFeatures = [
   "loyalty_core",
   "customer_pwa",
@@ -72,6 +104,10 @@ const growthFeatures = [
   "multi_branch",
   "webhooks",
   "product_analytics",
+  "hq_dashboard",
+  "hq_ai_insights",
+  "hq_automation",
+  "compliance_full",
 ];
 
 const growth = await prisma.plan.upsert({
@@ -140,6 +176,35 @@ await prisma.subscription.upsert({
   },
   update: {},
 });
+
+const demoOwnerUser = await prisma.user.findFirst({
+  where: { email: "owner@demo.pointmor.local" },
+  select: { id: true },
+});
+if (demoOwnerUser && (await prisma.auditEvent.count({ where: { tenantId: demoTenant.id } })) === 0) {
+  await prisma.auditEvent.createMany({
+    data: [
+      {
+        tenantId: demoTenant.id,
+        actorUserId: demoOwnerUser.id,
+        actorType: "manager",
+        eventType: "seed_audit_sample",
+        entityType: "other",
+        entityId: demoTenant.id,
+        payload: { message: "Demo denetim kaydı (seed)" },
+      },
+      {
+        tenantId: demoTenant.id,
+        actorUserId: demoOwnerUser.id,
+        actorType: "manager",
+        eventType: "RETENTION_UPDATED",
+        entityType: "other",
+        entityId: demoTenant.id,
+        payload: { note: "örnek uyumluluk olayı" },
+      },
+    ],
+  });
+}
 
 await prisma.auditLog.deleteMany({ where: { action: "seed" } });
 await prisma.auditLog.create({

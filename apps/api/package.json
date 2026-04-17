@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "lint": "eslint src",
     "test": "vitest run",
+    "job:retention": "tsx src/jobs/run-retention-cleanup.ts",
     "test:watch": "vitest",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",

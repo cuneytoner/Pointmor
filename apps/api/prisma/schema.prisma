@@ -49,6 +49,90 @@ model Tenant {
   notificationDeliveries    NotificationDelivery[]
   customerContactPreferences CustomerContactPreference[]
   messageTemplateOverrides  TenantMessageTemplateOverride[]
+  retentionSettings         TenantRetentionSettings?
+  hqInsights                HqInsight[]
+  automationSettings        TenantAutomationSettings?
+  hqAutomationActions         HqAutomationAction[]
+}
+
+/// Kiracı bazlı veri saklama (plan katmanına göre min/max doğrulanır).
+model TenantRetentionSettings {
+  id     String @id @default(cuid())
+  tenantId String @unique
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  operationalAuditDays Int
+  exportAuditDays      Int
+  messagingDays        Int
+  anomalyDays          Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// HQ AI önerileri — batch job üretir; kullanıcı dismiss edebilir.
+model HqInsight {
+  id              String    @id @default(cuid())
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branchId        String?
+  branch          Branch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  type            String
+  severity        String    @default("info")
+  message         String
+  suggestedAction String
+  actionKind      String
+  payload         Json      @default("{}")
+  dedupeKey       String
+  dismissedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([tenantId, dedupeKey])
+  @@index([tenantId, dismissedAt, createdAt(sort: Desc)])
+  @@index([tenantId, createdAt(sort: Desc)])
+}
+
+/// HQ otomasyon modu ve güvenlik tavanı (kiracı başına tek kayıt).
+model TenantAutomationSettings {
+  id     String @id @default(cuid())
+  tenantId String @unique
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  /// suggest_only | approval_required | auto_apply
+  mode   String @default("approval_required")
+  maxActionsPerDay Int @default(5)
+  cooldownMinutes  Int @default(360)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Insight / kural motorundan gelen otomatik aksiyon (onay veya doğrudan uygulama).
+model HqAutomationAction {
+  id             String    @id @default(cuid())
+  tenantId       String
+  tenant         Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branchId       String?
+  branch         Branch?     @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  /// visit_drop | low_activity | retention_gap | anomaly
+  triggerType    String
+  ruleKey        String
+  /// create_campaign | messaging_send | config_update
+  actionType     String
+  /// pending | approved | rejected | completed | failed | skipped
+  status         String      @default("pending")
+  idempotencyKey String
+  payload        Json        @default("{}")
+  hqInsightId    String?
+  result         Json?
+  errorMessage   String?
+  reviewedAt     DateTime?
+  reviewedByUserId String?
+  executedAt     DateTime?
+  source         String      @default("rule_engine")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([tenantId, status, createdAt(sort: Desc)])
+  @@index([tenantId, createdAt(sort: Desc)])
 }
 
 /// Mağaza vitrin ayarları — tenant başına tek kayıt.
@@ -185,22 +269,43 @@ model AnomalySignal {
 
 // --- Loyalty (Phase 1) ---
 
-/// Şube / lokasyon (kasiyer cihaz oturumu için opsiyonel bağlam)
+/// Şube / lokasyon (franchise & multi-location; UI’da “Location” olarak geçer)
 model Branch {
   id        String   @id @default(cuid())
   tenantId  String
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name      String
   slug      String?
+  address   Json?
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   deviceSessions DeviceSession[]
   auditEvents    AuditEvent[]
   anomalySignals AnomalySignal[]
+  visits         Visit[]
+  campaigns      Campaign[]
+  hqInsights     HqInsight[]
+  hqAutomationActions HqAutomationAction[]
+  userAccess     UserBranchAccess[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
+}
+
+/// Kullanıcı → şube kapsamı (staff: tek şube; manager: çoklu; owner: satır yok = tüm şubeler)
+model UserBranchAccess {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branchId  String
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, branchId])
+  @@index([userId])
+  @@index([branchId])
 }
 
 enum DeviceSessionStatus {
@@ -342,6 +447,9 @@ model Visit {
   tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   customerId        String
   customer          Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  /// Raporlama ve RBAC için denormalize şube (cihaz oturumundan kopyalanır)
+  branchId          String?
+  branch            Branch?  @relation(fields: [branchId], references: [id], onDelete: SetNull)
   amount            Int
   /// Toplam kazanılan puan (taban + kampanya bonusları)
   pointsEarned      Int
@@ -358,6 +466,7 @@ model Visit {
   pointsLedgerRows     PointsLedger[]
 
   @@index([tenantId, customerId])
+  @@index([tenantId, branchId])
   @@index([cashierShiftId])
   @@index([deviceSessionId])
 }
@@ -421,6 +530,9 @@ model Campaign {
   id          String         @id @default(cuid())
   tenantId    String
   tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  /// null = tüm şubeler; dolu = yalnızca bu şubede geçerli override
+  branchId    String?
+  branch      Branch?        @relation(fields: [branchId], references: [id], onDelete: SetNull)
   name        String
   description String?
   type        CampaignType
@@ -435,6 +547,7 @@ model Campaign {
   visitApplications VisitCampaignApplication[]
 
   @@index([tenantId])
+  @@index([tenantId, branchId])
 }
 
 model VisitCampaignApplication {
@@ -729,6 +842,7 @@ model User {
   updatedAt      DateTime @updatedAt
 
   cashierShifts CashierShift[]
+  branchAccess  UserBranchAccess[]
 
   @@index([tenantId])
 }

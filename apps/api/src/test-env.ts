@@ -1,0 +1,5 @@
+/** Vitest: Prisma modülü import edilmeden önce DATABASE_URL gerekir (CI / yerel). */
+if (!process.env.DATABASE_URL?.trim()) {
+  process.env.DATABASE_URL =
+    "postgresql://vitest:vitest@127.0.0.1:5432/pointmor_vitest_placeholder";
+}

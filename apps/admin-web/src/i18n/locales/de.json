@@ -134,7 +134,8 @@
     "envBanner": "Entwicklung — Daten können Beispiele oder leer sein.",
     "sessionAria": "Sitzung",
     "workspaceLine": "Betrieb: {{name}} ({{slug}})",
-    "platformSession": "Plattform-Administrator-Sitzung"
+    "platformSession": "Plattform-Administrator-Sitzung",
+    "activeLocation": "Filiale"
   },
   "nav": {
     "platformDashboard": "Dashboard",
@@ -155,6 +156,7 @@
     "subnavAria": "Verwaltungsbereiche",
     "tab": {
       "general": "Allgemein",
+      "locations": "Filialen",
       "team": "Team",
       "messaging": "Nachrichten",
       "billing": "Abrechnung & Plan"
@@ -169,6 +171,28 @@
       "sectionInvites": "Einladungen",
       "invitesPlaceholder": "Kollegen per E-Mail einladen — demnächst."
     }
+  },
+  "tenantLocations": {
+    "loading": "Filialen werden geladen…",
+    "loadError": "Filialen konnten nicht geladen werden.",
+    "metricsTitle": "Filialvergleich (Besuche)",
+    "metricsHint": "Letzte {{days}} Tage, gemäß Filialzugriff Ihrer Sitzung.",
+    "unassignedVisits": "Besuche ohne Filiale: {{n}}",
+    "colBranch": "Filiale",
+    "colVisits7d": "Besuche (Zeitraum)",
+    "addTitle": "Neue Filiale",
+    "name": "Name",
+    "slugOptional": "Slug (optional)",
+    "addButton": "Filiale hinzufügen",
+    "listTitle": "Filialen",
+    "empty": "Noch keine Filialen.",
+    "active": "aktiv",
+    "inactive": "inaktiv",
+    "activate": "Aktivieren",
+    "deactivate": "Deaktivieren",
+    "editAddress": "Adresse (JSON)",
+    "cancelEdit": "Abbrechen",
+    "saveAddress": "Adresse speichern"
   },
   "dashboardPlatform": {
     "eyebrow": "Betrieb",
@@ -217,7 +241,22 @@
     "gdprExport": "Kundendaten herunterladen (JSON)",
     "anonymize": "Kunde anonymisieren",
     "anonymizeConfirm": "Diesen Kunden anonymisieren? Name und Telefon werden ersetzt; Punkte auf 0. Nicht rückgängig zu machen.",
-    "anonymizeDone": "Kunde anonymisiert."
+    "anonymizeDone": "Kunde anonymisiert.",
+    "upgradeUnlockFullPack": "Upgrade für das volle Compliance Pack: Audit CSV/PDF, Anomalie-Export, erweiterte Aufbewahrung, strukturierter Datenexport."
+  },
+  "compliancePack": {
+    "bundleTitle": "Compliance Pack",
+    "limitedBadge": "Kurzversion",
+    "fullBadge": "Vollversion",
+    "sectionTitle": "Compliance Pack",
+    "sectionLead": "Je nach Plan: Free ohne Paket; Pro mit PDF-Zusammenfassung und begrenzter Aufbewahrung; Growth mit vollem Umfang.",
+    "ctaPlans": "Pläne ansehen",
+    "row": {
+      "auditExport": "Audit CSV/PDF & strukturierter Kundenexport",
+      "summaryPdf": "Treue-Zusammenfassung PDF",
+      "retentionControl": "Konfigurierbare Datenaufbewahrung",
+      "gdprExport": "Datenschutz-Exporte & Anonymisierung"
+    }
   },
   "usage": {
     "upgradeCta": "Pläne ansehen & upgraden"
@@ -302,8 +341,100 @@
       "growthBody": "Produktanalyse ist ab Pro verfügbar. Upgraden Sie für das Growth-Dashboard.",
       "auditTitle": "Betriebsaudit",
       "auditLead": "Audit-Protokoll für Filial- und Kassenaktivität.",
-      "auditBody": "Manager-Abschlüsse erfordern Pro oder höher. Upgraden Sie, um das Audit-Protokoll zu sehen.",
+      "auditBody": "Das Compliance Pack (Pro oder höher) schaltet das operative Audit frei. Upgraden Sie für Ereignisse und Exporte.",
+      "hqTitle": "HQ-Dashboard",
+      "hqLead": "Alle Filialen an einem Ort vergleichen.",
+      "hqBody": "Das HQ-Dashboard ist ab Pro verfügbar. Upgraden Sie für die Franchise-Übersicht.",
       "ctaBilling": "Abrechnung & Plan öffnen"
+    }
+  },
+  "hq": {
+    "eyebrow": "Franchise",
+    "title": "HQ-Dashboard",
+    "description": "KPI-Zusammenfassung, Filial-Ranking und (bei Growth) Trends und Anomalien.",
+    "basicNote": "Pro: Zusammenfassung und Ranking. Growth: volle Trends, Kampagnen nach Filiale und mehr Anomalie-Signale.",
+    "loadError": "HQ-Daten konnten nicht geladen werden.",
+    "kpi": {
+      "visits": "Besuche",
+      "points": "Gutgeschriebene Punkte",
+      "redemptions": "Einlösungen",
+      "campaigns": "Aktive Kampagnen"
+    },
+    "leaderboard": {
+      "title": "Filial-Ranking",
+      "hint": "Nach Besuchen im gewählten Zeitraum sortiert.",
+      "colBranch": "Filiale",
+      "colVisits": "Besuche"
+    },
+    "badge": {
+      "best": "Top",
+      "watch": "Beobachten"
+    },
+    "trends": {
+      "title": "Trends",
+      "visits": "Besuche",
+      "points": "Punkte",
+      "redemptions": "Einlösungen"
+    },
+    "insights": {
+      "title": "Highlights"
+    },
+    "insight": {
+      "low_vs_median": "{{name}} liegt unter dem Median — priorisieren.",
+      "period_drop_visits": "Die Gesamtbesuche sind zur Vorperiode deutlich gesunken."
+    },
+    "anomalies": {
+      "title": "Anomalie-Signale"
+    },
+    "aiInsights": {
+      "title": "KI-Insights",
+      "subtitle": "Regelbasierte Empfehlungen (Batch; nicht Echtzeit).",
+      "empty": "Noch keine KI-Insights. hq-insights-Job ausführen oder später erneut prüfen.",
+      "loadError": "KI-Insights konnten nicht geladen werden.",
+      "dismiss": "Ausblenden",
+      "cta": "Los",
+      "ctaCreateCampaign": "Kampagnenentwurf",
+      "ctaMessaging": "Nachrichten",
+      "ctaAudit": "Audit",
+      "ctaCampaigns": "Kampagnen",
+      "ctaGrowth": "Growth",
+      "ctaAnomalies": "Signale prüfen"
+    },
+    "automation": {
+      "title": "Auto-Aktionen",
+      "subtitle": "Insights erzeugen ausstehende Aktionen oder werden je nach Modus ausgeführt.",
+      "mode": "Modus",
+      "maxDay": "Max / Tag",
+      "cooldown": "Abstand (Min)",
+      "pendingTitle": "Genehmigung ausstehend",
+      "recentTitle": "Kürzlich",
+      "colRule": "Regel",
+      "colAction": "Aktion",
+      "colStatus": "Status",
+      "approve": "Genehmigen",
+      "reject": "Ablehnen",
+      "emptyPending": "Keine ausstehenden Aktionen.",
+      "emptyRecent": "Noch keine abgeschlossenen Aktionen.",
+      "loadError": "Automatisierung konnte nicht geladen werden."
+    },
+    "campaigns": {
+      "title": "Kampagnen-Performance",
+      "byLocation": "Kampagne × Filiale",
+      "colName": "Kampagne",
+      "colScope": "Geltungsbereich",
+      "colBonus": "Bonuspunkte",
+      "colApps": "Anwendungen",
+      "colLocation": "Filiale",
+      "branchOnly": "Filiale",
+      "allBranches": "Alle Filialen"
+    },
+    "location": {
+      "eyebrow": "Filiale",
+      "title": "Filial-Detail",
+      "description": "Kennzahlen für den gewählten Zeitraum.",
+      "missing": "Filiale nicht gefunden.",
+      "back": "Zurück zum HQ",
+      "activeCampaigns": "Aktive Kampagnen (diese Filiale)"
     }
   },
   "tenantAudit": {
@@ -329,6 +460,7 @@
     "section": {
       "storeBranding": "Geschäft & Auftritt",
       "localization": "Sprachen, Region & Kontakt",
+      "dataRetention": "Datenaufbewahrung",
       "publicAccess": "Öffentliche Links & Sichtbarkeit"
     },
     "publicAccessLead": "Legen Sie fest, was Gäste öffnen dürfen, und teilen Sie dann QR-Codes und Links.",
@@ -362,6 +494,20 @@
       "description": "Nur-Lese-Menü für Gäste — getrennt von der Treue-PWA.",
       "copy": "Menülink kopieren",
       "copied": "Kopiert"
+    },
+    "retention": {
+      "lead": "Aufbewahrungsdauer für Betriebs-Audit, Export-Audit, Nachrichtenzustellung und Anomalien vor automatischer Löschung. Kürzere Fristen gelten im nächsten geplanten Lauf.",
+      "loadError": "Aufbewahrungseinstellungen konnten nicht geladen werden.",
+      "upgradeCta": "Upgrade, um Aufbewahrung anzupassen.",
+      "upgradeLink": "Pläne ansehen",
+      "operationalAudit": "Betriebs-Audit-Ereignisse",
+      "exportAudit": "Export- & Compliance-Audit",
+      "messaging": "Nachrichten-Zustellprotokolle",
+      "anomaly": "Anomaliesignale",
+      "daysHint": "Dauer in Tagen.",
+      "save": "Aufbewahrung speichern",
+      "saving": "Speichern…",
+      "complianceHintShort": "Längere Aufbewahrung und volle Exporte gehören zum vollen Compliance Pack auf Growth."
     }
   },
   "tenantMenu": {
@@ -545,6 +691,7 @@
   "tenantLoyalty": {
     "nav": {
       "dashboard": "Übersicht",
+      "hq": "HQ",
       "audit": "Audit",
       "growth": "Wachstum",
       "customers": "Kunden",
