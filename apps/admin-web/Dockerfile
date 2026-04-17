@@ -15,12 +15,14 @@ RUN apt-get update \
 COPY package.json package-lock.json ./
 COPY apps/admin-web/package.json apps/admin-web/
 COPY apps/api/package.json apps/api/
+COPY packages/pointmor-rbac/package.json packages/pointmor-rbac/
 COPY apps/api/prisma ./apps/api/prisma
 COPY apps/api/prisma.config.ts ./apps/api/prisma.config.ts
 
 RUN DATABASE_URL="postgresql://build:build@127.0.0.1:5432/pointmor_build" npm ci
 COPY apps/admin-web ./apps/admin-web
-RUN npm run build -w admin-web
+COPY packages/pointmor-rbac ./packages/pointmor-rbac
+RUN npm run build -w @pointmor/rbac && npm run build -w admin-web
 
 FROM nginx:1.27-alpine AS runtime
 COPY infra/docker/admin-web.nginx.conf /etc/nginx/conf.d/default.conf
