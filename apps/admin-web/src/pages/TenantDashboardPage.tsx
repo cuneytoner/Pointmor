@@ -152,7 +152,7 @@ export function TenantDashboardPage() {
                   onClick={() => {
                     if (!token?.trim()) return;
                     if (!window.confirm(t("compliance.exportConfirmSummaryPdf"))) return;
-                    downloadComplianceExport(token, "/tenant/summary/export/pdf?period=day", "summary-day.pdf").catch(
+                    downloadComplianceExport(token, "/summary/export/pdf?period=day", "summary-day.pdf").catch(
                       () => undefined,
                     );
                   }}
@@ -167,7 +167,7 @@ export function TenantDashboardPage() {
                     if (!window.confirm(t("compliance.exportConfirmSummaryPdf"))) return;
                     downloadComplianceExport(
                       token,
-                      "/tenant/summary/export/pdf?period=week",
+                      "/summary/export/pdf?period=week",
                       "summary-week.pdf",
                     ).catch(() => undefined);
                   }}
@@ -184,7 +184,7 @@ export function TenantDashboardPage() {
                   onClick={() => {
                     if (!token?.trim()) return;
                     if (!window.confirm(t("compliance.exportConfirmAuditCsv"))) return;
-                    downloadComplianceExport(token, "/tenant/audit/export/csv", "audit-export.csv").catch(
+                    downloadComplianceExport(token, "/audit/export/csv", "audit-export.csv").catch(
                       () => undefined,
                     );
                   }}
@@ -197,7 +197,7 @@ export function TenantDashboardPage() {
                   onClick={() => {
                     if (!token?.trim()) return;
                     if (!window.confirm(t("compliance.exportConfirmAuditPdf"))) return;
-                    downloadComplianceExport(token, "/tenant/audit/export/pdf", "audit-summary.pdf").catch(
+                    downloadComplianceExport(token, "/audit/export/pdf", "audit-summary.pdf").catch(
                       () => undefined,
                     );
                   }}
@@ -213,7 +213,7 @@ export function TenantDashboardPage() {
                 onClick={() => {
                   if (!token?.trim()) return;
                   if (!window.confirm(t("compliance.exportConfirmAnomalyPdf"))) return;
-                  downloadComplianceExport(token, "/tenant/anomalies/export/pdf", "anomalies.pdf").catch(
+                  downloadComplianceExport(token, "/anomalies/export/pdf", "anomalies.pdf").catch(
                     () => undefined,
                   );
                 }}

@@ -200,6 +200,7 @@
     "complianceExports": "Uyumluluk dışa aktarımları"
   },
   "compliance": {
+    "growthSummaryPdfTitle": "Sadakat özeti (PDF)",
     "exportsHint": "Dışa aktarımlar izinle sınırlı ve redakte edilir. Her indirmede onay istenir.",
     "exportSummaryPdfDay": "Özet PDF (bugün, UTC)",
     "exportSummaryPdfWeek": "Özet PDF (7 gün, UTC)",
@@ -210,6 +211,7 @@
     "exportConfirmAuditCsv": "Denetim olaylarını CSV olarak indirmek istiyor musunuz? Satırlar redakte edilir.",
     "exportConfirmAuditPdf": "Denetim özetini PDF olarak indirmek istiyor musunuz?",
     "exportConfirmAnomalyPdf": "Anomali raporunu PDF olarak indirmek istiyor musunuz?",
+    "exportConfirmGdprJson": "Bu müşteriye ait veri paketini (JSON) indirmek istiyor musunuz? Dosya yalnızca yetkili kullanıcılarla paylaşılmalıdır.",
     "exportFailed": "İşlem tamamlanamadı.",
     "sectionCustomer": "Veri ve gizlilik",
     "gdprExport": "Müşteri verisini indir (JSON)",
@@ -298,8 +300,27 @@
       "growthTitle": "Büyüme ve tutma",
       "growthLead": "Huni ve kohort analitiği.",
       "growthBody": "Ürün analitiği Pro ve üzeri planlarda. Büyüme panosunu açmak için yükseltin.",
+      "auditTitle": "Operasyonel denetim",
+      "auditLead": "Şube ve kasa olayları için denetim günlüğü.",
+      "auditBody": "Yönetici kapanış özeti Pro ve üzeri planlarda. Denetim günlüğünü görmek için yükseltin.",
       "ctaBilling": "Faturalama ve plana git"
     }
+  },
+  "tenantAudit": {
+    "eyebrow": "Uyumluluk",
+    "title": "Operasyonel denetim",
+    "description": "Son olaylar (özet). Tam dışa aktarım yalnızca workspace sahibi için CSV/PDF olarak kullanılabilir.",
+    "backDashboard": "Özete dön",
+    "exportSection": "Denetim dışa aktarımı",
+    "exportHint": "CSV, redakte edilmiş alanlar içerir; ham veritabanı dökümü değildir.",
+    "recentTitle": "Son kayıtlar",
+    "empty": "Henüz denetim kaydı yok.",
+    "loadError": "Denetim listesi yüklenemedi.",
+    "forbidden": "Bu listeyi görüntülemek için uygun üyelik gerekir.",
+    "colTime": "Zaman",
+    "colEvent": "Olay",
+    "colEntity": "Varlık",
+    "colActor": "Aktör"
   },
   "tenantSettings": {
     "eyebrow": "İşletme",
@@ -524,6 +545,7 @@
   "tenantLoyalty": {
     "nav": {
       "dashboard": "Özet",
+      "audit": "Denetim",
       "growth": "Büyüme",
       "customers": "Müşteriler",
       "visits": "Ziyaretler",

@@ -200,6 +200,7 @@
     "complianceExports": "Exportaciones de cumplimiento"
   },
   "compliance": {
+    "growthSummaryPdfTitle": "Resumen de fidelización (PDF)",
     "exportsHint": "Los exportes dependen de permisos y están redactados. Confirma cada descarga.",
     "exportSummaryPdfDay": "Resumen PDF (hoy, UTC)",
     "exportSummaryPdfWeek": "Resumen PDF (7 días, UTC)",
@@ -210,6 +211,7 @@
     "exportConfirmAuditCsv": "¿Descargar eventos de auditoría en CSV? Las filas están redactadas.",
     "exportConfirmAuditPdf": "¿Descargar el resumen de auditoría en PDF?",
     "exportConfirmAnomalyPdf": "¿Descargar el informe de anomalías en PDF?",
+    "exportConfirmGdprJson": "¿Descargar el paquete de datos del cliente (JSON)? Compártelo solo con destinatarios autorizados.",
     "exportFailed": "No se pudo completar la solicitud.",
     "sectionCustomer": "Datos y privacidad",
     "gdprExport": "Descargar datos del cliente (JSON)",
@@ -298,8 +300,27 @@
       "growthTitle": "Crecimiento y retención",
       "growthLead": "Embudo y cohortes.",
       "growthBody": "La analítica de producto está en Pro o superior. Mejora para desbloquear el panel de Crecimiento.",
+      "auditTitle": "Auditoría operativa",
+      "auditLead": "Registro de auditoría para actividad de sucursal y caja.",
+      "auditBody": "Los cierres de manager requieren Pro o superior. Mejora para ver el registro de auditoría.",
       "ctaBilling": "Abrir facturación y plan"
     }
+  },
+  "tenantAudit": {
+    "eyebrow": "Cumplimiento",
+    "title": "Auditoría operativa",
+    "description": "Eventos recientes (resumen). La exportación completa en CSV/PDF solo para el propietario del espacio.",
+    "backDashboard": "Volver al resumen",
+    "exportSection": "Exportación de auditoría",
+    "exportHint": "El CSV incluye campos redactados; no es un volcado crudo.",
+    "recentTitle": "Entradas recientes",
+    "empty": "Aún no hay entradas de auditoría.",
+    "loadError": "No se pudo cargar la lista de auditoría.",
+    "forbidden": "Tu membresía no permite ver esta lista.",
+    "colTime": "Hora",
+    "colEvent": "Evento",
+    "colEntity": "Entidad",
+    "colActor": "Actor"
   },
   "tenantSettings": {
     "eyebrow": "Negocio",
@@ -524,6 +545,7 @@
   "tenantLoyalty": {
     "nav": {
       "dashboard": "Resumen",
+      "audit": "Auditoría",
       "growth": "Crecimiento",
       "customers": "Clientes",
       "visits": "Visitas",

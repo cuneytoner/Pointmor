@@ -45,3 +45,49 @@ export function redactJsonForExport(value: unknown): unknown {
   }
   return value;
 }
+
+const CSV_PAYLOAD_MAX = 900;
+
+/**
+ * CSV hücresi için: redakte + boyut sınırı (tam JSON dökümü değil).
+ */
+export function summarizePayloadForCsv(payload: unknown): string {
+  const redacted = redactJsonForExport(payload ?? {});
+  let s: string;
+  try {
+    s = JSON.stringify(redacted);
+  } catch {
+    s = "[unserializable]";
+  }
+  if (s.length <= CSV_PAYLOAD_MAX) return s;
+  return `${s.slice(0, CSV_PAYLOAD_MAX)}…`;
+}
+
+/**
+ * PDF satırı için kısa özet (insan okunur; anahtar sayısı + örnek alanlar).
+ */
+export function summarizePayloadForPdfLine(payload: unknown): string {
+  const redacted = redactJsonForExport(payload ?? {});
+  if (redacted === null || typeof redacted !== "object" || Array.isArray(redacted)) {
+    try {
+      const t = JSON.stringify(redacted);
+      return t.length > 160 ? `${t.slice(0, 160)}…` : t;
+    } catch {
+      return "[summary]";
+    }
+  }
+  const keys = Object.keys(redacted as Record<string, unknown>);
+  if (keys.length === 0) return "{}";
+  const sample = keys.slice(0, 4).map((k) => {
+    const v = (redacted as Record<string, unknown>)[k];
+    const vs =
+      typeof v === "string"
+        ? v.length > 32
+          ? `${v.slice(0, 32)}…`
+          : v
+        : JSON.stringify(v);
+    return `${k}=${vs}`;
+  });
+  const more = keys.length > 4 ? ` (+${keys.length - 4} alan)` : "";
+  return `${sample.join(", ")}${more}`;
+}

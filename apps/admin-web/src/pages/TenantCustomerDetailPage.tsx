@@ -187,6 +187,7 @@ export function TenantCustomerDetailPage() {
                     className="admin-primary-btn"
                     disabled={complianceBusy}
                     onClick={() => {
+                      if (!window.confirm(t("compliance.exportConfirmGdprJson"))) return;
                       if (!token?.trim()) return;
                       setComplianceBusy(true);
                       setComplianceMsg(null);

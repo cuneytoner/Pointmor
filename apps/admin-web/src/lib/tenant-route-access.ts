@@ -76,6 +76,9 @@ export function canAccessTenantNavTarget(to: string, auth: AdminAuth): boolean {
   if (t === "/app/dashboard" || t.startsWith("/app/dashboard")) {
     return role !== "staff";
   }
+  if (t.startsWith("/app/audit")) {
+    return role === "owner" || role === "manager" || role === "ops";
+  }
   if (t.startsWith("/app/growth")) {
     return role === "owner" || role === "manager" || role === "ops";
   }
@@ -145,6 +148,7 @@ export function canAccessTenantPath(pathname: string, auth: AdminAuth): boolean 
     return role === "owner" || role === "manager" || role === "ops";
   if (p.startsWith("/app/menu")) return role === "owner" || role === "manager";
   if (p.startsWith("/app/growth")) return role === "owner" || role === "manager" || role === "ops";
+  if (p.startsWith("/app/audit")) return role === "owner" || role === "manager" || role === "ops";
   if (p === "/app/dashboard" || p.startsWith("/app/dashboard")) return role !== "staff";
 
   return true;

@@ -200,6 +200,7 @@
     "complianceExports": "Compliance exports"
   },
   "compliance": {
+    "growthSummaryPdfTitle": "Loyalty summary (PDF)",
     "exportsHint": "Exports are permission-gated and redacted. Confirm each download.",
     "exportSummaryPdfDay": "Summary PDF (today, UTC)",
     "exportSummaryPdfWeek": "Summary PDF (7 days, UTC)",
@@ -210,6 +211,7 @@
     "exportConfirmAuditCsv": "Download audit events as CSV? Rows are redacted; no raw PII dump.",
     "exportConfirmAuditPdf": "Download audit summary as PDF?",
     "exportConfirmAnomalyPdf": "Download anomaly report as PDF?",
+    "exportConfirmGdprJson": "Download this customer’s data package (JSON)? Share only with authorized recipients.",
     "exportFailed": "Could not complete the request.",
     "sectionCustomer": "Data & privacy",
     "gdprExport": "Download customer data (JSON)",
@@ -298,8 +300,27 @@
       "growthTitle": "Growth & retention",
       "growthLead": "Funnel and cohort analytics.",
       "growthBody": "Product analytics is available on Pro and higher. Upgrade to unlock the Growth dashboard.",
+      "auditTitle": "Operational audit",
+      "auditLead": "Audit log for branch and register activity.",
+      "auditBody": "Manager closing summaries require Pro or higher. Upgrade to view the audit log.",
       "ctaBilling": "Open billing & plan"
     }
+  },
+  "tenantAudit": {
+    "eyebrow": "Compliance",
+    "title": "Operational audit",
+    "description": "Recent events (summary). Full export as CSV/PDF is available to workspace owners only.",
+    "backDashboard": "Back to summary",
+    "exportSection": "Audit export",
+    "exportHint": "CSV includes redacted fields; it is not a raw database dump.",
+    "recentTitle": "Recent entries",
+    "empty": "No audit entries yet.",
+    "loadError": "Could not load audit list.",
+    "forbidden": "Your membership does not allow viewing this list.",
+    "colTime": "Time",
+    "colEvent": "Event",
+    "colEntity": "Entity",
+    "colActor": "Actor"
   },
   "tenantSettings": {
     "eyebrow": "Workspace",
@@ -525,6 +546,7 @@
   "tenantLoyalty": {
     "nav": {
       "dashboard": "Dashboard",
+      "audit": "Audit",
       "growth": "Growth",
       "customers": "Customers",
       "visits": "Visits",

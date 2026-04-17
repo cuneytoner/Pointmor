@@ -29,6 +29,7 @@ import { TenantCustomerDetailPage } from "../pages/TenantCustomerDetailPage";
 import { TenantCustomersPage } from "../pages/TenantCustomersPage";
 import { TenantDashboardPage } from "../pages/TenantDashboardPage";
 import { TenantGrowthPage } from "../pages/TenantGrowthPage";
+import { TenantAuditPage } from "../pages/TenantAuditPage";
 import { TenantRedemptionsPage } from "../pages/TenantRedemptionsPage";
 import { TenantRewardsPage } from "../pages/TenantRewardsPage";
 import { TenantSettingsPage } from "../pages/TenantSettingsPage";
@@ -164,6 +165,7 @@ export function AppRoutes() {
             <Route element={<RequireTenantRouteAccess />}>
               <Route index element={<TenantAppHomeRedirect />} />
               <Route path="dashboard" element={<TenantDashboardPage />} />
+              <Route path="audit" element={<TenantAuditPage />} />
               <Route path="growth" element={<TenantGrowthPage />} />
               <Route path="messaging" element={<Navigate to="/app/admin/messaging" replace />} />
               <Route path="customers" element={<TenantCustomersPage />} />

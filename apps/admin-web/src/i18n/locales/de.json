@@ -200,6 +200,7 @@
     "complianceExports": "Compliance-Exporte"
   },
   "compliance": {
+    "growthSummaryPdfTitle": "Treueübersicht (PDF)",
     "exportsHint": "Exporte sind rollenbasiert und redigiert. Jeder Download erfordert eine Bestätigung.",
     "exportSummaryPdfDay": "Zusammenfassung PDF (heute, UTC)",
     "exportSummaryPdfWeek": "Zusammenfassung PDF (7 Tage, UTC)",
@@ -210,6 +211,7 @@
     "exportConfirmAuditCsv": "Audit-Ereignisse als CSV herunterladen? Zeilen sind redigiert.",
     "exportConfirmAuditPdf": "Audit-Kurzfassung als PDF herunterladen?",
     "exportConfirmAnomalyPdf": "Anomalienbericht als PDF herunterladen?",
+    "exportConfirmGdprJson": "Kundendatenpaket (JSON) herunterladen? Nur mit autorisierten Empfängern teilen.",
     "exportFailed": "Anfrage konnte nicht abgeschlossen werden.",
     "sectionCustomer": "Daten & Datenschutz",
     "gdprExport": "Kundendaten herunterladen (JSON)",
@@ -298,8 +300,27 @@
       "growthTitle": "Wachstum & Retention",
       "growthLead": "Trichter- und Kohortenanalysen.",
       "growthBody": "Produktanalyse ist ab Pro verfügbar. Upgraden Sie für das Growth-Dashboard.",
+      "auditTitle": "Betriebsaudit",
+      "auditLead": "Audit-Protokoll für Filial- und Kassenaktivität.",
+      "auditBody": "Manager-Abschlüsse erfordern Pro oder höher. Upgraden Sie, um das Audit-Protokoll zu sehen.",
       "ctaBilling": "Abrechnung & Plan öffnen"
     }
+  },
+  "tenantAudit": {
+    "eyebrow": "Compliance",
+    "title": "Betriebsaudit",
+    "description": "Letzte Ereignisse (Kurzfassung). Vollexport als CSV/PDF nur für Workspace-Inhaber.",
+    "backDashboard": "Zur Übersicht",
+    "exportSection": "Audit-Export",
+    "exportHint": "CSV enthält redigierte Felder; kein Roh-Dump.",
+    "recentTitle": "Letzte Einträge",
+    "empty": "Noch keine Audit-Einträge.",
+    "loadError": "Audit-Liste konnte nicht geladen werden.",
+    "forbidden": "Ihre Mitgliedschaft erlaubt diese Liste nicht.",
+    "colTime": "Zeit",
+    "colEvent": "Ereignis",
+    "colEntity": "Entität",
+    "colActor": "Akteur"
   },
   "tenantSettings": {
     "eyebrow": "Betrieb",
@@ -524,6 +545,7 @@
   "tenantLoyalty": {
     "nav": {
       "dashboard": "Übersicht",
+      "audit": "Audit",
       "growth": "Wachstum",
       "customers": "Kunden",
       "visits": "Besuche",

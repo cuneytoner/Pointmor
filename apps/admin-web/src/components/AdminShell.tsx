@@ -26,6 +26,7 @@ function filterTenantNav(
       const f = new Set(featureList);
       if (item.to === "/app/growth" && !f.has("product_analytics")) return false;
       if (item.to === "/app/campaigns" && !f.has("campaigns")) return false;
+      if (item.to === "/app/audit" && !f.has("manager_closing")) return false;
     }
     return canAccessTenantNavTarget(item.to, auth);
   });

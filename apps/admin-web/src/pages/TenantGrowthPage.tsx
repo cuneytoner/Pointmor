@@ -4,6 +4,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { useTranslation } from "../hooks/useTranslation";
+import { usePermissions } from "../hooks/usePermissions";
+import { downloadComplianceExport } from "../lib/compliance-api";
 import {
   getGrowthOverview,
   type GrowthOverview,
@@ -18,6 +20,7 @@ function pct(n: number | null): string {
 export function TenantGrowthPage() {
   const { t } = useTranslation();
   const { token } = useAuth();
+  const { hasPermission } = usePermissions();
   const { bootstrap } = useAdminDataContext();
   const ent = bootstrap?.entitlements;
   const [data, setData] = useState<GrowthOverview | null>(null);
@@ -98,6 +101,46 @@ export function TenantGrowthPage() {
         <p className="admin-app__card-text">{t("tenantLoyalty.growth.loadError")}</p>
       ) : (
         <>
+          {token?.trim() && hasPermission("summary.export") ? (
+            <div className="admin-app__card admin-app__card--wide" style={{ marginBottom: "1rem" }}>
+              <p className="admin-app__card-title">{t("compliance.growthSummaryPdfTitle")}</p>
+              <p className="admin-app__card-text data-table__muted" style={{ marginBottom: "0.75rem" }}>
+                {t("compliance.exportsHint")}
+              </p>
+              <div className="metric-grid metric-grid--2" style={{ alignItems: "end" }}>
+                <button
+                  type="button"
+                  className="admin-secondary-btn"
+                  onClick={() => {
+                    if (!token?.trim()) return;
+                    if (!window.confirm(t("compliance.exportConfirmSummaryPdf"))) return;
+                    downloadComplianceExport(
+                      token,
+                      "/summary/export/pdf?period=day",
+                      "summary-day.pdf",
+                    ).catch(() => undefined);
+                  }}
+                >
+                  {t("compliance.exportSummaryPdfDay")}
+                </button>
+                <button
+                  type="button"
+                  className="admin-secondary-btn"
+                  onClick={() => {
+                    if (!token?.trim()) return;
+                    if (!window.confirm(t("compliance.exportConfirmSummaryPdf"))) return;
+                    downloadComplianceExport(
+                      token,
+                      "/summary/export/pdf?period=week",
+                      "summary-week.pdf",
+                    ).catch(() => undefined);
+                  }}
+                >
+                  {t("compliance.exportSummaryPdfWeek")}
+                </button>
+              </div>
+            </div>
+          ) : null}
           <p
             className="admin-app__card-text data-table__muted"
             style={{ marginBottom: "1rem" }}

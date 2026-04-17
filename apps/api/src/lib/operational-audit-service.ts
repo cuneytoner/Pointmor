@@ -108,6 +108,8 @@ export type AuditExportFilters = {
   actorUserId?: string;
   branchId?: string;
   entityType?: AuditEntityType;
+  /** Belirli varlık kaydı (ör. visit id). */
+  entityId?: string;
 };
 
 /**
@@ -143,6 +145,7 @@ export async function queryAuditEventsForExport(
     ...(filters.actorUserId ? { actorUserId: filters.actorUserId } : {}),
     ...(filters.branchId ? { branchId: filters.branchId } : {}),
     ...(filters.entityType ? { entityType: filters.entityType } : {}),
+    ...(filters.entityId ? { entityId: filters.entityId } : {}),
   };
   const rows = await prisma.auditEvent.findMany({
     where,
@@ -173,28 +176,52 @@ export async function queryAuditEventsForExport(
 
 /**
  * Dışa aktarım audit kaydı — içerik yok, yalnızca tür + filtre özeti (PII riski yok).
+ * `eventType`: `EXPORT` — dışa aktarılan dosya içeriği yazılmaz.
+ * Yazım başarısız olsa bile dışa aktarım yanıtını düşürmez (operasyonel tercih; loglanır).
  */
 export async function recordDataExportEvent(input: {
   tenantId: string;
   actorUserId: string;
   kind: string;
-  format: "csv" | "pdf" | "json";
+  exportType: "CSV" | "PDF" | "JSON";
   filters: Record<string, unknown>;
-}) {
-  return recordAuditEvent({
-    tenantId: input.tenantId,
-    actorUserId: input.actorUserId,
-    actorType: "manager",
-    branchId: null,
-    deviceSessionId: null,
-    cashierShiftId: null,
-    eventType: "data_export",
-    entityType: "other",
-    entityId: randomUUID(),
-    payload: {
-      exportKind: input.kind,
-      format: input.format,
-      filters: input.filters,
-    },
-  });
+}): Promise<void> {
+  try {
+    await recordAuditEvent({
+      tenantId: input.tenantId,
+      actorUserId: input.actorUserId,
+      actorType: "manager",
+      branchId: null,
+      deviceSessionId: null,
+      cashierShiftId: null,
+      eventType: "EXPORT",
+      entityType: "other",
+      entityId: randomUUID(),
+      payload: {
+        exportKind: input.kind,
+        exportType: input.exportType,
+        filters: input.filters,
+      },
+    });
+  } catch (e) {
+    console.error("export_audit_write_failed", e);
+  }
+}
+
+/**
+ * İsteğe bağlı saklama politikası — cron / yönetim işi ile çağrılabilir.
+ * @returns silinen satır sayısı
+ */
+export async function purgeAuditEventsOlderThan(params: {
+  olderThanDays: number;
+  tenantId?: string;
+}): Promise<number> {
+  const days = Math.max(1, Math.min(params.olderThanDays, 3650));
+  const cutoff = new Date(Date.now() - days * 86_400_000);
+  const where: Prisma.AuditEventWhereInput = {
+    createdAt: { lt: cutoff },
+    ...(params.tenantId ? { tenantId: params.tenantId } : {}),
+  };
+  const res = await prisma.auditEvent.deleteMany({ where });
+  return res.count;
 }

@@ -20,6 +20,10 @@ import {
 } from "../lib/entitlement-service.js";
 import { prisma } from "../lib/prisma.js";
 import { AuditEntityType } from "../generated/prisma/client.js";
+import {
+  summarizePayloadForCsv,
+  summarizePayloadForPdfLine,
+} from "../lib/export-redaction.js";
 
 function requireTenantId(
   req: { authSession?: SessionPayload },
@@ -56,15 +60,17 @@ const EXPORT_RATE = {
 };
 
 export async function registerComplianceExportRoutes(app: FastifyInstance): Promise<void> {
-  app.get<{
-    Querystring: Record<string, string | undefined>;
-  }>(
-    "/tenant/audit/export/csv",
-    {
-      preHandler: [authPreHandler, requireTenantPermission("audit.export")],
-      config: { rateLimit: EXPORT_RATE.rateLimit },
-    },
-    async (req, reply) => {
+  const auditCsvPaths = ["/tenant/audit/export/csv", "/audit/export/csv"] as const;
+  for (const routePath of auditCsvPaths) {
+    app.get<{
+      Querystring: Record<string, string | undefined>;
+    }>(
+      routePath,
+      {
+        preHandler: [authPreHandler, requireTenantPermission("audit.export")],
+        config: { rateLimit: EXPORT_RATE.rateLimit },
+      },
+      async (req, reply) => {
       const tenantId = requireTenantId(req, reply);
       if (!tenantId) return;
       const s = req.authSession as SessionPayload;
@@ -72,6 +78,10 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
       const to = parseIsoDate(req.query.to);
       const maxRows = req.query.maxRows ? Number.parseInt(req.query.maxRows, 10) : 5000;
       const entityType = parseEntityType(req.query.entityType);
+      const entityId =
+        typeof req.query.entityId === "string" && req.query.entityId.trim()
+          ? req.query.entityId.trim()
+          : undefined;
       const filters = {
         from: from?.toISOString(),
         to: to?.toISOString(),
@@ -79,6 +89,7 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         actorUserId: req.query.actorUserId,
         branchId: req.query.branchId,
         entityType: entityType ?? req.query.entityType,
+        entityId,
         maxRows,
       };
       const rows = await queryAuditEventsForExport(tenantId, {
@@ -89,6 +100,7 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         actorUserId: req.query.actorUserId,
         branchId: req.query.branchId,
         entityType,
+        entityId,
       });
       const headers = [
         "id",
@@ -98,7 +110,7 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         "entityId",
         "actorType",
         "actorUserId",
-        "payload_json",
+        "payload_summary",
       ];
       const csvRows = rows.map((r) => {
         const o = r as Record<string, unknown>;
@@ -110,7 +122,7 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
           String(o.entityId ?? ""),
           String(o.actorType ?? ""),
           String(o.actorUserId ?? ""),
-          JSON.stringify(o.payload ?? {}),
+          summarizePayloadForCsv(o.payload),
         ];
       });
       const body = buildAuditCsv(headers, csvRows);
@@ -118,25 +130,28 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         tenantId,
         actorUserId: s.user.id,
         kind: "audit_csv",
-        format: "csv",
+        exportType: "CSV",
         filters,
       });
       return reply
         .header("Content-Type", "text/csv; charset=utf-8")
         .header("Content-Disposition", 'attachment; filename="audit-export.csv"')
         .send(body);
-    },
-  );
+      },
+    );
+  }
 
-  app.get<{
-    Querystring: Record<string, string | undefined>;
-  }>(
-    "/tenant/audit/export/pdf",
-    {
-      preHandler: [authPreHandler, requireTenantPermission("audit.export")],
-      config: { rateLimit: EXPORT_RATE.rateLimit },
-    },
-    async (req, reply) => {
+  const auditPdfPaths = ["/tenant/audit/export/pdf", "/audit/export/pdf"] as const;
+  for (const routePath of auditPdfPaths) {
+    app.get<{
+      Querystring: Record<string, string | undefined>;
+    }>(
+      routePath,
+      {
+        preHandler: [authPreHandler, requireTenantPermission("audit.export")],
+        config: { rateLimit: EXPORT_RATE.rateLimit },
+      },
+      async (req, reply) => {
       const tenantId = requireTenantId(req, reply);
       if (!tenantId) return;
       const s = req.authSession as SessionPayload;
@@ -144,6 +159,10 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
       const to = parseIsoDate(req.query.to);
       const maxRows = req.query.maxRows ? Number.parseInt(req.query.maxRows, 10) : 200;
       const entityType = parseEntityType(req.query.entityType);
+      const entityId =
+        typeof req.query.entityId === "string" && req.query.entityId.trim()
+          ? req.query.entityId.trim()
+          : undefined;
       const filters = {
         from: from?.toISOString(),
         to: to?.toISOString(),
@@ -151,6 +170,7 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         actorUserId: req.query.actorUserId,
         branchId: req.query.branchId,
         entityType: entityType ?? req.query.entityType,
+        entityId,
         maxRows,
       };
       const rows = await queryAuditEventsForExport(tenantId, {
@@ -161,6 +181,7 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         actorUserId: req.query.actorUserId,
         branchId: req.query.branchId,
         entityType,
+        entityId,
       });
       const tenant = await prisma.tenant.findUnique({
         where: { id: tenantId },
@@ -173,7 +194,7 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         "",
         ...rows.map(
           (r) =>
-            `${r.createdAt} | ${r.eventType} | ${r.entityType} ${r.entityId} | aktör ${r.actorType}`,
+            `${r.createdAt} | ${r.eventType} | ${r.entityType} ${r.entityId} | aktör ${r.actorType} | ${summarizePayloadForPdfLine(r.payload)}`,
         ),
       ];
       const buf = await renderPdfDocument(lines);
@@ -181,25 +202,28 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         tenantId,
         actorUserId: s.user.id,
         kind: "audit_pdf",
-        format: "pdf",
+        exportType: "PDF",
         filters,
       });
       return reply
         .header("Content-Type", "application/pdf")
         .header("Content-Disposition", 'attachment; filename="audit-summary.pdf"')
         .send(buf);
-    },
-  );
+      },
+    );
+  }
 
-  app.get<{
-    Querystring: { period?: string };
-  }>(
-    "/tenant/summary/export/pdf",
-    {
-      preHandler: [authPreHandler, requireTenantPermission("summary.export")],
-      config: { rateLimit: EXPORT_RATE.rateLimit },
-    },
-    async (req, reply) => {
+  const summaryPdfPaths = ["/tenant/summary/export/pdf", "/summary/export/pdf"] as const;
+  for (const routePath of summaryPdfPaths) {
+    app.get<{
+      Querystring: { period?: string };
+    }>(
+      routePath,
+      {
+        preHandler: [authPreHandler, requireTenantPermission("summary.export")],
+        config: { rateLimit: EXPORT_RATE.rateLimit },
+      },
+      async (req, reply) => {
       const tenantId = requireTenantId(req, reply);
       if (!tenantId) return;
       const s = req.authSession as SessionPayload;
@@ -210,7 +234,7 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         select: { name: true, slug: true },
       });
       const lines = [
-        `Pointmor — Operasyon özeti`,
+        `Pointmor — Operasyon özeti (yönetici / kapanış özeti)`,
         `Workspace: ${tenant?.name ?? tenantId} (${tenant?.slug ?? ""})`,
         `Dönem: ${summary.periodLabel}`,
         `Pencere: ${summary.windowStart} — ${summary.windowEnd}`,
@@ -226,25 +250,28 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         tenantId,
         actorUserId: s.user.id,
         kind: "summary_pdf",
-        format: "pdf",
+        exportType: "PDF",
         filters,
       });
       return reply
         .header("Content-Type", "application/pdf")
         .header("Content-Disposition", 'attachment; filename="loyalty-summary.pdf"')
         .send(buf);
-    },
-  );
+      },
+    );
+  }
 
-  app.get<{
-    Querystring: Record<string, string | undefined>;
-  }>(
-    "/tenant/anomalies/export/pdf",
-    {
-      preHandler: [authPreHandler, requireTenantPermission("anomaly.export")],
-      config: { rateLimit: EXPORT_RATE.rateLimit },
-    },
-    async (req, reply) => {
+  const anomalyPdfPaths = ["/tenant/anomalies/export/pdf", "/anomalies/export/pdf"] as const;
+  for (const routePath of anomalyPdfPaths) {
+    app.get<{
+      Querystring: Record<string, string | undefined>;
+    }>(
+      routePath,
+      {
+        preHandler: [authPreHandler, requireTenantPermission("anomaly.export")],
+        config: { rateLimit: EXPORT_RATE.rateLimit },
+      },
+      async (req, reply) => {
       const tenantId = requireTenantId(req, reply);
       if (!tenantId) return;
       const s = req.authSession as SessionPayload;
@@ -278,29 +305,30 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         select: { name: true, slug: true },
       });
       const lines = [
-        `Pointmor — Anomali raporu (redakte)`,
+        `Pointmor — Anomali raporu (redakte özet)`,
         `Workspace: ${tenant?.name ?? tenantId} (${tenant?.slug ?? ""})`,
         `Üretim: ${new Date().toISOString()}`,
         "",
-        ...rows.map(
-          (r) =>
-            `${r.createdAt} | ${r.type} | ${r.severity} | müşteri ${r.customerId ?? "—"} | ${JSON.stringify(r.payload)}`,
-        ),
+        ...rows.map((r) => {
+          const cid = r.customerId ? `müşteri …${r.customerId.slice(-6)}` : "müşteri —";
+          return `${r.createdAt} | ${r.type} | ${r.severity} | ${cid} | ${summarizePayloadForPdfLine(r.payload)}`;
+        }),
       ];
       const buf = await renderPdfDocument(lines);
       await recordDataExportEvent({
         tenantId,
         actorUserId: s.user.id,
         kind: "anomaly_pdf",
-        format: "pdf",
+        exportType: "PDF",
         filters,
       });
       return reply
         .header("Content-Type", "application/pdf")
         .header("Content-Disposition", 'attachment; filename="anomalies.pdf"')
         .send(buf);
-    },
-  );
+      },
+    );
+  }
 
   app.get<{ Params: { customerId: string } }>(
     "/tenant/customers/:customerId/gdpr-export",
@@ -319,7 +347,7 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
           tenantId,
           actorUserId: s.user.id,
           kind: "gdpr_customer_json",
-          format: "json",
+          exportType: "JSON",
           filters: { customerId },
         });
         return reply
