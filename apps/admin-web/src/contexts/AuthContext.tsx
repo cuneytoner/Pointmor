@@ -19,7 +19,11 @@ export type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const cookiesOnlyAdminSession =
+  import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY === "true";
+
 function readToken(): string | null {
+  if (cookiesOnlyAdminSession) return null;
   try {
     return localStorage.getItem(STORAGE_KEY);
   } catch {
@@ -33,6 +37,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setToken = useCallback((t: string | null) => {
     setTokenState(t);
+    if (cookiesOnlyAdminSession) {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
     try {
       if (t) localStorage.setItem(STORAGE_KEY, t);
       else localStorage.removeItem(STORAGE_KEY);
@@ -46,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (cookiesOnlyAdminSession) return;
     const u = new URL(window.location.href);
     const q = u.searchParams.get("token");
     if (q?.trim()) {

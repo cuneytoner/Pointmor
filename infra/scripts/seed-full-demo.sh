@@ -41,6 +41,7 @@ docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" exec -T \
   -e DATABASE_URL="$DATABASE_URL_DEMO" \
   -e APP_ENV=demo \
   -e ALLOW_FULL_DEMO_SEED=true \
+  -e CONFIRM_FULL_DEMO_SEED=I_UNDERSTAND_FULL_DEMO_SEED \
   -e FORCE_RESEED_DEMO="$FORCE_RESEED_DEMO" \
   "$SERVICE_NAME" \
   sh -c 'cd /app && npm run db:seed:full:demo -w api'

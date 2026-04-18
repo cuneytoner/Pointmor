@@ -32,6 +32,7 @@ import { registerHqDashboardRoutes } from "./routes/hq-dashboard.js";
 import { registerHqInsightRoutes } from "./routes/hq-insights.js";
 import { registerTenantAutomationRoutes } from "./routes/tenant-automation.js";
 import { registerInternalHqInsightsJobRoutes } from "./routes/internal-hq-insights-job.js";
+import { registerSecurityHeaders } from "./lib/security-headers.js";
 
 export type BuildAppOptions = {
   /** Testlerde konsol gürültüsünü kapatmak için (`false`). */
@@ -51,6 +52,8 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   const app = Fastify({
     logger: options.logger ?? true,
   });
+
+  registerSecurityHeaders(app);
 
   await app.register(cookie, {
     secret: process.env.COOKIE_SECRET ?? "dev-cookie-secret-not-for-production",

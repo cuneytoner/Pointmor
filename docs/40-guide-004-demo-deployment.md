@@ -68,9 +68,9 @@ Yerel geliştirici makinede doğrudan Postgres’e bağlanıp seed çalıştırm
 
 ## GitHub Actions — demo deploy
 
-- Tetik: `main` branch’e **push** veya **workflow_dispatch** (Actions → Deploy demo → Run workflow).
+- Tetik: **`main` üzerinde CI başarılı olduktan sonra** (`workflow_run`) veya **workflow_dispatch** (Actions → Deploy demo → Run workflow). `main`’e push tek başına deploy tetiklemez.
 - Sunucuda repo klonlu olmalı (`git pull` kullanılır); özel repoda deploy key veya `git` erişimi tanımlı olmalı.
-- **Seed workflow’da yoktur**; yalnızca SSH üzerinden `./infra/scripts/deploy-demo.sh` çalışır.
+- **Seed workflow’da yoktur**; yalnızca SSH üzerinden `./infra/scripts/deploy-demo.sh` çalışır. İsteğe bağlı: environment variable `DEMO_POST_DEPLOY_SMOKE=1` ile deploy sonrası `smoke-demo.sh`.
 
 ### Gerekli GitHub Secrets
 
@@ -95,7 +95,7 @@ Bazı ekip süreçlerinde imajlar **GHCR**’de tutulur; sunucuda yalnızca `pul
 ## CI (kalite)
 
 - `.github/workflows/ci.yml` — `npm ci` → Prisma (`ci:prisma`) → `lint` → `ci:i18n` → `build`.
-- Deploy şu an **CI’yi beklemez**; isterseniz `deploy-demo.yml` tetikleyicisini `workflow_run` + `workflows: ["CI"]` + başarı koşulu ile değiştirin.
+- `deploy-demo.yml` CI başarısından sonra deploy eder; acil durum için `workflow_dispatch` ile elle tetikleme mümkündür.
 
 ## Demo refresh quick path
 

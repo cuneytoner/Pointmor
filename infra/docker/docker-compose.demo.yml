@@ -37,6 +37,7 @@ services:
       CUSTOMER_PORTAL_JWT_SECRET: ${CUSTOMER_PORTAL_JWT_SECRET:-}
       CORS_ORIGINS: ${CORS_ORIGINS}
       RUN_MIGRATIONS_ON_START: ${RUN_MIGRATIONS_ON_START:-true}
+      ENABLE_HSTS: ${ENABLE_HSTS:-}
     depends_on:
       postgres-demo:
         condition: service_healthy
@@ -50,6 +51,7 @@ services:
       dockerfile: apps/admin-web/Dockerfile
       args:
         VITE_API_BASE_URL: ${PUBLIC_API_BASE_URL}
+        VITE_ADMIN_SESSION_COOKIES_ONLY: "true"
     restart: unless-stopped
     depends_on:
       api-demo:

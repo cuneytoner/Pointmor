@@ -1,17 +1,17 @@
 # Debian VM üzerinde Docker Compose demo deploy.
 # Sırlar GitHub Secrets içinde tutulur; repo içine yazılmaz.
 #
+# Tetikleme: main üzerinde CI başarılı olduktan sonra (workflow_run) veya elle (workflow_dispatch).
 # Gerekli sırlar: bkz. docs/40-guide-004-demo-deployment.md (GitHub secrets listesi)
-#
-# İsteğe bağlı: yalnızca CI yeşil olduktan sonra deploy için tetikleyiciyi
-# `workflow_run` (workflows: ["CI"]) ile değiştirebilirsiniz.
 
 name: Deploy demo
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
 
 concurrency:
   group: deploy-demo-${{ github.ref }}
@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     runs-on: ubuntu-latest
     environment: demo
     steps:
@@ -42,5 +43,8 @@ jobs:
             git fetch origin main
             git checkout main
             git pull --ff-only origin main
-            chmod +x infra/scripts/deploy-demo.sh infra/scripts/health-check-demo.sh infra/scripts/healthcheck-demo.sh
+            chmod +x infra/scripts/*.sh
             ./infra/scripts/deploy-demo.sh
+            if [ "${{ vars.DEMO_POST_DEPLOY_SMOKE }}" = "1" ]; then
+              ./infra/scripts/smoke-demo.sh
+            fi

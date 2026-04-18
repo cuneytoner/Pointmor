@@ -58,25 +58,15 @@ export function canAccessTenantNavTarget(to: string, auth: AdminAuth): boolean {
     if (role === "staff" || role === "viewer") return false;
     return role === "owner" || role === "manager" || role === "ops";
   }
-  if (t.startsWith("/app/admin/general")) {
+  if (t.startsWith("/app/admin/")) {
     if (role === "staff" || role === "viewer") return false;
-    return role === "owner" || role === "manager";
-  }
-  if (t.startsWith("/app/admin/team")) {
-    if (role === "staff" || role === "viewer") return false;
-    return role === "owner" || role === "manager";
-  }
-  if (t.startsWith("/app/admin/messaging")) {
-    if (role === "staff" || role === "viewer") return false;
+    const seg = t.replace(/^\/app\/admin\/?/, "").split("/")[0] || "";
+    if (seg === "general") return canAccessWorkspaceAdminSection("general", auth);
+    if (seg === "team") return canAccessWorkspaceAdminSection("team", auth);
+    if (seg === "messaging") return canAccessWorkspaceAdminSection("messaging", auth);
+    if (seg === "billing") return canAccessWorkspaceAdminSection("billing", auth);
+    if (seg === "locations") return canAccessWorkspaceAdminSection("locations", auth);
     return role === "owner" || role === "manager" || role === "ops";
-  }
-  if (t.startsWith("/app/admin/billing")) {
-    if (role === "staff" || role === "viewer") return false;
-    return role === "owner";
-  }
-  if (t.startsWith("/app/admin/locations")) {
-    if (role === "staff" || role === "viewer") return false;
-    return role === "owner" || role === "manager";
   }
   if (t.startsWith("/app/hq")) {
     if (role === "staff" || role === "viewer") return false;

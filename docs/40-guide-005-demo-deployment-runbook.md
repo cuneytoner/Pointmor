@@ -107,9 +107,12 @@ Doğrudan konteyner içinde kısayol komut:
 docker compose -f infra/docker/docker-compose.demo.yml --env-file infra/docker/.env.demo exec -T \
   -e APP_ENV=demo \
   -e ALLOW_FULL_DEMO_SEED=true \
+  -e CONFIRM_FULL_DEMO_SEED=I_UNDERSTAND_FULL_DEMO_SEED \
   -e FORCE_RESEED_DEMO=1 \
   api-demo sh -c 'cd /app && npm run db:seed:full:demo -w api'
 ```
+
+`seed-full-demo.sh` ayrıca `DATABASE_URL` içinde `pointmor_demo` alt dizgisini doğrular (yanlış DB’ye yazmayı zorlaştırır). Farklı veritabı adı kullanıyorsanız `FULL_DEMO_SEED_DB_URL_SUBSTR` ile özelleştirin veya `SKIP_FULL_DEMO_DB_URL_CHECK=1` ile atlayın (önerilmez).
 
 ---
 
@@ -295,7 +298,7 @@ Not: `git rev-parse HEAD~` **bir önceki** commit’i verir; aktif sürüm için
 |---------|-------------|----------|
 | `DATABASE_URL` / migrate hatası | Şifre özel karakter, yanlış host | `DATABASE_URL_DEMO` içinde URL-encode; compose ağında host `postgres-demo`. |
 | Health check sürekli fail | API henüz ayakta değil | `docker compose logs -f api-demo`; `HEALTH_CHECK_RETRIES` artırılabilir. |
-| `db:seed:full:demo engellendi` | Guard koşulları eksik | Komutu `APP_ENV=demo` ve `ALLOW_FULL_DEMO_SEED=true` ile çalıştırın; önerilen yol: `./infra/scripts/seed-full-demo.sh`. |
+| `db:seed:full:demo engellendi` | Guard koşulları eksik | `./infra/scripts/seed-full-demo.sh` kullanın; manuel çalıştırırken `APP_ENV=demo`, `ALLOW_FULL_DEMO_SEED=true`, `CONFIRM_FULL_DEMO_SEED=I_UNDERSTAND_FULL_DEMO_SEED` ve uygun `DATABASE_URL` gerekir. |
 | `seed-full-demo.sh: Permission denied` | Script execute biti yok | `chmod +x infra/scripts/*.sh` veya `bash infra/scripts/seed-full-demo.sh`. |
 | Admin SPA API’ye bağlanmıyor | `PUBLIC_API_BASE_URL` build zamanı | Admin imajını yeniden build (`deploy-demo.sh`); tarayıcıda gerçek HTTPS URL ile uyumlu olsun. |
 | CORS reddi | Köken listesi eksik | `CORS_ORIGINS`’e admin ve PWA tam origin ekleyin. |
@@ -306,4 +309,10 @@ Not: `git rev-parse HEAD~` **bir önceki** commit’i verir; aktif sürüm için
 
 ## 11. GitHub Actions deploy
 
-Secrets: `DEMO_HOST`, `DEMO_USER`, `DEMO_SSH_PRIVATE_KEY`, `DEMO_REPO_PATH`. Ayrıntı: [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md) (GitHub Actions bölümü).
+Secrets: `DEMO_HOST`, `DEMO_USER`, `DEMO_SSH_PRIVATE_KEY`, `DEMO_REPO_PATH`.
+
+- Tetikleme: **`main` üzerinde CI workflow’u başarıyla bittikten sonra** (`workflow_run`) veya **elle** `workflow_dispatch`.
+- `main`’e doğrudan push tek başına deploy **tetiklemez** (CI kapısı).
+- İsteğe bağlı: Environment variable `DEMO_POST_DEPLOY_SMOKE=1` → SSH sonunda `./infra/scripts/smoke-demo.sh` çalışır (demo DB’de full seed / admin kullanıcı beklenir).
+
+Ayrıntı: [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md) (GitHub Actions bölümü).

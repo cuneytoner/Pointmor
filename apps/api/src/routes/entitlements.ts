@@ -6,6 +6,7 @@ import { writeAudit } from "../lib/audit.js";
 import { buildEntitlementsPayload } from "../lib/entitlement-service.js";
 import { recordAuditEvent } from "../lib/operational-audit-service.js";
 import { prisma } from "../lib/prisma.js";
+import { requiredTrimmedString } from "../lib/validation.js";
 
 function requireTenantSession(
   req: { authSession?: SessionPayload },
@@ -23,8 +24,10 @@ function requireTenantSession(
 /** Plan, limitler, kullanım ve uyarılar — checkout yok. */
 function demoPlanSwitchAllowed(): boolean {
   const v = process.env.ALLOW_TENANT_DEMO_PLAN_SWITCH?.trim().toLowerCase();
-  if (v === "0" || v === "false" || v === "no") return false;
-  return true;
+  if (v !== "true" && v !== "1") return false;
+  if (process.env.APP_ENV === "demo") return true;
+  if (process.env.NODE_ENV !== "production") return true;
+  return false;
 }
 
 export async function registerEntitlementsRoutes(app: FastifyInstance): Promise<void> {
@@ -38,10 +41,11 @@ export async function registerEntitlementsRoutes(app: FastifyInstance): Promise<
         return reply.code(403).send({ error: "demo_plan_switch_disabled" });
       }
       const s = req.authSession as SessionPayload;
-      const slug = String(req.body?.planSlug ?? "").trim().toLowerCase();
-      if (!slug) {
+      const raw = requiredTrimmedString(req.body, "planSlug");
+      if (!raw) {
         return reply.code(400).send({ error: "validation_error" });
       }
+      const slug = raw.toLowerCase();
       const plan = await prisma.plan.findFirst({ where: { slug } });
       if (!plan) {
         return reply.code(404).send({ error: "plan_not_found" });

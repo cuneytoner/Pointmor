@@ -1,5 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import { runHqInsightJob } from "../lib/hq-insight-generator.js";
+import {
+  assertRecentTimestampHeader,
+  timingSafeEqualString,
+} from "../lib/internal-job-auth.js";
+
+const JOB_TS_SKEW_SEC = 300;
 
 /**
  * Zamanlayıcı (cron / K8s Job) — POST + gizli başlık.
@@ -12,6 +18,16 @@ export async function registerInternalHqInsightsJobRoutes(app: FastifyInstance):
   app.post<{
     Querystring: { tenantId?: string };
   }>("/internal/jobs/hq-insights", async (req, reply) => {
+    if (process.env.INTERNAL_JOB_REQUIRE_TIMESTAMP === "true") {
+      const ok = assertRecentTimestampHeader(
+        req.headers["x-hq-insight-job-timestamp"],
+        JOB_TS_SKEW_SEC,
+      );
+      if (!ok) {
+        return reply.code(401).send({ error: "job_timestamp_invalid" });
+      }
+    }
+
     const auth = req.headers["x-hq-insight-job-secret"] ?? req.headers["authorization"];
     const token =
       typeof auth === "string" && auth.startsWith("Bearer ")
@@ -19,7 +35,7 @@ export async function registerInternalHqInsightsJobRoutes(app: FastifyInstance):
         : typeof auth === "string"
           ? auth.trim()
           : "";
-    if (token !== secret) {
+    if (!token || !timingSafeEqualString(token, secret)) {
       return reply.code(401).send({ error: "unauthorized" });
     }
 

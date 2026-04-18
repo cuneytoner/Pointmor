@@ -1,15 +1,16 @@
-import { timingSafeEqual } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { parseBearerToken } from "../lib/http-auth.js";
+import {
+  assertRecentTimestampHeader,
+  timingSafeEqualString,
+} from "../lib/internal-job-auth.js";
 
-function timingSafeEqualString(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(Buffer.from(a, "utf8"), Buffer.from(b, "utf8"));
-}
+const WEBHOOK_TS_SKEW_SEC = 300;
 
 /**
  * Faturalama / ödeme sağlayıcı webhook iskeleti.
- * Üretimde imza doğrulaması (HMAC ham gövde) tercih edilir; ortak sır ile ilk entegrasyon için yeterli.
+ * Kimlik doğrulama: paylaşılan sır (header veya Bearer) + isteğe bağlı zaman damgası (replay azaltma).
+ * Ham gövde HMAC: ham body için Fastify raw parser gerekir; follow-up olarak eklenebilir.
  */
 export async function registerWebhookRoutes(app: FastifyInstance): Promise<void> {
   app.post<{ Body: unknown }>("/webhooks/billing", async (req, reply) => {
@@ -20,6 +21,17 @@ export async function registerWebhookRoutes(app: FastifyInstance): Promise<void>
         message: "WEBHOOK_SIGNING_SECRET tanımlı değil.",
       });
     }
+
+    if (process.env.WEBHOOK_REQUIRE_TIMESTAMP === "true") {
+      const ok = assertRecentTimestampHeader(
+        req.headers["x-webhook-timestamp"],
+        WEBHOOK_TS_SKEW_SEC,
+      );
+      if (!ok) {
+        return reply.code(401).send({ error: "webhook_timestamp_invalid" });
+      }
+    }
+
     const headerSecret =
       typeof req.headers["x-webhook-secret"] === "string"
         ? req.headers["x-webhook-secret"].trim()
@@ -29,7 +41,8 @@ export async function registerWebhookRoutes(app: FastifyInstance): Promise<void>
     if (!got || !timingSafeEqualString(got, expected)) {
       return reply.code(401).send({ error: "unauthorized" });
     }
-    app.log.info({ body: req.body }, "webhook.billing.received");
+
+    app.log.info("webhook.billing.received");
     return { ok: true, received: true };
   });
 }

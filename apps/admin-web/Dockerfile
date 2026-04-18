@@ -4,7 +4,9 @@
 
 FROM node:20-bookworm-slim AS build
 ARG VITE_API_BASE_URL
+ARG VITE_ADMIN_SESSION_COOKIES_ONLY
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+ENV VITE_ADMIN_SESSION_COOKIES_ONLY=${VITE_ADMIN_SESSION_COOKIES_ONLY}
 WORKDIR /app
 
 # npm ci tüm workspace’leri kurar; api postinstall (prisma generate) için OpenSSL + şema gerekir

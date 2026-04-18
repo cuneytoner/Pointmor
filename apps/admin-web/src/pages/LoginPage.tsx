@@ -17,7 +17,7 @@ type LoginPageProps = {
 export function LoginPage({ sessionInvalid }: LoginPageProps) {
   const locale = useLocale();
   const { t } = useTranslation();
-  const { setToken } = useAuth();
+  const { setToken, bumpRefresh } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("admin@pointmor.local");
@@ -42,7 +42,12 @@ export function LoginPage({ sessionInvalid }: LoginPageProps) {
         setError(t("auth.login.error"));
         return;
       }
-      setToken(data.token);
+      if (import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY === "true") {
+        setToken(null);
+        bumpRefresh();
+      } else {
+        setToken(data.token);
+      }
       navigate("/", { replace: true });
     } catch {
       setError(t("auth.login.error"));
