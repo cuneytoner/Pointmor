@@ -18,6 +18,7 @@ Pre-alpha demo ortamı: Debian VM üzerinde Docker Compose, PostgreSQL ayrı vol
 | `infra/scripts/healthcheck-demo.sh` | Aynı script (prompt/doküman uyumu için kısa isim) |
 | `infra/scripts/seed-demo.sh` | Yalnızca manuel/ilk kurulum; deploy ile çağrılmaz |
 | `infra/scripts/seed-full-demo.sh` | Full senaryo seed (`SEED_FULL_DEMO=1`): çok kiracı + ağır örnek veri |
+| `infra/scripts/smoke-demo.sh` | Login + bootstrap + tenants + health smoke test |
 | `.github/workflows/deploy-demo.yml` | `main` push / `workflow_dispatch` → SSH ile `deploy-demo.sh` |
 | `apps/api/prisma/seed-demo.ts` | Demo kullanıcıları; şifreler yalnızca ortam değişkeni |
 
@@ -95,3 +96,18 @@ Bazı ekip süreçlerinde imajlar **GHCR**’de tutulur; sunucuda yalnızca `pul
 
 - `.github/workflows/ci.yml` — `npm ci` → Prisma (`ci:prisma`) → `lint` → `ci:i18n` → `build`.
 - Deploy şu an **CI’yi beklemez**; isterseniz `deploy-demo.yml` tetikleyicisini `workflow_run` + `workflows: ["CI"]` + başarı koşulu ile değiştirin.
+
+## Demo refresh quick path
+
+Demo’yu local ile hizalamak için (aynı kod + full seed veri):
+
+```bash
+cd /opt/pointmor-demo/Pointmor
+git fetch origin --prune && git reset --hard origin/main && git clean -fd
+chmod +x infra/scripts/*.sh
+./infra/scripts/deploy-demo.sh --cloud
+./infra/scripts/seed-full-demo.sh
+./infra/scripts/smoke-demo.sh
+```
+
+`db:seed:full:demo` güvenlik guard’ı: sadece `APP_ENV=demo` ve `ALLOW_FULL_DEMO_SEED=true` ile çalışır (script bunu otomatik sağlar).

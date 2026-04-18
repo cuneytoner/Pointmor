@@ -7,7 +7,7 @@ Bu sayfadaki **e-posta / şifre tablosunun çoğu** **yerel geliştirme** için 
 | Komut | Giriş dosyası | Ne oluşturur? |
 |--------|----------------|---------------|
 | **`npm run db:seed`** (`apps/api`) | [`prisma/seed.ts`](../apps/api/prisma/seed.ts) | Temel planlar, `demo-cafe` kiracısı, `admin@pointmor.local` / `owner@demo.pointmor.local`, mesaj şablonları; ardından **[`seed-demo-scenarios.ts`](../apps/api/prisma/seed-demo-scenarios.ts)** — üç senaryolu kiracı (küçük / yoğun / zincir), menü, müşteri, ziyaret, ödül, kampanya. |
-| **`npm run db:seed:full:demo`** (`apps/api`) | [`prisma/seed.ts`](../apps/api/prisma/seed.ts) | `SEED_FULL_DEMO=1` ile `db:seed` kısayolu; özellikle demo konteyneri içinde “full” senaryo verisini açmak için. İsteğe bağlı `FORCE_RESEED_DEMO=1` ile mevcut senaryo verisini silip yeniden yükler. |
+| **`npm run db:seed:full:demo`** (`apps/api`) | [`prisma/seed-full-demo.ts`](../apps/api/prisma/seed-full-demo.ts) + [`prisma/seed.ts`](../apps/api/prisma/seed.ts) | Guard’lı full seed: yalnızca `APP_ENV=demo` ve `ALLOW_FULL_DEMO_SEED=true` ile çalışır. İçeride `SEED_FULL_DEMO=1` set eder; opsiyonel `FORCE_RESEED_DEMO=1` ile mevcut senaryo verisini silip yeniden yükler. |
 | **`npm run db:seed:demo`** | [`prisma/seed-demo.ts`](../apps/api/prisma/seed-demo.ts) | Demo VM / izole DB için: env şifreli **platform + işletme** kullanıcıları, `demo-cafe` + abonelik. **`seed-demo-scenarios` çalışmaz** (üç ek kiracı ve ağır veri yok). |
 
 **Üretim benzeri DB’de** `seed-demo-scenarios` varsayılan olarak **atlanır**: `NODE_ENV=production` iken yalnızca `SEED_FULL_DEMO=1` ile açılır (aşağıdaki bölüm).
@@ -24,6 +24,23 @@ Bu ortamda **`admin@pointmor.local` ve `owner@demo.pointmor.local` kullanıcıla
 | Şifreler | `infra/docker/.env.demo` içindeki **`DEMO_ADMIN_PASSWORD`** ve **`DEMO_OPERATOR_PASSWORD`** (≥12 karakter); dokümanda sabit şifre yok |
 
 Cloudflare üzerinden giriş için: sunucuda seed’in en az bir kez çalıştırıldığından emin olun ve **o ortamda tanımlı e-posta + şifre** ile deneyin. Ayrıntı: [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md) (Demo seed bölümü), [`40-guide-005-demo-deployment-runbook.md`](./40-guide-005-demo-deployment-runbook.md) (bölüm 5).
+
+### Demo ortamında full seed (`seed-full-demo.sh`) kullanıcıları
+
+`./infra/scripts/seed-full-demo.sh` komutu, konteyner içinde `npm run db:seed:full:demo -w api` çağırır (`SEED_FULL_DEMO=1` + `db:seed`). Bu akışta aşağıdaki kullanıcılar oluşur/güncellenir:
+
+| Rol | E-posta | Şifre kaynağı | Workspace |
+|-----|---------|---------------|-----------|
+| Platform admin | `admin@pointmor.local` | Sabit seed değeri: `PointmorDev!Admin` | *(boş)* |
+| Demo işletme owner | `owner@demo.pointmor.local` | Sabit seed değeri: `PointmorDev!Demo` | `demo-cafe` |
+| Senaryo owner (small) | `owner@small.pointmor.local` | `SEED_DEV_OPERATOR_PASSWORD` veya varsayılan `PointmorDev!Demo` | `demo-small-cafe` |
+| Senaryo owner (busy) | `owner@busy.pointmor.local` | `SEED_DEV_OPERATOR_PASSWORD` veya varsayılan `PointmorDev!Demo` | `demo-busy-cafe` |
+| Senaryo owner (chain) | `owner@chain.pointmor.local` | `SEED_DEV_OPERATOR_PASSWORD` veya varsayılan `PointmorDev!Demo` | `demo-coffee-chain` |
+
+Notlar:
+- `db:seed:demo` ile gelen `admin-demo@pointmor.demo` / `owner-demo@pointmor.demo` hesapları **ayrı akıştır**; full seed bu e-postaları üretmez.
+- Demo’da owner şifresini özelleştirmek için seed öncesi konteynere `SEED_DEV_OPERATOR_PASSWORD` verilebilir.
+- Full seed’in amacı yalnızca demo/staging veri zenginleştirmesidir; üretimde kullanılmamalıdır.
 
 ---
 

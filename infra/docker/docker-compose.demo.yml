@@ -29,6 +29,7 @@ services:
       dockerfile: apps/api/Dockerfile
     restart: unless-stopped
     environment:
+      APP_ENV: demo
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: ${DATABASE_URL_DEMO}

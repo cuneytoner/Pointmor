@@ -21,7 +21,7 @@
     "db:fresh": "npm run db:clean && prisma migrate dev --name init",
     "db:seed": "prisma db seed",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
-    "db:seed:full:demo": "SEED_FULL_DEMO=1 prisma db seed"
+    "db:seed:full:demo": "tsx prisma/seed-full-demo.ts"
   },
   "dependencies": {
     "@pointmor/rbac": "file:../../packages/pointmor-rbac",

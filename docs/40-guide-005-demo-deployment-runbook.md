@@ -105,13 +105,33 @@ Doğrudan konteyner içinde kısayol komut:
 
 ```bash
 docker compose -f infra/docker/docker-compose.demo.yml --env-file infra/docker/.env.demo exec -T \
+  -e APP_ENV=demo \
+  -e ALLOW_FULL_DEMO_SEED=true \
   -e FORCE_RESEED_DEMO=1 \
   api-demo sh -c 'cd /app && npm run db:seed:full:demo -w api'
 ```
 
 ---
 
-## 6. Health check
+## 6. Demo refresh (local ile birebir hizalama)
+
+```bash
+cd /opt/pointmor-demo/Pointmor
+git fetch origin --prune
+git checkout main
+git reset --hard origin/main
+git clean -fd
+chmod +x infra/scripts/*.sh
+./infra/scripts/deploy-demo.sh --cloud
+./infra/scripts/seed-full-demo.sh
+./infra/scripts/smoke-demo.sh
+```
+
+Beklenen sonuç: smoke script `PASS` yazar ve platform konsolunda 4 işletme görünür (`demo-cafe`, `demo-small-cafe`, `demo-busy-cafe`, `demo-coffee-chain`).
+
+---
+
+## 7. Health check
 
 ```bash
 curl -sfS "http://127.0.0.1:${API_HOST_PORT:-3000}/health"
@@ -126,11 +146,11 @@ Script (aynı işlev: `healthcheck-demo.sh` → `health-check-demo.sh`):
 
 ---
 
-## 7. Cloudflare Tunnel
+## 8. Cloudflare Tunnel
 
 `CLOUDFLARE_TUNNEL_TOKEN` `infra/docker/.env.demo` içinde tanımlı olmalı (repoda tutulmaz). Ingress hostname → origin eşlemesini Zero Trust panelinde yapın (`api-demo` / `admin-web-demo` servis portları).
 
-### 7.1 Tunnel’ı başlatma veya güncelleme
+### 8.1 Tunnel’ı başlatma veya güncelleme
 
 Stack zaten ayaktaysa (postgres, api, admin) yalnızca tunnel servisini de eklemek / güncellemek için:
 
@@ -150,7 +170,7 @@ docker compose --profile cloudflare \
   up -d
 ```
 
-### 7.2 `./infra/scripts/deploy-demo.sh` ve tunnel
+### 8.2 `./infra/scripts/deploy-demo.sh` ve tunnel
 
 **Varsayılan:** `deploy-demo.sh` yalnızca `postgres-demo`, `api-demo`, `admin-web-demo` kaldırır. **`deploy-demo.sh --cloud`** aynı akışta **`cloudflared`**’i de başlatır (`CLOUDFLARE_TUNNEL_TOKEN` dolu olmalı).
 
@@ -158,7 +178,7 @@ CI/GitHub Actions hâlâ tunnel başlatmaz; gerekirse sunucuda `deploy-demo.sh -
 
 **`--cloud` kullanmadıysanız** ve dışarıdan Cloudflare gerekiyorsa, pull + `deploy-demo.sh` **ardından** yukarıdaki `docker compose … --profile cloudflare up -d` komutunu tekrar çalıştırın (idempotent).
 
-### 7.3 Sunucu yeniden başlatma (reboot)
+### 8.3 Sunucu yeniden başlatma (reboot)
 
 Compose dosyasındaki servislerde `restart: unless-stopped` vardır; Docker daemon açıldığında konteynerler genelde yeniden kalkar. **Tunnel da** son başarılı `up` ile profile dahil edildiyse aynı proje altında yeniden başlamalıdır.
 
@@ -174,7 +194,7 @@ docker compose -f infra/docker/docker-compose.demo.yml \
 
 İsteğe bağlı: VM’de Docker’ın açılışta çalışması için `sudo systemctl enable docker` (dağıtıma göre).
 
-### 7.4 İlk kurulumda tek seferde stack + tunnel
+### 8.4 İlk kurulumda tek seferde stack + tunnel
 
 ```bash
 cd /opt/pointmor-demo
@@ -187,7 +207,7 @@ docker compose -f infra/docker/docker-compose.demo.yml \
 
 ---
 
-## 8. LAN üzerinden SSH ve hızlı deploy (`pmdeploy` / `pmdeploycld`)
+## 9. LAN üzerinden SSH ve hızlı deploy (`pmdeploy` / `pmdeploycld`)
 
 Bazı kurulumlarda demo **PostgreSQL ile aynı host** üzerindedir; SSH açık, uygulama kodu sabit dizindedir.
 
@@ -200,16 +220,16 @@ Bazı kurulumlarda demo **PostgreSQL ile aynı host** üzerindedir; SSH açık, 
 
 **Güvenlik:** Parolalar ve SSH özel anahtarları **bu repoda tutulmaz**. Üretim benzeri ortamlarda mümkünse **anahtar tabanlı** giriş ve güçlü parola politikası kullanın.
 
-### 8.1 `pmdeploy` ile `pmdeploycld` farkı
+### 9.1 `pmdeploy` ile `pmdeploycld` farkı
 
 Sunucuda `~/.bashrc` içinde tanımlı iki shell fonksiyonu aynı akışı kullanır: **`git reset --hard HEAD`** → **`git pull`** → **`chmod +x infra/scripts/*.sh`** → **`deploy-demo.sh`** → **localhost health**.
 
 | Komut | `deploy-demo.sh` çağrısı | Ne zaman |
 |--------|---------------------------|----------|
 | **`pmdeploy`** | `./infra/scripts/deploy-demo.sh` | Yalnızca Docker stack (Postgres, API, admin). Dış dünya için Cloudflare **başlatılmaz**. |
-| **`pmdeploycld`** | `./infra/scripts/deploy-demo.sh --cloud` | Stack + **Cloudflare tunnel** (`cloudflared`). `CLOUDFLARE_TUNNEL_TOKEN` ve env: [bölüm 7](#7-cloudflare-tunnel). |
+| **`pmdeploycld`** | `./infra/scripts/deploy-demo.sh --cloud` | Stack + **Cloudflare tunnel** (`cloudflared`). `CLOUDFLARE_TUNNEL_TOKEN` ve env: [bölüm 8](#8-cloudflare-tunnel). |
 
-### 8.2 Örnek `~/.bashrc` gövdeleri
+### 9.2 Örnek `~/.bashrc` gövdeleri
 
 Sunucudaki gerçek dosya ile aynı tutun; aşağısı referans içindir. Health URL’si `API_HOST_PORT` kullanıyorsa shell’de export edin veya `${API_HOST_PORT:-3000}` kullanın.
 
@@ -263,18 +283,20 @@ cd /opt/pointmor-demo/Pointmor && git rev-parse HEAD && git log -1 --oneline
 
 Not: `git rev-parse HEAD~` **bir önceki** commit’i verir; aktif sürüm için **`HEAD`** kullanın.
 
-### 8.3 Erişim ve otomasyon sınırı
+### 9.3 Erişim ve otomasyon sınırı
 
 `192.168.x.x` gibi adresler genelde **yalnızca yerel ağ/VPN** içindir. Cursor veya bulut CI bu makineye **doğrudan SSH ile bağlanamaz**; doğrulama için komutları **sunucuya erişen operatör** çalıştırır. İsterseniz “deploy sonrası `git log -1` çıktısını paylaş” gibi bir kontrol listesi kullanın.
 
 ---
 
-## 9. Sık sorunlar
+## 10. Sık sorunlar
 
 | Belirti | Olası neden | Ne yapın |
 |---------|-------------|----------|
 | `DATABASE_URL` / migrate hatası | Şifre özel karakter, yanlış host | `DATABASE_URL_DEMO` içinde URL-encode; compose ağında host `postgres-demo`. |
 | Health check sürekli fail | API henüz ayakta değil | `docker compose logs -f api-demo`; `HEALTH_CHECK_RETRIES` artırılabilir. |
+| `db:seed:full:demo engellendi` | Guard koşulları eksik | Komutu `APP_ENV=demo` ve `ALLOW_FULL_DEMO_SEED=true` ile çalıştırın; önerilen yol: `./infra/scripts/seed-full-demo.sh`. |
+| `seed-full-demo.sh: Permission denied` | Script execute biti yok | `chmod +x infra/scripts/*.sh` veya `bash infra/scripts/seed-full-demo.sh`. |
 | Admin SPA API’ye bağlanmıyor | `PUBLIC_API_BASE_URL` build zamanı | Admin imajını yeniden build (`deploy-demo.sh`); tarayıcıda gerçek HTTPS URL ile uyumlu olsun. |
 | CORS reddi | Köken listesi eksik | `CORS_ORIGINS`’e admin ve PWA tam origin ekleyin. |
 | `git pull` yetkisiz (Actions) | Sunucuda deploy key yok | Repo için read-only deploy key veya `git` HTTPS token. |
@@ -282,6 +304,6 @@ Not: `git rev-parse HEAD~` **bir önceki** commit’i verir; aktif sürüm için
 
 ---
 
-## 10. GitHub Actions deploy
+## 11. GitHub Actions deploy
 
 Secrets: `DEMO_HOST`, `DEMO_USER`, `DEMO_SSH_PRIVATE_KEY`, `DEMO_REPO_PATH`. Ayrıntı: [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md) (GitHub Actions bölümü).
