@@ -1,6 +1,7 @@
 import { config } from "dotenv";
+import { existsSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { hashSync } from "bcryptjs";
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
@@ -9,7 +10,13 @@ config({
   override: true,
 });
 
-const { prisma } = await import("../src/lib/prisma.js");
+// Docker runtime imajında src yerine dist bulunur; yerelde src üzerinden çalışır.
+const apiRoot = path.join(dir, "..");
+const distPrisma = path.join(apiRoot, "dist/lib/prisma.js");
+const prismaEntry = existsSync(distPrisma)
+  ? pathToFileURL(distPrisma).href
+  : pathToFileURL(path.join(apiRoot, "src/lib/prisma.ts")).href;
+const { prisma } = await import(prismaEntry);
 const { MESSAGE_TEMPLATE_SEED } = await import("./seed-message-templates.js");
 
 /** Senaryo başına ayrı şifre — dokümantasyon: docs/41-ref-001-dev-seed-users.md */
