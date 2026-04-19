@@ -19,6 +19,11 @@ Pre-alpha demo ortamı: Debian VM üzerinde Docker Compose, PostgreSQL ayrı vol
 | `infra/scripts/seed-demo.sh` | Yalnızca manuel/ilk kurulum; deploy ile çağrılmaz |
 | `infra/scripts/seed-full-demo.sh` | Full senaryo seed (`SEED_FULL_DEMO=1`): çok kiracı + ağır örnek veri |
 | `infra/scripts/smoke-demo.sh` | Login + bootstrap + tenants + health smoke test |
+| `infra/scripts/sign-internal-job-request.sh` | `INTERNAL_JOB_REQUIRE_HMAC` için HMAC başlığı üretimi (openssl) |
+
+### Release manifest ve immutable artifact
+
+`./infra/scripts/deploy-demo.sh` çalışınca `infra/docker/.release-manifest.json` yazılır (`release_sha`, yerel `image_ids`, `artifact.next_step`). Bir sonraki adım: imajları registry’ye push edip `docker-compose` içinde `build:` yerine `image: …@sha256:<digest>` pinlemek; CI’da aynı digest’i artifact olarak saklamak. Güvenlik preflight ve politika özeti: `apps/api/.env.example` içindeki `ALLOW_HEALTH_SECURITY_SUMMARY` / `POINTMOR_PREFLIGHT_SECRET` notlarına bakın.
 | `.github/workflows/deploy-demo.yml` | `main` push / `workflow_dispatch` → SSH ile `deploy-demo.sh` |
 | `apps/api/prisma/seed-demo.ts` | Demo kullanıcıları; şifreler yalnızca ortam değişkeni |
 

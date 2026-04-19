@@ -26,6 +26,7 @@ import {
 } from "../lib/resolveLanguage";
 import "./customer-pwa.css";
 
+/** API ile uyumlu cookie-first; Bearer sunset API env ile yönetilir. */
 const customerCookiesOnlySession =
   import.meta.env.VITE_CUSTOMER_SESSION_COOKIES_ONLY !== "false";
 

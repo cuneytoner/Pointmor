@@ -1,4 +1,11 @@
 import { createClient, type RedisClientType } from "redis";
+import {
+  redisUrl,
+  replayRedisFailOpen,
+  resolveSecurityStateBackend,
+  revokeReadRedisFailOpen,
+} from "./security-config.js";
+import { bumpRuntimeSecurityMetric } from "./runtime-security-metrics.js";
 
 export type SecurityStateBackend = "memory" | "redis";
 
@@ -88,16 +95,6 @@ class MemorySecurityState implements SecurityStatePort {
 
 let sharedRedis: RedisClientType | null = null;
 
-function redisUrl(): string | null {
-  const u = process.env.REDIS_URL?.trim();
-  return u || null;
-}
-
-function redisFailOpen(): boolean {
-  const v = process.env.SECURITY_STATE_REDIS_UNAVAILABLE?.trim().toLowerCase();
-  return v === "open";
-}
-
 async function ensureRedisConnected(client: RedisClientType): Promise<void> {
   if (!client.isOpen) {
     await client.connect();
@@ -136,7 +133,7 @@ class RedisSecurityState implements SecurityStatePort {
       const n = await this.client.exists(`pm:revoke:admin:${jti}`);
       return n === 1;
     } catch {
-      return redisFailOpen() ? false : true;
+      return revokeReadRedisFailOpen() ? false : true;
     }
   }
 
@@ -153,7 +150,7 @@ class RedisSecurityState implements SecurityStatePort {
       const n = await this.client.exists(`pm:revoke:customer:${jti}`);
       return n === 1;
     } catch {
-      return redisFailOpen() ? false : true;
+      return revokeReadRedisFailOpen() ? false : true;
     }
   }
 
@@ -171,7 +168,7 @@ class RedisSecurityState implements SecurityStatePort {
   }
 }
 
-/** Redis + bellek: Redis hata verirse replay için belleğe düşer (yalnızca SECURITY_STATE_REDIS_UNAVAILABLE=open iken). */
+/** Redis + bellek: replay fallback yalnızca replayRedisFailOpen() ile. */
 class HybridSecurityState implements SecurityStatePort {
   private readonly redis: RedisSecurityState | null;
   private readonly mem = new MemorySecurityState();
@@ -187,7 +184,8 @@ class HybridSecurityState implements SecurityStatePort {
   ): Promise<ConsumeReplayResult> {
     if (!this.redis) return this.mem.consumeReplayKey(scope, key, ttlSeconds);
     const r = await this.redis.consumeReplayKey(scope, key, ttlSeconds);
-    if (r === "unavailable" && redisFailOpen()) {
+    if (r === "unavailable" && replayRedisFailOpen()) {
+      bumpRuntimeSecurityMetric("replay_redis_memory_fallback");
       return this.mem.consumeReplayKey(scope, key, ttlSeconds);
     }
     return r;
@@ -235,16 +233,12 @@ class HybridSecurityState implements SecurityStatePort {
   }
 }
 
-export function resolveSecurityStateBackend(): SecurityStateBackend {
-  const b = process.env.SECURITY_STATE_BACKEND?.trim().toLowerCase();
-  if (b === "redis") return "redis";
-  if (b === "memory") return "memory";
-  return redisUrl() ? "redis" : "memory";
-}
-
 function createPort(): SecurityStatePort {
   const mode = resolveSecurityStateBackend();
   const url = redisUrl();
+  if (mode === "redis" && !url) {
+    throw new Error("SECURITY_STATE_BACKEND=redis requires REDIS_URL (startup validation should have caught this).");
+  }
   if (mode === "redis" && url) {
     if (!sharedRedis) {
       sharedRedis = createClient({ url });
@@ -253,11 +247,6 @@ function createPort(): SecurityStatePort {
       });
     }
     return new HybridSecurityState(sharedRedis);
-  }
-  if (mode === "redis" && !url) {
-    console.warn(
-      "SECURITY_STATE_BACKEND=redis ancak REDIS_URL yok; replay/revoke bellek moduna düşüldü.",
-    );
   }
   return new MemorySecurityState();
 }

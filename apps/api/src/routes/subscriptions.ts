@@ -6,6 +6,25 @@ import { hasPermissionForSession } from "../lib/tenant-permissions.js";
 import { writeAudit } from "../lib/audit.js";
 import { prisma } from "../lib/prisma.js";
 import { recordAuditEvent } from "../lib/operational-audit-service.js";
+import { mergeTenantWhere } from "../lib/tenant-scope.js";
+import { parseWithSchema, z } from "../lib/validation.js";
+
+const subscriptionCreateBodySchema = z.object({
+  tenantId: z.string().trim().min(1, "Kiracı gerekli."),
+  planId: z.string().trim().min(1, "Plan gerekli."),
+  status: z.string().trim().optional(),
+  renewsAt: z.union([z.string(), z.null()]).optional(),
+});
+
+const subscriptionIdParamsSchema = z.object({
+  subscriptionId: z.string().trim().min(1, "Abonelik gerekli."),
+});
+
+const subscriptionPatchBodySchema = z.object({
+  status: z.string().trim().optional(),
+  renewsAt: z.union([z.string(), z.null()]).optional(),
+  planId: z.string().trim().optional(),
+});
 
 export async function registerSubscriptionRoutes(
   app: FastifyInstance,
@@ -26,31 +45,25 @@ export async function registerSubscriptionRoutes(
         return reply.code(403).send({ error: "permission_denied" });
       }
       return prisma.subscription.findMany({
-        where: { tenantId: s.tenant.id },
+        where: mergeTenantWhere(s.tenant.id, {}),
         orderBy: { createdAt: "desc" },
         include: { plan: true, tenant: true },
       });
     },
   );
 
-  app.post<{
-    Body: {
-      tenantId?: string;
-      planId?: string;
-      status?: string;
-      renewsAt?: string | null;
-    };
-  }>(
+  app.post<{ Body: unknown }>(
     "/subscriptions",
     { preHandler: [authPreHandler, requirePlatformAdmin] },
     async (req, reply) => {
       const s = req.authSession as SessionPayload;
-      const b = req.body ?? {};
-      const tenantId = (b.tenantId ?? "").trim();
-      const planId = (b.planId ?? "").trim();
-      if (!tenantId || !planId) {
-        return reply.code(400).send({ error: "validation_error" });
+      const parsed = parseWithSchema(subscriptionCreateBodySchema, req.body);
+      if (!parsed.ok) {
+        return reply.code(400).send({ error: parsed.error, message: parsed.message });
       }
+      const b = parsed.data;
+      const tenantId = b.tenantId.trim();
+      const planId = b.planId.trim();
       try {
         const created = await prisma.subscription.create({
           data: {
@@ -71,13 +84,21 @@ export async function registerSubscriptionRoutes(
 
   app.patch<{
     Params: { subscriptionId: string };
-    Body: { status?: string; renewsAt?: string | null; planId?: string };
+    Body: unknown;
   }>(
     "/subscriptions/:subscriptionId",
     { preHandler: [authPreHandler] },
     async (req, reply) => {
       const s = req.authSession as SessionPayload;
-      const { subscriptionId } = req.params;
+      const paramsParsed = parseWithSchema(subscriptionIdParamsSchema, req.params);
+      if (!paramsParsed.ok) {
+        return reply.code(400).send({ error: paramsParsed.error, message: paramsParsed.message });
+      }
+      const subscriptionId = paramsParsed.data.subscriptionId.trim();
+      const bodyParsed = parseWithSchema(subscriptionPatchBodySchema, req.body);
+      if (!bodyParsed.ok) {
+        return reply.code(400).send({ error: bodyParsed.error, message: bodyParsed.message });
+      }
       const sub = await prisma.subscription.findUnique({
         where: { id: subscriptionId },
       });
@@ -88,7 +109,7 @@ export async function registerSubscriptionRoutes(
       if (!s.user.platformAdmin) {
         return reply.code(403).send({ error: "platform_or_elevated_required" });
       }
-      const b = req.body ?? {};
+      const b = bodyParsed.data;
       const nextPlanId =
         typeof b.planId === "string" && b.planId.trim() ? b.planId.trim() : undefined;
       if (nextPlanId) {

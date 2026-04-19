@@ -11,10 +11,23 @@ export function customerSessionCookieOnlyMode(): boolean {
 }
 
 /**
+ * ISO 8601 (UTC önerilir). Bu andan sonra Bearer legacy kapatılır; cookie oturumu çalışmaya devam eder.
+ */
+export function customerBearerLegacySunsetPassed(): boolean {
+  const raw = process.env.CUSTOMER_BEARER_LEGACY_SUNSET_AFTER?.trim();
+  if (!raw) return false;
+  const ms = Date.parse(raw);
+  if (!Number.isFinite(ms)) return false;
+  return Date.now() >= ms;
+}
+
+/**
  * Cookie-only modunda bile `Authorization: Bearer` ile geri uyumluluk (gözlem / geçiş).
  * Varsayılan: cookie-only modda kapalı; dual modda açık.
+ * `CUSTOMER_BEARER_LEGACY_SUNSET_AFTER` geçtiyse `CUSTOMER_ALLOW_BEARER_FALLBACK` yok sayılır (Bearer kapanır).
  */
 export function customerBearerFallbackAllowed(): boolean {
+  if (customerBearerLegacySunsetPassed()) return false;
   const raw = process.env.CUSTOMER_ALLOW_BEARER_FALLBACK?.trim().toLowerCase();
   if (raw === "true" || raw === "1") return true;
   if (raw === "false" || raw === "0") return false;

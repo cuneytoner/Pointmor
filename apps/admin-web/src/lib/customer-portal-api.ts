@@ -1,5 +1,11 @@
 import { getApiBaseUrl } from "./api-base";
 
+/**
+ * Müşteri API çağrıları cookie-first (VITE_CUSTOMER_SESSION_COOKIES_ONLY).
+ * Bearer ve jti kesimi API tarafında: CUSTOMER_ALLOW_BEARER_FALLBACK,
+ * CUSTOMER_BEARER_LEGACY_SUNSET_AFTER, CUSTOMER_PORTAL_JTI_REQUIRED_AFTER (apps/api .env).
+ */
+
 export type CustomerTenantBranding = {
   primaryHex: string;
   logoUrl: string | null;

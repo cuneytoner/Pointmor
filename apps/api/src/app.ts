@@ -32,6 +32,13 @@ import { registerHqDashboardRoutes } from "./routes/hq-dashboard.js";
 import { registerHqInsightRoutes } from "./routes/hq-insights.js";
 import { registerTenantAutomationRoutes } from "./routes/tenant-automation.js";
 import { registerSecurityHeaders } from "./lib/security-headers.js";
+import {
+  getSecurityPreflightSnapshot,
+  isStrictSecurityProfile,
+  validateStartupSecurityConfig,
+} from "./lib/security-config.js";
+import { timingSafeEqualString } from "./lib/internal-job-auth.js";
+import { snapshotRuntimeSecurityMetrics } from "./lib/runtime-security-metrics.js";
 
 export type BuildAppOptions = {
   /** Testlerde konsol gürültüsünü kapatmak için (`false`). */
@@ -42,6 +49,8 @@ export type BuildAppOptions = {
  * HTTP dinlemeyen Fastify örneği — `app.inject()` ile test veya alt süreçler için.
  */
 export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyInstance> {
+  validateStartupSecurityConfig();
+
   const corsOriginsRaw = process.env.CORS_ORIGINS ?? "";
   const originList = corsOriginsRaw
     .split(",")
@@ -51,6 +60,11 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   const app = Fastify({
     logger: options.logger ?? true,
   });
+
+  app.log.info(
+    { securityPreflight: getSecurityPreflightSnapshot() },
+    "security_preflight_at_boot",
+  );
 
   registerSecurityHeaders(app);
 
@@ -77,7 +91,44 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     },
   });
 
-  app.get("/health", async () => ({ ok: true }));
+  app.get("/health", async (req, reply) => {
+    const body: Record<string, unknown> = { ok: true };
+    const q = req.query as Record<string, string | undefined>;
+    const wantSummary =
+      process.env.ALLOW_HEALTH_SECURITY_SUMMARY === "true" &&
+      (q.securitySummary === "1" || q.securitySummary === "true");
+    if (!wantSummary) return body;
+
+    body.metrics = snapshotRuntimeSecurityMetrics();
+
+    const secret = process.env.POINTMOR_PREFLIGHT_SECRET?.trim();
+    const headerRaw = req.headers["x-pointmor-preflight-secret"];
+    const header = typeof headerRaw === "string" ? headerRaw.trim() : "";
+    const querySecret = (q.preflightSecret ?? "").trim();
+
+    if (secret) {
+      const provided = header || querySecret;
+      if (!provided || !timingSafeEqualString(secret, provided)) {
+        return reply.code(403).send({
+          ok: false,
+          error: "preflight_secret_required",
+          message: "X-Pointmor-Preflight-Secret header or preflightSecret query must match POINTMOR_PREFLIGHT_SECRET.",
+        });
+      }
+      body.security = getSecurityPreflightSnapshot();
+      return body;
+    }
+
+    if (isStrictSecurityProfile()) {
+      body.securityRedacted = true;
+      body.opsHint =
+        "strict_profile: set POINTMOR_PREFLIGHT_SECRET and send X-Pointmor-Preflight-Secret for full policy snapshot; counters still returned.";
+      return body;
+    }
+
+    body.security = getSecurityPreflightSnapshot();
+    return body;
+  });
 
   await registerAuthLogin(app);
   await registerSessionRoutes(app);

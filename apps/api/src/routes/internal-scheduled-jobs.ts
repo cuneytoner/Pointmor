@@ -6,6 +6,7 @@ import {
   timingSafeEqualString,
   verifyTimestampedHmacRequestAsync,
 } from "../lib/internal-job-auth.js";
+import { bumpRuntimeSecurityMetric } from "../lib/runtime-security-metrics.js";
 
 const JOB_TS_SKEW_SEC = 300;
 const INTERNAL_JOB_TS_HEADER = "x-internal-job-timestamp";
@@ -110,6 +111,12 @@ export async function registerInternalScheduledJobRoutes(app: FastifyInstance): 
             return reply.code(401).send({ error: "unauthorized" });
           }
 
+          bumpRuntimeSecurityMetric("internal_job_legacy_auth");
+          req.log.warn(
+            { route: "/internal/jobs/retention" },
+            "internal_job_legacy_auth",
+          );
+
           const dryRun = req.query.dryRun === "1" || req.query.dryRun === "true";
           const tenantId =
             typeof req.query.tenantId === "string" && req.query.tenantId.trim()
@@ -189,6 +196,12 @@ export async function registerInternalScheduledJobRoutes(app: FastifyInstance): 
           if (!token || !timingSafeEqualString(token, hqSecret)) {
             return reply.code(401).send({ error: "unauthorized" });
           }
+
+          bumpRuntimeSecurityMetric("internal_job_legacy_auth");
+          req.log.warn(
+            { route: "/internal/jobs/hq-insights" },
+            "internal_job_legacy_auth",
+          );
 
           const tenantId =
             typeof req.query.tenantId === "string" && req.query.tenantId.trim()

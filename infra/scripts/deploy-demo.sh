@@ -72,11 +72,18 @@ printf '%s\n' "{
   \"release_sha\": \"${RELEASE_SHA}\",
   \"deployed_at\": \"${DEPLOYED_AT}\",
   \"compose_project\": \"pointmor-demo\",
+  \"release_git_sha\": \"${POINTMOR_RELEASE_SHA:-}\",
   \"image_ids\": {
     \"api_demo\": \"${API_REF:-}\",
     \"admin_web_demo\": \"${ADMIN_REF:-}\"
   },
-  \"note\": \"Sonraki adım: registry digest pin + compose image:tag@sha256:... (immutable artifact).\"
+  \"artifact\": {
+    \"immutable_target\": \"image@sha256:<digest>\",
+    \"compose_services\": [\"api-demo\", \"admin-web-demo\"],
+    \"provenance\": \"git_sha_only_today_registry_digest_next\",
+    \"next_step\": \"Build/push to registry; pin docker-compose image: tag@digest; replace compose build: with image:; attach CI provenance (SLSA/build attestation) when available.\"
+  },
+  \"note\": \"image_ids are local build IDs today; replace with registry digest after push.\"
 }" > "$MANIFEST" || true
 
 echo "deploy-demo: tamam."

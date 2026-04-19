@@ -18,6 +18,7 @@ import {
 } from "../lib/entitlement-service.js";
 import { getOrCreateStoreMessagingSettings } from "../lib/messaging/store-messaging-settings.js";
 import { getSecurityState } from "../lib/security-state.js";
+import { bumpRuntimeSecurityMetric } from "../lib/runtime-security-metrics.js";
 import {
   CUSTOMER_SESSION_COOKIE_NAME,
   customerSessionCookieOnlyMode,
@@ -192,6 +193,7 @@ export async function registerPublicLoyaltyRoutes(app: FastifyInstance): Promise
         if (authTok) {
           const pl = verifyCustomerAccessToken(authTok);
           if (pl && pl.tenantId === tenant.id) {
+            if (!pl.jti) bumpRuntimeSecurityMetric("customer_token_missing_jti");
             const revoked = pl.jti ? await getSecurityState().isCustomerJtiRevoked(pl.jti) : false;
             if (!revoked) customerId = pl.customerId;
           }

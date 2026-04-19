@@ -34,6 +34,7 @@ import {
 } from "../lib/entitlement-service.js";
 import { loadTenantPublicMeta } from "../lib/store-settings-service.js";
 import { getSecurityState } from "../lib/security-state.js";
+import { bumpRuntimeSecurityMetric } from "../lib/runtime-security-metrics.js";
 import { getPublicMenuPayload } from "../lib/public-menu-service.js";
 import { getOrCreateStoreMessagingSettings } from "../lib/messaging/store-messaging-settings.js";
 import { parseWithSchema, z } from "../lib/validation.js";
@@ -304,6 +305,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
         if (authTok) {
           const pl = verifyCustomerAccessToken(authTok);
           if (pl && pl.tenantId === tenant.id) {
+            if (!pl.jti) bumpRuntimeSecurityMetric("customer_token_missing_jti");
             const revoked = pl.jti ? await getSecurityState().isCustomerJtiRevoked(pl.jti) : false;
             if (!revoked) customerId = pl.customerId;
           }

@@ -59,4 +59,27 @@ echo "5) GET /tenants"
 curl -fsS -b "$COOKIE_JAR" "$API_BASE/tenants" >/dev/null
 echo "   OK"
 
+if [ "${ALLOW_HEALTH_SECURITY_SUMMARY:-}" = "true" ] || [ "${ALLOW_HEALTH_SECURITY_SUMMARY:-}" = "1" ]; then
+  echo "6) GET /health?securitySummary=1 (preflight + metrics)"
+  PF_ARGS=()
+  if [ -n "${POINTMOR_PREFLIGHT_SECRET:-}" ]; then
+    PF_ARGS=(-H "X-Pointmor-Preflight-Secret: $POINTMOR_PREFLIGHT_SECRET")
+  fi
+  HSEC="$(curl -fsS "${PF_ARGS[@]}" "$API_BASE/health?securitySummary=1")"
+  if ! printf "%s" "$HSEC" | grep -q '"metrics"'; then
+    echo "   FAIL: health metrics eksik"
+    exit 1
+  fi
+  if printf "%s" "$HSEC" | grep -q '"securityRedacted"'; then
+    echo "   OK (strict: policy redacted; POINTMOR_PREFLIGHT_SECRET ile tam özet)"
+  elif printf "%s" "$HSEC" | grep -q '"security"'; then
+    echo "   OK (full preflight)"
+  else
+    echo "   FAIL: security / securityRedacted yok"
+    exit 1
+  fi
+else
+  echo "6) SKIP health security summary (ALLOW_HEALTH_SECURITY_SUMMARY=true ile etkinleşir)"
+fi
+
 echo "smoke-demo: PASS"

@@ -4,6 +4,21 @@ import type { SessionPayload } from "../lib/auth-memory.js";
 import { writeAudit } from "../lib/audit.js";
 import { canAccessTenant, requirePlatformAdmin } from "../lib/guards.js";
 import { prisma } from "../lib/prisma.js";
+import { parseWithSchema, z } from "../lib/validation.js";
+
+const tenantCreateBodySchema = z.object({
+  slug: z.string().trim().min(1, "Slug gerekli."),
+  name: z.string().trim().min(1, "İsim gerekli."),
+});
+
+const tenantIdParamsSchema = z.object({
+  tenantId: z.string().trim().min(1, "Kiracı gerekli."),
+});
+
+const tenantPatchBodySchema = z.object({
+  name: z.string().trim().optional(),
+  slug: z.string().trim().optional(),
+});
 
 export async function registerTenantRoutes(app: FastifyInstance): Promise<void> {
   app.get(
@@ -25,7 +40,11 @@ export async function registerTenantRoutes(app: FastifyInstance): Promise<void> 
     { preHandler: [authPreHandler] },
     async (req, reply) => {
       const s = req.authSession as SessionPayload;
-      const { tenantId } = req.params;
+      const paramsParsed = parseWithSchema(tenantIdParamsSchema, req.params);
+      if (!paramsParsed.ok) {
+        return reply.code(400).send({ error: paramsParsed.error, message: paramsParsed.message });
+      }
+      const tenantId = paramsParsed.data.tenantId.trim();
       if (!canAccessTenant(s, tenantId)) {
         return reply.code(403).send({ error: "forbidden" });
       }
@@ -35,16 +54,17 @@ export async function registerTenantRoutes(app: FastifyInstance): Promise<void> 
     },
   );
 
-  app.post<{ Body: { slug?: string; name?: string } }>(
+  app.post<{ Body: unknown }>(
     "/tenants",
     { preHandler: [authPreHandler, requirePlatformAdmin] },
     async (req, reply) => {
       const s = req.authSession as SessionPayload;
-      const slug = (req.body?.slug ?? "").trim().toLowerCase();
-      const name = (req.body?.name ?? "").trim();
-      if (!slug || !name) {
-        return reply.code(400).send({ error: "validation_error" });
+      const parsed = parseWithSchema(tenantCreateBodySchema, req.body);
+      if (!parsed.ok) {
+        return reply.code(400).send({ error: parsed.error, message: parsed.message });
       }
+      const slug = parsed.data.slug.trim().toLowerCase();
+      const name = parsed.data.name.trim();
       try {
         const created = await prisma.tenant.create({
           data: { slug, name },
@@ -59,18 +79,26 @@ export async function registerTenantRoutes(app: FastifyInstance): Promise<void> 
 
   app.patch<{
     Params: { tenantId: string };
-    Body: { name?: string; slug?: string };
+    Body: unknown;
   }>(
     "/tenants/:tenantId",
     { preHandler: [authPreHandler] },
     async (req, reply) => {
       const s = req.authSession as SessionPayload;
-      const { tenantId } = req.params;
+      const paramsParsed = parseWithSchema(tenantIdParamsSchema, req.params);
+      if (!paramsParsed.ok) {
+        return reply.code(400).send({ error: paramsParsed.error, message: paramsParsed.message });
+      }
+      const tenantId = paramsParsed.data.tenantId.trim();
       if (!canAccessTenant(s, tenantId)) {
         return reply.code(403).send({ error: "forbidden" });
       }
-      const name = (req.body?.name ?? "").trim();
-      const slug = (req.body?.slug ?? "").trim().toLowerCase();
+      const bodyParsed = parseWithSchema(tenantPatchBodySchema, req.body);
+      if (!bodyParsed.ok) {
+        return reply.code(400).send({ error: bodyParsed.error, message: bodyParsed.message });
+      }
+      const name = (bodyParsed.data.name ?? "").trim();
+      const slug = (bodyParsed.data.slug ?? "").trim().toLowerCase();
       if (!s.user.platformAdmin && slug) {
         return reply.code(403).send({ error: "cannot_change_slug" });
       }
