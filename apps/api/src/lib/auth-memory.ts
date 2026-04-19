@@ -1,6 +1,6 @@
 /**
  * Admin oturumları: geliştirmede bellek içi; production’da varsayılan olarak HMAC imzalı (stateless).
- * Çoklu instance / restart sonrası çerez geçerli kalır. Çıkış (revoke) imzalı modda yalnızca süreç içi jti listesiyle sınırlıdır — tam iptal için DB/Redis tabanlı store gerekir (follow-up).
+ * Çoklu instance için iptal ve replay: `security-state` (Redis veya bellek) ile hizalanır.
  */
 export type {
   SessionBranchScope,
@@ -29,15 +29,15 @@ export function issueSession(payload: SessionPayload): string {
     : inMemoryIssueSession(payload);
 }
 
-export function getSession(token: string | undefined): SessionPayload | null {
+export async function getSession(token: string | undefined): Promise<SessionPayload | null> {
   return useSignedSessions()
-    ? signedGetSession(token)
+    ? await signedGetSession(token)
     : inMemoryGetSession(token);
 }
 
-export function revokeSession(token: string | undefined): void {
+export async function revokeSession(token: string | undefined): Promise<void> {
   if (useSignedSessions()) {
-    signedRevokeSession(token);
+    await signedRevokeSession(token);
   } else {
     inMemoryRevokeSession(token);
   }

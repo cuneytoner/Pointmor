@@ -54,7 +54,7 @@ export async function registerSessionRoutes(app: FastifyInstance): Promise<void>
 
   app.post("/auth/logout", async (req, reply) => {
     const token = parseSessionToken(req);
-    revokeSession(token);
+    await revokeSession(token);
     reply.clearCookie(SESSION_COOKIE_NAME, { path: "/" });
     return { ok: true };
   });

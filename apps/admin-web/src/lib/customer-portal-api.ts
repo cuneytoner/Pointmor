@@ -81,6 +81,9 @@ export type CustomerPortalDashboard = {
   }>;
 };
 
+const customerCookiesOnlySession =
+  import.meta.env.VITE_CUSTOMER_SESSION_COOKIES_ONLY !== "false";
+
 function publicFetch<T>(
   path: string,
   init?: RequestInit & { token?: string },
@@ -90,14 +93,14 @@ function publicFetch<T>(
     ...(init?.body ? { "Content-Type": "application/json" } : {}),
     ...((init?.headers as Record<string, string>) ?? {}),
   };
-  if (init?.token) {
+  if (init?.token && !customerCookiesOnlySession) {
     headers.Authorization = `Bearer ${init.token}`;
   }
   return fetch(`${base}${path}`, {
     method: init?.method,
     body: init?.body,
     headers,
-    credentials: "omit",
+    credentials: "include",
   }).then(async (res) => {
     if (!res.ok) {
       let body: unknown;
@@ -120,22 +123,22 @@ export function getCustomerPortalBootstrap(tenantSlug: string) {
 }
 
 export function postCustomerPortalSession(tenantSlug: string, phone: string) {
-  return publicFetch<CustomerPortalDashboard & { token: string }>(
+  return publicFetch<CustomerPortalDashboard & { token?: string }>(
     `${publicTenantBase(tenantSlug)}/session`,
     { method: "POST", body: JSON.stringify({ phone }) },
   );
 }
 
-export function getCustomerPortalMe(tenantSlug: string, token: string) {
+export function getCustomerPortalMe(tenantSlug: string, token?: string | null) {
   return publicFetch<CustomerPortalDashboard>(
     `${publicTenantBase(tenantSlug)}/customers/me`,
-    { token },
+    { token: token ?? undefined },
   );
 }
 
 export function postCustomerClaim(
   tenantSlug: string,
-  token: string,
+  token: string | null,
   rewardId: string,
 ) {
   return publicFetch<{
@@ -145,7 +148,7 @@ export function postCustomerClaim(
   }>(`${publicTenantBase(tenantSlug)}/claims`, {
     method: "POST",
     body: JSON.stringify({ rewardId }),
-    token,
+    token: token ?? undefined,
   });
 }
 
@@ -161,10 +164,16 @@ export function postCustomerProductAnalyticsEvent(
       body: JSON.stringify({
         type: body.type,
         ...(body.payload ? { payload: body.payload } : {}),
-        ...(token ? { token } : {}),
+        ...(!customerCookiesOnlySession && token ? { token } : {}),
       }),
     },
   );
+}
+
+export function postCustomerPortalLogout(tenantSlug: string) {
+  return publicFetch<{ ok: boolean }>(`${publicTenantBase(tenantSlug)}/session/logout`, {
+    method: "POST",
+  });
 }
 
 export function customerTokenStorageKey(tenantSlug: string) {

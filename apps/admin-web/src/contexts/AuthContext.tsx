@@ -20,7 +20,7 @@ export type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const cookiesOnlyAdminSession =
-  import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY === "true";
+  import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
 
 function readToken(): string | null {
   if (cookiesOnlyAdminSession) return null;

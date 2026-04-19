@@ -2,24 +2,17 @@ import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
 import { requireTenantPermission } from "../lib/tenant-permission-guard.js";
+import { requireTenantIdFromRequest } from "../lib/tenant-context.js";
 import { writeAudit } from "../lib/audit.js";
 import { buildEntitlementsPayload } from "../lib/entitlement-service.js";
 import { recordAuditEvent } from "../lib/operational-audit-service.js";
 import { prisma } from "../lib/prisma.js";
-import { requiredTrimmedString } from "../lib/validation.js";
+import { mergeTenantWhere } from "../lib/tenant-scope.js";
+import { parseWithSchema, z } from "../lib/validation.js";
 
-function requireTenantSession(
-  req: { authSession?: SessionPayload },
-  reply: { code: (n: number) => { send: (b: unknown) => unknown } },
-): string | null {
-  const s = req.authSession as SessionPayload | undefined;
-  const tenantId = s?.tenant?.id;
-  if (!tenantId) {
-    reply.code(403).send({ error: "tenant_context_required" });
-    return null;
-  }
-  return tenantId;
-}
+const demoPlanSwitchSchema = z.object({
+  planSlug: z.string().trim().min(1, "Plan gerekli."),
+});
 
 /** Plan, limitler, kullanım ve uyarılar — checkout yok. */
 function demoPlanSwitchAllowed(): boolean {
@@ -31,27 +24,27 @@ function demoPlanSwitchAllowed(): boolean {
 }
 
 export async function registerEntitlementsRoutes(app: FastifyInstance): Promise<void> {
-  app.post<{ Body: { planSlug?: string } }>(
+  app.post(
     "/tenant/billing/demo-plan-switch",
     { preHandler: [authPreHandler, requireTenantPermission("billing.manage")] },
     async (req, reply) => {
-      const tenantId = requireTenantSession(req, reply);
+      const tenantId = await requireTenantIdFromRequest(req, reply);
       if (!tenantId) return;
       if (!demoPlanSwitchAllowed()) {
         return reply.code(403).send({ error: "demo_plan_switch_disabled" });
       }
       const s = req.authSession as SessionPayload;
-      const raw = requiredTrimmedString(req.body, "planSlug");
-      if (!raw) {
-        return reply.code(400).send({ error: "validation_error" });
+      const parsed = parseWithSchema(demoPlanSwitchSchema, req.body);
+      if (!parsed.ok) {
+        return reply.code(400).send({ error: parsed.error, message: parsed.message });
       }
-      const slug = raw.toLowerCase();
+      const slug = parsed.data.planSlug.toLowerCase();
       const plan = await prisma.plan.findFirst({ where: { slug } });
       if (!plan) {
         return reply.code(404).send({ error: "plan_not_found" });
       }
       const existing = await prisma.subscription.findFirst({
-        where: { tenantId, status: "active" },
+        where: mergeTenantWhere(tenantId, { status: "active" }),
         orderBy: { createdAt: "desc" },
       });
       let subId: string;
@@ -115,7 +108,7 @@ export async function registerEntitlementsRoutes(app: FastifyInstance): Promise<
   );
 
   app.get("/tenant/entitlements", { preHandler: [authPreHandler] }, async (req, reply) => {
-    const tenantId = requireTenantSession(req, reply);
+    const tenantId = await requireTenantIdFromRequest(req, reply);
     if (!tenantId) return;
     try {
       return await buildEntitlementsPayload(tenantId);

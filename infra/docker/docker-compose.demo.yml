@@ -23,6 +23,12 @@ services:
       timeout: 5s
       retries: 10
 
+  redis-demo:
+    image: redis:7-alpine
+    restart: unless-stopped
+    profiles: [redis]
+    networks: [demo]
+
   api-demo:
     build:
       context: ../..
@@ -38,6 +44,12 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS}
       RUN_MIGRATIONS_ON_START: ${RUN_MIGRATIONS_ON_START:-true}
       ENABLE_HSTS: ${ENABLE_HSTS:-}
+      CUSTOMER_SESSION_MODE: ${CUSTOMER_SESSION_MODE:-cookie}
+      WEBHOOK_AUTH_MODE: ${WEBHOOK_AUTH_MODE:-hmac}
+      REDIS_URL: ${REDIS_URL:-}
+      SECURITY_STATE_BACKEND: ${SECURITY_STATE_BACKEND:-auto}
+      SECURITY_STATE_REDIS_UNAVAILABLE: ${SECURITY_STATE_REDIS_UNAVAILABLE:-closed}
+      CUSTOMER_ALLOW_BEARER_FALLBACK: ${CUSTOMER_ALLOW_BEARER_FALLBACK:-false}
     depends_on:
       postgres-demo:
         condition: service_healthy
@@ -52,6 +64,7 @@ services:
       args:
         VITE_API_BASE_URL: ${PUBLIC_API_BASE_URL}
         VITE_ADMIN_SESSION_COOKIES_ONLY: "true"
+        VITE_CUSTOMER_SESSION_COOKIES_ONLY: "true"
     restart: unless-stopped
     depends_on:
       api-demo:

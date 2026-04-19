@@ -39,10 +39,11 @@ jobs:
           script: |
             set -euo pipefail
             REPO="${{ secrets.DEMO_REPO_PATH }}"
+            TARGET_SHA="${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}"
             cd "$REPO"
-            git fetch origin main
-            git checkout main
-            git pull --ff-only origin main
+            git fetch --depth 1 origin "$TARGET_SHA"
+            git checkout --detach "$TARGET_SHA"
+            export POINTMOR_RELEASE_SHA="$TARGET_SHA"
             chmod +x infra/scripts/*.sh
             ./infra/scripts/deploy-demo.sh
             if [ "${{ vars.DEMO_POST_DEPLOY_SMOKE }}" = "1" ]; then

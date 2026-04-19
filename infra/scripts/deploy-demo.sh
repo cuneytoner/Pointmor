@@ -60,7 +60,28 @@ run_compose exec -T api-demo sh -c 'cd /app/apps/api && npx prisma migrate deplo
 echo "deploy-demo: migrate sonrası health check..."
 sh "$ROOT/infra/scripts/health-check-demo.sh"
 
+RELEASE_SHA="${POINTMOR_RELEASE_SHA:-$(git rev-parse --short=12 HEAD 2>/dev/null || echo unknown)}"
+DEPLOYED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo unknown)"
+echo "$RELEASE_SHA" > "$ROOT/infra/docker/.last-demo-release-sha"
+echo "$DEPLOYED_AT" > "$ROOT/infra/docker/.last-demo-deployed-at"
+
+MANIFEST="$ROOT/infra/docker/.release-manifest.json"
+API_REF="$(run_compose images -q api-demo 2>/dev/null | head -n 1 || true)"
+ADMIN_REF="$(run_compose images -q admin-web-demo 2>/dev/null | head -n 1 || true)"
+printf '%s\n' "{
+  \"release_sha\": \"${RELEASE_SHA}\",
+  \"deployed_at\": \"${DEPLOYED_AT}\",
+  \"compose_project\": \"pointmor-demo\",
+  \"image_ids\": {
+    \"api_demo\": \"${API_REF:-}\",
+    \"admin_web_demo\": \"${ADMIN_REF:-}\"
+  },
+  \"note\": \"Sonraki adım: registry digest pin + compose image:tag@sha256:... (immutable artifact).\"
+}" > "$MANIFEST" || true
+
 echo "deploy-demo: tamam."
+echo "deploy-demo: release_sha=$RELEASE_SHA deployed_at=$DEPLOYED_AT"
+echo "deploy-demo: manifest=$MANIFEST"
 echo "  curl: curl -sS http://127.0.0.1:${API_HOST_PORT:-3000}/health"
 if [ "$WITH_CLOUD" != "1" ]; then
   echo "  Cloudflare: $0 --cloud   veya: docker compose -f infra/docker/docker-compose.demo.yml --env-file \"$ENV_FILE\" --profile cloudflare up -d"

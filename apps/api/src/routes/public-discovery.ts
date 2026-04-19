@@ -16,12 +16,12 @@ export async function registerPublicDiscoveryRoutes(app: FastifyInstance): Promi
     name: "Pointmor Public Customer API",
     phase: 3,
     access: {
-      model: "phone_session_bearer",
+      model: "phone_session_cookie_or_bearer",
       summary:
-        "Telefon ile POST /public/tenants/:tenantSlug/session → kısa ömürlü HS256 müşteri JWT (Authorization: Bearer).",
+        "Telefon ile POST /public/tenants/:tenantSlug/session → HttpOnly tenant cookie (legacy istemciler için opsiyonel Bearer).",
       verifyOptional:
         "İşletme ayarında zorunluysa /public/tenants/:tenantSlug/verify/start + verify/check.",
-      tokenHeader: "Authorization: Bearer <customer_access_token>",
+      tokenHeader: "Authorization: Bearer <customer_access_token> (legacy)",
     },
     isolation: {
       rule: "tenantSlug URL ile çözülür; token içindeki tenantId eşleşmezse 403 tenant_mismatch.",
@@ -51,7 +51,12 @@ export async function registerPublicDiscoveryRoutes(app: FastifyInstance): Promi
       {
         method: "POST",
         path: "/public/tenants/:tenantSlug/session",
-        description: "Telefon → müşteri JWT + portal özeti",
+        description: "Telefon → müşteri session cookie + portal özeti",
+      },
+      {
+        method: "POST",
+        path: "/public/tenants/:tenantSlug/session/logout",
+        description: "Müşteri session cookie temizleme",
       },
       {
         method: "GET",

@@ -8,7 +8,7 @@ import {
   signCustomerAccessToken,
   verifyCustomerAccessToken,
 } from "../lib/customer-portal-jwt.js";
-import { requireCustomerBearer } from "../lib/public-customer-auth.js";
+import { requireCustomerSession } from "../lib/public-customer-auth.js";
 import { recordProductAnalyticsEvent } from "../lib/product-analytics-service.js";
 import {
   assertFeature,
@@ -17,6 +17,12 @@ import {
   sendEntitlementHttpError,
 } from "../lib/entitlement-service.js";
 import { getOrCreateStoreMessagingSettings } from "../lib/messaging/store-messaging-settings.js";
+import { getSecurityState } from "../lib/security-state.js";
+import {
+  CUSTOMER_SESSION_COOKIE_NAME,
+  customerSessionCookieOnlyMode,
+  customerSessionCookieOptions,
+} from "../lib/customer-session-cookie.js";
 
 async function ensureCustomerPwaEnabled(
   tenantId: string,
@@ -92,9 +98,13 @@ export async function registerPublicLoyaltyRoutes(app: FastifyInstance): Promise
             }
           }
           const token = signCustomerAccessToken(customer.id, tenant.id);
-          const dashboard = await getCustomerPortalData(tenant.id, customer.id);
-          return {
+          reply.setCookie(
+            CUSTOMER_SESSION_COOKIE_NAME,
             token,
+            customerSessionCookieOptions(tenant.slug),
+          );
+          const dashboard = await getCustomerPortalData(tenant.id, customer.id);
+          const baseResponse = {
             ...dashboard,
             tenant: {
               slug: tenant.slug,
@@ -102,6 +112,8 @@ export async function registerPublicLoyaltyRoutes(app: FastifyInstance): Promise
               branding: { primaryHex: "#0056b3", logoUrl: null as string | null },
             },
           };
+          if (customerSessionCookieOnlyMode()) return baseResponse;
+          return { token, ...baseResponse };
         },
       );
 
@@ -118,7 +130,7 @@ export async function registerPublicLoyaltyRoutes(app: FastifyInstance): Promise
         "/public/loyalty/:tenantSlug/claims",
         async (req, reply) => {
           const slug = req.params.tenantSlug.trim();
-          const ctx = await requireCustomerBearer(req, reply, slug);
+          const ctx = await requireCustomerSession(req, reply, slug);
           if (!ctx) return;
           if (!(await ensureCustomerPwaEnabled(ctx.tenantId, reply))) return;
           const rewardId = String(req.body?.rewardId ?? "").trim();
@@ -175,10 +187,13 @@ export async function registerPublicLoyaltyRoutes(app: FastifyInstance): Promise
         const type = rawType as ProductAnalyticsEventType;
         let customerId: string | null = null;
         const tok = String(req.body?.token ?? "").trim();
-        if (tok) {
-          const pl = verifyCustomerAccessToken(tok);
+        const cookieTok = String(req.cookies?.[CUSTOMER_SESSION_COOKIE_NAME] ?? "").trim();
+        const authTok = tok || cookieTok;
+        if (authTok) {
+          const pl = verifyCustomerAccessToken(authTok);
           if (pl && pl.tenantId === tenant.id) {
-            customerId = pl.customerId;
+            const revoked = pl.jti ? await getSecurityState().isCustomerJtiRevoked(pl.jti) : false;
+            if (!revoked) customerId = pl.customerId;
           }
         }
         const payload = req.body?.payload;

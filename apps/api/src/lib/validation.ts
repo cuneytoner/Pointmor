@@ -1,3 +1,5 @@
+import { z, type ZodType } from "zod";
+
 /** Merkezi doğrulama için ince katman; ileride Zod/Valibot ile genişletilebilir. */
 
 export function bodyObject(body: unknown): Record<string, unknown> | null {
@@ -24,3 +26,20 @@ export function requiredTrimmedString(
   const t = optionalTrimmedString(body, key);
   return t ?? null;
 }
+
+export type ValidationOk<T> = { ok: true; data: T };
+export type ValidationErr = { ok: false; error: string; message?: string };
+
+/** Schema-first parse: route'larda ortak hata formatı için. */
+export function parseWithSchema<T>(schema: ZodType<T>, input: unknown): ValidationOk<T> | ValidationErr {
+  const parsed = schema.safeParse(input);
+  if (parsed.success) return { ok: true, data: parsed.data };
+  const first = parsed.error.issues[0];
+  return {
+    ok: false,
+    error: "validation_error",
+    message: first?.message ?? "Geçersiz istek gövdesi.",
+  };
+}
+
+export { z };

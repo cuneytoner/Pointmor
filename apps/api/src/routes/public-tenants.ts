@@ -13,9 +13,19 @@ import {
   toPublicCampaignDto,
   toPublicRewardDto,
 } from "../lib/loyalty-service.js";
-import { signCustomerAccessToken, verifyCustomerAccessToken } from "../lib/customer-portal-jwt.js";
-import { requireCustomerBearer } from "../lib/public-customer-auth.js";
+import {
+  customerPortalTokenTtlSeconds,
+  signCustomerAccessToken,
+  verifyCustomerAccessToken,
+} from "../lib/customer-portal-jwt.js";
+import { requireCustomerSession } from "../lib/public-customer-auth.js";
 import { recordProductAnalyticsEvent } from "../lib/product-analytics-service.js";
+import {
+  CUSTOMER_SESSION_COOKIE_NAME,
+  customerSessionCookieClearOptions,
+  customerSessionCookieOnlyMode,
+  customerSessionCookieOptions,
+} from "../lib/customer-session-cookie.js";
 import {
   assertFeature,
   FEATURE,
@@ -23,8 +33,10 @@ import {
   sendEntitlementHttpError,
 } from "../lib/entitlement-service.js";
 import { loadTenantPublicMeta } from "../lib/store-settings-service.js";
+import { getSecurityState } from "../lib/security-state.js";
 import { getPublicMenuPayload } from "../lib/public-menu-service.js";
 import { getOrCreateStoreMessagingSettings } from "../lib/messaging/store-messaging-settings.js";
+import { parseWithSchema, z } from "../lib/validation.js";
 
 const PRODUCT_ANALYTICS_TYPES = new Set<string>([
   "qr_opened",
@@ -35,6 +47,20 @@ const PRODUCT_ANALYTICS_TYPES = new Set<string>([
   "reward_claimed",
   "redemption_completed",
 ]);
+
+const customerSessionSchema = z.object({
+  phone: z.string().trim().min(3, "Telefon gerekli."),
+});
+
+const customerClaimSchema = z.object({
+  rewardId: z.string().trim().min(1, "Ödül gerekli."),
+});
+
+const productAnalyticsSchema = z.object({
+  type: z.string().trim().min(1),
+  payload: z.record(z.string(), z.unknown()).optional(),
+  token: z.string().trim().optional(),
+});
 
 async function resolveTenantOr404(slug: string) {
   const tenant = await prisma.tenant.findUnique({
@@ -145,7 +171,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
         "/public/tenants/:tenantSlug/customers/me",
         async (req, reply) => {
           const slug = req.params.tenantSlug.trim();
-          const ctx = await requireCustomerBearer(req, reply, slug);
+          const ctx = await requireCustomerSession(req, reply, slug);
           if (!ctx) return;
           if (!(await ensureCustomerPwaEnabled(ctx.tenantId, reply))) return;
           const [dashboard, tenantRow] = await Promise.all([
@@ -176,7 +202,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
         "/public/tenants/:tenantSlug/customers/me/account",
         async (req, reply) => {
           const slug = req.params.tenantSlug.trim();
-          const ctx = await requireCustomerBearer(req, reply, slug);
+          const ctx = await requireCustomerSession(req, reply, slug);
           if (!ctx) return;
           if (!(await ensureCustomerPwaEnabled(ctx.tenantId, reply))) return;
           try {
@@ -193,7 +219,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
         "/public/tenants/:tenantSlug/activity",
         async (req, reply) => {
           const slug = req.params.tenantSlug.trim();
-          const ctx = await requireCustomerBearer(req, reply, slug);
+          const ctx = await requireCustomerSession(req, reply, slug);
           if (!ctx) return;
           if (!(await ensureCustomerPwaEnabled(ctx.tenantId, reply))) return;
           const raw = req.query?.limit;
@@ -207,18 +233,19 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
         },
       );
 
-      f.post<{ Params: { tenantSlug: string }; Body: { rewardId?: string } }>(
+      f.post<{ Params: { tenantSlug: string }; Body: unknown }>(
         "/public/tenants/:tenantSlug/claims",
         async (req, reply) => {
           const slug = req.params.tenantSlug.trim();
-          const ctx = await requireCustomerBearer(req, reply, slug);
+          const ctx = await requireCustomerSession(req, reply, slug);
           if (!ctx) return;
           if (!(await ensureCustomerPwaEnabled(ctx.tenantId, reply))) return;
-          const rewardId = String(req.body?.rewardId ?? "").trim();
-          if (!rewardId) {
+          const parsed = parseWithSchema(customerClaimSchema, req.body);
+          if (!parsed.ok) {
             req.log.warn({ route: "public.claims" }, "public_api_validation");
-            return reply.code(400).send({ error: "validation_error" });
+            return reply.code(400).send({ error: parsed.error, message: parsed.message });
           }
+          const rewardId = parsed.data.rewardId;
           try {
             const row = await createRedemptionClaim(
               ctx.tenantId,
@@ -253,29 +280,35 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
         },
       );
 
-      f.post<{
-        Params: { tenantSlug: string };
-        Body: { type?: string; payload?: Record<string, unknown>; token?: string };
-      }>("/public/tenants/:tenantSlug/analytics/events", async (req, reply) => {
+      f.post<{ Params: { tenantSlug: string }; Body: unknown }>(
+        "/public/tenants/:tenantSlug/analytics/events",
+        async (req, reply) => {
         const slug = req.params.tenantSlug.trim();
         const tenant = await resolveTenantOr404(slug);
         if (!tenant) {
           return reply.code(404).send({ error: "not_found" });
         }
-        const rawType = String(req.body?.type ?? "").trim();
+        const parsed = parseWithSchema(productAnalyticsSchema, req.body);
+        if (!parsed.ok) {
+          return reply.code(400).send({ error: parsed.error, message: parsed.message });
+        }
+        const rawType = parsed.data.type;
         if (!PRODUCT_ANALYTICS_TYPES.has(rawType)) {
           return reply.code(400).send({ error: "validation_error" });
         }
         const type = rawType as ProductAnalyticsEventType;
         let customerId: string | null = null;
-        const tok = String(req.body?.token ?? "").trim();
-        if (tok) {
-          const pl = verifyCustomerAccessToken(tok);
+        const tok = parsed.data.token?.trim() ?? "";
+        const cookieTok = String(req.cookies?.[CUSTOMER_SESSION_COOKIE_NAME] ?? "").trim();
+        const authTok = tok || cookieTok;
+        if (authTok) {
+          const pl = verifyCustomerAccessToken(authTok);
           if (pl && pl.tenantId === tenant.id) {
-            customerId = pl.customerId;
+            const revoked = pl.jti ? await getSecurityState().isCustomerJtiRevoked(pl.jti) : false;
+            if (!revoked) customerId = pl.customerId;
           }
         }
-        const payload = req.body?.payload;
+        const payload = parsed.data.payload;
         await recordProductAnalyticsEvent({
           tenantId: tenant.id,
           customerId,
@@ -286,7 +319,8 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
               : {},
         });
         return { ok: true };
-      });
+        },
+      );
     },
     { prefix: "" },
   );
@@ -298,11 +332,16 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
         timeWindow: "1 minute",
       });
 
-      f.post<{ Params: { tenantSlug: string }; Body: { phone?: string } }>(
+      f.post<{ Params: { tenantSlug: string }; Body: unknown }>(
         "/public/tenants/:tenantSlug/session",
         async (req, reply) => {
           const slug = req.params.tenantSlug.trim();
-          const phone = normalizeCustomerPhone(String(req.body?.phone ?? ""));
+          const parsed = parseWithSchema(customerSessionSchema, req.body);
+          if (!parsed.ok) {
+            req.log.warn({ route: "public.session", ip: req.ip }, "public_api_validation");
+            return reply.code(400).send({ error: parsed.error, message: parsed.message });
+          }
+          const phone = normalizeCustomerPhone(parsed.data.phone);
           if (!phone) {
             req.log.warn({ route: "public.session", ip: req.ip }, "public_api_validation");
             return reply.code(400).send({ error: "validation_error" });
@@ -336,16 +375,49 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
             }
           }
           const token = signCustomerAccessToken(customer.id, tenant.id);
+          reply.setCookie(
+            CUSTOMER_SESSION_COOKIE_NAME,
+            token,
+            customerSessionCookieOptions(tenant.slug),
+          );
           const dashboard = await getCustomerPortalData(tenant.id, customer.id);
           const meta = await loadTenantPublicMeta(tenant);
-          return {
-            token,
+          const baseResponse = {
             ...dashboard,
             rewards: dashboard.rewards.map(toPublicRewardDto),
             campaigns: dashboard.campaigns.map(toPublicCampaignDto),
             tenant: meta.tenant,
             storeSettings: meta.storeSettings,
           };
+          if (customerSessionCookieOnlyMode()) return baseResponse;
+          return { token, ...baseResponse };
+        },
+      );
+
+      f.post<{ Params: { tenantSlug: string } }>(
+        "/public/tenants/:tenantSlug/session/logout",
+        async (req, reply) => {
+          const slug = req.params.tenantSlug.trim();
+          const tenant = await resolveTenantOr404(slug);
+          if (!tenant) {
+            return reply.code(404).send({ error: "not_found" });
+          }
+          const raw = String(req.cookies?.[CUSTOMER_SESSION_COOKIE_NAME] ?? "").trim();
+          if (raw) {
+            const pl = verifyCustomerAccessToken(raw);
+            if (pl?.jti) {
+              await getSecurityState().markCustomerJtiRevoked(
+                pl.jti,
+                customerPortalTokenTtlSeconds(),
+              );
+            }
+          }
+          reply.setCookie(
+            CUSTOMER_SESSION_COOKIE_NAME,
+            "",
+            customerSessionCookieClearOptions(tenant.slug),
+          );
+          return { ok: true };
         },
       );
     },

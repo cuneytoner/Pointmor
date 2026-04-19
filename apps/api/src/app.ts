@@ -26,12 +26,11 @@ import { registerPublicVerifyRoutes } from "./routes/public-verify.js";
 import { registerTenantMessagingRoutes } from "./routes/tenant-messaging.js";
 import { registerComplianceExportRoutes } from "./routes/compliance-exports.js";
 import { registerTenantRetentionRoutes } from "./routes/retention.js";
-import { registerInternalRetentionJobRoutes } from "./routes/internal-retention-job.js";
+import { registerInternalScheduledJobRoutes } from "./routes/internal-scheduled-jobs.js";
 import { registerTenantBranchMetricsRoutes } from "./routes/tenant-branch-metrics.js";
 import { registerHqDashboardRoutes } from "./routes/hq-dashboard.js";
 import { registerHqInsightRoutes } from "./routes/hq-insights.js";
 import { registerTenantAutomationRoutes } from "./routes/tenant-automation.js";
-import { registerInternalHqInsightsJobRoutes } from "./routes/internal-hq-insights-job.js";
 import { registerSecurityHeaders } from "./lib/security-headers.js";
 
 export type BuildAppOptions = {
@@ -103,12 +102,11 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerTenantMessagingRoutes(app);
   await registerComplianceExportRoutes(app);
   await registerTenantRetentionRoutes(app);
-  await registerInternalRetentionJobRoutes(app);
+  await registerInternalScheduledJobRoutes(app);
   await registerTenantBranchMetricsRoutes(app);
   await registerHqDashboardRoutes(app);
   await registerHqInsightRoutes(app);
   await registerTenantAutomationRoutes(app);
-  await registerInternalHqInsightsJobRoutes(app);
 
   const isProd = process.env.NODE_ENV === "production";
   app.setErrorHandler((error: unknown, request, reply) => {

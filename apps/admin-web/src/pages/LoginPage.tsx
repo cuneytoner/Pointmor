@@ -38,15 +38,16 @@ export function LoginPage({ sessionInvalid }: LoginPageProps) {
         body: JSON.stringify({ email, password }),
       });
       const data = (await res.json()) as { token?: string; error?: string };
-      if (!res.ok || !data.token) {
+      const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
+      if (!res.ok || (!cookiesOnly && !data.token)) {
         setError(t("auth.login.error"));
         return;
       }
-      if (import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY === "true") {
+      if (cookiesOnly) {
         setToken(null);
         bumpRefresh();
       } else {
-        setToken(data.token);
+        setToken(data.token ?? null);
       }
       navigate("/", { replace: true });
     } catch {

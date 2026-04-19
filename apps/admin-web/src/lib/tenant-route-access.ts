@@ -1,5 +1,6 @@
 import type { AdminAuth } from "../hooks/useAdminData";
 import { resolveTenantAppRole, type TenantAppRole } from "./tenant-app-role";
+import { hasPermissionForRole, type TenantPermission } from "./tenant-permissions";
 
 export type WorkspaceAdminSection = "general" | "team" | "messaging" | "billing" | "locations";
 
@@ -33,17 +34,18 @@ export function canAccessWorkspaceAdminSection(
   auth: AdminAuth,
 ): boolean {
   const role = resolveTenantAppRole(auth);
+  const can = (permission: TenantPermission) => hasPermissionForRole(role, permission);
   switch (section) {
     case "billing":
-      return role === "owner";
+      return can("billing.manage");
     case "general":
-      return role === "owner" || role === "manager";
+      return can("settings.manage");
     case "team":
-      return role === "owner" || role === "manager";
+      return can("team.manage");
     case "messaging":
-      return role === "owner" || role === "manager" || role === "ops";
+      return can("messaging.manage");
     case "locations":
-      return role === "owner" || role === "manager";
+      return can("settings.manage");
     default:
       return false;
   }
@@ -52,6 +54,7 @@ export function canAccessWorkspaceAdminSection(
 /** Ana sidebar `to` hedefi bu role görünür mü? (`/app/admin/general` vb.) */
 export function canAccessTenantNavTarget(to: string, auth: AdminAuth): boolean {
   const role = resolveTenantAppRole(auth);
+  const can = (permission: TenantPermission) => hasPermissionForRole(role, permission);
   const t = normPath(to);
 
   if (t === "/app/admin" || t === "/app/admin/") {
@@ -69,36 +72,35 @@ export function canAccessTenantNavTarget(to: string, auth: AdminAuth): boolean {
     return role === "owner" || role === "manager" || role === "ops";
   }
   if (t.startsWith("/app/hq")) {
-    if (role === "staff" || role === "viewer") return false;
-    return role === "owner" || role === "manager" || role === "ops";
+    return can("analytics.view") && role !== "staff";
   }
 
   if (t === "/app/dashboard" || t.startsWith("/app/dashboard")) {
-    return role !== "staff";
+    return can("analytics.view");
   }
   if (t.startsWith("/app/audit")) {
-    return role === "owner" || role === "manager" || role === "ops";
+    return can("summary.export") || can("audit.export");
   }
   if (t.startsWith("/app/growth")) {
-    return role === "owner" || role === "manager" || role === "ops";
+    return can("analytics.view") && role !== "staff";
   }
   if (t.startsWith("/app/customers")) {
-    return role !== "viewer";
+    return can("customers.create");
   }
   if (t.startsWith("/app/visits")) {
-    return role === "owner" || role === "manager" || role === "staff";
+    return can("visits.create");
   }
   if (t.startsWith("/app/rewards")) {
-    return role === "owner" || role === "manager";
+    return can("rewards.manage");
   }
   if (t.startsWith("/app/campaigns")) {
-    return role === "owner" || role === "manager" || role === "ops";
+    return can("campaigns.manage");
   }
   if (t.startsWith("/app/menu")) {
-    return role === "owner" || role === "manager";
+    return can("menu.manage");
   }
   if (t.startsWith("/app/redemptions")) {
-    return role === "owner" || role === "manager" || role === "staff" || role === "ops";
+    return can("redemptions.view");
   }
 
   return true;
@@ -110,6 +112,7 @@ export function canAccessTenantNavTarget(to: string, auth: AdminAuth): boolean {
 export function canAccessTenantPath(pathname: string, auth: AdminAuth): boolean {
   if (!auth.tenant || auth.user.platformAdmin) return true;
   const role = resolveTenantAppRole(auth);
+  const can = (permission: TenantPermission) => hasPermissionForRole(role, permission);
   const p = normPath(pathname);
 
   if (!p.startsWith("/app")) return true;
@@ -140,22 +143,18 @@ export function canAccessTenantPath(pathname: string, auth: AdminAuth): boolean 
   }
 
   if (p.startsWith("/app/hq")) {
-    if (role === "staff" || role === "viewer") return false;
-    return role === "owner" || role === "manager" || role === "ops";
+    return can("analytics.view") && role !== "staff";
   }
 
-  if (p.startsWith("/app/customers")) return role !== "viewer";
-  if (p.startsWith("/app/visits"))
-    return role === "owner" || role === "manager" || role === "staff";
-  if (p.startsWith("/app/redemptions"))
-    return role === "owner" || role === "manager" || role === "staff" || role === "ops";
-  if (p.startsWith("/app/rewards")) return role === "owner" || role === "manager";
-  if (p.startsWith("/app/campaigns"))
-    return role === "owner" || role === "manager" || role === "ops";
-  if (p.startsWith("/app/menu")) return role === "owner" || role === "manager";
-  if (p.startsWith("/app/growth")) return role === "owner" || role === "manager" || role === "ops";
-  if (p.startsWith("/app/audit")) return role === "owner" || role === "manager" || role === "ops";
-  if (p === "/app/dashboard" || p.startsWith("/app/dashboard")) return role !== "staff";
+  if (p.startsWith("/app/customers")) return can("customers.create");
+  if (p.startsWith("/app/visits")) return can("visits.create");
+  if (p.startsWith("/app/redemptions")) return can("redemptions.view");
+  if (p.startsWith("/app/rewards")) return can("rewards.manage");
+  if (p.startsWith("/app/campaigns")) return can("campaigns.manage");
+  if (p.startsWith("/app/menu")) return can("menu.manage");
+  if (p.startsWith("/app/growth")) return can("analytics.view") && role !== "staff";
+  if (p.startsWith("/app/audit")) return can("summary.export") || can("audit.export");
+  if (p === "/app/dashboard" || p.startsWith("/app/dashboard")) return can("analytics.view");
 
   return true;
 }

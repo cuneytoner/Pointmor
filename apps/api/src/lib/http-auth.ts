@@ -27,7 +27,7 @@ export async function authPreHandler(
   reply: FastifyReply,
 ): Promise<void> {
   const token = parseSessionToken(req);
-  const session = getSession(token);
+  const session = await getSession(token);
   if (!session) {
     await reply.code(401).send({ error: "unauthorized" });
     return;

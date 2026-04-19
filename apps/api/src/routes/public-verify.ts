@@ -19,6 +19,25 @@ import {
 import { loadTenantPublicMeta } from "../lib/store-settings-service.js";
 import { sendVerificationSms, checkVerificationCode } from "../lib/twilio/verify-service.js";
 import { getOrCreateStoreMessagingSettings } from "../lib/messaging/store-messaging-settings.js";
+import {
+  CUSTOMER_SESSION_COOKIE_NAME,
+  customerSessionCookieOnlyMode,
+  customerSessionCookieOptions,
+} from "../lib/customer-session-cookie.js";
+import { parseWithSchema, z } from "../lib/validation.js";
+
+const verifyTenantSlugParamsSchema = z.object({
+  tenantSlug: z.string().trim().min(1, "İşletme gerekli."),
+});
+
+const verifyStartBodySchema = z.object({
+  phone: z.string().trim().min(1, "Telefon gerekli."),
+});
+
+const verifyCheckBodySchema = z.object({
+  phone: z.string().trim().min(1, "Telefon gerekli."),
+  code: z.string().trim().min(1, "Kod gerekli."),
+});
 
 async function ensureCustomerPwaEnabled(
   tenantId: string,
@@ -46,11 +65,19 @@ export async function registerPublicVerifyRoutes(app: FastifyInstance): Promise<
         }),
       });
 
-      f.post<{ Params: { tenantSlug: string }; Body: { phone?: string } }>(
+      f.post<{ Params: { tenantSlug: string }; Body: unknown }>(
         "/public/tenants/:tenantSlug/verify/start",
         async (req, reply) => {
-          const slug = req.params.tenantSlug.trim();
-          const raw = String(req.body?.phone ?? "");
+          const paramsParsed = parseWithSchema(verifyTenantSlugParamsSchema, req.params);
+          if (!paramsParsed.ok) {
+            return reply.code(400).send({ error: paramsParsed.error, message: paramsParsed.message });
+          }
+          const bodyParsed = parseWithSchema(verifyStartBodySchema, req.body);
+          if (!bodyParsed.ok) {
+            return reply.code(400).send({ error: bodyParsed.error, message: bodyParsed.message });
+          }
+          const slug = paramsParsed.data.tenantSlug.trim();
+          const raw = bodyParsed.data.phone;
           const e164 = normalizeToE164(raw);
           if (!e164.ok) {
             return reply.code(400).send({
@@ -98,16 +125,24 @@ export async function registerPublicVerifyRoutes(app: FastifyInstance): Promise<
 
       f.post<{
         Params: { tenantSlug: string };
-        Body: { phone?: string; code?: string };
+        Body: unknown;
       }>("/public/tenants/:tenantSlug/verify/check", async (req, reply) => {
-        const slug = req.params.tenantSlug.trim();
-        const raw = String(req.body?.phone ?? "");
-        const code = String(req.body?.code ?? "").trim();
+        const paramsParsed = parseWithSchema(verifyTenantSlugParamsSchema, req.params);
+        if (!paramsParsed.ok) {
+          return reply.code(400).send({ error: paramsParsed.error, message: paramsParsed.message });
+        }
+        const bodyParsed = parseWithSchema(verifyCheckBodySchema, req.body);
+        if (!bodyParsed.ok) {
+          return reply.code(400).send({ error: bodyParsed.error, message: bodyParsed.message });
+        }
+        const slug = paramsParsed.data.tenantSlug.trim();
+        const raw = bodyParsed.data.phone;
+        const code = bodyParsed.data.code.trim();
         const e164 = normalizeToE164(raw);
-        if (!e164.ok || !code) {
+        if (!e164.ok) {
           return reply.code(400).send({
-            error: "validation_error",
-            message: "Telefon ve kod gerekli.",
+            error: "invalid_phone",
+            message: "Telefon E.164 formatında olmalı (ör. +905551234567).",
           });
         }
         const tenant = await prisma.tenant.findUnique({ where: { slug } });
@@ -171,17 +206,23 @@ export async function registerPublicVerifyRoutes(app: FastifyInstance): Promise<
         });
 
         const token = signCustomerAccessToken(customer.id, tenant.id);
+        reply.setCookie(
+          CUSTOMER_SESSION_COOKIE_NAME,
+          token,
+          customerSessionCookieOptions(tenant.slug),
+        );
         const dashboard = await getCustomerPortalData(tenant.id, customer.id);
         const meta = await loadTenantPublicMeta(tenant);
         const campaigns = await getPublicCampaignsCatalog(tenant.id);
-        return {
-          token,
+        const baseResponse = {
           ...dashboard,
           rewards: dashboard.rewards.map(toPublicRewardDto),
           campaigns: campaigns.map(toPublicCampaignDto),
           tenant: meta.tenant,
           storeSettings: meta.storeSettings,
         };
+        if (customerSessionCookieOnlyMode()) return baseResponse;
+        return { token, ...baseResponse };
       });
     },
     { prefix: "" },

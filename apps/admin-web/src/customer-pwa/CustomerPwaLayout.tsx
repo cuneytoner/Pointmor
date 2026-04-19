@@ -9,6 +9,7 @@ import {
   getCustomerPortalBootstrap,
   getCustomerPortalMe,
   postCustomerClaim,
+  postCustomerPortalLogout,
   postCustomerPortalSession,
   type CustomerPortalBootstrap,
   type CustomerPortalDashboard,
@@ -24,6 +25,9 @@ import {
   tenantLanguageStorageKey,
 } from "../lib/resolveLanguage";
 import "./customer-pwa.css";
+
+const customerCookiesOnlySession =
+  import.meta.env.VITE_CUSTOMER_SESSION_COOKIES_ONLY !== "false";
 
 function persistSnapshot(tenantSlug: string, data: CustomerPortalDashboard) {
   try {
@@ -53,6 +57,10 @@ export function CustomerPwaLayout() {
   const [gateError, setGateError] = useState<string | null>(null);
 
   const storageKey = customerTokenStorageKey(tenantSlug);
+  const readLegacyToken = useCallback((): string | null => {
+    if (customerCookiesOnlySession) return null;
+    return localStorage.getItem(storageKey)?.trim() || null;
+  }, [storageKey]);
 
   const clearCelebration = useCallback(() => setCelebrationGain(null), []);
 
@@ -72,7 +80,7 @@ export function CustomerPwaLayout() {
         setCelebrationGain(null);
       }
       setData(d);
-      setToken(tok);
+      setToken(tok || null);
       setPhase("ready");
       setOfflineStale(false);
       persistSnapshot(tenantSlug, d);
@@ -86,11 +94,11 @@ export function CustomerPwaLayout() {
   );
 
   const refresh = useCallback(async () => {
-    const tok = token ?? localStorage.getItem(storageKey)?.trim();
-    if (!tok) return;
+    const tok = token ?? readLegacyToken();
+    if (!tok && !customerCookiesOnlySession) return;
     try {
       const next = await getCustomerPortalMe(tenantSlug, tok);
-      applyReady(next, tok);
+      applyReady(next, tok ?? "");
     } catch {
       const raw = localStorage.getItem(customerPwaSnapshotKey(tenantSlug));
       if (raw) {
@@ -98,7 +106,7 @@ export function CustomerPwaLayout() {
           const snap = JSON.parse(raw) as { data?: CustomerPortalDashboard };
           if (snap.data) {
             setData(snap.data);
-            setToken(tok);
+            setToken(tok ?? null);
             setPhase("ready");
             setOfflineStale(true);
             return;
@@ -110,7 +118,7 @@ export function CustomerPwaLayout() {
       setPhase("error");
       setErrorMessage(t("customerPortal.loadError"));
     }
-  }, [tenantSlug, token, storageKey, applyReady, t]);
+  }, [tenantSlug, token, readLegacyToken, applyReady, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -121,7 +129,7 @@ export function CustomerPwaLayout() {
         const boot = await getCustomerPortalBootstrap(tenantSlug);
         if (cancelled) return;
         setBootstrap(boot);
-        const saved = localStorage.getItem(storageKey)?.trim();
+        const saved = readLegacyToken();
         if (saved) {
           try {
             const me = await getCustomerPortalMe(tenantSlug, saved);
@@ -147,6 +155,16 @@ export function CustomerPwaLayout() {
             }
           }
         }
+        if (customerCookiesOnlySession) {
+          try {
+            const me = await getCustomerPortalMe(tenantSlug);
+            if (cancelled) return;
+            applyReady(me, "");
+            return;
+          } catch {
+            // no active cookie session; continue to gate
+          }
+        }
         setPhase("gate");
       } catch {
         if (!cancelled) {
@@ -158,19 +176,19 @@ export function CustomerPwaLayout() {
     return () => {
       cancelled = true;
     };
-  }, [tenantSlug, storageKey, applyReady, t]);
+  }, [tenantSlug, storageKey, applyReady, readLegacyToken, t]);
 
   /** Kasiyer ziyareti sonrası bakiye — arka planda hafif yenileme + sekme görünür olunca sync. */
   useEffect(() => {
     if (phase !== "ready") return;
-    const tok = token ?? localStorage.getItem(storageKey)?.trim();
-    if (!tok) return;
+    const tok = token ?? readLegacyToken();
+    if (!tok && !customerCookiesOnlySession) return;
     const poll = window.setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void refresh();
     }, 7000);
     return () => clearInterval(poll);
-  }, [phase, token, storageKey, refresh]);
+  }, [phase, token, readLegacyToken, refresh]);
 
   useEffect(() => {
     if (phase !== "ready") return;
@@ -184,14 +202,20 @@ export function CustomerPwaLayout() {
   const submitPhone = useCallback(
     async (phone: string) => {
       const res = await postCustomerPortalSession(tenantSlug, phone);
-      localStorage.setItem(storageKey, res.token);
-      applyReady(res, res.token);
+      const nextToken = res.token?.trim() || "";
+      if (!customerCookiesOnlySession && nextToken) {
+        localStorage.setItem(storageKey, nextToken);
+      }
+      applyReady(res, nextToken);
     },
     [tenantSlug, storageKey, applyReady],
   );
 
   const setGate = useCallback(() => {
-    localStorage.removeItem(storageKey);
+    if (!customerCookiesOnlySession) localStorage.removeItem(storageKey);
+    void postCustomerPortalLogout(tenantSlug).catch(() => {
+      /* ignore logout failure */
+    });
     try {
       sessionStorage.removeItem(customerLastSeenBalanceKey(tenantSlug));
     } catch {
@@ -205,14 +229,14 @@ export function CustomerPwaLayout() {
 
   const claimReward = useCallback(
     async (rewardId: string) => {
-      const tok = token ?? localStorage.getItem(storageKey)?.trim();
-      if (!tok) return;
+      const tok = token ?? readLegacyToken();
+      if (!tok && !customerCookiesOnlySession) return;
       setClaimingId(rewardId);
       setClaimToast(null);
       try {
         await postCustomerClaim(tenantSlug, tok, rewardId);
         const next = await getCustomerPortalMe(tenantSlug, tok);
-        applyReady(next, tok);
+        applyReady(next, tok ?? "");
       } catch (err) {
         const e = err as { status?: number; body?: unknown };
         let errCode: string | undefined;
@@ -232,7 +256,7 @@ export function CustomerPwaLayout() {
         setClaimingId(null);
       }
     },
-    [tenantSlug, storageKey, token, applyReady, t],
+    [tenantSlug, token, readLegacyToken, applyReady, t],
   );
 
   useEffect(() => {

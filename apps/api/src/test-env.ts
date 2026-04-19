@@ -6,3 +6,6 @@ if (!process.env.DATABASE_URL?.trim()) {
 
 /** Testlerde imzalı oturum yerine bellek içi store (deterministik, ek sırra gerek yok). */
 process.env.SESSION_BACKEND = process.env.SESSION_BACKEND ?? "memory";
+
+/** Replay / revoke için Redis’e bağlanmadan deterministik bellek store. */
+process.env.SECURITY_STATE_BACKEND = process.env.SECURITY_STATE_BACKEND ?? "memory";

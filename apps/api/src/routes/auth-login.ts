@@ -6,12 +6,19 @@ import { issueSession } from "../lib/auth-memory.js";
 import { buildSessionMembership } from "../lib/session-branch-membership.js";
 import { prisma } from "../lib/prisma.js";
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from "../lib/session-cookie.js";
-import { requiredTrimmedString } from "../lib/validation.js";
+import { parseWithSchema, z } from "../lib/validation.js";
 
-type LoginBody = {
-  email?: string;
-  password?: string;
-};
+const loginBodySchema = z.object({
+  email: z.string().trim().email("Geçerli e-posta gerekli."),
+  password: z.string().trim().min(4, "Şifre en az 4 karakter."),
+});
+
+function includeTokenInLoginResponse(): boolean {
+  const raw = process.env.ADMIN_LOGIN_INCLUDE_TOKEN?.trim().toLowerCase();
+  if (raw === "true" || raw === "1") return true;
+  if (raw === "false" || raw === "0") return false;
+  return process.env.NODE_ENV !== "production" && process.env.APP_ENV !== "demo";
+}
 
 export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
   await app.register(
@@ -21,24 +28,17 @@ export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
         timeWindow: "1 minute",
       });
 
-      f.post<{ Body: LoginBody }>("/auth/login", async (req, reply) => {
-        const body = req.body ?? {};
-        const emailRaw = requiredTrimmedString(body, "email");
-        if (!emailRaw) {
+      f.post("/auth/login", async (req, reply) => {
+        const exposeToken = includeTokenInLoginResponse();
+        const parsed = parseWithSchema(loginBodySchema, req.body);
+        if (!parsed.ok) {
           return reply.code(400).send({
-            error: "validation_error",
-            message: "E-posta gerekli.",
+            error: parsed.error,
+            message: parsed.message,
           });
         }
-        const email = emailRaw.toLowerCase();
-        const password = requiredTrimmedString(body, "password") ?? "";
-
-        if (password.length < 4) {
-          return reply.code(401).send({
-            error: "invalid_credentials",
-            message: "Şifre en az 4 karakter.",
-          });
-        }
+        const email = parsed.data.email.toLowerCase();
+        const password = parsed.data.password;
 
         const user = await prisma.user.findUnique({
           where: { email },
@@ -65,10 +65,9 @@ export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
           };
           const token = issueSession(payload);
           reply.setCookie(SESSION_COOKIE_NAME, token, sessionCookieOptions());
-          return {
-            token,
-            membership: payload.membership,
-          };
+          return exposeToken
+            ? { token, membership: payload.membership }
+            : { membership: payload.membership };
         }
 
         if (!user.tenantId || !user.tenant) {
@@ -100,11 +99,9 @@ export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
         const token = issueSession(payload);
         reply.setCookie(SESSION_COOKIE_NAME, token, sessionCookieOptions());
 
-        return {
-          token,
-          tenant: payload.tenant,
-          membership: payload.membership,
-        };
+        return exposeToken
+          ? { token, tenant: payload.tenant, membership: payload.membership }
+          : { tenant: payload.tenant, membership: payload.membership };
       });
     },
   );
