@@ -32,6 +32,7 @@ describe("validateStartupSecurityConfig", () => {
     vi.stubEnv("SECURITY_STATE_ALLOW_MEMORY_FALLBACK", "true");
     vi.stubEnv("SECURITY_STATE_ACK_IN_PROCESS_MEMORY", "true");
     vi.stubEnv("SECURITY_STATE_MEMORY_FALLBACK_JUSTIFICATION", "vitest-single-node");
+    vi.stubEnv("SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT", "2099-01-01T00:00:00.000Z");
     expect(() => validateStartupSecurityConfig()).not.toThrow();
   });
 
@@ -44,12 +45,23 @@ describe("validateStartupSecurityConfig", () => {
     expect(() => validateStartupSecurityConfig()).toThrow(/SECURITY_STATE_ACK_IN_PROCESS_MEMORY/);
   });
 
+  it("rejects strict profile memory fallback without emergency expiry date", () => {
+    vi.stubEnv("APP_ENV", "demo");
+    vi.stubEnv("SECURITY_STATE_BACKEND", "memory");
+    vi.stubEnv("SECURITY_STATE_ALLOW_MEMORY_FALLBACK", "true");
+    vi.stubEnv("SECURITY_STATE_ACK_IN_PROCESS_MEMORY", "true");
+    vi.stubEnv("SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT", "");
+    vi.stubEnv("REDIS_URL", "");
+    expect(() => validateStartupSecurityConfig()).toThrow(/SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT/);
+  });
+
   it("rejects strict profile when internal job legacy window expired", () => {
     vi.stubEnv("APP_ENV", "demo");
     vi.stubEnv("SECURITY_STATE_BACKEND", "memory");
     vi.stubEnv("SECURITY_STATE_ALLOW_MEMORY_FALLBACK", "true");
     vi.stubEnv("SECURITY_STATE_ACK_IN_PROCESS_MEMORY", "true");
     vi.stubEnv("SECURITY_STATE_MEMORY_FALLBACK_JUSTIFICATION", "vitest-single-node");
+    vi.stubEnv("SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT", "2099-01-01T00:00:00.000Z");
     vi.stubEnv("RETENTION_JOB_SECRET", "s");
     vi.stubEnv("INTERNAL_JOB_REQUIRE_HMAC", "false");
     vi.stubEnv("INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT", "2000-01-01T00:00:00.000Z");

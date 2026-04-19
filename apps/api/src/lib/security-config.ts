@@ -46,9 +46,34 @@ function parseIsoDateMs(raw: string | undefined): number | null {
   return Number.isFinite(ms) ? ms : null;
 }
 
+function daysUntil(ms: number): number {
+  return (ms - Date.now()) / 86_400_000;
+}
+
 /** Sıkı profilde legacy internal job (secret + HMAC kapalı) bu tarihten sonra başlamaz. */
 export function internalJobLegacyAuthExpiresAtMs(): number | null {
   return parseIsoDateMs(process.env.INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT);
+}
+
+/** Sıkı profilde bellek fallback acil durum penceresi (opsyonel ama strongly recommended). */
+export function securityStateMemoryFallbackExpiresAtMs(): number | null {
+  return parseIsoDateMs(process.env.SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT);
+}
+
+export function customerJtiCutoffAtMs(): number | null {
+  return parseIsoDateMs(process.env.CUSTOMER_PORTAL_JTI_REQUIRED_AFTER);
+}
+
+export function customerBearerSunsetAtMs(): number | null {
+  return parseIsoDateMs(process.env.CUSTOMER_BEARER_LEGACY_SUNSET_AFTER);
+}
+
+/** Preflight secret taşıma yöntemi: strict profilde varsayılan header-only. */
+export function preflightAllowQuerySecret(): boolean {
+  const raw = process.env.POINTMOR_PREFLIGHT_ALLOW_QUERY?.trim().toLowerCase();
+  if (raw === "true" || raw === "1") return true;
+  if (raw === "false" || raw === "0") return false;
+  return !isStrictSecurityProfile();
 }
 
 /** Replay: Redis kullanılıyorken hata durumunda bellek fallback (varsayılan kapalı). */
@@ -116,6 +141,27 @@ export function validateStartupSecurityConfig(): void {
     );
   }
 
+  const memFallbackExpiry = securityStateMemoryFallbackExpiresAtMs();
+  if (strict && resolved === "memory" && allowMemory) {
+    if (memFallbackExpiry === null) {
+      throw new Error(
+        "Strict profile memory fallback requires SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT (ISO UTC) to define a temporary emergency window.",
+      );
+    } else {
+      const days = daysUntil(memFallbackExpiry);
+      if (days <= 0) {
+        throw new Error(
+          "SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT is in the past for strict profile memory mode. Disable memory fallback or extend this temporary emergency window explicitly.",
+        );
+      }
+      if (days <= 14) {
+        console.warn(
+          `[pointmor] In-process security state fallback expires in ~${Math.ceil(days)} days (${process.env.SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT}); move to REDIS_URL-backed shared state.`,
+        );
+      }
+    }
+  }
+
   const legacyJobExpiry = internalJobLegacyAuthExpiresAtMs();
   if (strict && internalJobSecretsConfigured() && !internalJobRequireHmacEnv()) {
     if (legacyJobExpiry !== null && Date.now() > legacyJobExpiry) {
@@ -124,10 +170,42 @@ export function validateStartupSecurityConfig(): void {
       );
     }
     if (legacyJobExpiry !== null) {
-      const days = (legacyJobExpiry - Date.now()) / (86_400_000);
+      const days = daysUntil(legacyJobExpiry);
       if (days > 0 && days <= 14) {
         console.warn(
           `[pointmor] Internal job legacy auth expires in ~${Math.ceil(days)} days (${process.env.INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT}); plan INTERNAL_JOB_REQUIRE_HMAC migration.`,
+        );
+      }
+    }
+  }
+
+  const jtiCutoff = customerJtiCutoffAtMs();
+  if (strict) {
+    if (jtiCutoff === null) {
+      console.warn(
+        "[pointmor] CUSTOMER_PORTAL_JTI_REQUIRED_AFTER is unset; jti-less customer tokens remain transition-compatible. Set a rollout cutoff date.",
+      );
+    } else {
+      const days = daysUntil(jtiCutoff);
+      if (days > 0 && days <= 21) {
+        console.warn(
+          `[pointmor] Customer JTI cutoff is in ~${Math.ceil(days)} days (${process.env.CUSTOMER_PORTAL_JTI_REQUIRED_AFTER}); expect forced customer re-login for legacy sessions.`,
+        );
+      }
+    }
+  }
+
+  const bearerCutoff = customerBearerSunsetAtMs();
+  if (strict) {
+    if (bearerCutoff === null) {
+      console.warn(
+        "[pointmor] CUSTOMER_BEARER_LEGACY_SUNSET_AFTER is unset; bearer fallback can remain open in transition mode.",
+      );
+    } else {
+      const days = daysUntil(bearerCutoff);
+      if (days > 0 && days <= 21) {
+        console.warn(
+          `[pointmor] Customer bearer legacy sunset is in ~${Math.ceil(days)} days (${process.env.CUSTOMER_BEARER_LEGACY_SUNSET_AFTER}); monitor legacy bearer metrics before cutoff.`,
         );
       }
     }
@@ -153,6 +231,12 @@ export function validateStartupSecurityConfig(): void {
       );
     }
   }
+
+  if (strict && process.env.POINTMOR_PREFLIGHT_SECRET?.trim() && preflightAllowQuerySecret()) {
+    console.warn(
+      "[pointmor] POINTMOR_PREFLIGHT_ALLOW_QUERY=true in strict profile; prefer header-only (X-Pointmor-Preflight-Secret).",
+    );
+  }
 }
 
 export type SecurityPreflightSnapshot = {
@@ -162,6 +246,8 @@ export type SecurityPreflightSnapshot = {
   memoryFallbackExplicitlyAllowed: boolean;
   memoryFallbackAcknowledged: boolean;
   memoryFallbackJustification: string | null;
+  memoryFallbackExpiresAt: string | null;
+  memoryFallbackEmergencyMode: boolean;
   replayRedisFailOpen: boolean;
   revokeReadRedisFailOpen: boolean;
   customerBearerFallbackAllowed: boolean;
@@ -171,6 +257,7 @@ export type SecurityPreflightSnapshot = {
   internalJobSecretsConfigured: boolean;
   internalJobLegacyAuthExpiresAt: string | null;
   preflightSecretConfigured: boolean;
+  preflightAllowQuerySecret: boolean;
 };
 
 export function getSecurityPreflightSnapshot(): SecurityPreflightSnapshot {
@@ -181,6 +268,9 @@ export function getSecurityPreflightSnapshot(): SecurityPreflightSnapshot {
     memoryFallbackExplicitlyAllowed: securityStateAllowMemoryFallback(),
     memoryFallbackAcknowledged: securityStateAckInProcessMemory(),
     memoryFallbackJustification: securityStateMemoryFallbackJustification(),
+    memoryFallbackExpiresAt:
+      process.env.SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT?.trim() || null,
+    memoryFallbackEmergencyMode: resolveSecurityStateBackend() === "memory",
     replayRedisFailOpen: replayRedisFailOpen(),
     revokeReadRedisFailOpen: revokeReadRedisFailOpen(),
     customerBearerFallbackAllowed: customerBearerFallbackAllowed(),
@@ -191,5 +281,6 @@ export function getSecurityPreflightSnapshot(): SecurityPreflightSnapshot {
     internalJobSecretsConfigured: internalJobSecretsConfigured(),
     internalJobLegacyAuthExpiresAt: process.env.INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT?.trim() || null,
     preflightSecretConfigured: Boolean(process.env.POINTMOR_PREFLIGHT_SECRET?.trim()),
+    preflightAllowQuerySecret: preflightAllowQuerySecret(),
   };
 }

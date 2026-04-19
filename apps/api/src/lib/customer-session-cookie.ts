@@ -21,6 +21,14 @@ export function customerBearerLegacySunsetPassed(): boolean {
   return Date.now() >= ms;
 }
 
+export function customerBearerLegacySunsetAfterIso(): string | null {
+  const raw = process.env.CUSTOMER_BEARER_LEGACY_SUNSET_AFTER?.trim();
+  if (!raw) return null;
+  const ms = Date.parse(raw);
+  if (!Number.isFinite(ms)) return null;
+  return new Date(ms).toISOString();
+}
+
 /**
  * Cookie-only modunda bile `Authorization: Bearer` ile geri uyumluluk (gözlem / geçiş).
  * Varsayılan: cookie-only modda kapalı; dual modda açık.

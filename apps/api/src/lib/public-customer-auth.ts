@@ -5,6 +5,7 @@ import { parseBearerToken } from "./http-auth.js";
 import {
   CUSTOMER_SESSION_COOKIE_NAME,
   customerBearerFallbackAllowed,
+  customerBearerLegacySunsetAfterIso,
   customerBearerLegacySunsetPassed,
   customerSessionCookieOnlyMode,
 } from "./customer-session-cookie.js";
@@ -66,13 +67,31 @@ export async function requireCustomerSession(
   const bearerOnly =
     !req.cookies?.[CUSTOMER_SESSION_COOKIE_NAME]?.trim() && Boolean(parseBearerToken(req));
   if (bearerOnly && !customerBearerFallbackAllowed()) {
-    await reply.code(401).send({ error: "customer_cookie_session_required" });
+    await reply.code(401).send({
+      error: customerBearerLegacySunsetPassed()
+        ? "customer_bearer_sunset_enforced"
+        : "customer_cookie_session_required",
+      message: customerBearerLegacySunsetPassed()
+        ? "Bearer legacy session is sunset. Re-login to obtain cookie-first session."
+        : "Cookie session is required for customer endpoints.",
+      policyAfter: customerBearerLegacySunsetAfterIso() ?? undefined,
+      reauthRecommended: true,
+    });
     return null;
   }
 
   const raw = resolveCustomerRawToken(req, tenantSlug);
   if (!raw) {
-    await reply.code(401).send({ error: "unauthorized" });
+    await reply.code(401).send({
+      error: customerBearerLegacySunsetPassed()
+        ? "customer_bearer_sunset_enforced"
+        : "unauthorized",
+      message: customerBearerLegacySunsetPassed()
+        ? "Bearer legacy session is sunset. Re-login to obtain cookie-first session."
+        : undefined,
+      policyAfter: customerBearerLegacySunsetAfterIso() ?? undefined,
+      reauthRecommended: customerBearerLegacySunsetPassed() ? true : undefined,
+    });
     return null;
   }
   const vr = verifyCustomerAccessTokenDetailed(raw);

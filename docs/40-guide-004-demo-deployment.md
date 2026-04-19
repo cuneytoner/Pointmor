@@ -24,6 +24,13 @@ Pre-alpha demo ortamı: Debian VM üzerinde Docker Compose, PostgreSQL ayrı vol
 ### Release manifest ve immutable artifact
 
 `./infra/scripts/deploy-demo.sh` çalışınca `infra/docker/.release-manifest.json` yazılır (`release_sha`, yerel `image_ids`, `artifact.next_step`). Bir sonraki adım: imajları registry’ye push edip `docker-compose` içinde `build:` yerine `image: …@sha256:<digest>` pinlemek; CI’da aynı digest’i artifact olarak saklamak. Güvenlik preflight ve politika özeti: `apps/api/.env.example` içindeki `ALLOW_HEALTH_SECURITY_SUMMARY` / `POINTMOR_PREFLIGHT_SECRET` notlarına bakın.
+
+### Sunset / cutoff rollout notu (ops)
+
+- `CUSTOMER_PORTAL_JTI_REQUIRED_AFTER`: bu tarihten sonra jti-siz müşteri tokenları `customer_jti_required` ile reddedilir; kullanıcıların verify/login ile yeniden oturum açması beklenir.
+- `CUSTOMER_BEARER_LEGACY_SUNSET_AFTER`: bu tarihten sonra bearer fallback kapatılır; cookie-first zorunlu olur.
+- `INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT`: bu tarih geçerse strict profilde API başlangıcı durur (HMAC zorunlu cutover).
+- Internal job HMAC başlık üretimi için: `infra/scripts/sign-internal-job-request.sh`.
 | `.github/workflows/deploy-demo.yml` | `main` push / `workflow_dispatch` → SSH ile `deploy-demo.sh` |
 | `apps/api/prisma/seed-demo.ts` | Demo kullanıcıları; şifreler yalnızca ortam değişkeni |
 

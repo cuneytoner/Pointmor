@@ -6,6 +6,7 @@ const counters = {
   customer_jti_required_reject: 0,
   customer_token_missing_jti: 0,
   internal_job_legacy_auth: 0,
+  preflight_query_secret_used: 0,
   replay_redis_memory_fallback: 0,
 } as const;
 

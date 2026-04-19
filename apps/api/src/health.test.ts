@@ -67,6 +67,30 @@ describe("GET /health", () => {
     expect(res.statusCode).toBe(403);
   });
 
+  it("requires header in strict mode when query fallback is disabled", async () => {
+    vi.stubEnv("ALLOW_HEALTH_SECURITY_SUMMARY", "true");
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("POINTMOR_PREFLIGHT_SECRET", "correct");
+    vi.stubEnv("POINTMOR_PREFLIGHT_ALLOW_QUERY", "false");
+    const res = await app.inject({
+      method: "GET",
+      url: "/health?securitySummary=1&preflightSecret=correct",
+    });
+    expect(res.statusCode).toBe(403);
+  });
+
+  it("allows query fallback in strict mode when explicitly enabled", async () => {
+    vi.stubEnv("ALLOW_HEALTH_SECURITY_SUMMARY", "true");
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("POINTMOR_PREFLIGHT_SECRET", "correct");
+    vi.stubEnv("POINTMOR_PREFLIGHT_ALLOW_QUERY", "true");
+    const res = await app.inject({
+      method: "GET",
+      url: "/health?securitySummary=1&preflightSecret=correct",
+    });
+    expect(res.statusCode).toBe(200);
+  });
+
   afterEach(() => {
     vi.unstubAllEnvs();
   });

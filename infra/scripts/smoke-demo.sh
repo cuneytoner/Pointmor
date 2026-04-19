@@ -61,11 +61,11 @@ echo "   OK"
 
 if [ "${ALLOW_HEALTH_SECURITY_SUMMARY:-}" = "true" ] || [ "${ALLOW_HEALTH_SECURITY_SUMMARY:-}" = "1" ]; then
   echo "6) GET /health?securitySummary=1 (preflight + metrics)"
-  PF_ARGS=()
   if [ -n "${POINTMOR_PREFLIGHT_SECRET:-}" ]; then
-    PF_ARGS=(-H "X-Pointmor-Preflight-Secret: $POINTMOR_PREFLIGHT_SECRET")
+    HSEC="$(curl -fsS -H "X-Pointmor-Preflight-Secret: $POINTMOR_PREFLIGHT_SECRET" "$API_BASE/health?securitySummary=1")"
+  else
+    HSEC="$(curl -fsS "$API_BASE/health?securitySummary=1")"
   fi
-  HSEC="$(curl -fsS "${PF_ARGS[@]}" "$API_BASE/health?securitySummary=1")"
   if ! printf "%s" "$HSEC" | grep -q '"metrics"'; then
     echo "   FAIL: health metrics eksik"
     exit 1

@@ -3,6 +3,7 @@ import { authPreHandler } from "../lib/http-auth.js";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { hasPermissionForSession } from "../lib/tenant-permissions.js";
 import { prisma } from "../lib/prisma.js";
+import { mergeTenantWhere } from "../lib/tenant-scope.js";
 
 export async function registerUserRoutes(app: FastifyInstance): Promise<void> {
   app.get(
@@ -30,7 +31,7 @@ export async function registerUserRoutes(app: FastifyInstance): Promise<void> {
         return reply.code(403).send({ error: "permission_denied" });
       }
       return prisma.user.findMany({
-        where: { tenantId: s.tenant.id },
+        where: mergeTenantWhere(s.tenant.id, {}),
         orderBy: { email: "asc" },
         select: {
           id: true,

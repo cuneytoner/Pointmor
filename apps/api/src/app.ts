@@ -35,10 +35,14 @@ import { registerSecurityHeaders } from "./lib/security-headers.js";
 import {
   getSecurityPreflightSnapshot,
   isStrictSecurityProfile,
+  preflightAllowQuerySecret,
   validateStartupSecurityConfig,
 } from "./lib/security-config.js";
 import { timingSafeEqualString } from "./lib/internal-job-auth.js";
-import { snapshotRuntimeSecurityMetrics } from "./lib/runtime-security-metrics.js";
+import {
+  bumpRuntimeSecurityMetric,
+  snapshotRuntimeSecurityMetrics,
+} from "./lib/runtime-security-metrics.js";
 
 export type BuildAppOptions = {
   /** Testlerde konsol gürültüsünü kapatmak için (`false`). */
@@ -107,13 +111,19 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     const querySecret = (q.preflightSecret ?? "").trim();
 
     if (secret) {
-      const provided = header || querySecret;
+      const provided = header || (preflightAllowQuerySecret() ? querySecret : "");
       if (!provided || !timingSafeEqualString(secret, provided)) {
         return reply.code(403).send({
           ok: false,
           error: "preflight_secret_required",
-          message: "X-Pointmor-Preflight-Secret header or preflightSecret query must match POINTMOR_PREFLIGHT_SECRET.",
+          message: preflightAllowQuerySecret()
+            ? "X-Pointmor-Preflight-Secret header (preferred) or preflightSecret query must match POINTMOR_PREFLIGHT_SECRET."
+            : "X-Pointmor-Preflight-Secret header must match POINTMOR_PREFLIGHT_SECRET.",
         });
+      }
+      if (!header && querySecret) {
+        bumpRuntimeSecurityMetric("preflight_query_secret_used");
+        app.log.warn("preflight_query_secret_used");
       }
       body.security = getSecurityPreflightSnapshot();
       return body;

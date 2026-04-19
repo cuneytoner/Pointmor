@@ -113,7 +113,10 @@ export async function registerInternalScheduledJobRoutes(app: FastifyInstance): 
 
           bumpRuntimeSecurityMetric("internal_job_legacy_auth");
           req.log.warn(
-            { route: "/internal/jobs/retention" },
+            {
+              route: "/internal/jobs/retention",
+              legacyAuthExpiresAt: process.env.INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT,
+            },
             "internal_job_legacy_auth",
           );
 
@@ -199,7 +202,10 @@ export async function registerInternalScheduledJobRoutes(app: FastifyInstance): 
 
           bumpRuntimeSecurityMetric("internal_job_legacy_auth");
           req.log.warn(
-            { route: "/internal/jobs/hq-insights" },
+            {
+              route: "/internal/jobs/hq-insights",
+              legacyAuthExpiresAt: process.env.INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT,
+            },
             "internal_job_legacy_auth",
           );
 

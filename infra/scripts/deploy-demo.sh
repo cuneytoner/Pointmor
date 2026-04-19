@@ -73,6 +73,11 @@ printf '%s\n' "{
   \"deployed_at\": \"${DEPLOYED_AT}\",
   \"compose_project\": \"pointmor-demo\",
   \"release_git_sha\": \"${POINTMOR_RELEASE_SHA:-}\",
+  \"policy_rollout\": {
+    \"customer_jti_required_after\": \"${CUSTOMER_PORTAL_JTI_REQUIRED_AFTER:-}\",
+    \"customer_bearer_sunset_after\": \"${CUSTOMER_BEARER_LEGACY_SUNSET_AFTER:-}\",
+    \"internal_job_legacy_auth_expires_at\": \"${INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT:-}\"
+  },
   \"image_ids\": {
     \"api_demo\": \"${API_REF:-}\",
     \"admin_web_demo\": \"${ADMIN_REF:-}\"

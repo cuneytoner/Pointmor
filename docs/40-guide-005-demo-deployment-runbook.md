@@ -22,6 +22,18 @@ Debian VM + Docker Compose + isteğe bağlı Cloudflare Tunnel. Ayrıntılı ba�
 | `DEMO_ADMIN_PASSWORD`, `DEMO_OPERATOR_PASSWORD` | Seed için; ≥12 karakter. `seed-demo.sh` konteyner içinde `DATABASE_URL_DEMO` kullanır. |
 | `DATABASE_URL_SEED` | (İsteğe bağlı, yerel CLI) Host’tan doğrudan `npm run db:seed:demo` için localhost URL; `seed-demo.sh` kullanıyorsanız gerekmez. |
 
+### 1.1 Security rollout policy (recommended demo defaults)
+
+- `CUSTOMER_PORTAL_JTI_REQUIRED_AFTER=2026-10-01T00:00:00.000Z`
+- `CUSTOMER_BEARER_LEGACY_SUNSET_AFTER=2026-10-15T00:00:00.000Z`
+- `INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT=2026-12-01T00:00:00.000Z`
+- `SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT=2026-11-15T00:00:00.000Z`
+
+Notes:
+- Dates are UTC ISO 8601 and should be adjusted per rollout calendar.
+- `INTERNAL_JOB_REQUIRE_HMAC=true` should be enabled before legacy expiry date.
+- In strict profile, memory fallback is treated as temporary emergency mode; keep justification and expiry explicit.
+
 Şablon:
 
 ```bash
@@ -139,6 +151,17 @@ Beklenen sonuç: smoke script `PASS` yazar ve platform konsolunda 4 işletme gö
 ```bash
 curl -sfS "http://127.0.0.1:${API_HOST_PORT:-3000}/health"
 ```
+
+Security preflight (ops use):
+
+```bash
+curl -sfS \
+  -H "X-Pointmor-Preflight-Secret: ${POINTMOR_PREFLIGHT_SECRET}" \
+  "http://127.0.0.1:${API_HOST_PORT:-3000}/health?securitySummary=1"
+```
+
+- Strict profile should use header-based secret.
+- Query param fallback (`preflightSecret=`) is legacy/temporary and disabled by default in strict mode.
 
 Script (aynı işlev: `healthcheck-demo.sh` → `health-check-demo.sh`):
 
