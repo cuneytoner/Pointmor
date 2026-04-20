@@ -7,6 +7,7 @@ import {
   verifyTimestampedHmacRequestAsync,
 } from "../lib/internal-job-auth.js";
 import { bumpRuntimeSecurityMetric } from "../lib/runtime-security-metrics.js";
+import { isStrictInternalJobLegacyAuthPastCutoff } from "../lib/security-config.js";
 
 const JOB_TS_SKEW_SEC = 300;
 const INTERNAL_JOB_TS_HEADER = "x-internal-job-timestamp";
@@ -100,6 +101,14 @@ export async function registerInternalScheduledJobRoutes(app: FastifyInstance): 
             }
           }
 
+          if (isStrictInternalJobLegacyAuthPastCutoff()) {
+            return reply.code(503).send({
+              error: "internal_job_legacy_auth_expired",
+              message:
+                "INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT is in the past. Enable INTERNAL_JOB_REQUIRE_HMAC=true for callers or restart after configuration change.",
+            });
+          }
+
           const auth = req.headers["x-retention-job-secret"] ?? req.headers["authorization"];
           const token =
             typeof auth === "string" && auth.startsWith("Bearer ")
@@ -187,6 +196,14 @@ export async function registerInternalScheduledJobRoutes(app: FastifyInstance): 
             if (!ok) {
               return reply.code(401).send({ error: "job_timestamp_invalid" });
             }
+          }
+
+          if (isStrictInternalJobLegacyAuthPastCutoff()) {
+            return reply.code(503).send({
+              error: "internal_job_legacy_auth_expired",
+              message:
+                "INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT is in the past. Enable INTERNAL_JOB_REQUIRE_HMAC=true for callers or restart after configuration change.",
+            });
           }
 
           const auth = req.headers["x-hq-insight-job-secret"] ?? req.headers["authorization"];

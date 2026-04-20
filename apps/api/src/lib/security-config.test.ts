@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  isStrictInternalJobLegacyAuthPastCutoff,
+  isStrictMemoryFallbackEmergencyWindowExpired,
   isStrictSecurityProfile,
   validateStartupSecurityConfig,
 } from "./security-config.js";
@@ -72,5 +74,39 @@ describe("validateStartupSecurityConfig", () => {
     vi.stubEnv("APP_ENV", "demo");
     vi.stubEnv("NODE_ENV", "development");
     expect(isStrictSecurityProfile()).toBe(true);
+  });
+});
+
+describe("runtime policy guards", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("isStrictInternalJobLegacyAuthPastCutoff true after legacy expiry", () => {
+    vi.stubEnv("APP_ENV", "demo");
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("RETENTION_JOB_SECRET", "secret");
+    vi.stubEnv("INTERNAL_JOB_REQUIRE_HMAC", "false");
+    vi.stubEnv("INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT", "2000-01-01T00:00:00.000Z");
+    expect(isStrictInternalJobLegacyAuthPastCutoff()).toBe(true);
+  });
+
+  it("isStrictInternalJobLegacyAuthPastCutoff false when HMAC required", () => {
+    vi.stubEnv("APP_ENV", "demo");
+    vi.stubEnv("RETENTION_JOB_SECRET", "secret");
+    vi.stubEnv("INTERNAL_JOB_REQUIRE_HMAC", "true");
+    vi.stubEnv("INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT", "2000-01-01T00:00:00.000Z");
+    expect(isStrictInternalJobLegacyAuthPastCutoff()).toBe(false);
+  });
+
+  it("isStrictMemoryFallbackEmergencyWindowExpired true after memory fallback window", () => {
+    vi.stubEnv("APP_ENV", "demo");
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("SECURITY_STATE_BACKEND", "memory");
+    vi.stubEnv("REDIS_URL", "");
+    vi.stubEnv("SECURITY_STATE_ALLOW_MEMORY_FALLBACK", "true");
+    vi.stubEnv("SECURITY_STATE_ACK_IN_PROCESS_MEMORY", "true");
+    vi.stubEnv("SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT", "2000-01-01T00:00:00.000Z");
+    expect(isStrictMemoryFallbackEmergencyWindowExpired()).toBe(true);
   });
 });

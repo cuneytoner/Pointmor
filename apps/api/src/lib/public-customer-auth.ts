@@ -1,10 +1,12 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "./prisma.js";
 import { verifyCustomerAccessTokenDetailed } from "./customer-portal-jwt.js";
+import { customerPortalJtiRequiredAfterMs } from "./customer-portal-jwt.js";
 import { parseBearerToken } from "./http-auth.js";
 import {
   CUSTOMER_SESSION_COOKIE_NAME,
   customerBearerFallbackAllowed,
+  customerBearerLegacySunsetAtMs,
   customerBearerLegacySunsetAfterIso,
   customerBearerLegacySunsetPassed,
   customerSessionCookieOnlyMode,
@@ -44,6 +46,21 @@ function resolveCustomerRawToken(req: FastifyRequest, tenantSlug: string): strin
   }
 
   if (bearerTok && allowBearer) {
+    const sunsetMs = customerBearerLegacySunsetAtMs();
+    if (sunsetMs !== null) {
+      const days = (sunsetMs - Date.now()) / 86_400_000;
+      if (days > 0 && days <= 14) {
+        req.log.warn(
+          {
+            tenantSlug: tenantSlug.trim(),
+            route: req.url,
+            bearerSunsetAfter: customerBearerLegacySunsetAfterIso(),
+            daysUntilSunset: Math.ceil(days),
+          },
+          "customer_auth_bearer_legacy_near_sunset",
+        );
+      }
+    }
     bumpRuntimeSecurityMetric("customer_auth_bearer_legacy");
     req.log.info(
       { tenantSlug: tenantSlug.trim(), route: req.url },
@@ -116,8 +133,16 @@ export async function requireCustomerSession(
   const pl = vr;
   if (!pl.jti) {
     bumpRuntimeSecurityMetric("customer_token_missing_jti");
+    const jtiCutoffMs = customerPortalJtiRequiredAfterMs();
+    const daysUntilCutoff =
+      jtiCutoffMs !== null ? Math.ceil((jtiCutoffMs - Date.now()) / 86_400_000) : undefined;
     req.log.warn(
-      { tenantSlug: tenantSlug.trim(), route: req.url },
+      {
+        tenantSlug: tenantSlug.trim(),
+        route: req.url,
+        jtiRequiredAfter: jtiCutoffMs !== null ? new Date(jtiCutoffMs).toISOString() : undefined,
+        daysUntilJtiCutoff: daysUntilCutoff,
+      },
       "customer_token_missing_jti",
     );
   }

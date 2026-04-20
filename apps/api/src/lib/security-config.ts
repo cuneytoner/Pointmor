@@ -40,10 +40,14 @@ export function securityStateMemoryFallbackJustification(): string | null {
   return j || null;
 }
 
-function parseIsoDateMs(raw: string | undefined): number | null {
-  if (!raw?.trim()) return null;
-  const ms = Date.parse(raw.trim());
-  return Number.isFinite(ms) ? ms : null;
+function parseIsoDateMsFromEnv(key: string): number | null {
+  const raw = process.env[key]?.trim();
+  if (!raw) return null;
+  const ms = Date.parse(raw);
+  if (!Number.isFinite(ms)) {
+    throw new Error(`${key} must be a valid ISO 8601 timestamp (UTC recommended). Got: ${raw}`);
+  }
+  return ms;
 }
 
 function daysUntil(ms: number): number {
@@ -52,20 +56,20 @@ function daysUntil(ms: number): number {
 
 /** Sıkı profilde legacy internal job (secret + HMAC kapalı) bu tarihten sonra başlamaz. */
 export function internalJobLegacyAuthExpiresAtMs(): number | null {
-  return parseIsoDateMs(process.env.INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT);
+  return parseIsoDateMsFromEnv("INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT");
 }
 
 /** Sıkı profilde bellek fallback acil durum penceresi (opsyonel ama strongly recommended). */
 export function securityStateMemoryFallbackExpiresAtMs(): number | null {
-  return parseIsoDateMs(process.env.SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT);
+  return parseIsoDateMsFromEnv("SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT");
 }
 
 export function customerJtiCutoffAtMs(): number | null {
-  return parseIsoDateMs(process.env.CUSTOMER_PORTAL_JTI_REQUIRED_AFTER);
+  return parseIsoDateMsFromEnv("CUSTOMER_PORTAL_JTI_REQUIRED_AFTER");
 }
 
 export function customerBearerSunsetAtMs(): number | null {
-  return parseIsoDateMs(process.env.CUSTOMER_BEARER_LEGACY_SUNSET_AFTER);
+  return parseIsoDateMsFromEnv("CUSTOMER_BEARER_LEGACY_SUNSET_AFTER");
 }
 
 /** Preflight secret taşıma yöntemi: strict profilde varsayılan header-only. */
@@ -164,6 +168,11 @@ export function validateStartupSecurityConfig(): void {
 
   const legacyJobExpiry = internalJobLegacyAuthExpiresAtMs();
   if (strict && internalJobSecretsConfigured() && !internalJobRequireHmacEnv()) {
+    if (legacyJobExpiry === null) {
+      throw new Error(
+        "Strict profile with legacy internal-job auth requires INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT (ISO UTC). Set an explicit cutover date and migrate to INTERNAL_JOB_REQUIRE_HMAC=true.",
+      );
+    }
     if (legacyJobExpiry !== null && Date.now() > legacyJobExpiry) {
       throw new Error(
         "INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT is in the past: enable INTERNAL_JOB_REQUIRE_HMAC=true for cron callers or remove job secrets until HMAC is configured.",
@@ -209,6 +218,11 @@ export function validateStartupSecurityConfig(): void {
         );
       }
     }
+    if (customerBearerFallbackAllowed() && bearerCutoff === null) {
+      console.warn(
+        "[pointmor] CUSTOMER_ALLOW_BEARER_FALLBACK is active without CUSTOMER_BEARER_LEGACY_SUNSET_AFTER. Add a sunset date to avoid indefinite legacy mode.",
+      );
+    }
   }
 
   if (strict && replayRedisFailOpen()) {
@@ -237,6 +251,31 @@ export function validateStartupSecurityConfig(): void {
       "[pointmor] POINTMOR_PREFLIGHT_ALLOW_QUERY=true in strict profile; prefer header-only (X-Pointmor-Preflight-Secret).",
     );
   }
+}
+
+/**
+ * Strict + legacy secret internal-job modunda cutover tarihi geçtiyse true.
+ * Süreç cutover öncesi başlamış olsa bile runtime’da legacy path kapatılır (restart şartı kalkar).
+ */
+export function isStrictInternalJobLegacyAuthPastCutoff(): boolean {
+  if (!isStrictSecurityProfile()) return false;
+  if (internalJobRequireHmacEnv()) return false;
+  if (!internalJobSecretsConfigured()) return false;
+  const ms = internalJobLegacyAuthExpiresAtMs();
+  if (ms === null) return false;
+  return Date.now() > ms;
+}
+
+/**
+ * Strict profilde geçici bellek fallback penceresi bittiyse true (REDIS’e geçiş veya yeniden yapılandırma gerekir).
+ */
+export function isStrictMemoryFallbackEmergencyWindowExpired(): boolean {
+  if (!isStrictSecurityProfile()) return false;
+  if (resolveSecurityStateBackend() !== "memory") return false;
+  if (!securityStateAllowMemoryFallback() || !securityStateAckInProcessMemory()) return false;
+  const ms = securityStateMemoryFallbackExpiresAtMs();
+  if (ms === null) return false;
+  return Date.now() > ms;
 }
 
 export type SecurityPreflightSnapshot = {

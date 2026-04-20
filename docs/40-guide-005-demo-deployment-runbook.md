@@ -34,6 +34,19 @@ Notes:
 - `INTERNAL_JOB_REQUIRE_HMAC=true` should be enabled before legacy expiry date.
 - In strict profile, memory fallback is treated as temporary emergency mode; keep justification and expiry explicit.
 
+### 1.2 Suggested staged cutover sequence (staging → demo/prod)
+
+1. Observe phase (3-7 days):
+   - Keep cutoffs in future.
+   - Watch metrics: `customer_token_missing_jti`, `customer_auth_bearer_legacy`, `internal_job_legacy_auth`.
+2. Warn phase (2-3 days):
+   - Set JTI/Bearer/Internal legacy dates close enough to trigger startup/runtime warnings.
+   - Ensure support team is ready for customer re-login questions.
+3. Enforce phase:
+   - Enable `INTERNAL_JOB_REQUIRE_HMAC=true`.
+   - Keep `INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT` as hard stop (must stay in future until full cutover verified).
+   - After stable run, move legacy expiry to an earlier date or remove legacy secrets.
+
 Şablon:
 
 ```bash
@@ -142,11 +155,59 @@ chmod +x infra/scripts/*.sh
 ./infra/scripts/smoke-demo.sh
 ```
 
-Beklenen sonuç: smoke script `PASS` yazar ve platform konsolunda 4 işletme görünür (`demo-cafe`, `demo-small-cafe`, `demo-busy-cafe`, `demo-coffee-chain`).
+Beklenen sonuç: smoke script `PASS` yazar. Varsayılan `seed-demo` akışında `demo-cafe` görünür; `seed-full-demo` + `SMOKE_EXPECT_FULL_DEMO=1` akışında 4 işletme görünür (`demo-cafe`, `demo-small-cafe`, `demo-busy-cafe`, `demo-coffee-chain`).
 
 ---
 
-## 7. Health check
+## 7. Smoke Test Expectations (Demo Mode)
+
+Varsayılan demo akışı `seed-demo` ile çalışır.
+
+- Varsayılan seed çıktısı: tek tenant `demo-cafe`.
+- Varsayılan admin e-posta: `admin-demo@pointmor.demo` (veya `DEMO_ADMIN_EMAIL`).
+
+`smoke-demo.sh` kimlik bilgileri:
+
+- Script önce `infra/docker/.env.demo` dosyasını yükler.
+- E-posta fallback sırası: `SMOKE_ADMIN_EMAIL` → `DEMO_ADMIN_EMAIL` → `admin-demo@pointmor.demo`.
+- Şifre zorunludur: `SMOKE_ADMIN_PASSWORD` veya `DEMO_ADMIN_PASSWORD` yoksa script fail eder.
+
+Örnek (varsayılan `seed-demo`):
+
+```bash
+export DEMO_ADMIN_EMAIL=admin-demo@pointmor.demo
+export DEMO_ADMIN_PASSWORD='<strong-password>'
+./infra/scripts/smoke-demo.sh
+```
+
+Full demo (opsiyonel):
+
+- `seed-full-demo` kullanıldıysa çok tenant doğrulaması beklenir.
+- Bunun için `SMOKE_EXPECT_FULL_DEMO=1` set edilmelidir.
+
+Örnek (full demo doğrulama):
+
+```bash
+export DEMO_ADMIN_PASSWORD='<strong-password>'
+export SMOKE_EXPECT_FULL_DEMO=1
+./infra/scripts/smoke-demo.sh
+```
+
+Smoke test PASS kriteri:
+
+- login başarılı (`POST /auth/login`)
+- `/auth/me` başarılı
+- tenant erişimi çalışıyor (`/admin/bootstrap`, `/tenants`)
+- full demo modunda ek olarak çok tenant doğrulanır
+
+Önemli not:
+
+- `seed-demo` ve `seed-full-demo` beklentileri farklıdır.
+- Yanlış mod beklentisi smoke false-negative üretir.
+
+---
+
+## 8. Health check
 
 ```bash
 curl -sfS "http://127.0.0.1:${API_HOST_PORT:-3000}/health"
@@ -163,6 +224,19 @@ curl -sfS \
 - Strict profile should use header-based secret.
 - Query param fallback (`preflightSecret=`) is legacy/temporary and disabled by default in strict mode.
 
+Cutover day checklist (internal jobs):
+
+1. Generate signed headers:
+
+```bash
+BODY='{"dryRun":true}' SECRET="$RETENTION_JOB_SECRET" ./infra/scripts/sign-internal-job-request.sh
+```
+
+2. Call retention and HQ endpoints with generated HMAC headers.
+3. Verify no `internal_job_legacy_auth` logs after switching callers.
+4. Enable `INTERNAL_JOB_REQUIRE_HMAC=true`.
+5. Confirm startup still passes with current `INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT`.
+
 Script (aynı işlev: `healthcheck-demo.sh` → `health-check-demo.sh`):
 
 ```bash
@@ -172,7 +246,7 @@ Script (aynı işlev: `healthcheck-demo.sh` → `health-check-demo.sh`):
 
 ---
 
-## 8. Cloudflare Tunnel
+## 9. Cloudflare Tunnel
 
 `CLOUDFLARE_TUNNEL_TOKEN` `infra/docker/.env.demo` içinde tanımlı olmalı (repoda tutulmaz). Ingress hostname → origin eşlemesini Zero Trust panelinde yapın (`api-demo` / `admin-web-demo` servis portları).
 
@@ -233,7 +307,7 @@ docker compose -f infra/docker/docker-compose.demo.yml \
 
 ---
 
-## 9. LAN üzerinden SSH ve hızlı deploy (`pmdeploy` / `pmdeploycld`)
+## 10. LAN üzerinden SSH ve hızlı deploy (`pmdeploy` / `pmdeploycld`)
 
 Bazı kurulumlarda demo **PostgreSQL ile aynı host** üzerindedir; SSH açık, uygulama kodu sabit dizindedir.
 
@@ -315,7 +389,7 @@ Not: `git rev-parse HEAD~` **bir önceki** commit’i verir; aktif sürüm için
 
 ---
 
-## 10. Sık sorunlar
+## 11. Sık sorunlar
 
 | Belirti | Olası neden | Ne yapın |
 |---------|-------------|----------|
@@ -330,12 +404,12 @@ Not: `git rev-parse HEAD~` **bir önceki** commit’i verir; aktif sürüm için
 
 ---
 
-## 11. GitHub Actions deploy
+## 12. GitHub Actions deploy
 
 Secrets: `DEMO_HOST`, `DEMO_USER`, `DEMO_SSH_PRIVATE_KEY`, `DEMO_REPO_PATH`.
 
 - Tetikleme: **`main` üzerinde CI workflow’u başarıyla bittikten sonra** (`workflow_run`) veya **elle** `workflow_dispatch`.
 - `main`’e doğrudan push tek başına deploy **tetiklemez** (CI kapısı).
-- İsteğe bağlı: Environment variable `DEMO_POST_DEPLOY_SMOKE=1` → SSH sonunda `./infra/scripts/smoke-demo.sh` çalışır (demo DB’de full seed / admin kullanıcı beklenir).
+- İsteğe bağlı: Environment variable `DEMO_POST_DEPLOY_SMOKE=1` → SSH sonunda `./infra/scripts/smoke-demo.sh` çalışır (`DEMO_ADMIN_PASSWORD` veya `SMOKE_ADMIN_PASSWORD` gereklidir; full seed doğrulaması için `SMOKE_EXPECT_FULL_DEMO=1` ekleyin).
 
 Ayrıntı: [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md) (GitHub Actions bölümü).

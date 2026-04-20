@@ -14,19 +14,23 @@ export function customerSessionCookieOnlyMode(): boolean {
  * ISO 8601 (UTC önerilir). Bu andan sonra Bearer legacy kapatılır; cookie oturumu çalışmaya devam eder.
  */
 export function customerBearerLegacySunsetPassed(): boolean {
-  const raw = process.env.CUSTOMER_BEARER_LEGACY_SUNSET_AFTER?.trim();
-  if (!raw) return false;
-  const ms = Date.parse(raw);
-  if (!Number.isFinite(ms)) return false;
+  const ms = customerBearerLegacySunsetAtMs();
+  if (ms === null || !Number.isFinite(ms)) return false;
   return Date.now() >= ms;
 }
 
 export function customerBearerLegacySunsetAfterIso(): string | null {
+  const ms = customerBearerLegacySunsetAtMs();
+  if (ms === null || !Number.isFinite(ms)) return null;
+  return new Date(ms).toISOString();
+}
+
+export function customerBearerLegacySunsetAtMs(): number | null {
   const raw = process.env.CUSTOMER_BEARER_LEGACY_SUNSET_AFTER?.trim();
   if (!raw) return null;
   const ms = Date.parse(raw);
   if (!Number.isFinite(ms)) return null;
-  return new Date(ms).toISOString();
+  return ms;
 }
 
 /**

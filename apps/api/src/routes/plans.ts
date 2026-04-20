@@ -5,6 +5,32 @@ import type { SessionPayload } from "../lib/auth-memory.js";
 import { writeAudit } from "../lib/audit.js";
 import type { Prisma } from "../generated/prisma/client.js";
 import { prisma } from "../lib/prisma.js";
+import { parseWithSchema, z } from "../lib/validation.js";
+
+const planCreateBodySchema = z.object({
+  slug: z.string().trim().min(1, "Slug gerekli."),
+  name: z.string().trim().min(1, "Plan adı gerekli."),
+  description: z.string().optional(),
+  priceCents: z.number().optional(),
+  currency: z.string().optional(),
+  interval: z.string().optional(),
+  planType: z.enum(["free", "pro", "team"]).optional(),
+  featureTags: z.array(z.string()).optional(),
+  limits: z.record(z.string(), z.unknown()).optional(),
+});
+
+const planPatchParamsSchema = z.object({
+  planId: z.string().trim().min(1, "Plan gerekli."),
+});
+
+const planPatchBodySchema = z.object({
+  name: z.string().optional(),
+  description: z.union([z.string(), z.null()]).optional(),
+  priceCents: z.number().optional(),
+  planType: z.enum(["free", "pro", "team"]).optional(),
+  featureTags: z.array(z.string()).optional(),
+  limits: z.union([z.record(z.string(), z.unknown()), z.null()]).optional(),
+});
 
 export async function registerPlanRoutes(app: FastifyInstance): Promise<void> {
   app.get(
@@ -13,29 +39,18 @@ export async function registerPlanRoutes(app: FastifyInstance): Promise<void> {
     async () => prisma.plan.findMany({ orderBy: { name: "asc" } }),
   );
 
-  app.post<{
-    Body: {
-      slug?: string;
-      name?: string;
-      description?: string;
-      priceCents?: number;
-      currency?: string;
-      interval?: string;
-      planType?: "free" | "pro" | "team";
-      featureTags?: string[];
-      limits?: Record<string, unknown>;
-    };
-  }>(
+  app.post<{ Body: unknown }>(
     "/plans",
     { preHandler: [authPreHandler, requirePlatformAdmin] },
     async (req, reply) => {
       const s = req.authSession as SessionPayload;
-      const b = req.body ?? {};
-      const slug = (b.slug ?? "").trim().toLowerCase();
-      const name = (b.name ?? "").trim();
-      if (!slug || !name) {
-        return reply.code(400).send({ error: "validation_error" });
+      const parsed = parseWithSchema(planCreateBodySchema, req.body);
+      if (!parsed.ok) {
+        return reply.code(400).send({ error: parsed.error, message: parsed.message });
       }
+      const b = parsed.data;
+      const slug = b.slug.trim().toLowerCase();
+      const name = b.name.trim();
       try {
         const pt = b.planType;
         const planType =
@@ -67,21 +82,22 @@ export async function registerPlanRoutes(app: FastifyInstance): Promise<void> {
 
   app.patch<{
     Params: { planId: string };
-    Body: {
-      name?: string;
-      description?: string | null;
-      priceCents?: number;
-      planType?: "free" | "pro" | "team";
-      featureTags?: string[];
-      limits?: Record<string, unknown> | null;
-    };
+    Body: unknown;
   }>(
     "/plans/:planId",
     { preHandler: [authPreHandler, requirePlatformAdmin] },
     async (req, reply) => {
       const s = req.authSession as SessionPayload;
-      const { planId } = req.params;
-      const b = req.body ?? {};
+      const paramsParsed = parseWithSchema(planPatchParamsSchema, req.params);
+      if (!paramsParsed.ok) {
+        return reply.code(400).send({ error: paramsParsed.error, message: paramsParsed.message });
+      }
+      const bodyParsed = parseWithSchema(planPatchBodySchema, req.body);
+      if (!bodyParsed.ok) {
+        return reply.code(400).send({ error: bodyParsed.error, message: bodyParsed.message });
+      }
+      const planId = paramsParsed.data.planId.trim();
+      const b = bodyParsed.data;
       try {
         const limitsPatch: { limits?: Prisma.InputJsonValue } = {};
         if (b.limits !== undefined) {

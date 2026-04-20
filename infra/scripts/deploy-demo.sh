@@ -76,7 +76,9 @@ printf '%s\n' "{
   \"policy_rollout\": {
     \"customer_jti_required_after\": \"${CUSTOMER_PORTAL_JTI_REQUIRED_AFTER:-}\",
     \"customer_bearer_sunset_after\": \"${CUSTOMER_BEARER_LEGACY_SUNSET_AFTER:-}\",
-    \"internal_job_legacy_auth_expires_at\": \"${INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT:-}\"
+    \"internal_job_legacy_auth_expires_at\": \"${INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT:-}\",
+    \"internal_job_require_hmac\": \"${INTERNAL_JOB_REQUIRE_HMAC:-}\",
+    \"security_state_memory_fallback_expires_at\": \"${SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT:-}\"
   },
   \"image_ids\": {
     \"api_demo\": \"${API_REF:-}\",

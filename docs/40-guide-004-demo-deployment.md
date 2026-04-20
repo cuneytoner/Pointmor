@@ -31,6 +31,12 @@ Pre-alpha demo ortamı: Debian VM üzerinde Docker Compose, PostgreSQL ayrı vol
 - `CUSTOMER_BEARER_LEGACY_SUNSET_AFTER`: bu tarihten sonra bearer fallback kapatılır; cookie-first zorunlu olur.
 - `INTERNAL_JOB_LEGACY_AUTH_EXPIRES_AT`: bu tarih geçerse strict profilde API başlangıcı durur (HMAC zorunlu cutover).
 - Internal job HMAC başlık üretimi için: `infra/scripts/sign-internal-job-request.sh`.
+- `SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT`: strict profilde memory fallback yalnızca geçici acil durum istisnasıdır; bu tarih geçince API başlangıcı durur.
+
+Header-first preflight standard:
+
+- Tam policy özeti için `X-Pointmor-Preflight-Secret` header kullanın.
+- `preflightSecret` query param yalnızca geçici fallback içindir (`POINTMOR_PREFLIGHT_ALLOW_QUERY=true` gerekir).
 | `.github/workflows/deploy-demo.yml` | `main` push / `workflow_dispatch` → SSH ile `deploy-demo.sh` |
 | `apps/api/prisma/seed-demo.ts` | Demo kullanıcıları; şifreler yalnızca ortam değişkeni |
 

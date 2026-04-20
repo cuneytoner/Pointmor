@@ -34,6 +34,7 @@ import { registerTenantAutomationRoutes } from "./routes/tenant-automation.js";
 import { registerSecurityHeaders } from "./lib/security-headers.js";
 import {
   getSecurityPreflightSnapshot,
+  isStrictMemoryFallbackEmergencyWindowExpired,
   isStrictSecurityProfile,
   preflightAllowQuerySecret,
   validateStartupSecurityConfig,
@@ -63,6 +64,16 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 
   const app = Fastify({
     logger: options.logger ?? true,
+  });
+
+  app.addHook("onRequest", async (_req, reply) => {
+    if (!isStrictMemoryFallbackEmergencyWindowExpired()) return;
+    return reply.code(503).send({
+      ok: false,
+      error: "security_state_memory_fallback_expired",
+      message:
+        "Strict profile in-process security state emergency window ended (SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT). Set REDIS_URL / adjust SECURITY_STATE_* and restart.",
+    });
   });
 
   app.log.info(
