@@ -86,6 +86,8 @@ export function AppRoutes() {
   const locale = useLocale();
   const { t } = useTranslation();
   const adminData = useAdminData(token, refreshKey, locale);
+  const cookiesOnlyAdminSession =
+    import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
 
   const isCustomerPortalRoute = /^\/c\/[^/]+/.test(location.pathname);
   const isPublicMenuRoute = /^\/m\/[^/]+/.test(location.pathname);
@@ -96,11 +98,13 @@ export function AppRoutes() {
     return () => window.clearTimeout(id);
   }, [adminData.authInvalid, setToken]);
 
-  const sessionLoading = Boolean(token?.trim()) && adminData.loading;
-  const sessionOk =
-    Boolean(token?.trim()) &&
-    !adminData.authInvalid &&
-    Boolean(adminData.auth?.user?.id);
+  const hasBearerToken = Boolean(token?.trim());
+  const sessionLoading = cookiesOnlyAdminSession
+    ? adminData.loading
+    : hasBearerToken && adminData.loading;
+  const sessionOk = cookiesOnlyAdminSession
+    ? !adminData.authInvalid && Boolean(adminData.auth?.user?.id)
+    : hasBearerToken && !adminData.authInvalid && Boolean(adminData.auth?.user?.id);
 
   if (isCustomerPortalRoute) {
     return (

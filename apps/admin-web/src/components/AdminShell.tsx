@@ -1,5 +1,5 @@
 import type { FC, SVGProps } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { LanguageSelector } from "./LanguageSelector";
 import type { AdminAuth } from "../hooks/useAdminData";
 import { useAuth } from "../contexts/AuthContext";
@@ -36,9 +36,10 @@ function filterTenantNav(
 
 export function AdminShell({ auth }: AdminShellProps) {
   const { t } = useTranslation();
-  const { token, setToken } = useAuth();
+  const { token, setToken, bumpRefresh } = useAuth();
   const { bootstrap } = useAdminDataContext();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const surface = getAppSurface(auth);
   const nav =
@@ -62,6 +63,8 @@ export function AdminShell({ auth }: AdminShellProps) {
       /* ignore */
     }
     setToken(null);
+    bumpRefresh();
+    navigate("/login", { replace: true });
   };
 
   return (

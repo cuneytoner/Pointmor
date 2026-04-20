@@ -3,6 +3,9 @@ import type { LocaleCode } from "../i18n/locale";
 import { getApiBaseUrl } from "../lib/api-base";
 import type { EntitlementsPayload } from "../lib/entitlements-api";
 
+const cookiesOnlyAdminSession =
+  import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
+
 export type AuthUser = {
   id: string;
   email: string;
@@ -121,7 +124,7 @@ export function useAdminData(
 
   useEffect(() => {
     const t = token?.trim() ?? "";
-    if (!t) {
+    if (!cookiesOnlyAdminSession && !t) {
       setState({
         loading: false,
         authInvalid: false,
@@ -139,7 +142,7 @@ export function useAdminData(
     }));
 
     const base = getApiBaseUrl();
-    const headers = { Authorization: `Bearer ${t}` } as const;
+    const headers = t ? ({ Authorization: `Bearer ${t}` } as const) : undefined;
 
     (async () => {
       try {

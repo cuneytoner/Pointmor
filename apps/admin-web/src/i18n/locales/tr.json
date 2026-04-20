@@ -232,7 +232,7 @@
     "exportAuditPdf": "Denetim PDF (özet)",
     "exportAnomalyPdf": "Anomali PDF",
     "exportConfirmSummaryPdf": "Sadakat özetini PDF olarak indirmek istiyor musunuz? Veri uyumluluk için redakte edilir.",
-    "exportConfirmAuditCsv": "Denetim olaylarını CSV olarak indirmek istiyor musunuz? Satırlar redakte edilir.",
+    "exportConfirmAuditCsv": "Denetim olaylarını CSV olarak indirmek istiyor musunuz? Satırlar redakte edilir; ham kişisel veri dökümü içermez.",
     "exportConfirmAuditPdf": "Denetim özetini PDF olarak indirmek istiyor musunuz?",
     "exportConfirmAnomalyPdf": "Anomali raporunu PDF olarak indirmek istiyor musunuz?",
     "exportConfirmGdprJson": "Bu müşteriye ait veri paketini (JSON) indirmek istiyor musunuz? Dosya yalnızca yetkili kullanıcılarla paylaşılmalıdır.",
@@ -242,7 +242,7 @@
     "anonymize": "Müşteriyi anonimleştir",
     "anonymizeConfirm": "Bu müşteri anonimleştirilsin mi? Ad ve telefon değiştirilir; puan sıfırlanır. Geri alınamaz.",
     "anonymizeDone": "Müşteri anonimleştirildi.",
-    "upgradeUnlockFullPack": "Tam Compliance Pack için yükseltin: audit CSV/PDF, anomali exportu, gelişmiş saklama ve yapılandırılmış veri dışa aktarma."
+    "upgradeUnlockFullPack": "Tam Compliance Pack'i açmak için yükseltin: denetim CSV/PDF, anomali dışa aktarımı, gelişmiş saklama ve yapılandırılmış veri dışa aktarımı."
   },
   "compliancePack": {
     "bundleTitle": "Compliance Pack",
@@ -252,10 +252,10 @@
     "sectionLead": "Dahil olanlar plana göre değişir: Free’de yok; Pro’da özet PDF ve kısıtlı saklama; Growth’ta tam paket.",
     "ctaPlans": "Planları gör ve yükselt",
     "row": {
-      "auditExport": "Audit CSV/PDF ve yapılandırılmış müşteri exportu",
+      "auditExport": "Denetim CSV/PDF ve yapılandırılmış müşteri dışa aktarımı",
       "summaryPdf": "Sadakat özeti PDF",
       "retentionControl": "Yapılandırılabilir veri saklama",
-      "gdprExport": "Gizlilik exportları ve anonimleştirme"
+      "gdprExport": "Gizlilik dışa aktarımları ve anonimleştirme"
     }
   },
   "usage": {
@@ -337,11 +337,11 @@
       "campaignsLead": "Her ziyarette değerlendirilen bonus kuralları.",
       "campaignsBody": "Kampanyalar Pro ve üzeri planlarda. Bonus kuralları oluşturmak için planınızı yükseltin.",
       "growthTitle": "Büyüme ve tutma",
-      "growthLead": "Huni ve kohort analitiği.",
+      "growthLead": "Funnel (dönüşüm akışı) ve kohort analitiği.",
       "growthBody": "Ürün analitiği Pro ve üzeri planlarda. Büyüme panosunu açmak için yükseltin.",
       "auditTitle": "Operasyonel denetim",
       "auditLead": "Şube ve kasa olayları için denetim günlüğü.",
-      "auditBody": "Compliance Pack (Pro ve üzeri) operasyonel denetim izini açar. Son olaylar ve exportlar için yükseltin.",
+      "auditBody": "Compliance Pack (Pro ve üzeri) operasyonel denetim izini açar. Son olaylar ve dışa aktarımlar için yükseltin.",
       "hqTitle": "Merkez paneli (HQ)",
       "hqLead": "Tüm şubeleri tek ekranda karşılaştırın.",
       "hqBody": "HQ paneli Pro ve üzeri planlarda. Franchise özetini açmak için yükseltin.",
@@ -434,13 +434,13 @@
       "description": "Seçili dönem metrikleri.",
       "missing": "Şube bulunamadı.",
       "back": "HQ paneline dön",
-      "activeCampaigns": "Aktif kampanya (bu şube)"
+      "activeCampaigns": "Aktif kampanyalar (bu şube)"
     }
   },
   "tenantAudit": {
     "eyebrow": "Uyumluluk",
     "title": "Operasyonel denetim",
-    "description": "Son olaylar (özet). Tam dışa aktarım yalnızca workspace sahibi için CSV/PDF olarak kullanılabilir.",
+    "description": "Son olaylar (özet). Tam dışa aktarım CSV/PDF olarak yalnızca işletme sahipleri için kullanılabilir.",
     "backDashboard": "Özete dön",
     "exportSection": "Denetim dışa aktarımı",
     "exportHint": "CSV, redakte edilmiş alanlar içerir; ham veritabanı dökümü değildir.",
@@ -507,13 +507,13 @@
       "daysHint": "Süre (gün).",
       "save": "Saklamayı kaydet",
       "saving": "Kaydediliyor…",
-      "complianceHintShort": "Daha uzun saklama ve tam export seçenekleri Growth planındaki tam Compliance Pack ile gelir."
+      "complianceHintShort": "Daha uzun saklama ve tam dışa aktarım seçenekleri Growth planındaki tam Compliance Pack ile gelir."
     }
   },
   "tenantMenu": {
     "eyebrow": "Menü",
     "title": "Menü yönetimi",
-    "description": "Açıklama",
+    "description": "İşletme ayarlarında etkinleştirildiğinde herkese açık menü sayfasında gösterilen kategoriler ve ürünler.",
     "loadError": "Menü yüklenemedi.",
     "categories": "Kategoriler",
     "items": "Ürünler",
@@ -899,7 +899,7 @@
       "fieldThresholdBonus": "Eşik sağlandığında verilecek bonus puan",
       "fieldFirstVisitBonus": "İlk ziyarette bonus puan",
       "minorUnitsHint": "Küçük birim (ör. kuruş), ziyaret tutarıyla uyumlu.",
-      "scheduleHint": "İsteğe bağlı pencere — boş bırakınca “Aktif” ve program anahtarı geçerli olur.",
+      "scheduleHint": "İsteğe bağlı zaman aralığı — boş bırakınca “Aktif” ve program anahtarı geçerli olur.",
       "workflowStatus": "İş akışı",
       "statusHint": "Taslak: değerlendirilmez. Aktif: uygun ziyaretlerde çalışır.",
       "activeInProgram": "Program açık",
@@ -930,9 +930,9 @@
     "growth": {
       "eyebrow": "Analitik",
       "title": "Büyüme ve tutma",
-      "description": "Huni dönüşümü, kohort geri dönüşü (D1/D3/D7) ve ödül etkileşimi — işletmenizde kaydedilen ürün olaylarından.",
-      "periodNote": "Huni: son {{funnelDays}} gün. Tutma kohortu, aşağıdaki pencerede ilk kayıtlı ziyareti kullanır. Ödül metrikleri: son {{rewardDays}} gün.",
-      "funnelTitle": "Huni (adım başına benzersiz müşteri)",
+      "description": "Funnel (dönüşüm akışı) dönüşümü, kohort geri dönüşü (D1/D3/D7) ve ödül etkileşimi — işletmenizde kaydedilen ürün olaylarından.",
+      "periodNote": "Funnel (dönüşüm akışı): son {{funnelDays}} gün. Tutma kohortu, aşağıdaki zaman aralığında kaydedilen ilk ziyareti kullanır. Ödül metrikleri: son {{rewardDays}} gün.",
+      "funnelTitle": "Funnel (adım başına benzersiz müşteri)",
       "transitionsTitle": "Adım geçişleri (sıralı)",
       "columns": {
         "step": "Adım",

@@ -8,7 +8,7 @@ import {
 } from "../lib/operational-audit-service.js";
 import { listAnomalySignalsForExport } from "../lib/operational-anomaly-service.js";
 import { getLoyaltySummaryForWindow } from "../lib/loyalty-service.js";
-import { buildAuditCsv, renderPdfDocument } from "../lib/export-format.js";
+import { buildAuditCsv, renderPdfReport } from "../lib/export-format.js";
 import {
   anonymizeCustomer,
   buildCustomerGdprExport,
@@ -51,6 +51,190 @@ function parseEntityType(v: unknown): (typeof AuditEntityType)[keyof typeof Audi
   return Object.values(AuditEntityType).includes(raw as never)
     ? (raw as (typeof AuditEntityType)[keyof typeof AuditEntityType])
     : undefined;
+}
+
+type ReportLocale = "tr" | "es" | "de" | "en";
+
+type PdfTextPack = {
+  workspaceLabel: string;
+  producedLabel: string;
+  recordCountLabel: string;
+  periodLabel: string;
+  dateRangeLabel: string;
+  customerLabel: string;
+  summaryMetricLabel: string;
+  summaryValueLabel: string;
+  summaryTitle: string;
+  auditTitle: string;
+  anomalyTitle: string;
+  summaryTotalCustomers: string;
+  summaryVisitsInRange: string;
+  summaryPointsInRange: string;
+  summaryRedemptionsInRange: string;
+  summaryActiveCampaigns: string;
+  auditHeaders: [string, string, string, string, string];
+  anomalyHeaders: [string, string, string, string, string];
+  periodUtcToday: string;
+  periodRolling7dUtc: string;
+};
+
+const PDF_LOCALE_TAG: Record<ReportLocale, string> = {
+  tr: "tr-TR",
+  es: "es-ES",
+  de: "de-DE",
+  en: "en-US",
+};
+
+const PDF_TEXT: Record<ReportLocale, PdfTextPack> = {
+  tr: {
+    workspaceLabel: "İşletme",
+    producedLabel: "Üretim",
+    recordCountLabel: "Kayıt sayısı",
+    periodLabel: "Dönem",
+    dateRangeLabel: "Zaman aralığı",
+    customerLabel: "müşteri",
+    summaryMetricLabel: "Metrik",
+    summaryValueLabel: "Değer",
+    summaryTitle: "Pointmor — Operasyon özeti (yönetici / kapanış özeti)",
+    auditTitle: "Pointmor — Denetim özeti (redakte)",
+    anomalyTitle: "Pointmor — Anomali raporu (redakte özet)",
+    summaryTotalCustomers: "Toplam müşteri",
+    summaryVisitsInRange: "Ziyaret (zaman aralığı)",
+    summaryPointsInRange: "Verilen puan (zaman aralığı)",
+    summaryRedemptionsInRange: "Tamamlanan ödül kullanımı (zaman aralığı)",
+    summaryActiveCampaigns: "Aktif kampanyalar (şu an)",
+    auditHeaders: ["Tarih", "Olay", "Varlık", "Aktör", "Özet"],
+    anomalyHeaders: ["Tarih", "Tür", "Seviye", "Müşteri", "Özet"],
+    periodUtcToday: "Bugün (UTC)",
+    periodRolling7dUtc: "Son 7 gün (UTC)",
+  },
+  es: {
+    workspaceLabel: "Negocio",
+    producedLabel: "Generado",
+    recordCountLabel: "Total de registros",
+    periodLabel: "Periodo",
+    dateRangeLabel: "Rango de fechas",
+    customerLabel: "cliente",
+    summaryMetricLabel: "Métrica",
+    summaryValueLabel: "Valor",
+    summaryTitle: "Pointmor — Resumen operativo (cierre de gerente)",
+    auditTitle: "Pointmor — Resumen de auditoría (redactado)",
+    anomalyTitle: "Pointmor — Informe de anomalías (resumen redactado)",
+    summaryTotalCustomers: "Clientes totales",
+    summaryVisitsInRange: "Visitas (rango de fechas)",
+    summaryPointsInRange: "Puntos emitidos (rango de fechas)",
+    summaryRedemptionsInRange: "Canjes completados (rango de fechas)",
+    summaryActiveCampaigns: "Campañas activas (ahora)",
+    auditHeaders: ["Fecha", "Evento", "Entidad", "Actor", "Resumen"],
+    anomalyHeaders: ["Fecha", "Tipo", "Severidad", "Cliente", "Resumen"],
+    periodUtcToday: "Hoy (UTC)",
+    periodRolling7dUtc: "Últimos 7 días (UTC)",
+  },
+  de: {
+    workspaceLabel: "Betrieb",
+    producedLabel: "Erstellt",
+    recordCountLabel: "Anzahl Einträge",
+    periodLabel: "Zeitraum",
+    dateRangeLabel: "Datumsbereich",
+    customerLabel: "Kunde",
+    summaryMetricLabel: "Kennzahl",
+    summaryValueLabel: "Wert",
+    summaryTitle: "Pointmor — Betriebsübersicht (Manager-Abschluss)",
+    auditTitle: "Pointmor — Audit-Zusammenfassung (redigiert)",
+    anomalyTitle: "Pointmor — Anomaliebericht (redigierte Zusammenfassung)",
+    summaryTotalCustomers: "Kunden gesamt",
+    summaryVisitsInRange: "Besuche (Datumsbereich)",
+    summaryPointsInRange: "Gutgeschriebene Punkte (Datumsbereich)",
+    summaryRedemptionsInRange: "Abgeschlossene Einlösungen (Datumsbereich)",
+    summaryActiveCampaigns: "Aktive Kampagnen (aktuell)",
+    auditHeaders: ["Datum", "Ereignis", "Entität", "Akteur", "Zusammenfassung"],
+    anomalyHeaders: ["Datum", "Typ", "Schweregrad", "Kunde", "Zusammenfassung"],
+    periodUtcToday: "Heute (UTC)",
+    periodRolling7dUtc: "Letzte 7 Tage (UTC)",
+  },
+  en: {
+    workspaceLabel: "Workspace",
+    producedLabel: "Generated",
+    recordCountLabel: "Row count",
+    periodLabel: "Period",
+    dateRangeLabel: "Date range",
+    customerLabel: "customer",
+    summaryMetricLabel: "Metric",
+    summaryValueLabel: "Value",
+    summaryTitle: "Pointmor — Operational summary (manager close-out)",
+    auditTitle: "Pointmor — Audit summary (redacted)",
+    anomalyTitle: "Pointmor — Anomaly report (redacted summary)",
+    summaryTotalCustomers: "Total customers",
+    summaryVisitsInRange: "Visits (date range)",
+    summaryPointsInRange: "Points issued (date range)",
+    summaryRedemptionsInRange: "Completed redemptions (date range)",
+    summaryActiveCampaigns: "Active campaigns (now)",
+    auditHeaders: ["Date", "Event", "Entity", "Actor", "Summary"],
+    anomalyHeaders: ["Date", "Type", "Severity", "Customer", "Summary"],
+    periodUtcToday: "Today (UTC)",
+    periodRolling7dUtc: "Last 7 days (UTC)",
+  },
+};
+
+function parseReportLocale(v: unknown): ReportLocale | null {
+  if (typeof v !== "string" || !v.trim()) return null;
+  const raw = v.trim().toLowerCase();
+  if (raw.startsWith("tr")) return "tr";
+  if (raw.startsWith("es")) return "es";
+  if (raw.startsWith("de")) return "de";
+  if (raw.startsWith("en")) return "en";
+  return null;
+}
+
+function resolveReportLocale(
+  queryLang: unknown,
+  acceptLanguageHeader: string | string[] | undefined,
+): ReportLocale {
+  const fromQuery = parseReportLocale(queryLang);
+  if (fromQuery) return fromQuery;
+  const headerRaw = Array.isArray(acceptLanguageHeader)
+    ? acceptLanguageHeader[0]
+    : acceptLanguageHeader;
+  const fromHeader = parseReportLocale(headerRaw);
+  return fromHeader ?? "tr";
+}
+
+function formatIsoUtcDate(iso: string, locale: ReportLocale): string {
+  const d = parseIsoDate(iso);
+  if (!d) return iso;
+  const fmt = new Intl.DateTimeFormat(PDF_LOCALE_TAG[locale], {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  return fmt.format(d);
+}
+
+function formatIsoUtcDateTime(iso: string, locale: ReportLocale): string {
+  const d = parseIsoDate(iso);
+  if (!d) return iso;
+  const fmt = new Intl.DateTimeFormat(PDF_LOCALE_TAG[locale], {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "UTC",
+  });
+  return `${fmt.format(d)} UTC`;
+}
+
+function formatSummaryPeriodLabel(periodLabel: string, locale: ReportLocale): string {
+  const t = PDF_TEXT[locale];
+  if (periodLabel === "utc_today") return t.periodUtcToday;
+  if (periodLabel === "rolling_7d_utc") return t.periodRolling7dUtc;
+  return periodLabel;
+}
+
+function formatSummaryWindow(startIso: string, endIso: string, locale: ReportLocale): string {
+  return `${formatIsoUtcDate(startIso, locale)} — ${formatIsoUtcDate(endIso, locale)}`;
 }
 
 const EXPORT_RATE = {
@@ -163,6 +347,8 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
       const tenantId = requireTenantId(req, reply);
       if (!tenantId) return;
       const s = req.authSession as SessionPayload;
+      const locale = resolveReportLocale(req.query.lang, req.headers["accept-language"]);
+      const t = PDF_TEXT[locale];
       try {
         const ent = await getTenantEntitlementContext(tenantId);
         assertComplianceFull(ent);
@@ -202,17 +388,26 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         where: { id: tenantId },
         select: { name: true, slug: true },
       });
-      const lines = [
-        `Pointmor — Audit özeti (redakte)`,
-        `Workspace: ${tenant?.name ?? tenantId} (${tenant?.slug ?? ""})`,
-        `Üretim: ${new Date().toISOString()}`,
-        "",
-        ...rows.map(
-          (r) =>
-            `${r.createdAt} | ${r.eventType} | ${r.entityType} ${r.entityId} | aktör ${r.actorType} | ${summarizePayloadForPdfLine(r.payload)}`,
-        ),
-      ];
-      const buf = await renderPdfDocument(lines);
+      const tableRows = rows.map((r) => [
+        formatIsoUtcDateTime(String(r.createdAt ?? ""), locale),
+        String(r.eventType ?? ""),
+        `${String(r.entityType ?? "")} ${String(r.entityId ?? "")}`.trim(),
+        String(r.actorType ?? ""),
+        summarizePayloadForPdfLine(r.payload),
+      ]);
+      const buf = await renderPdfReport({
+        title: t.auditTitle,
+        subtitleLines: [`${t.workspaceLabel}: ${tenant?.name ?? tenantId} (${tenant?.slug ?? ""})`],
+        metaRows: [
+          { label: t.producedLabel, value: formatIsoUtcDateTime(new Date().toISOString(), locale) },
+          { label: t.recordCountLabel, value: String(tableRows.length) },
+        ],
+        table: {
+          headers: t.auditHeaders,
+          rows: tableRows,
+          columnFractions: [1.35, 1.15, 1.45, 0.9, 2.15],
+        },
+      });
       await recordDataExportEvent({
         tenantId,
         actorUserId: s.user.id,
@@ -231,7 +426,7 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
   const summaryPdfPaths = ["/tenant/summary/export/pdf", "/summary/export/pdf"] as const;
   for (const routePath of summaryPdfPaths) {
     app.get<{
-      Querystring: { period?: string };
+      Querystring: { period?: string; lang?: string };
     }>(
       routePath,
       {
@@ -242,6 +437,8 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
       const tenantId = requireTenantId(req, reply);
       if (!tenantId) return;
       const s = req.authSession as SessionPayload;
+      const locale = resolveReportLocale(req.query.lang, req.headers["accept-language"]);
+      const t = PDF_TEXT[locale];
       try {
         const ent = await getTenantEntitlementContext(tenantId);
         assertComplianceLimited(ent);
@@ -255,18 +452,31 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         where: { id: tenantId },
         select: { name: true, slug: true },
       });
-      const lines = [
-        `Pointmor — Operasyon özeti (yönetici / kapanış özeti)`,
-        `Workspace: ${tenant?.name ?? tenantId} (${tenant?.slug ?? ""})`,
-        `Dönem: ${summary.periodLabel}`,
-        `Pencere: ${summary.windowStart} — ${summary.windowEnd}`,
-        `Toplam müşteri: ${summary.totalCustomers}`,
-        `Ziyaret (pencere): ${summary.visitsInWindow}`,
-        `Verilen puan (pencere): ${summary.pointsIssuedInWindow}`,
-        `Tamamlanan ödül kullanımı (pencere): ${summary.redemptionsInWindow}`,
-        `Çalışır kampanya (şu an): ${summary.activeCampaigns}`,
-      ];
-      const buf = await renderPdfDocument(lines);
+      const buf = await renderPdfReport({
+        title: t.summaryTitle,
+        subtitleLines: [`${t.workspaceLabel}: ${tenant?.name ?? tenantId} (${tenant?.slug ?? ""})`],
+        metaRows: [
+          { label: t.periodLabel, value: formatSummaryPeriodLabel(summary.periodLabel, locale) },
+          {
+            label: t.dateRangeLabel,
+            value: formatSummaryWindow(summary.windowStart, summary.windowEnd, locale),
+          },
+        ],
+        table: {
+          headers: [t.summaryMetricLabel, t.summaryValueLabel],
+          rows: [
+            [t.summaryTotalCustomers, String(summary.totalCustomers)],
+            [t.summaryVisitsInRange, String(summary.visitsInWindow)],
+            [t.summaryPointsInRange, String(summary.pointsIssuedInWindow)],
+            [
+              t.summaryRedemptionsInRange,
+              String(summary.redemptionsInWindow),
+            ],
+            [t.summaryActiveCampaigns, String(summary.activeCampaigns)],
+          ],
+          columnFractions: [2.3, 1],
+        },
+      });
       const filters = { period: mode };
       await recordDataExportEvent({
         tenantId,
@@ -297,6 +507,8 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
       const tenantId = requireTenantId(req, reply);
       if (!tenantId) return;
       const s = req.authSession as SessionPayload;
+      const locale = resolveReportLocale(req.query.lang, req.headers["accept-language"]);
+      const t = PDF_TEXT[locale];
       try {
         const ent = await getTenantEntitlementContext(tenantId);
         assertComplianceFull(ent);
@@ -323,17 +535,31 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         where: { id: tenantId },
         select: { name: true, slug: true },
       });
-      const lines = [
-        `Pointmor — Anomali raporu (redakte özet)`,
-        `Workspace: ${tenant?.name ?? tenantId} (${tenant?.slug ?? ""})`,
-        `Üretim: ${new Date().toISOString()}`,
-        "",
-        ...rows.map((r) => {
-          const cid = r.customerId ? `müşteri …${r.customerId.slice(-6)}` : "müşteri —";
-          return `${r.createdAt} | ${r.type} | ${r.severity} | ${cid} | ${summarizePayloadForPdfLine(r.payload)}`;
-        }),
-      ];
-      const buf = await renderPdfDocument(lines);
+      const tableRows = rows.map((r) => {
+        const cid = r.customerId
+          ? `${t.customerLabel} …${r.customerId.slice(-6)}`
+          : `${t.customerLabel} —`;
+        return [
+          formatIsoUtcDateTime(String(r.createdAt ?? ""), locale),
+          String(r.type ?? ""),
+          String(r.severity ?? ""),
+          cid,
+          summarizePayloadForPdfLine(r.payload),
+        ];
+      });
+      const buf = await renderPdfReport({
+        title: t.anomalyTitle,
+        subtitleLines: [`${t.workspaceLabel}: ${tenant?.name ?? tenantId} (${tenant?.slug ?? ""})`],
+        metaRows: [
+          { label: t.producedLabel, value: formatIsoUtcDateTime(new Date().toISOString(), locale) },
+          { label: t.recordCountLabel, value: String(tableRows.length) },
+        ],
+        table: {
+          headers: t.anomalyHeaders,
+          rows: tableRows,
+          columnFractions: [1.35, 1.2, 0.9, 1.35, 2.2],
+        },
+      });
       await recordDataExportEvent({
         tenantId,
         actorUserId: s.user.id,
