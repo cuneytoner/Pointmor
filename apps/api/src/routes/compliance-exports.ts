@@ -237,6 +237,19 @@ function formatSummaryWindow(startIso: string, endIso: string, locale: ReportLoc
   return `${formatIsoUtcDate(startIso, locale)} — ${formatIsoUtcDate(endIso, locale)}`;
 }
 
+function formatCountValue(value: number, locale: ReportLocale): string {
+  return new Intl.NumberFormat(PDF_LOCALE_TAG[locale], {
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function formatPointsValue(value: number, locale: ReportLocale): string {
+  return new Intl.NumberFormat(PDF_LOCALE_TAG[locale], {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
+  }).format(value);
+}
+
 const EXPORT_RATE = {
   rateLimit: {
     max: 15,
@@ -400,12 +413,13 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         subtitleLines: [`${t.workspaceLabel}: ${tenant?.name ?? tenantId} (${tenant?.slug ?? ""})`],
         metaRows: [
           { label: t.producedLabel, value: formatIsoUtcDateTime(new Date().toISOString(), locale) },
-          { label: t.recordCountLabel, value: String(tableRows.length) },
+          { label: t.recordCountLabel, value: formatCountValue(tableRows.length, locale) },
         ],
         table: {
           headers: t.auditHeaders,
           rows: tableRows,
           columnFractions: [1.35, 1.15, 1.45, 0.9, 2.15],
+          alignments: ["left", "left", "left", "left", "left"],
         },
       });
       await recordDataExportEvent({
@@ -465,16 +479,17 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         table: {
           headers: [t.summaryMetricLabel, t.summaryValueLabel],
           rows: [
-            [t.summaryTotalCustomers, String(summary.totalCustomers)],
-            [t.summaryVisitsInRange, String(summary.visitsInWindow)],
-            [t.summaryPointsInRange, String(summary.pointsIssuedInWindow)],
+            [t.summaryTotalCustomers, formatCountValue(summary.totalCustomers, locale)],
+            [t.summaryVisitsInRange, formatCountValue(summary.visitsInWindow, locale)],
+            [t.summaryPointsInRange, formatPointsValue(summary.pointsIssuedInWindow, locale)],
             [
               t.summaryRedemptionsInRange,
-              String(summary.redemptionsInWindow),
+              formatCountValue(summary.redemptionsInWindow, locale),
             ],
-            [t.summaryActiveCampaigns, String(summary.activeCampaigns)],
+            [t.summaryActiveCampaigns, formatCountValue(summary.activeCampaigns, locale)],
           ],
           columnFractions: [2.3, 1],
+          alignments: ["left", "right"],
         },
       });
       const filters = { period: mode };
@@ -552,12 +567,13 @@ export async function registerComplianceExportRoutes(app: FastifyInstance): Prom
         subtitleLines: [`${t.workspaceLabel}: ${tenant?.name ?? tenantId} (${tenant?.slug ?? ""})`],
         metaRows: [
           { label: t.producedLabel, value: formatIsoUtcDateTime(new Date().toISOString(), locale) },
-          { label: t.recordCountLabel, value: String(tableRows.length) },
+          { label: t.recordCountLabel, value: formatCountValue(tableRows.length, locale) },
         ],
         table: {
           headers: t.anomalyHeaders,
           rows: tableRows,
           columnFractions: [1.35, 1.2, 0.9, 1.35, 2.2],
+          alignments: ["left", "left", "left", "left", "left"],
         },
       });
       await recordDataExportEvent({

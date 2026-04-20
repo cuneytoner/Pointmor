@@ -1,11 +1,14 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "../../hooks/useTranslation";
+import { useLocale } from "../../contexts/LocaleContext";
 import { useCustomerPwa } from "../../customer-pwa/CustomerPwaContext";
 import { postCustomerProductAnalyticsEvent } from "../../lib/customer-portal-api";
+import { formatPoints } from "../../lib/formatters";
 
 export function CustomerRewardsPage() {
   const { t } = useTranslation();
+  const locale = useLocale();
   const { tenantSlug, data, token, claimReward, claimingId } = useCustomerPwa();
   const viewedMark = useRef<string | null>(null);
 
@@ -48,7 +51,7 @@ export function CustomerRewardsPage() {
                     <div className="customer-pwa__reward-desc">{r.description}</div>
                   ) : null}
                   <div className="customer-pwa__reward-cost">
-                    {t("customerPortal.pointsCost", { n: String(r.pointsCost) })}
+                    {t("customerPortal.pointsCost", { n: formatPoints(r.pointsCost, locale) })}
                   </div>
                 </div>
                 {pending ? (
@@ -72,7 +75,7 @@ export function CustomerRewardsPage() {
                 ) : (
                   <div className="customer-pwa__reward-locked">
                     <span className="customer-pwa__muted">
-                      {t("customerPortal.needMorePoints", { n: String(need) })}
+                      {t("customerPortal.needMorePoints", { n: formatPoints(need, locale) })}
                     </span>
                     {need > 0 && need <= 25 ? (
                       <p className="customer-pwa__almost-free customer-pwa__almost-free--inline">

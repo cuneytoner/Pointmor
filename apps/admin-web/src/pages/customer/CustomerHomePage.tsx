@@ -2,9 +2,9 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useLocale } from "../../contexts/LocaleContext";
-import { toIntlLocale } from "../../lib/locale-intl";
 import { useCustomerPwa } from "../../customer-pwa/CustomerPwaContext";
 import { getNextRewardPreview } from "../../customer-pwa/loyalty-preview";
+import { formatDateTimeLabel, formatPoints } from "../../lib/formatters";
 
 export function CustomerHomePage() {
   const { t } = useTranslation();
@@ -19,11 +19,7 @@ export function CustomerHomePage() {
   const tenantName = data ? (data.tenant?.name ?? data.customer.name) : "";
   const lastVisit = data?.recentVisits[0];
 
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleString(toIntlLocale(locale), {
-      dateStyle: "short",
-      timeStyle: "short",
-    });
+  const fmt = (iso: string) => formatDateTimeLabel(iso, locale);
 
   const activeRewards = useMemo(() => {
     if (!data) return [];
@@ -66,12 +62,12 @@ export function CustomerHomePage() {
         </h2>
         <div className="customer-pwa__balance-card">
           <span className="customer-pwa__balance-label">{t("customerPortal.balance")}</span>
-          <span className="customer-pwa__balance-num">{data.pointsBalance}</span>
+          <span className="customer-pwa__balance-num">{formatPoints(data.pointsBalance, locale)}</span>
         </div>
         {lastVisit ? (
           <p className="customer-pwa__last-earn">
             {t("customerPortal.lastEarnMicro", {
-              points: String(lastVisit.pointsEarned),
+              points: formatPoints(lastVisit.pointsEarned, locale),
               when: fmt(lastVisit.createdAt),
             })}
           </p>
@@ -91,7 +87,7 @@ export function CustomerHomePage() {
             <>
               <p className="customer-pwa__next-reward-target">
                 {t("customerPortal.nextRewardPointsAway", {
-                  points: String(ptsToNext),
+                  points: formatPoints(ptsToNext, locale),
                   name: nextReward.name,
                 })}
               </p>
@@ -148,7 +144,7 @@ export function CustomerHomePage() {
               <li key={r.id}>
                 <span>{r.name}</span>
                 <span className="customer-pwa__muted">
-                  {t("customerPortal.pointsCost", { n: String(r.pointsCost) })}
+                  {t("customerPortal.pointsCost", { n: formatPoints(r.pointsCost, locale) })}
                 </span>
               </li>
             ))}

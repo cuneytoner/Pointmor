@@ -59,6 +59,7 @@ import {
 import { useCashierNetworkResilience } from "./useCashierNetworkResilience";
 import { OfflineBanner } from "./OfflineBanner";
 import { RestoreDraftNotice } from "./RestoreDraftNotice";
+import { formatPoints } from "../lib/formatters";
 
 function buildInitialCashierState(): CashierState {
   const d = loadCashierSessionDraft();
@@ -842,7 +843,7 @@ export function CashierPage() {
                   ? t("tenantLoyalty.cashier.redeemSuccess")
                   : state.lastVisitResult
                     ? t("tenantLoyalty.visits.posSuccess", {
-                        n: String(state.lastVisitResult.totalPointsAwarded),
+                        n: formatPoints(state.lastVisitResult.totalPointsAwarded, locale),
                       })
                     : ""
         }
@@ -962,6 +963,7 @@ export function CashierPage() {
                     onQuickCreateSubmit={() => void onQuickCreate()}
                     quickCreateBusy={state.submissionState === "quick"}
                     allowQuickCreate={permCreateCustomer}
+                    formatPoints={(value) => formatPoints(value, locale)}
                   />
                 </div>
                 <div className="max-[767px]:order-1 min-[768px]:order-2 lg:order-2">
@@ -998,6 +1000,7 @@ export function CashierPage() {
                     hasCustomer={Boolean(state.selectedCustomerId)}
                     hasAmount={hasValidAmount}
                     campaignTypeLabel={campaignTypeLabel}
+                    formatPoints={(value) => formatPoints(value, locale)}
                   />
                 </div>
               </div>
@@ -1012,6 +1015,7 @@ export function CashierPage() {
                   error={state.claimsError}
                   pendingLabel={t("tenantLoyalty.redemptions.status.pending")}
                   pointsLabel={t("tenantLoyalty.cashier.claimPoints")}
+                  formatPoints={(value) => formatPoints(value, locale)}
                   approveLabel={t("tenantLoyalty.redemptions.approve")}
                   rejectLabel={t("tenantLoyalty.redemptions.reject")}
                   formatWhen={formatClaimWhen}
@@ -1052,7 +1056,7 @@ export function CashierPage() {
                   readyLabel={t("tenantLoyalty.cashier.rewardReady")}
                   insufficientLabel={t("tenantLoyalty.cashier.rewardInsufficient")}
                   balanceLine={t("tenantLoyalty.cashier.balanceLine", {
-                    n: String(balance),
+                    n: formatPoints(balance, locale),
                   })}
                   eligibleRewards={eligibleRewards}
                   selectedRewardId={state.selectedRewardId}
@@ -1065,6 +1069,7 @@ export function CashierPage() {
                       ? t("tenantLoyalty.cashier.rewardsHiddenPendingNote")
                       : null
                   }
+                  formatPoints={(value) => formatPoints(value, locale)}
                 />
               )}
 

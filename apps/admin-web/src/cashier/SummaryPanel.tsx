@@ -16,6 +16,7 @@ type SummaryPanelProps = {
   hasCustomer: boolean;
   hasAmount: boolean;
   campaignTypeLabel: (type: string) => string;
+  formatPoints: (value: number) => string;
 };
 
 export function SummaryPanel({
@@ -33,11 +34,12 @@ export function SummaryPanel({
   hasCustomer,
   hasAmount,
   campaignTypeLabel,
+  formatPoints,
 }: SummaryPanelProps) {
   const showDots = previewLoading && hasCustomer && hasAmount;
-  const base = showDots ? "…" : preview?.basePoints ?? "—";
-  const bonus = showDots ? "…" : preview?.bonusPoints ?? "—";
-  const total = showDots ? "…" : preview?.totalPointsAwarded ?? "—";
+  const base = showDots ? "…" : preview ? formatPoints(preview.basePoints) : "—";
+  const bonus = showDots ? "…" : preview ? formatPoints(preview.bonusPoints) : "—";
+  const total = showDots ? "…" : preview ? formatPoints(preview.totalPointsAwarded) : "—";
 
   return (
     <section
@@ -89,7 +91,7 @@ export function SummaryPanel({
                 <Badge tone="info">{campaignTypeLabel(a.type)}</Badge>
                 <span className="text-slate-800">{a.name}</span>
                 <span className="ml-auto font-medium text-indigo-700">
-                  +{a.pointsAwarded}
+                  +{formatPoints(a.pointsAwarded)}
                 </span>
               </li>
             ))}

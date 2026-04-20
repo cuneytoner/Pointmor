@@ -4,19 +4,17 @@ import { useAuth } from "../contexts/AuthContext";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { EmptyState } from "../components/ui/EmptyState";
-import { useLocale } from "../contexts/LocaleContext";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
-import { toIntlLocale } from "../lib/locale-intl";
 import { downloadComplianceExport } from "../lib/compliance-api";
+import { formatDateTimeLabel } from "../lib/formatters";
 import {
   fetchManagerAuditEvents,
   type ManagerAuditEventItem,
 } from "../lib/tenant-manager-api";
 
 export function TenantAuditPage() {
-  const { t } = useTranslation();
-  const locale = useLocale();
+  const { t, locale } = useTranslation();
   const { token } = useAuth();
   const { hasPermission } = usePermissions();
   const { bootstrap } = useAdminDataContext();
@@ -44,11 +42,7 @@ export function TenantAuditPage() {
     };
   }, [token, featureOk]);
 
-  const fmtDate = (iso: string) =>
-    new Date(iso).toLocaleString(toIntlLocale(locale), {
-      dateStyle: "short",
-      timeStyle: "short",
-    });
+  const fmtDate = (iso: string) => formatDateTimeLabel(iso, locale);
 
   const loading = featureOk && rows === null && !error;
 
@@ -106,7 +100,7 @@ export function TenantAuditPage() {
               onClick={() => {
                 if (!token?.trim()) return;
                 if (!window.confirm(t("compliance.exportConfirmAuditCsv"))) return;
-                downloadComplianceExport(token, "/audit/export/csv", "audit-export.csv").catch(
+                downloadComplianceExport(token, "/audit/export/csv", "audit-export.csv", locale).catch(
                   () => undefined,
                 );
               }}

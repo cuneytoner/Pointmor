@@ -2,6 +2,7 @@ import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { useTranslation } from "../hooks/useTranslation";
+import { formatCount } from "../lib/formatters";
 
 type ActivityStatus = "success" | "info" | "warning";
 
@@ -14,7 +15,7 @@ type DemoRow = {
 
 /** SaaS operatörü — global metrikler ve operasyon özeti. */
 export function PlatformDashboardPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { bootstrap } = useAdminDataContext();
 
   const tc = bootstrap?.tenants.length ?? 0;
@@ -26,22 +27,22 @@ export function PlatformDashboardPage() {
   const metrics = [
     {
       k: t("dashboard.metrics.workspaces"),
-      v: String(tc),
+      v: formatCount(tc, locale),
       hint: t("dashboard.metrics.workspacesHint"),
     },
     {
       k: t("dashboard.metrics.users"),
-      v: String(uc),
+      v: formatCount(uc, locale),
       hint: t("dashboard.metrics.usersHint"),
     },
     {
       k: t("dashboard.metrics.subscriptions"),
-      v: String(sc),
+      v: formatCount(sc, locale),
       hint: t("dashboard.metrics.subscriptionsHint"),
     },
     {
       k: t("dashboard.metrics.trialing"),
-      v: String(trialing),
+      v: formatCount(trialing, locale),
       hint: t("dashboard.metrics.trialingHint"),
     },
   ];
@@ -91,7 +92,7 @@ export function PlatformDashboardPage() {
         {metrics.map((m) => (
           <div key={m.k} className="metric-card">
             <div className="metric-card__label">{m.k}</div>
-            <div className="metric-card__value">{m.v}</div>
+            <div className="metric-card__value metric-card__value--num">{m.v}</div>
             <div className="metric-card__hint">{m.hint}</div>
           </div>
         ))}

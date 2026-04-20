@@ -11,6 +11,7 @@ type ClaimPanelProps = {
   error: string | null;
   pendingLabel: string;
   pointsLabel: string;
+  formatPoints: (value: number) => string;
   approveLabel: string;
   rejectLabel: string;
   formatWhen: (iso: string) => string;
@@ -38,6 +39,7 @@ export function ClaimPanel({
   error,
   pendingLabel,
   pointsLabel,
+  formatPoints,
   approveLabel,
   rejectLabel,
   formatWhen,
@@ -104,6 +106,7 @@ export function ClaimPanel({
                 claim={c}
                 pendingLabel={pendingLabel}
                 pointsLabel={pointsLabel}
+                formatPoints={formatPoints}
                 approveLabel={approveLabel}
                 rejectLabel={rejectLabel}
                 formatWhen={formatWhen}

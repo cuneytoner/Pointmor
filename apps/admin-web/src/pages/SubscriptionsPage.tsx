@@ -4,11 +4,12 @@ import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { useTranslation } from "../hooks/useTranslation";
+import { formatDateLabel } from "../lib/formatters";
 import { patchSubscription } from "../lib/platform-api";
 import type { PlanDto, SubscriptionDto } from "../hooks/useAdminData";
 
 export function SubscriptionsPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { token, bumpRefresh } = useAuth();
   const { bootstrap } = useAdminDataContext();
   const rows = bootstrap?.subscriptions ?? [];
@@ -118,7 +119,7 @@ export function SubscriptionsPage() {
                       <Badge tone={statusTone(r.status)}>{statusLabel(r.status)}</Badge>
                     </td>
                     <td className="data-table__muted">
-                      {r.renewsAt ? new Date(r.renewsAt).toISOString().slice(0, 10) : "—"}
+                      {r.renewsAt ? formatDateLabel(r.renewsAt, locale) : "—"}
                     </td>
                     <td>
                       <div className="subscriptions-plan-cell">

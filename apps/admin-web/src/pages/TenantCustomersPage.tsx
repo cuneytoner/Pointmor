@@ -4,10 +4,11 @@ import { useAuth } from "../contexts/AuthContext";
 import { PageShell } from "../components/PageShell";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useTranslation } from "../hooks/useTranslation";
+import { formatPoints } from "../lib/formatters";
 import { getCustomers, type CustomerWithBalance } from "../lib/tenant-loyalty-api";
 
 export function TenantCustomersPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { token } = useAuth();
   const [rows, setRows] = useState<CustomerWithBalance[] | null>(null);
   const [error, setError] = useState(false);
@@ -50,7 +51,7 @@ export function TenantCustomersPage() {
                 <tr>
                   <th>{t("tenantLoyalty.customers.columns.name")}</th>
                   <th>{t("tenantLoyalty.customers.columns.phone")}</th>
-                  <th>{t("tenantLoyalty.customers.columns.balance")}</th>
+                  <th className="data-table__num">{t("tenantLoyalty.customers.columns.balance")}</th>
                   <th />
                 </tr>
               </thead>
@@ -59,7 +60,9 @@ export function TenantCustomersPage() {
                   <tr key={c.id}>
                     <td>{c.name}</td>
                     <td className="data-table__mono">{c.phone}</td>
-                    <td>{c.loyaltyAccount?.pointsBalance ?? 0}</td>
+                    <td className="data-table__num">
+                      {formatPoints(c.loyaltyAccount?.pointsBalance ?? 0, locale)}
+                    </td>
                     <td>
                       <Link className="admin-secondary-btn" to={`/app/customers/${c.id}`}>
                         {t("tenantLoyalty.customers.open")}

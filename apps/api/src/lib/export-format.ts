@@ -48,6 +48,7 @@ type PdfReportTable = {
   headers: string[];
   rows: string[][];
   columnFractions?: number[];
+  alignments?: Array<"left" | "right" | "center">;
 };
 
 type PdfReportSpec = {
@@ -83,9 +84,13 @@ function drawTable(doc: any, table: PdfReportTable): void {
   const sum = fractions.reduce((a, b) => a + Math.max(0.01, b), 0);
   const totalWidth = pageTextWidth(doc);
   const colWidths = fractions.map((f) => (Math.max(0.01, f) / sum) * totalWidth);
+  const alignments =
+    table.alignments && table.alignments.length === cols
+      ? table.alignments
+      : Array.from({ length: cols }, () => "left" as const);
   const cellPadX = 6;
-  const cellPadY = 5;
-  const minRowHeight = 20;
+  const cellPadY = 7;
+  const minRowHeight = 24;
   const x0 = doc.page.margins.left;
 
   const drawRow = (cells: string[], isHeader: boolean) => {
@@ -109,6 +114,7 @@ function drawTable(doc: any, table: PdfReportTable): void {
       doc.fontSize(9);
       doc.text(normalized[i] ?? "", x + cellPadX, y + cellPadY, {
         width: Math.max(10, w - cellPadX * 2),
+        align: alignments[i],
       });
       x += w;
     }

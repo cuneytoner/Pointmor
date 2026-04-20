@@ -3,13 +3,14 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { PageShell } from "../components/PageShell";
 import { useTranslation } from "../hooks/useTranslation";
+import { formatCount, formatPoints } from "../lib/formatters";
 import {
   fetchHqLocationDetail,
   type HqLocationDetailPayload,
 } from "../lib/hq-dashboard-api";
 
 export function TenantHqLocationPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { token } = useAuth();
   const { branchId } = useParams<{ branchId: string }>();
   const [data, setData] = useState<HqLocationDetailPayload | null>(null);
@@ -70,19 +71,19 @@ export function TenantHqLocationPage() {
       <div className="hq-summary-grid">
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.visits")}</div>
-          <div className="hq-card__value">{data.metrics.visits}</div>
+          <div className="hq-card__value">{formatCount(data.metrics.visits, locale)}</div>
         </div>
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.points")}</div>
-          <div className="hq-card__value">{data.metrics.pointsIssued}</div>
+          <div className="hq-card__value">{formatPoints(data.metrics.pointsIssued, locale)}</div>
         </div>
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.redemptions")}</div>
-          <div className="hq-card__value">{data.metrics.redemptions}</div>
+          <div className="hq-card__value">{formatCount(data.metrics.redemptions, locale)}</div>
         </div>
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.location.activeCampaigns")}</div>
-          <div className="hq-card__value">{data.metrics.activeCampaignsAtLocation}</div>
+          <div className="hq-card__value">{formatCount(data.metrics.activeCampaignsAtLocation, locale)}</div>
         </div>
       </div>
     </PageShell>

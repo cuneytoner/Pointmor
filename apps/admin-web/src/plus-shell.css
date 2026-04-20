@@ -580,6 +580,11 @@
   color: #0a1628;
 }
 
+.metric-card__value--num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Tam ekran yükleme (oturum doğrulanıyor) */
 .admin-loading-root {
   min-height: 100vh;
@@ -905,9 +910,11 @@
 
 .data-table th,
 .data-table td {
-  padding: 0.65rem 0.75rem;
+  padding: 0.78rem 0.8rem;
   text-align: left;
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  vertical-align: middle;
+  line-height: 1.45;
 }
 
 .data-table th {
@@ -926,6 +933,11 @@
 .data-table__mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.8125rem;
+}
+
+.data-table__num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
 }
 
 .ui-badge {

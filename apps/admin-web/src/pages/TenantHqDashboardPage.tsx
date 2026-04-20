@@ -4,6 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { useTranslation } from "../hooks/useTranslation";
+import { formatCount, formatDateTimeLabel, formatPoints } from "../lib/formatters";
 import {
   fetchHqDashboard,
   type HqDashboardPayload,
@@ -21,10 +22,10 @@ import {
   type AutomationSummaryPayload,
 } from "../lib/tenant-automation-api";
 
-function fmtPct(n: number | null): string {
+function fmtPct(n: number | null, locale: string): string {
   if (n === null || Number.isNaN(n)) return "—";
   const sign = n > 0 ? "+" : "";
-  return `${sign}${n}%`;
+  return `${sign}${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(n)}%`;
 }
 
 function TrendBars(props: {
@@ -80,7 +81,7 @@ function ctaLabelForActionKind(
 }
 
 export function TenantHqDashboardPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const navigate = useNavigate();
   const { token } = useAuth();
   const { bootstrap } = useAdminDataContext();
@@ -278,21 +279,21 @@ export function TenantHqDashboardPage() {
       <div className="hq-summary-grid">
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.visits")}</div>
-          <div className="hq-card__value">{data.globalSummary.totalVisits}</div>
-          <div className="hq-card__delta">{fmtPct(data.globalSummary.deltaVisitsVsPrevPeriod)}</div>
+          <div className="hq-card__value">{formatCount(data.globalSummary.totalVisits, locale)}</div>
+          <div className="hq-card__delta">{fmtPct(data.globalSummary.deltaVisitsVsPrevPeriod, locale)}</div>
         </div>
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.points")}</div>
-          <div className="hq-card__value">{data.globalSummary.totalPointsIssued}</div>
+          <div className="hq-card__value">{formatPoints(data.globalSummary.totalPointsIssued, locale)}</div>
         </div>
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.redemptions")}</div>
-          <div className="hq-card__value">{data.globalSummary.totalRedemptions}</div>
-          <div className="hq-card__delta">{fmtPct(data.globalSummary.deltaRedemptionsVsPrevPeriod)}</div>
+          <div className="hq-card__value">{formatCount(data.globalSummary.totalRedemptions, locale)}</div>
+          <div className="hq-card__delta">{fmtPct(data.globalSummary.deltaRedemptionsVsPrevPeriod, locale)}</div>
         </div>
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.campaigns")}</div>
-          <div className="hq-card__value">{data.globalSummary.activeCampaigns}</div>
+          <div className="hq-card__value">{formatCount(data.globalSummary.activeCampaigns, locale)}</div>
         </div>
       </div>
 
@@ -368,8 +369,10 @@ export function TenantHqDashboardPage() {
             <>
               <p className="admin-app__card-text" style={{ marginBottom: "0.75rem" }}>
                 <strong>{t("hq.automation.mode")}:</strong> {autoSummary.settings.mode} ·{" "}
-                <strong>{t("hq.automation.maxDay")}:</strong> {autoSummary.settings.maxActionsPerDay} ·{" "}
-                <strong>{t("hq.automation.cooldown")}:</strong> {autoSummary.settings.cooldownMinutes}
+                <strong>{t("hq.automation.maxDay")}:</strong>{" "}
+                {formatCount(autoSummary.settings.maxActionsPerDay, locale)} ·{" "}
+                <strong>{t("hq.automation.cooldown")}:</strong>{" "}
+                {formatCount(autoSummary.settings.cooldownMinutes, locale)}
               </p>
               <h3 className="admin-app__card-title" style={{ fontSize: "1rem" }}>
                 {t("hq.automation.pendingTitle")}
@@ -461,14 +464,14 @@ export function TenantHqDashboardPage() {
               <tr>
                 <th>#</th>
                 <th>{t("hq.leaderboard.colBranch")}</th>
-                <th>{t("hq.leaderboard.colVisits")}</th>
+                <th className="data-table__num">{t("hq.leaderboard.colVisits")}</th>
                 <th />
               </tr>
             </thead>
             <tbody>
               {data.leaderboard.rows.map((row) => (
                 <tr key={row.branchId ?? "x"}>
-                  <td>{row.rank}</td>
+                  <td className="data-table__num">{formatCount(row.rank, locale)}</td>
                   <td>
                     {row.branchId ? (
                       <Link to={`/app/hq/locations/${encodeURIComponent(row.branchId)}`}>{row.name}</Link>
@@ -482,7 +485,7 @@ export function TenantHqDashboardPage() {
                       <span className="hq-badge hq-badge--watch">{t("hq.badge.watch")}</span>
                     ) : null}
                   </td>
-                  <td>{row.visits}</td>
+                  <td className="data-table__num">{formatCount(row.visits, locale)}</td>
                   <td />
                 </tr>
               ))}
@@ -541,7 +544,7 @@ export function TenantHqDashboardPage() {
               <li key={a.id} className="hq-anomaly">
                 <span className={`hq-pill hq-pill--${a.severity}`}>{a.severity}</span>
                 <code className="hq-anomaly__type">{a.type}</code>
-                <span className="data-table__muted">{new Date(a.createdAt).toLocaleString()}</span>
+                <span className="data-table__muted">{formatDateTimeLabel(a.createdAt, locale)}</span>
               </li>
             ))}
           </ul>
@@ -556,8 +559,8 @@ export function TenantHqDashboardPage() {
               <tr>
                 <th>{t("hq.campaigns.colName")}</th>
                 <th>{t("hq.campaigns.colScope")}</th>
-                <th>{t("hq.campaigns.colBonus")}</th>
-                <th>{t("hq.campaigns.colApps")}</th>
+                <th className="data-table__num">{t("hq.campaigns.colBonus")}</th>
+                <th className="data-table__num">{t("hq.campaigns.colApps")}</th>
               </tr>
             </thead>
             <tbody>
@@ -565,8 +568,8 @@ export function TenantHqDashboardPage() {
                 <tr key={c.campaignId}>
                   <td>{c.name}</td>
                   <td>{c.branchScope ? t("hq.campaigns.branchOnly") : t("hq.campaigns.allBranches")}</td>
-                  <td>{c.bonusPoints}</td>
-                  <td>{c.applications}</td>
+                  <td className="data-table__num">{formatPoints(c.bonusPoints, locale)}</td>
+                  <td className="data-table__num">{formatCount(c.applications, locale)}</td>
                 </tr>
               ))}
             </tbody>
@@ -583,7 +586,7 @@ export function TenantHqDashboardPage() {
                 <tr>
                   <th>{t("hq.campaigns.colName")}</th>
                   <th>{t("hq.campaigns.colLocation")}</th>
-                  <th>{t("hq.campaigns.colApps")}</th>
+                  <th className="data-table__num">{t("hq.campaigns.colApps")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -591,7 +594,7 @@ export function TenantHqDashboardPage() {
                   <tr key={`${r.campaignId}-${r.branchId ?? "n"}-${idx}`}>
                     <td>{r.name}</td>
                     <td>{r.branchName}</td>
-                    <td>{r.applications}</td>
+                    <td className="data-table__num">{formatCount(r.applications, locale)}</td>
                   </tr>
                 ))}
               </tbody>

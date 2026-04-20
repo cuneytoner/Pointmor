@@ -11,6 +11,7 @@ type ClaimListItemProps = {
   busy: boolean;
   busyApprove: boolean;
   busyReject: boolean;
+  formatPoints: (value: number) => string;
   showApprove?: boolean;
   showReject?: boolean;
   onApprove: () => void;
@@ -27,6 +28,7 @@ export function ClaimListItem({
   busy,
   busyApprove,
   busyReject,
+  formatPoints,
   showApprove = true,
   showReject = true,
   onApprove,
@@ -40,7 +42,7 @@ export function ClaimListItem({
           <ClaimStatusBadge label={pendingLabel} />
         </div>
         <p className="mt-1 text-xs text-slate-500">
-          {formatWhen(claim.createdAt)} · {pointsLabel}: {claim.pointsSpent}
+          {formatWhen(claim.createdAt)} · {pointsLabel}: {formatPoints(claim.pointsSpent)}
         </p>
       </div>
       {showApprove || showReject ? (

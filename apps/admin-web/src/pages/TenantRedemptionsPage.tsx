@@ -6,7 +6,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { useLocale } from "../contexts/LocaleContext";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
-import { toIntlLocale } from "../lib/locale-intl";
+import { formatCount, formatDateTimeLabel, formatPoints } from "../lib/formatters";
 import {
   getRedemptions,
   postRedemptionApprove,
@@ -63,11 +63,7 @@ export function TenantRedemptionsPage() {
 
   const loading = rows === null && !error;
 
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleString(toIntlLocale(locale), {
-      dateStyle: "short",
-      timeStyle: "short",
-    });
+  const fmt = (iso: string) => formatDateTimeLabel(iso, locale);
 
   const statusLabel = (s: string) => {
     const k = `tenantLoyalty.redemptions.status.${s}` as const;
@@ -171,7 +167,7 @@ export function TenantRedemptionsPage() {
               className={view === "pending" ? "admin-primary-btn" : "admin-secondary-btn"}
               onClick={() => setView("pending")}
             >
-              {t("tenantLoyalty.redemptions.filterPending")} ({pendingCount})
+              {t("tenantLoyalty.redemptions.filterPending")} ({formatCount(pendingCount, locale)})
             </button>
             <button
               type="button"
@@ -196,7 +192,7 @@ export function TenantRedemptionsPage() {
                   <tr>
                     <th>{t("tenantLoyalty.redemptions.columns.customer")}</th>
                     <th>{t("tenantLoyalty.redemptions.columns.reward")}</th>
-                    <th>{t("tenantLoyalty.redemptions.columns.points")}</th>
+                    <th className="data-table__num">{t("tenantLoyalty.redemptions.columns.points")}</th>
                     <th>{t("tenantLoyalty.redemptions.columns.status")}</th>
                     <th>{t("tenantLoyalty.redemptions.columns.when")}</th>
                     <th>{t("tenantLoyalty.redemptions.columns.actions")}</th>
@@ -224,7 +220,7 @@ export function TenantRedemptionsPage() {
                         </button>
                       </td>
                       <td>{r.reward.name}</td>
-                      <td className="data-table__mono">{r.pointsSpent}</td>
+                      <td className="data-table__num">{formatPoints(r.pointsSpent, locale)}</td>
                       <td>{statusLabel(r.status)}</td>
                       <td className="data-table__muted">{fmt(r.createdAt)}</td>
                       <td>
@@ -303,7 +299,7 @@ export function TenantRedemptionsPage() {
             <p className="admin-app__card-text">
               {detail.reward.name}{" "}
               <span className="data-table__muted">
-                · {t("tenantLoyalty.redemptions.detailPoints", { n: String(detail.pointsSpent) })}
+                · {t("tenantLoyalty.redemptions.detailPoints", { n: formatPoints(detail.pointsSpent, locale) })}
               </span>
             </p>
             <p className="admin-app__card-text">

@@ -1,10 +1,13 @@
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "../../hooks/useTranslation";
+import { useLocale } from "../../contexts/LocaleContext";
 import { useCustomerPwa } from "../../customer-pwa/CustomerPwaContext";
+import { formatPoints } from "../../lib/formatters";
 
 export function CustomerClaimPage() {
   const { rewardId = "" } = useParams<{ rewardId: string }>();
   const { t } = useTranslation();
+  const locale = useLocale();
   const { tenantSlug, data, claimReward, claimingId } = useCustomerPwa();
   if (!data) return null;
 
@@ -28,7 +31,7 @@ export function CustomerClaimPage() {
       <h1 className="customer-pwa__page-title">{t("customerPortal.claimTitle")}</h1>
       <p className="customer-pwa__claim-reward-name">{reward.name}</p>
       <p className="customer-pwa__muted">
-        {t("customerPortal.pointsCost", { n: String(reward.pointsCost) })}
+        {t("customerPortal.pointsCost", { n: formatPoints(reward.pointsCost, locale) })}
       </p>
 
       {pending ? (

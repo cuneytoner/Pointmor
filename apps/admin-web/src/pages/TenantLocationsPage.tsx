@@ -9,6 +9,7 @@ import {
   type TenantBranchDto,
 } from "../lib/tenant-branches-api";
 import { fetchTenantBranchMetrics } from "../lib/tenant-branch-metrics-api";
+import { formatCount } from "../lib/formatters";
 import { FORM_CONTROL_CLASS } from "../components/form";
 
 function addressToText(a: unknown): string {
@@ -22,7 +23,7 @@ function addressToText(a: unknown): string {
 }
 
 export function TenantLocationsPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { token } = useAuth();
   const { hasPermission } = usePermissions();
   const canManage = hasPermission("settings.manage");
@@ -146,7 +147,7 @@ export function TenantLocationsPage() {
           </p>
           {metrics.unassignedVisits > 0 ? (
             <p className="admin-app__card-text">
-              {t("tenantLocations.unassignedVisits", { n: String(metrics.unassignedVisits) })}
+              {t("tenantLocations.unassignedVisits", { n: formatCount(metrics.unassignedVisits, locale) })}
             </p>
           ) : null}
           <div className="data-table-wrap" style={{ marginTop: "0.75rem" }}>
@@ -154,14 +155,14 @@ export function TenantLocationsPage() {
               <thead>
                 <tr>
                   <th>{t("tenantLocations.colBranch")}</th>
-                  <th>{t("tenantLocations.colVisits7d")}</th>
+                  <th className="data-table__num">{t("tenantLocations.colVisits7d")}</th>
                 </tr>
               </thead>
               <tbody>
                 {metrics.branches.map((row) => (
                   <tr key={row.branchId}>
                     <td>{row.name}</td>
-                    <td>{row.visits}</td>
+                    <td className="data-table__num">{formatCount(row.visits, locale)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -6,19 +6,15 @@ import { PageShell } from "../components/PageShell";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
 import { downloadComplianceExport } from "../lib/compliance-api";
+import { formatCount, formatCurrencyValue, formatPercent } from "../lib/formatters";
 import {
   getGrowthOverview,
   type GrowthOverview,
   type ProductAnalyticsEventType,
 } from "../lib/tenant-product-analytics-api";
 
-function pct(n: number | null): string {
-  if (n === null || Number.isNaN(n)) return "—";
-  return `${Math.round(n * 1000) / 10}%`;
-}
-
 export function TenantGrowthPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { token } = useAuth();
   const { hasPermission } = usePermissions();
   const { bootstrap } = useAdminDataContext();
@@ -118,6 +114,7 @@ export function TenantGrowthPage() {
                       token,
                       "/summary/export/pdf?period=day",
                       "summary-day.pdf",
+                      locale,
                     ).catch(() => undefined);
                   }}
                 >
@@ -133,6 +130,7 @@ export function TenantGrowthPage() {
                       token,
                       "/summary/export/pdf?period=week",
                       "summary-week.pdf",
+                      locale,
                     ).catch(() => undefined);
                   }}
                 >
@@ -158,16 +156,16 @@ export function TenantGrowthPage() {
                 <thead>
                   <tr>
                     <th>{t("tenantLoyalty.growth.columns.step")}</th>
-                    <th>{t("tenantLoyalty.growth.columns.uniqueCustomers")}</th>
-                    <th>{t("tenantLoyalty.growth.columns.eventsApprox")}</th>
+                    <th className="data-table__num">{t("tenantLoyalty.growth.columns.uniqueCustomers")}</th>
+                    <th className="data-table__num">{t("tenantLoyalty.growth.columns.eventsApprox")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.funnel.steps.map((row) => (
                     <tr key={row.step}>
                       <td>{stepLabel(row.step)}</td>
-                      <td>{row.uniqueCustomers}</td>
-                      <td>{row.eventsApprox}</td>
+                      <td className="data-table__num">{formatCount(row.uniqueCustomers, locale)}</td>
+                      <td className="data-table__num">{formatCount(row.eventsApprox, locale)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -184,9 +182,9 @@ export function TenantGrowthPage() {
                 <thead>
                   <tr>
                     <th>{t("tenantLoyalty.growth.columns.transition")}</th>
-                    <th>{t("tenantLoyalty.growth.columns.sequentialUsers")}</th>
-                    <th>{t("tenantLoyalty.growth.columns.conversion")}</th>
-                    <th>{t("tenantLoyalty.growth.columns.dropOff")}</th>
+                    <th className="data-table__num">{t("tenantLoyalty.growth.columns.sequentialUsers")}</th>
+                    <th className="data-table__num">{t("tenantLoyalty.growth.columns.conversion")}</th>
+                    <th className="data-table__num">{t("tenantLoyalty.growth.columns.dropOff")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -195,9 +193,9 @@ export function TenantGrowthPage() {
                       <td>
                         {stepLabel(row.from)} → {stepLabel(row.to)}
                       </td>
-                      <td>{row.sequentialUsers}</td>
-                      <td>{pct(row.rate)}</td>
-                      <td>{pct(row.dropOff)}</td>
+                      <td className="data-table__num">{formatCount(row.sequentialUsers, locale)}</td>
+                      <td className="data-table__num">{formatPercent(row.rate, locale)}</td>
+                      <td className="data-table__num">{formatPercent(row.dropOff, locale)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -208,7 +206,7 @@ export function TenantGrowthPage() {
                 <strong>{t("tenantLoyalty.growth.biggestDropOff")}</strong>{" "}
                 {stepLabel(data.funnel.biggestDropOff.from)} →{" "}
                 {stepLabel(data.funnel.biggestDropOff.to)} (
-                {pct(data.funnel.biggestDropOff.dropOff)})
+                {formatPercent(data.funnel.biggestDropOff.dropOff, locale)})
               </p>
             )}
           </section>
@@ -221,11 +219,11 @@ export function TenantGrowthPage() {
             <p className="admin-app__card-text data-table__muted">{data.retention.definition}</p>
             <ul style={{ margin: "0.75rem 0 0", paddingLeft: "1.25rem" }}>
               <li>
-                {t("tenantLoyalty.growth.cohortSize")}: {data.retention.cohortSize}
+                {t("tenantLoyalty.growth.cohortSize")}: {formatCount(data.retention.cohortSize, locale)}
               </li>
-              <li>D1: {pct(data.retention.day1Rate)}</li>
-              <li>D3: {pct(data.retention.day3Rate)}</li>
-              <li>D7: {pct(data.retention.day7Rate)}</li>
+              <li>D1: {formatPercent(data.retention.day1Rate, locale)}</li>
+              <li>D3: {formatPercent(data.retention.day3Rate, locale)}</li>
+              <li>D7: {formatPercent(data.retention.day7Rate, locale)}</li>
             </ul>
             <p className="admin-app__card-text data-table__muted" style={{ marginTop: "0.75rem" }}>
               {t("tenantLoyalty.common.utcNote")}
@@ -240,19 +238,21 @@ export function TenantGrowthPage() {
             <ul style={{ margin: "0.5rem 0 0", paddingLeft: "1.25rem" }}>
               <li>
                 {t("tenantLoyalty.growth.redemptionCompleted")}:{" "}
-                {data.rewardUsage.redemptionCompletedCount}
+                {formatCount(data.rewardUsage.redemptionCompletedCount, locale)}
               </li>
               <li>
                 {t("tenantLoyalty.growth.rewardClaimedEvents")}:{" "}
-                {data.rewardUsage.rewardClaimedEvents}
+                {formatCount(data.rewardUsage.rewardClaimedEvents, locale)}
               </li>
               <li>
                 {t("tenantLoyalty.growth.rewardViewedEvents")}:{" "}
-                {data.rewardUsage.rewardViewedEvents}
+                {formatCount(data.rewardUsage.rewardViewedEvents, locale)}
               </li>
               <li>
                 {t("tenantLoyalty.growth.claimPerView")}:{" "}
-                {data.rewardUsage.claimPerViewApprox ?? "—"}
+                {data.rewardUsage.claimPerViewApprox === null
+                  ? "—"
+                  : formatCurrencyValue(data.rewardUsage.claimPerViewApprox, locale)}
               </li>
             </ul>
           </section>

@@ -7,11 +7,12 @@ import { Badge } from "../components/ui/Badge";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
 import { downloadComplianceExport } from "../lib/compliance-api";
+import { formatCount, formatPoints } from "../lib/formatters";
 import { getLoyaltySummary, type LoyaltySummary } from "../lib/tenant-loyalty-api";
 
 /** Kiracı — sadakat özeti (Phase 2). */
 export function TenantDashboardPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { token } = useAuth();
   const { hasPermission } = usePermissions();
   const { auth, bootstrap } = useAdminDataContext();
@@ -58,23 +59,23 @@ export function TenantDashboardPage() {
     ? [
         {
           k: t("tenantLoyalty.dash.totalCustomers"),
-          v: String(summary.totalCustomers),
+          v: formatCount(summary.totalCustomers, locale),
         },
         {
           k: t("tenantLoyalty.dash.visitsToday"),
-          v: String(summary.visitsToday),
+          v: formatCount(summary.visitsToday, locale),
         },
         {
           k: t("tenantLoyalty.dash.pointsIssuedToday"),
-          v: String(summary.pointsIssuedToday),
+          v: formatPoints(summary.pointsIssuedToday, locale),
         },
         {
           k: t("tenantLoyalty.dash.redemptionsToday"),
-          v: String(summary.redemptionsToday),
+          v: formatCount(summary.redemptionsToday, locale),
         },
         {
           k: t("tenantLoyalty.dash.activeCampaigns"),
-          v: String(summary.activeCampaigns),
+          v: formatCount(summary.activeCampaigns, locale),
         },
       ]
     : [];
@@ -108,7 +109,7 @@ export function TenantDashboardPage() {
           {metrics.map((m) => (
             <div key={m.k} className="metric-card">
               <div className="metric-card__label">{m.k}</div>
-              <div className="metric-card__value">{m.v}</div>
+              <div className="metric-card__value metric-card__value--num">{m.v}</div>
             </div>
           ))}
         </div>
@@ -166,7 +167,12 @@ export function TenantDashboardPage() {
                   onClick={() => {
                     if (!token?.trim() || !canComplianceSummary) return;
                     if (!window.confirm(t("compliance.exportConfirmSummaryPdf"))) return;
-                    downloadComplianceExport(token, "/summary/export/pdf?period=day", "summary-day.pdf").catch(
+                    downloadComplianceExport(
+                      token,
+                      "/summary/export/pdf?period=day",
+                      "summary-day.pdf",
+                      locale,
+                    ).catch(
                       () => undefined,
                     );
                   }}
@@ -185,6 +191,7 @@ export function TenantDashboardPage() {
                       token,
                       "/summary/export/pdf?period=week",
                       "summary-week.pdf",
+                      locale,
                     ).catch(() => undefined);
                   }}
                 >
@@ -202,7 +209,12 @@ export function TenantDashboardPage() {
                   onClick={() => {
                     if (!token?.trim() || !canComplianceFull) return;
                     if (!window.confirm(t("compliance.exportConfirmAuditCsv"))) return;
-                    downloadComplianceExport(token, "/audit/export/csv", "audit-export.csv").catch(
+                    downloadComplianceExport(
+                      token,
+                      "/audit/export/csv",
+                      "audit-export.csv",
+                      locale,
+                    ).catch(
                       () => undefined,
                     );
                   }}
@@ -217,7 +229,12 @@ export function TenantDashboardPage() {
                   onClick={() => {
                     if (!token?.trim() || !canComplianceFull) return;
                     if (!window.confirm(t("compliance.exportConfirmAuditPdf"))) return;
-                    downloadComplianceExport(token, "/audit/export/pdf", "audit-summary.pdf").catch(
+                    downloadComplianceExport(
+                      token,
+                      "/audit/export/pdf",
+                      "audit-summary.pdf",
+                      locale,
+                    ).catch(
                       () => undefined,
                     );
                   }}
@@ -235,7 +252,12 @@ export function TenantDashboardPage() {
                 onClick={() => {
                   if (!token?.trim() || !canComplianceFull) return;
                   if (!window.confirm(t("compliance.exportConfirmAnomalyPdf"))) return;
-                  downloadComplianceExport(token, "/anomalies/export/pdf", "anomalies.pdf").catch(
+                  downloadComplianceExport(
+                    token,
+                    "/anomalies/export/pdf",
+                    "anomalies.pdf",
+                    locale,
+                  ).catch(
                     () => undefined,
                   );
                 }}

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { useTranslation } from "../hooks/useTranslation";
+import { useLocale } from "../contexts/LocaleContext";
+import { formatPoints } from "../lib/formatters";
 import { getNextRewardPreview } from "./loyalty-preview";
 import type { CustomerPortalDashboard } from "../lib/customer-portal-api";
 import "./visit-success-sheet.css";
@@ -54,6 +56,7 @@ export function VisitSuccessSheet({
   onDismiss,
 }: VisitSuccessSheetProps) {
   const { t } = useTranslation();
+  const locale = useLocale();
   const base = `/c/${encodeURIComponent(tenantSlug)}`;
   const preview = useMemo(() => getNextRewardPreview(data), [data]);
   const animatedGain = useAnimatedInt(gain, 520, gain > 0);
@@ -96,7 +99,7 @@ export function VisitSuccessSheet({
         </p>
         <p className="visit-success__points" aria-live="polite">
           <span className="visit-success__plus">+</span>
-          <span className="visit-success__points-num">{animatedGain}</span>
+          <span className="visit-success__points-num">{formatPoints(animatedGain, locale)}</span>
           <span className="visit-success__pts-label">{t("customerPortal.visitSuccess.ptsUnit")}</span>
         </p>
         <p className="visit-success__sub">{t("customerPortal.visitSuccess.sub")}</p>
@@ -122,8 +125,8 @@ export function VisitSuccessSheet({
             </div>
             <p className="visit-success__fraction">
               {t("customerPortal.visitSuccess.progressFraction", {
-                current: String(preview.pointsBalance),
-                target: String(preview.reward.pointsCost),
+                current: formatPoints(preview.pointsBalance, locale),
+                target: formatPoints(preview.reward.pointsCost, locale),
               })}
             </p>
             {oneStepAway ? (

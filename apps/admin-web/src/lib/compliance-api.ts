@@ -1,13 +1,17 @@
 import { getApiBaseUrl } from "./api-base";
+import type { LocaleCode } from "../i18n/locale";
 
 export async function downloadComplianceExport(
   token: string,
   pathWithQuery: string,
   filename: string,
+  locale?: LocaleCode,
 ): Promise<void> {
   const base = getApiBaseUrl().replace(/\/$/, "");
   const path = pathWithQuery.startsWith("/") ? pathWithQuery : `/${pathWithQuery}`;
-  const res = await fetch(`${base}${path}`, {
+  const requestUrl = new URL(`${base}${path}`);
+  if (locale) requestUrl.searchParams.set("lang", locale);
+  const res = await fetch(requestUrl.toString(), {
     headers: { Authorization: `Bearer ${token}` },
     credentials: "include",
   });

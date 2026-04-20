@@ -5,6 +5,7 @@ import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
+import { formatPoints } from "../lib/formatters";
 import {
   FORM_FIELD_GRID_FULL_CLASS,
   FormField,
@@ -48,7 +49,7 @@ function percentToBp(percent: number): number {
 }
 
 export function TenantRewardsPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { token } = useAuth();
   const { hasPermission } = usePermissions();
   const canManageRewards = hasPermission("rewards.manage");
@@ -207,7 +208,7 @@ export function TenantRewardsPage() {
                 <tr>
                   <th>{t("tenantLoyalty.rewards.name")}</th>
                   <th>{t("tenantLoyalty.rewards.type")}</th>
-                  <th>{t("tenantLoyalty.rewards.pointsCost")}</th>
+                  <th className="data-table__num">{t("tenantLoyalty.rewards.pointsCost")}</th>
                   <th>{t("tenantLoyalty.rewards.active")}</th>
                   <th />
                 </tr>
@@ -219,7 +220,7 @@ export function TenantRewardsPage() {
                     <td>
                       <Badge tone="neutral">{rewardTypeLabel(r.rewardType, t)}</Badge>
                     </td>
-                    <td>{r.pointsCost}</td>
+                    <td className="data-table__num">{formatPoints(r.pointsCost, locale)}</td>
                     <td>
                       {canManageRewards ? (
                         <button

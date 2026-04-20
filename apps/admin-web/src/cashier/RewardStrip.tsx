@@ -14,6 +14,7 @@ type RewardStripProps = {
   onSelectReward: (id: string | null) => void;
   /** Bekleyen talep nedeniyle strip’ten çıkarılan ödüller için kısa not */
   footnote?: string | null;
+  formatPoints: (value: number) => string;
 };
 
 export function RewardStrip({
@@ -29,6 +30,7 @@ export function RewardStrip({
   balance,
   onSelectReward,
   footnote,
+  formatPoints,
 }: RewardStripProps) {
   return (
     <section
@@ -61,7 +63,7 @@ export function RewardStrip({
               >
                 <p className="font-semibold text-slate-900">{r.name}</p>
                 <p className="mt-1 text-xs text-slate-600">
-                  {costLabel}: {r.pointsCost} {pointsSuffix}
+                  {costLabel}: {formatPoints(r.pointsCost)} {pointsSuffix}
                 </p>
                 <p className="mt-2 text-xs font-medium">
                   {affordable ? (

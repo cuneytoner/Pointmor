@@ -4,18 +4,16 @@ import { useAuth } from "../contexts/AuthContext";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { EmptyState } from "../components/ui/EmptyState";
-import { useLocale } from "../contexts/LocaleContext";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
-import { toIntlLocale } from "../lib/locale-intl";
 import { getApiBaseUrl } from "../lib/api-base";
 import { downloadComplianceExport } from "../lib/compliance-api";
+import { formatCurrencyValue, formatDateTimeLabel, formatPoints } from "../lib/formatters";
 import { getCustomerDetail, type CustomerDetail } from "../lib/tenant-loyalty-api";
 
 export function TenantCustomerDetailPage() {
   const { customerId } = useParams<{ customerId: string }>();
-  const { t } = useTranslation();
-  const locale = useLocale();
+  const { t, locale } = useTranslation();
   const { token } = useAuth();
   const { bootstrap } = useAdminDataContext();
   const { hasPermission } = usePermissions();
@@ -49,11 +47,7 @@ export function TenantCustomerDetailPage() {
     return label === k ? s : label;
   };
 
-  const fmtDate = (iso: string) =>
-    new Date(iso).toLocaleString(toIntlLocale(locale), {
-      dateStyle: "short",
-      timeStyle: "short",
-    });
+  const fmtDate = (iso: string) => formatDateTimeLabel(iso, locale);
 
   return (
     <PageShell
@@ -76,7 +70,9 @@ export function TenantCustomerDetailPage() {
           <div className="metric-grid metric-grid--3" style={{ marginBottom: "1.25rem" }}>
             <div className="metric-card">
               <div className="metric-card__label">{t("tenantLoyalty.customerDetail.balance")}</div>
-              <div className="metric-card__value">{data.pointsBalance}</div>
+              <div className="metric-card__value metric-card__value--num">
+                {formatPoints(data.pointsBalance, locale)}
+              </div>
             </div>
           </div>
 
@@ -92,20 +88,20 @@ export function TenantCustomerDetailPage() {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>{t("tenantLoyalty.customerDetail.visitAmount")}</th>
-                      <th>{t("tenantLoyalty.customerDetail.visitBase")}</th>
-                      <th>{t("tenantLoyalty.customerDetail.visitBonus")}</th>
-                      <th>{t("tenantLoyalty.customerDetail.visitTotal")}</th>
+                      <th className="data-table__num">{t("tenantLoyalty.customerDetail.visitAmount")}</th>
+                      <th className="data-table__num">{t("tenantLoyalty.customerDetail.visitBase")}</th>
+                      <th className="data-table__num">{t("tenantLoyalty.customerDetail.visitBonus")}</th>
+                      <th className="data-table__num">{t("tenantLoyalty.customerDetail.visitTotal")}</th>
                       <th>{t("tenantLoyalty.customerDetail.ledgerWhen")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.recentVisits.map((v) => (
                       <tr key={v.id}>
-                        <td>{v.amount}</td>
-                        <td>{v.basePointsEarned}</td>
-                        <td>{v.bonusPointsEarned}</td>
-                        <td>{v.pointsEarned}</td>
+                        <td className="data-table__num">{formatCurrencyValue(v.amount, locale)}</td>
+                        <td className="data-table__num">{formatPoints(v.basePointsEarned, locale)}</td>
+                        <td className="data-table__num">{formatPoints(v.bonusPointsEarned, locale)}</td>
+                        <td className="data-table__num">{formatPoints(v.pointsEarned, locale)}</td>
                         <td className="data-table__muted">{fmtDate(v.createdAt)}</td>
                       </tr>
                     ))}
@@ -129,7 +125,7 @@ export function TenantCustomerDetailPage() {
                     <tr>
                       <th>{t("tenantLoyalty.customerDetail.claimReward")}</th>
                       <th>{t("tenantLoyalty.customerDetail.claimStatus")}</th>
-                      <th>{t("tenantLoyalty.customerDetail.claimPoints")}</th>
+                      <th className="data-table__num">{t("tenantLoyalty.customerDetail.claimPoints")}</th>
                       <th>{t("tenantLoyalty.customerDetail.ledgerWhen")}</th>
                     </tr>
                   </thead>
@@ -138,7 +134,7 @@ export function TenantCustomerDetailPage() {
                       <tr key={c.id}>
                         <td>{c.reward.name}</td>
                         <td>{redemptionStatusLabel(c.status)}</td>
-                        <td className="data-table__mono">{c.pointsSpent}</td>
+                        <td className="data-table__num">{formatPoints(c.pointsSpent, locale)}</td>
                         <td className="data-table__muted">{fmtDate(c.createdAt)}</td>
                       </tr>
                     ))}
@@ -160,7 +156,7 @@ export function TenantCustomerDetailPage() {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>{t("tenantLoyalty.customerDetail.ledgerPoints")}</th>
+                      <th className="data-table__num">{t("tenantLoyalty.customerDetail.ledgerPoints")}</th>
                       <th>{t("tenantLoyalty.customerDetail.ledgerSource")}</th>
                       <th>{t("tenantLoyalty.customerDetail.ledgerWhen")}</th>
                     </tr>
@@ -168,7 +164,7 @@ export function TenantCustomerDetailPage() {
                   <tbody>
                     {data.recentLedger.map((l) => (
                       <tr key={l.id}>
-                        <td className="data-table__mono">{l.points}</td>
+                        <td className="data-table__num">{formatPoints(l.points, locale)}</td>
                         <td>{l.source}</td>
                         <td className="data-table__muted">{fmtDate(l.createdAt)}</td>
                       </tr>
@@ -199,6 +195,7 @@ export function TenantCustomerDetailPage() {
                         token,
                         `/tenant/customers/${customerId}/gdpr-export`,
                         `customer-${customerId}-export.json`,
+                        locale,
                       )
                         .catch(() => setComplianceMsg(t("compliance.exportFailed")))
                         .finally(() => setComplianceBusy(false));

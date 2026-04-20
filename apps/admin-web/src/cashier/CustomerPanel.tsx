@@ -29,6 +29,7 @@ type CustomerPanelProps = {
   quickCreateBusy: boolean;
   /** customers.create yoksa hızlı kayıt gizlenir */
   allowQuickCreate?: boolean;
+  formatPoints: (value: number) => string;
 };
 
 export function CustomerPanel({
@@ -58,6 +59,7 @@ export function CustomerPanel({
   onQuickCreateSubmit,
   quickCreateBusy,
   allowQuickCreate = true,
+  formatPoints,
 }: CustomerPanelProps) {
   const displaySelected =
     selectedCustomer ??
@@ -99,7 +101,7 @@ export function CustomerPanel({
           <p className="text-lg font-semibold text-slate-900">{displaySelected.name}</p>
           <p className="text-sm text-slate-600">{displaySelected.phone}</p>
           <p className="mt-1 text-sm font-medium text-indigo-900">
-            {(displaySelected.loyaltyAccount?.pointsBalance ?? 0).toLocaleString()}{" "}
+            {formatPoints(displaySelected.loyaltyAccount?.pointsBalance ?? 0)}{" "}
             {pointsSuffix}
           </p>
         </div>
@@ -152,7 +154,7 @@ export function CustomerPanel({
                     <span className="font-medium text-slate-900">{c.name}</span>
                     <span className="text-slate-600">{c.phone}</span>
                     <span className="text-xs text-slate-500">
-                      {(c.loyaltyAccount?.pointsBalance ?? 0).toLocaleString()}{" "}
+                      {formatPoints(c.loyaltyAccount?.pointsBalance ?? 0)}{" "}
                       {pointsSuffix}
                     </span>
                   </button>

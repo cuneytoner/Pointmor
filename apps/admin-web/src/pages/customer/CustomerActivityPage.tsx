@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useLocale } from "../../contexts/LocaleContext";
-import { toIntlLocale } from "../../lib/locale-intl";
 import { useCustomerPwa } from "../../customer-pwa/CustomerPwaContext";
+import { formatDateTimeLabel, formatPoints } from "../../lib/formatters";
 
 type Filter = "all" | "earned" | "redeemed";
 
@@ -12,11 +12,7 @@ export function CustomerActivityPage() {
   const { data } = useCustomerPwa();
   const [filter, setFilter] = useState<Filter>("all");
 
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleString(toIntlLocale(locale), {
-      dateStyle: "short",
-      timeStyle: "short",
-    });
+  const fmt = (iso: string) => formatDateTimeLabel(iso, locale);
 
   const rows = useMemo(() => {
     type Row = { id: string; label: string; points: number; at: string; kind: "earn" | "redeem" };
@@ -87,7 +83,7 @@ export function CustomerActivityPage() {
                 }
               >
                 {row.points > 0 ? "+" : ""}
-                {row.points}
+                {formatPoints(row.points, locale)}
               </div>
             </li>
           ))
