@@ -3760,6 +3760,11 @@ a.admin-secondary-btn:hover {
   line-height: 1.15;
 }
 
+.hq-card .hq-card__value--num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
 .hq-card .hq-card__delta {
   margin-top: 0.35rem;
   font-size: 0.8125rem;

@@ -2,11 +2,13 @@ import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { useTranslation } from "../hooks/useTranslation";
+import { toIntlLocale } from "../lib/locale-intl";
 
 export function PlansPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { bootstrap } = useAdminDataContext();
   const plans = bootstrap?.plans ?? [];
+  const intlLocale = toIntlLocale(locale);
 
   if (!bootstrap) {
     return (
@@ -48,8 +50,16 @@ export function PlansPage() {
             <p className="plan-card__price">
               <strong>
                 {p.priceCents === 0
-                  ? "€0"
-                  : `€${(p.priceCents / 100).toFixed(2)}`}
+                  ? new Intl.NumberFormat(intlLocale, {
+                      style: "currency",
+                      currency: "EUR",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    }).format(0)
+                  : new Intl.NumberFormat(intlLocale, {
+                      style: "currency",
+                      currency: "EUR",
+                    }).format(p.priceCents / 100)}
               </strong>
               <span className="plan-card__cadence">
                 {p.interval === "week_trial"

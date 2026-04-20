@@ -279,21 +279,29 @@ export function TenantHqDashboardPage() {
       <div className="hq-summary-grid">
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.visits")}</div>
-          <div className="hq-card__value">{formatCount(data.globalSummary.totalVisits, locale)}</div>
+          <div className="hq-card__value hq-card__value--num">
+            {formatCount(data.globalSummary.totalVisits, locale)}
+          </div>
           <div className="hq-card__delta">{fmtPct(data.globalSummary.deltaVisitsVsPrevPeriod, locale)}</div>
         </div>
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.points")}</div>
-          <div className="hq-card__value">{formatPoints(data.globalSummary.totalPointsIssued, locale)}</div>
+          <div className="hq-card__value hq-card__value--num">
+            {formatPoints(data.globalSummary.totalPointsIssued, locale)}
+          </div>
         </div>
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.redemptions")}</div>
-          <div className="hq-card__value">{formatCount(data.globalSummary.totalRedemptions, locale)}</div>
+          <div className="hq-card__value hq-card__value--num">
+            {formatCount(data.globalSummary.totalRedemptions, locale)}
+          </div>
           <div className="hq-card__delta">{fmtPct(data.globalSummary.deltaRedemptionsVsPrevPeriod, locale)}</div>
         </div>
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.campaigns")}</div>
-          <div className="hq-card__value">{formatCount(data.globalSummary.activeCampaigns, locale)}</div>
+          <div className="hq-card__value hq-card__value--num">
+            {formatCount(data.globalSummary.activeCampaigns, locale)}
+          </div>
         </div>
       </div>
 

@@ -25,7 +25,7 @@ function buildLoyaltyTeaserCopy(
     const body =
       r0.description && String(r0.description).trim()
         ? String(r0.description).trim().slice(0, 220)
-        : `${r0.pointsCost} pts`;
+        : null;
     return { title: r0.name, body };
   }
   return { title: null, body: null };

@@ -71,19 +71,27 @@ export function TenantHqLocationPage() {
       <div className="hq-summary-grid">
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.visits")}</div>
-          <div className="hq-card__value">{formatCount(data.metrics.visits, locale)}</div>
+          <div className="hq-card__value hq-card__value--num">
+            {formatCount(data.metrics.visits, locale)}
+          </div>
         </div>
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.points")}</div>
-          <div className="hq-card__value">{formatPoints(data.metrics.pointsIssued, locale)}</div>
+          <div className="hq-card__value hq-card__value--num">
+            {formatPoints(data.metrics.pointsIssued, locale)}
+          </div>
         </div>
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.kpi.redemptions")}</div>
-          <div className="hq-card__value">{formatCount(data.metrics.redemptions, locale)}</div>
+          <div className="hq-card__value hq-card__value--num">
+            {formatCount(data.metrics.redemptions, locale)}
+          </div>
         </div>
         <div className="admin-app__card hq-card">
           <div className="hq-card__label">{t("hq.location.activeCampaigns")}</div>
-          <div className="hq-card__value">{formatCount(data.metrics.activeCampaignsAtLocation, locale)}</div>
+          <div className="hq-card__value hq-card__value--num">
+            {formatCount(data.metrics.activeCampaignsAtLocation, locale)}
+          </div>
         </div>
       </div>
     </PageShell>

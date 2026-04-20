@@ -12,6 +12,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useLocaleActions } from "../../contexts/LocaleContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import { getPublicMenu, type PublicMenuPayload } from "../../lib/public-menu-api";
+import { formatPoints } from "../../lib/formatters";
 import {
   resolveLanguage,
   resolveUiLocale,
@@ -413,7 +414,9 @@ export function CustomerMenuPage() {
                   <ul className="customer-menu-page__list" role="list">
                     {cat.items.map((it) => {
                       const est = estimatePointsFromPrice(it.price, pointsDiv);
-                      const hint = t("publicMenu.pointsHint", { n: est });
+                      const hint = t("publicMenu.pointsHint", {
+                        n: formatPoints(est, locale),
+                      });
                       return (
                         <li key={it.id} className="customer-menu-page__list-item">
                           <MenuItemCard

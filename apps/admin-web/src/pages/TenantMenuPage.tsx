@@ -4,6 +4,7 @@ import { PageShell } from "../components/PageShell";
 import { FormField, NumberField, SelectField, TextField } from "../components/form";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
+import { toIntlLocale } from "../lib/locale-intl";
 import {
   deleteMenuCategory,
   deleteMenuItem,
@@ -22,6 +23,17 @@ function majorFromMinor(n: number): string {
   return (n / 100).toFixed(2);
 }
 
+function formatMoneyFromMinor(n: number, currency: string, localeTag: string): string {
+  try {
+    return new Intl.NumberFormat(localeTag, {
+      style: "currency",
+      currency: currency.length === 3 ? currency : "EUR",
+    }).format(n / 100);
+  } catch {
+    return `${majorFromMinor(n)} ${currency}`;
+  }
+}
+
 function parseMajorToMinor(s: string): number | null {
   const x = Number(String(s).replace(",", "."));
   if (!Number.isFinite(x) || x < 0) return null;
@@ -29,7 +41,7 @@ function parseMajorToMinor(s: string): number | null {
 }
 
 export function TenantMenuPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { token } = useAuth();
   const { hasPermission } = usePermissions();
   const canManageMenu = hasPermission("menu.manage");
@@ -58,6 +70,7 @@ export function TenantMenuPage() {
   const [itemOrder, setItemOrder] = useState("0");
   const [itemActive, setItemActive] = useState(true);
   const [savingItem, setSavingItem] = useState(false);
+  const intlLocale = toIntlLocale(locale);
 
   const load = useCallback(() => {
     if (!token) return;
@@ -313,7 +326,7 @@ export function TenantMenuPage() {
                     <td>{it.name}</td>
                     <td>{cat?.name ?? it.categoryId}</td>
                     <td>
-                      {majorFromMinor(it.price)} {it.currency ?? defaultCurrency}
+                      {formatMoneyFromMinor(it.price, it.currency ?? defaultCurrency, intlLocale)}
                     </td>
                     <td>{it.sortOrder}</td>
                     <td>{it.isActive ? "✓" : "—"}</td>

@@ -25,6 +25,7 @@ import {
   summarizePayloadForCsv,
   summarizePayloadForPdfLine,
 } from "../lib/export-redaction.js";
+import { formatCountForLocale, formatPointsForLocale } from "../lib/number-format.js";
 
 function requireTenantId(
   req: { authSession?: SessionPayload },
@@ -238,16 +239,11 @@ function formatSummaryWindow(startIso: string, endIso: string, locale: ReportLoc
 }
 
 function formatCountValue(value: number, locale: ReportLocale): string {
-  return new Intl.NumberFormat(PDF_LOCALE_TAG[locale], {
-    maximumFractionDigits: 0,
-  }).format(value);
+  return formatCountForLocale(value, PDF_LOCALE_TAG[locale]);
 }
 
 function formatPointsValue(value: number, locale: ReportLocale): string {
-  return new Intl.NumberFormat(PDF_LOCALE_TAG[locale], {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
-  }).format(value);
+  return formatPointsForLocale(value, PDF_LOCALE_TAG[locale]);
 }
 
 const EXPORT_RATE = {
