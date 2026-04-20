@@ -2,6 +2,7 @@ import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { useTranslation } from "../hooks/useTranslation";
+import { formatCurrencyFromMinor } from "../lib/currency-format";
 import { toIntlLocale } from "../lib/locale-intl";
 
 export function PlansPage() {
@@ -49,17 +50,7 @@ export function PlansPage() {
             </div>
             <p className="plan-card__price">
               <strong>
-                {p.priceCents === 0
-                  ? new Intl.NumberFormat(intlLocale, {
-                      style: "currency",
-                      currency: "EUR",
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    }).format(0)
-                  : new Intl.NumberFormat(intlLocale, {
-                      style: "currency",
-                      currency: "EUR",
-                    }).format(p.priceCents / 100)}
+                {formatCurrencyFromMinor(p.priceCents, "EUR", intlLocale)}
               </strong>
               <span className="plan-card__cadence">
                 {p.interval === "week_trial"

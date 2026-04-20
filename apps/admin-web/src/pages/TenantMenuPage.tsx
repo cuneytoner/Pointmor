@@ -4,6 +4,7 @@ import { PageShell } from "../components/PageShell";
 import { FormField, NumberField, SelectField, TextField } from "../components/form";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
+import { formatCurrencyFromMinor } from "../lib/currency-format";
 import { toIntlLocale } from "../lib/locale-intl";
 import {
   deleteMenuCategory,
@@ -21,17 +22,6 @@ import { getStoreSettings } from "../lib/store-settings-api";
 
 function majorFromMinor(n: number): string {
   return (n / 100).toFixed(2);
-}
-
-function formatMoneyFromMinor(n: number, currency: string, localeTag: string): string {
-  try {
-    return new Intl.NumberFormat(localeTag, {
-      style: "currency",
-      currency: currency.length === 3 ? currency : "EUR",
-    }).format(n / 100);
-  } catch {
-    return `${majorFromMinor(n)} ${currency}`;
-  }
 }
 
 function parseMajorToMinor(s: string): number | null {
@@ -326,7 +316,7 @@ export function TenantMenuPage() {
                     <td>{it.name}</td>
                     <td>{cat?.name ?? it.categoryId}</td>
                     <td>
-                      {formatMoneyFromMinor(it.price, it.currency ?? defaultCurrency, intlLocale)}
+                      {formatCurrencyFromMinor(it.price, it.currency ?? defaultCurrency, intlLocale)}
                     </td>
                     <td>{it.sortOrder}</td>
                     <td>{it.isActive ? "✓" : "—"}</td>

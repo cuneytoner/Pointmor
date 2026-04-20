@@ -1,5 +1,7 @@
 # Demo deployment runbook (Pointmor)
 
+> Bu runbook **demo** kullanımına yöneliktir. Production operasyonu için [`40-guide-008-production-runbook.md`](./40-guide-008-production-runbook.md) kullanın.
+
 Kısa giriş (aynı konu): [`demo-deployment-runbook.md`](./demo-deployment-runbook.md).
 
 Debian VM + Docker Compose + isteğe bağlı Cloudflare Tunnel. Ayrıntılı bağlam: [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md).

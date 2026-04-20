@@ -1,0 +1,114 @@
+name: Release images
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+concurrency:
+  group: release-images-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      API_IMAGE: ghcr.io/${{ github.repository_owner }}/pointmor-api
+      ADMIN_IMAGE: ghcr.io/${{ github.repository_owner }}/pointmor-admin-web
+    outputs:
+      api_digest: ${{ steps.build_api.outputs.digest }}
+      admin_digest: ${{ steps.build_admin.outputs.digest }}
+      release_sha: ${{ steps.meta.outputs.release_sha }}
+      api_sha_tag: ${{ steps.meta.outputs.api_sha_tag }}
+      admin_sha_tag: ${{ steps.meta.outputs.admin_sha_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve release metadata
+        id: meta
+        run: |
+          set -euo pipefail
+          RELEASE_SHA="${GITHUB_SHA}"
+          SHORT_SHA="$(printf '%s' "$RELEASE_SHA" | cut -c1-12)"
+          echo "release_sha=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
+          echo "api_sha_tag=${API_IMAGE}:sha-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "admin_sha_tag=${ADMIN_IMAGE}:sha-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push API image
+        id: build_api
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.api_sha_tag }}
+            ${{ env.API_IMAGE }}:sha-${{ github.sha }}
+          provenance: true
+          sbom: true
+
+      - name: Build and push admin-web image
+        id: build_admin
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/admin-web/Dockerfile
+          build-args: |
+            VITE_API_BASE_URL=https://api.example.com
+            VITE_ADMIN_SESSION_COOKIES_ONLY=true
+            VITE_CUSTOMER_SESSION_COOKIES_ONLY=true
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.admin_sha_tag }}
+            ${{ env.ADMIN_IMAGE }}:sha-${{ github.sha }}
+          provenance: true
+          sbom: true
+
+      - name: Generate release manifest
+        run: |
+          set -euo pipefail
+          mkdir -p .release
+          cat > .release/release-manifest.json <<EOF
+          {
+            "release_sha": "${{ steps.meta.outputs.release_sha }}",
+            "source_ref": "${{ github.ref }}",
+            "api_image": "${{ steps.meta.outputs.api_sha_tag }}@${{ steps.build_api.outputs.digest }}",
+            "admin_image": "${{ steps.meta.outputs.admin_sha_tag }}@${{ steps.build_admin.outputs.digest }}",
+            "run_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          }
+          EOF
+
+      - name: Upload release manifest artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-manifest-${{ github.sha }}
+          path: .release/release-manifest.json
+          if-no-files-found: error
+
+      - name: Job summary
+        run: |
+          {
+            echo "## Release images"
+            echo "- release_sha: \`${{ steps.meta.outputs.release_sha }}\`"
+            echo "- api: \`${{ steps.meta.outputs.api_sha_tag }}@${{ steps.build_api.outputs.digest }}\`"
+            echo "- admin: \`${{ steps.meta.outputs.admin_sha_tag }}@${{ steps.build_admin.outputs.digest }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

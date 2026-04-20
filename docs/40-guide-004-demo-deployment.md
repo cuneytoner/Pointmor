@@ -1,5 +1,7 @@
 # Demo deployment (Docker Compose + Cloudflare Tunnel)
 
+> Bu doküman **yalnızca demo ortamı** içindir. Production için: [`40-guide-006-production-env.md`](./40-guide-006-production-env.md), [`40-guide-007-production-deployment.md`](./40-guide-007-production-deployment.md), [`40-guide-008-production-runbook.md`](./40-guide-008-production-runbook.md).
+
 **Kısa operasyon runbook (checklist):** [`40-guide-005-demo-deployment-runbook.md`](./40-guide-005-demo-deployment-runbook.md)
 
 Pre-alpha demo ortamı: Debian VM üzerinde Docker Compose, PostgreSQL ayrı volume, dış erişim için Cloudflare Tunnel. **Dev veritabanı ile aynı instance kullanılmamalıdır.**

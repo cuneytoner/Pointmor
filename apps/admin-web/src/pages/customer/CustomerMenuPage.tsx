@@ -11,6 +11,7 @@ import {
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useLocaleActions } from "../../contexts/LocaleContext";
 import { useTranslation } from "../../hooks/useTranslation";
+import { formatCurrencyFromMinor } from "../../lib/currency-format";
 import { getPublicMenu, type PublicMenuPayload } from "../../lib/public-menu-api";
 import { formatPoints } from "../../lib/formatters";
 import {
@@ -19,17 +20,6 @@ import {
   tenantLanguageStorageKey,
 } from "../../lib/resolveLanguage";
 import "./customer-menu.css";
-
-function formatMoney(minor: number, currency: string, locale: string): string {
-  try {
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: currency.length === 3 ? currency : "EUR",
-    }).format(minor / 100);
-  } catch {
-    return `${(minor / 100).toFixed(2)} ${currency}`;
-  }
-}
 
 function estimatePointsFromPrice(priceMinor: number, pointsPerMajorMinor: number): number {
   const div = pointsPerMajorMinor > 0 ? pointsPerMajorMinor : 100;
@@ -77,7 +67,7 @@ const MenuItemCard = memo(function MenuItemCard({
       </div>
       <div className="customer-menu-page__price-col">
         <span className="customer-menu-page__price">
-          {formatMoney(priceMinor, currency, locale)}
+          {formatCurrencyFromMinor(priceMinor, currency, locale)}
         </span>
         {pointsHint ? (
           <span className="customer-menu-page__points-hint">{pointsHint}</span>

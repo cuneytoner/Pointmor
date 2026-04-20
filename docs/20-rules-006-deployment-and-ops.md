@@ -129,4 +129,5 @@
 
 - **Worker/queue ne zaman** (iş mantığı): [20-rules-002-architecture.md](./20-rules-002-architecture.md).
 - **PDF güvenliği ve resource limit**: [20-rules-005-security.md](./20-rules-005-security.md).
+- **Production env/deploy/runbook**: [40-guide-006-production-env.md](./40-guide-006-production-env.md), [40-guide-007-production-deployment.md](./40-guide-007-production-deployment.md), [40-guide-008-production-runbook.md](./40-guide-008-production-runbook.md).
 - **Merkez indeks**: [10-meta-001-rules-index.md](./10-meta-001-rules-index.md).

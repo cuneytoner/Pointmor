@@ -1,0 +1,102 @@
+name: Deploy production
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: "Git commit SHA to deploy (must exist on origin)"
+        required: true
+        type: string
+      api_image:
+        description: "Optional full API image ref (tag@digest). If empty, uses ghcr sha tag."
+        required: false
+        type: string
+      admin_image:
+        description: "Optional full admin image ref (tag@digest). If empty, uses ghcr sha tag."
+        required: false
+        type: string
+      skip_migrate:
+        description: "Skip migration step (use only for emergency rollback)"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    env:
+      DEFAULT_API_IMAGE: ghcr.io/${{ github.repository_owner }}/pointmor-api:sha-${{ inputs.release_sha }}
+      DEFAULT_ADMIN_IMAGE: ghcr.io/${{ github.repository_owner }}/pointmor-admin-web:sha-${{ inputs.release_sha }}
+    steps:
+      - name: Validate required deployment secrets
+        env:
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_USER: ${{ secrets.PROD_USER }}
+          PROD_SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          PROD_REPO_PATH: ${{ secrets.PROD_REPO_PATH }}
+        run: |
+          set -euo pipefail
+          [ -n "$PROD_HOST" ] || { echo "Missing PROD_HOST"; exit 1; }
+          [ -n "$PROD_USER" ] || { echo "Missing PROD_USER"; exit 1; }
+          [ -n "$PROD_SSH_PRIVATE_KEY" ] || { echo "Missing PROD_SSH_PRIVATE_KEY"; exit 1; }
+          [ -n "$PROD_REPO_PATH" ] || { echo "Missing PROD_REPO_PATH"; exit 1; }
+
+      - name: Resolve image refs
+        id: meta
+        run: |
+          set -euo pipefail
+          API_IMAGE="${{ inputs.api_image }}"
+          ADMIN_IMAGE="${{ inputs.admin_image }}"
+          if [ -z "$API_IMAGE" ]; then API_IMAGE="${DEFAULT_API_IMAGE}"; fi
+          if [ -z "$ADMIN_IMAGE" ]; then ADMIN_IMAGE="${DEFAULT_ADMIN_IMAGE}"; fi
+          echo "api_image=$API_IMAGE" >> "$GITHUB_OUTPUT"
+          echo "admin_image=$ADMIN_IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: SSH known_hosts (runner -> production host)
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -H "${{ secrets.PROD_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            REPO="${{ secrets.PROD_REPO_PATH }}"
+            RELEASE_SHA="${{ inputs.release_sha }}"
+            API_IMAGE="${{ steps.meta.outputs.api_image }}"
+            ADMIN_IMAGE="${{ steps.meta.outputs.admin_image }}"
+            cd "$REPO"
+            git fetch origin "$RELEASE_SHA"
+            git checkout --detach "$RELEASE_SHA"
+            export POINTMOR_RELEASE_SHA="$RELEASE_SHA"
+            chmod +x infra/scripts/*.sh
+            if [ "${{ inputs.skip_migrate }}" = "true" ]; then
+              ./infra/scripts/deploy-prod.sh --api-image "$API_IMAGE" --admin-image "$ADMIN_IMAGE" --skip-migrate
+            else
+              ./infra/scripts/deploy-prod.sh --api-image "$API_IMAGE" --admin-image "$ADMIN_IMAGE"
+            fi
+
+      - name: Deployment summary
+        run: |
+          {
+            echo "## Production deployment requested"
+            echo "- release_sha: \`${{ inputs.release_sha }}\`"
+            echo "- api_image: \`${{ steps.meta.outputs.api_image }}\`"
+            echo "- admin_image: \`${{ steps.meta.outputs.admin_image }}\`"
+            echo "- skip_migrate: \`${{ inputs.skip_migrate }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -39,6 +39,7 @@
 | Tenant Cashier (tek ekran visit + redeem) | [`42-design-tenant-cashier-flow.md`](./42-design-tenant-cashier-flow.md) |
 | Mağaza ayarları, kamuya açık menü (`/m/:slug`) | [`42-design-store-public-menu.md`](./42-design-store-public-menu.md) |
 | Yerel çalıştırma, Prisma, `ALLOW_TENANT_DEMO_PLAN_SWITCH` (demo plan ucu) | [`40-guide-001-run-local.md`](./40-guide-001-run-local.md) |
+| Production env/deploy/runbook | [`40-guide-006-production-env.md`](./40-guide-006-production-env.md), [`40-guide-007-production-deployment.md`](./40-guide-007-production-deployment.md), [`40-guide-008-production-runbook.md`](./40-guide-008-production-runbook.md) |
 | Seed kullanıcıları | [`41-ref-001-dev-seed-users.md`](./41-ref-001-dev-seed-users.md) |
 
 ---
@@ -56,7 +57,7 @@
 |-----|--------|
 | Meta | `10-meta-002-project-overview.md`, `10-meta-003-project-tracker.md` |
 | Kurallar | `20-rules-001` … `20-rules-010` |
-| Kılavuz | `40-guide-001` … `40-guide-003` |
+| Kılavuz | `40-guide-001` … `40-guide-008` |
 | Ref | `41-ref-001-dev-seed-users.md` |
 | Tasarım | `42-design-admin-ui.md`, `42-design-tenant-cashier-flow.md` |
 
