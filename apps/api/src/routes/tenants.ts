@@ -9,6 +9,7 @@ import { parseWithSchema, z } from "../lib/validation.js";
 const tenantCreateBodySchema = z.object({
   slug: z.string().trim().min(1, "Slug gerekli."),
   name: z.string().trim().min(1, "İsim gerekli."),
+  type: z.enum(["BUSINESS", "ADVISOR"]).optional(),
 });
 
 const tenantIdParamsSchema = z.object({
@@ -18,6 +19,7 @@ const tenantIdParamsSchema = z.object({
 const tenantPatchBodySchema = z.object({
   name: z.string().trim().optional(),
   slug: z.string().trim().optional(),
+  type: z.enum(["BUSINESS", "ADVISOR"]).optional(),
 });
 
 export async function registerTenantRoutes(app: FastifyInstance): Promise<void> {
@@ -67,7 +69,7 @@ export async function registerTenantRoutes(app: FastifyInstance): Promise<void> 
       const name = parsed.data.name.trim();
       try {
         const created = await prisma.tenant.create({
-          data: { slug, name },
+          data: { slug, name, type: parsed.data.type ?? "BUSINESS" },
         });
         await writeAudit(s.user.email, "tenant.create", `${slug}`);
         return created;
@@ -108,6 +110,7 @@ export async function registerTenantRoutes(app: FastifyInstance): Promise<void> 
           data: {
             ...(name ? { name } : {}),
             ...(s.user.platformAdmin && slug ? { slug } : {}),
+            ...(s.user.platformAdmin && bodyParsed.data.type ? { type: bodyParsed.data.type } : {}),
           },
         });
         await writeAudit(s.user.email, "tenant.update", tenantId);

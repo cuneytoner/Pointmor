@@ -20,5 +20,6 @@ export function canAccessTenant(
   tenantId: string,
 ): boolean {
   if (session.user.platformAdmin) return true;
-  return session.tenant?.id === tenantId;
+  if (session.tenant?.id === tenantId) return true;
+  return (session.memberships ?? []).some((m) => m.tenant.id === tenantId);
 }

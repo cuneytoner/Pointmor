@@ -2,13 +2,16 @@
 
 Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md). Genel bakış: [`10-meta-002-project-overview.md`](./10-meta-002-project-overview.md).
 
-Eski veri platformu faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor loyalty SaaS çekirdeği** ile uyumludur.
+Eski veri platformu faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor core platform + modül yaklaşımı** ile uyumludur.
 
 ---
 
 ## Mevcut durum (2026)
 
-- **Ürün adı:** Pointmor — loyalty SaaS (restoran / kafe odaklı ürün yönü).
+- **Ürün adı:** Pointmor — modüler multi-tenant platform.
+- **Tek doğruluk ifadesi:** Pointmor is a modular multi-tenant platform. Users access tenants via memberships. Functionality is delivered through modules.
+- **Cafe konumu:** Loyalty/cafe alanı platformdaki **existing module (`cafe`)** olarak sürer.
+- **İlk non-loyalty modül:** **AI Act Compliance** (B2B compliance use-case).
 - **Çekirdek korundu:** Tenant, User, auth/session, Plan, Subscription, audit; Platform + Tenant admin yüzeyleri.
 - **Kaldırıldı:** Eski **data platform** modülleri (Data Health, Governance, Lineage, registry, scan, connector, import, ekip yönetimi API’si); ilgili Prisma tabloları ve migration baseline yenilendi.
 - **Loyalty (faz 1):** `Customer`, `Visit`, `Reward`, `Redemption` modelleri ve tenant kapsamlı API route’ları (`apps/api`) mevcut.

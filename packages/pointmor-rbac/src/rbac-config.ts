@@ -118,9 +118,14 @@ export function resolveTenantAppRoleFromMembership(
   const raw = (membershipRole ?? "").trim() || fallback;
 
   switch (raw) {
+    case "ADMIN":
     case TENANT_MEMBERSHIP_ROLES.owner:
     case TENANT_MEMBERSHIP_ROLES.admin:
       return "owner";
+    case "ADVISOR":
+      return "viewer";
+    case "MEMBER":
+      return "manager";
     case TENANT_MEMBERSHIP_ROLES.manager:
       return "manager";
     case TENANT_MEMBERSHIP_ROLES.staff:

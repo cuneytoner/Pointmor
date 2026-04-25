@@ -52,11 +52,13 @@ const demoTenant = await prisma.tenant.upsert({
   create: {
     slug: "demo-cafe",
     name: "Pointmor Demo Cafe",
+    type: "BUSINESS",
     onboardingStep: 6,
     onboardingCompletedAt: new Date(),
   },
   update: {
     name: "Pointmor Demo Cafe",
+    type: "BUSINESS",
   },
 });
 
@@ -166,6 +168,31 @@ await prisma.user.upsert({
     tenantId: null,
   },
 });
+
+const demoBusinessUser = await prisma.user.findUnique({
+  where: { email: operatorEmail },
+  select: { id: true },
+});
+if (demoBusinessUser) {
+  await prisma.tenantMembership.upsert({
+    where: {
+      userId_tenantId: {
+        userId: demoBusinessUser.id,
+        tenantId: demoTenant.id,
+      },
+    },
+    create: {
+      userId: demoBusinessUser.id,
+      tenantId: demoTenant.id,
+      role: "MEMBER",
+      isExternal: false,
+    },
+    update: {
+      role: "MEMBER",
+      isExternal: false,
+    },
+  });
+}
 
 await prisma.user.upsert({
   where: { email: operatorEmail },

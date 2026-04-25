@@ -19,12 +19,20 @@ export type SessionBranchScope =
   | { restrictedTo: string[] };
 
 export type SessionMembership = {
+  tenantId?: string;
   role: string;
+  isExternal?: boolean;
   branchScope?: SessionBranchScope;
+};
+
+export type SessionTenantMembership = {
+  tenant: SessionTenant;
+  membership: SessionMembership;
 };
 
 export type SessionPayload = {
   user: SessionUser;
   tenant: SessionTenant | null;
   membership: SessionMembership | null;
+  memberships?: SessionTenantMembership[];
 };

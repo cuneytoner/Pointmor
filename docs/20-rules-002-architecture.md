@@ -2,7 +2,9 @@
 
 **Amaç:** Monorepo içinde sınırları net, değişime açık ama gereksiz soyutlamasız bir yapı.
 
-> **Pointmor (güncel):** Ürün **loyalty SaaS** (`apps/api` + `apps/admin-web`). Aşağıdaki diyagram ve örneklerde geçen **document / connector / PDF** hattı **eski şablon** anlatımıdır; bağlayıcı prensip olarak **katman ayrımı** ve **UI ↔ DB** ayrımı geçerlidir.
+> **Pointmor (güncel):** Ürün **modüler multi-tenant platform** (`apps/api` + `apps/admin-web`).
+>
+> **[DEPRECATED – legacy document SaaS template, not part of current platform architecture]** Bu dokümandaki **document / connector / PDF** odaklı bazı örnekler eski şablondan kalmadır. Bağlayıcı kalan kısım: katman ayrımı, bağımlılık yönü, UI ↔ DB ayrımı.
 
 ---
 

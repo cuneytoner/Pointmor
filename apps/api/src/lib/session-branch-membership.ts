@@ -9,12 +9,16 @@ export async function buildSessionMembership(
   userId: string,
   tenantId: string,
   role: string,
+  isExternal = false,
 ): Promise<SessionMembership> {
+  if (role === "ADMIN" || role === "ADVISOR" || role === "MEMBER") {
+    return { role, isExternal, branchScope: "all" };
+  }
   if (
     role === TENANT_MEMBERSHIP_ROLES.owner ||
     role === TENANT_MEMBERSHIP_ROLES.admin
   ) {
-    return { role, branchScope: "all" };
+    return { role, isExternal, branchScope: "all" };
   }
 
   let accessRows = await prisma.userBranchAccess.findMany({
@@ -37,19 +41,19 @@ export async function buildSessionMembership(
         ids = [first.id];
       }
     }
-    return { role, branchScope: { restrictedTo: ids } };
+    return { role, isExternal, branchScope: { restrictedTo: ids } };
   }
 
   if (
     role === TENANT_MEMBERSHIP_ROLES.manager ||
     role === TENANT_MEMBERSHIP_ROLES.operator
   ) {
-    if (ids.length === 0) return { role, branchScope: "all" };
-    return { role, branchScope: { restrictedTo: ids } };
+    if (ids.length === 0) return { role, isExternal, branchScope: "all" };
+    return { role, isExternal, branchScope: { restrictedTo: ids } };
   }
 
   if (ids.length > 0) {
-    return { role, branchScope: { restrictedTo: ids } };
+    return { role, isExternal, branchScope: { restrictedTo: ids } };
   }
-  return { role, branchScope: "all" };
+  return { role, isExternal, branchScope: "all" };
 }

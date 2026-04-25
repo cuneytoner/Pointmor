@@ -84,6 +84,15 @@ veya liste için `{ "data": [...], "pagination": { ... } }` — proje tek stile 
 - **API key:** Sunucu-to-sunucu; scope başına izin (`documents:read`).
 - **Owner-only:** `document.userId === auth.userId` kontrolü middleware veya service katmanında tek yerde.
 
+**Zorunlu erişim doğrulama kuralı:** Every API request must:
+
+1. resolve tenant context
+2. validate membership
+3. validate role permissions
+4. validate module activation state
+
+`tenantId` MUST be present (path/header/session) and used to scope all queries.
+
 ---
 
 ## Idempotency

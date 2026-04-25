@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import rateLimit from "@fastify/rate-limit";
 import { compare } from "bcryptjs";
+import { randomUUID } from "node:crypto";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { issueSession } from "../lib/auth-memory.js";
 import { buildSessionMembership } from "../lib/session-branch-membership.js";
@@ -42,7 +43,13 @@ export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
 
         const user = await prisma.user.findUnique({
           where: { email },
-          include: { tenant: true },
+          include: {
+            tenant: true,
+            memberships: {
+              include: { tenant: true },
+              orderBy: { createdAt: "asc" },
+            },
+          },
         });
 
         if (!user || !(await compare(password, user.passwordHash))) {
@@ -70,17 +77,37 @@ export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
             : { membership: payload.membership };
         }
 
-        if (!user.tenantId || !user.tenant) {
+        const effectiveMemberships =
+          user.memberships.length > 0
+            ? user.memberships
+            : user.tenantId && user.tenant
+              ? [
+                  {
+                    id: `legacy-${randomUUID()}`,
+                    tenantId: user.tenantId,
+                    userId: user.id,
+                    role: user.role === "advisor" ? "ADVISOR" : "MEMBER",
+                    isExternal: false,
+                    createdAt: user.createdAt,
+                    updatedAt: user.updatedAt,
+                    tenant: user.tenant,
+                  },
+                ]
+              : [];
+
+        if (effectiveMemberships.length === 0) {
           return reply.code(403).send({
             error: "no_tenant_membership",
             message: "Kiracı üyeliği yok.",
           });
         }
 
+        const primary = effectiveMemberships[0];
         const membership = await buildSessionMembership(
           user.id,
-          user.tenant.id,
-          user.role,
+          primary.tenant.id,
+          primary.role,
+          primary.isExternal,
         );
         const payload: SessionPayload = {
           user: {
@@ -90,11 +117,21 @@ export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
             platformAdmin: false,
           },
           tenant: {
-            id: user.tenant.id,
-            slug: user.tenant.slug,
-            name: user.tenant.name,
+            id: primary.tenant.id,
+            slug: primary.tenant.slug,
+            name: primary.tenant.name,
           },
           membership,
+          memberships: await Promise.all(
+            effectiveMemberships.map(async (m) => ({
+              tenant: {
+                id: m.tenant.id,
+                slug: m.tenant.slug,
+                name: m.tenant.name,
+              },
+              membership: await buildSessionMembership(user.id, m.tenant.id, m.role, m.isExternal),
+            })),
+          ),
         };
         const token = issueSession(payload);
         reply.setCookie(SESSION_COOKIE_NAME, token, sessionCookieOptions());

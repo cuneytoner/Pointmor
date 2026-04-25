@@ -1,6 +1,8 @@
 # Güvenlik kuralları
 
-**Amaç:** Document SaaS yüzeyinde tekrarlayan güvenlik hatalarını azaltmak; özellikle içerik import, render ve paylaşım.
+**Amaç:** Pointmor platformunda tekrarlayan güvenlik hatalarını azaltmak; özellikle tenant izolasyonu, erişim kontrolü ve veri sızıntısı riskleri.
+
+> **[DEPRECATED – legacy document SaaS template, not part of current platform architecture]** Bu dokümandaki bazı import/render/paylaşım örnekleri document-SaaS şablonundan kalmadır. Tenant/membership/modül erişim modeli için öncelik: [`20-rules-015-cross-tenant-access-security.md`](./20-rules-015-cross-tenant-access-security.md) ve [`10-meta-004-core-platform-definition.md`](./10-meta-004-core-platform-definition.md).
 
 ---
 
@@ -28,6 +30,23 @@
 - Oturum cookie ise `HttpOnly`, `Secure`, `SameSite` uygun.
 - JWT ise kısa ömür + refresh rotation politikası; revoke listesi ihtiyaç halinde.
 - **Password:** Argon2/bcrypt; zayıf şifre politikası ürün kararı.
+
+---
+
+## Access evaluation order
+
+1. Authentication
+2. Resolve tenant context
+3. Scope request to tenant
+4. Validate membership
+5. Validate role permissions
+6. Validate module activation
+
+Access is denied by default unless explicitly allowed via:
+
+- membership
+- role
+- module activation
 
 ### OAuth / OIDC (social login)
 

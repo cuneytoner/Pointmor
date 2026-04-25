@@ -2,7 +2,11 @@
 
 **Amaç:** Domain’e sadık, migration dostu, revizyon güvenli ve API’den bağımsız iç model.
 
-> **Pointmor (güncel):** Prisma’da **Tenant, User, Plan, Subscription** ve **loyalty** tabloları (Customer, LoyaltyAccount, PointsLedger, Visit, Reward, Redemption) tanımlıdır. Aşağıdaki **Document / DocumentRevision** bölümleri **eski document-Saaş şablonu**dur; yeni özellik eklerken **mevcut şema** ve [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md) önceliklidir.
+> **Pointmor (güncel):** Prisma’da **Tenant, User, Plan, Subscription** ve **loyalty** tabloları (Customer, LoyaltyAccount, PointsLedger, Visit, Reward, Redemption) tanımlıdır.
+>
+> **[DEPRECATED – legacy document SaaS template, not part of current platform architecture]** Bu dokümandaki **Document / DocumentRevision** odaklı bölümler eski şablondan kalmadır; güncel modelleme kararlarında mevcut Prisma şeması ve platform doktrini önceliklidir.
+
+**Erişim doğruluk kaynağı:** `TenantMembership` erişim için source of truth’tur. `User.tenantId`, yalnızca backward compatibility için legacy fallback olarak değerlendirilir.
 
 ---
 

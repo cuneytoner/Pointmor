@@ -1,14 +1,16 @@
 # Ürün kapsamı kuralları — Pointmor
 
-**Amaç:** Çekirdek SaaS sınırlarını korumak, **loyalty** ürününe odaklanmak ve gereksiz genişlemeyi önlemek.
+**Amaç:** Core platform sınırlarını korumak, modül bazlı genişlemeyi düzenlemek ve gereksiz domain karışmasını önlemek.
 
 ---
 
 ## Ürün tanımı
 
-**Pointmor**, çok kiracılı **sadakat (loyalty) SaaS** ürünüdür; birincil kullanıcılar **restoran / kafe işletmeleri** ve operasyonlarını yöneten **SaaS operatörü** (platform) rolleridir.
+**Pointmor**, **modüler çok kiracılı platform** ürünüdür; işlevler modüllerle sunulur. Birincil kullanıcılar tenant işletmeleri, advisor yapıları ve operasyonları yöneten platform rolleridir.
 
-**Şu anki repoda** çekirdek SaaS (kimlik, kiracı, kullanıcı, plan, abonelik, admin UI) ve **loyalty faz 1** (müşteri, ziyaret, ödül, kullanım — Prisma + tenant kapsamlı API) bulunur. Müşteri PWA + canonical public API, kasiyer onaylı talep → kullanım akışı ve Tenant App’te kullanım operasyon ekranı **mevcut kapsamda**dır. **Plan / entitlement:** `GET /tenant/entitlements`, yazma yollarında limit ve özellik kontrolleri, Tenant App’te kullanım ve yükseltme UX’i (demo plan değişimi; gerçek **ödeme / PSP / fatura** entegrasyonu ürün olgunluğuna göre sonraki adım).
+**Tek doğruluk ifadesi:** **Pointmor is a modular multi-tenant platform. Users access tenants via memberships. Functionality is delivered through modules.**
+
+**Şu anki repoda** core platform (kimlik, kiracı, membership, plan, abonelik, admin UI) ve **cafe modülü (existing module)** bulunur (müşteri, ziyaret, ödül, kullanım — Prisma + tenant kapsamlı API). Müşteri PWA + canonical public API, kasiyer onaylı talep → kullanım akışı ve Tenant App’te kullanım operasyon ekranı **mevcut kapsamda**dır. **Plan / entitlement:** `GET /tenant/entitlements`, yazma yollarında limit ve özellik kontrolleri, Tenant App’te kullanım ve yükseltme UX’i (demo plan değişimi; gerçek **ödeme / PSP / fatura** entegrasyonu ürün olgunluğuna göre sonraki adım).
 
 **Tenant kasa yüzeyi (hedef):** Tek ekranda visit ve anında ödül kullanımı (`POST /visits`, `POST /redemptions`) — ürün sırası ve CTA kuralları [`42-design-tenant-cashier-flow.md`](./42-design-tenant-cashier-flow.md).
 
@@ -69,3 +71,18 @@ Eski plan/spec dosyaları repodan kaldırılmıştır (gerekirse git geçmişi).
 ## Feature ekleme kriteri
 
 Yeni özellik şunları netleştirmeli: hangi **kiracı** verisini taşıyor, **Tenant App** veya **Platform** hangisinde, **plan / limit** ile mi ilişkili. Çekirdek dışı “genel veri platformu” özellikleri **önerilmez**.
+
+---
+
+## Platform Extension Strategy
+
+- **Cafe domain korunur:** Mevcut cafe/loyalty kapsamı ve iş akışları bozulmadan devam eder.
+- **Yeni domain = modül:** Yeni iş alanları çekirdek yerine modül olarak eklenir.
+- **Domain logic karışmaz:** Modüller kendi domain sorumluluğunu taşır; farklı domain kuralları aynı iş akışında iç içe geçirilmez.
+- **Core platform ortaktır:** Auth, tenant, membership, plan/abonelik ve temel güvenlik katmanı tüm modüller için ortak altyapıdır.
+
+**Yeni modül zorunlulukları:**
+
+1. **Tenant-scoped** çalışmalıdır.
+2. **RBAC** kurallarına uymalıdır.
+3. Gerekli olduğu durumda **plan/entitlement** katmanına entegre olmalıdır.

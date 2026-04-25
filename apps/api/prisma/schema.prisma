@@ -15,10 +15,29 @@ enum PlanType {
   team
 }
 
+enum TenantType {
+  BUSINESS
+  ADVISOR
+}
+
+enum TenantMembershipRole {
+  ADMIN
+  MEMBER
+  ADVISOR
+}
+
+enum TenantInvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
 model Tenant {
   id                      String    @id @default(cuid())
   slug                    String    @unique
   name                    String
+  type                    TenantType @default(BUSINESS)
   onboardingStep          Int       @default(1)
   onboardingCompletedAt  DateTime?
   createdAt               DateTime  @default(now())
@@ -53,6 +72,72 @@ model Tenant {
   hqInsights                HqInsight[]
   automationSettings        TenantAutomationSettings?
   hqAutomationActions         HqAutomationAction[]
+  memberships              TenantMembership[]
+  invitations              TenantInvitation[]
+  modules                  TenantModule[]
+}
+
+model TenantMembership {
+  id         String               @id @default(cuid())
+  userId     String
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId   String
+  tenant     Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  role       TenantMembershipRole
+  isExternal Boolean              @default(false)
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+
+  invitationsSent TenantInvitation[] @relation("TenantInvitationInviterMembership")
+
+  @@unique([userId, tenantId])
+  @@index([tenantId, role])
+  @@index([userId])
+}
+
+model TenantInvitation {
+  id                   String               @id @default(cuid())
+  tenantId             String
+  tenant               Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email                String
+  role                 TenantMembershipRole
+  isExternal           Boolean              @default(false)
+  token                String               @unique
+  status               TenantInvitationStatus @default(PENDING)
+  invitedByUserId      String?
+  invitedByMembershipId String?
+  invitedByMembership  TenantMembership?    @relation("TenantInvitationInviterMembership", fields: [invitedByMembershipId], references: [id], onDelete: SetNull)
+  invitedAt            DateTime             @default(now())
+  expiresAt            DateTime?
+  acceptedAt           DateTime?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  @@index([tenantId, status, invitedAt])
+  @@index([email, status])
+}
+
+model Module {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  description String?
+  tenants     TenantModule[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model TenantModule {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  moduleId  String
+  module    Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, moduleId])
+  @@index([tenantId, isActive])
 }
 
 /// Kiracı bazlı veri saklama (plan katmanına göre min/max doğrulanır).
@@ -843,6 +928,7 @@ model User {
 
   cashierShifts CashierShift[]
   branchAccess  UserBranchAccess[]
+  memberships   TenantMembership[]
 
   @@index([tenantId])
 }
