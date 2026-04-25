@@ -2,6 +2,8 @@ import { randomBytes } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
+import { requireTenantAccess } from "../lib/guards.js";
+import { InvitationAcceptanceError, acceptInvitation } from "../lib/invitation-acceptance.js";
 import { prisma } from "../lib/prisma.js";
 import { hasPermissionForSession } from "../lib/tenant-permissions.js";
 import { parseWithSchema, z } from "../lib/validation.js";
@@ -14,10 +16,16 @@ const invitationCreateBodySchema = z.object({
   expiresInDays: z.number().int().min(1).max(30).optional(),
 });
 
+const invitationAcceptBodySchema = z.object({
+  token: z.string().trim().min(1, "Davet token gerekli."),
+});
+
 export async function registerTenantInvitationRoutes(app: FastifyInstance): Promise<void> {
   app.get("/tenant/invitations", { preHandler: [authPreHandler] }, async (req, reply) => {
     const s = req.authSession as SessionPayload;
     if (!s.tenant) return reply.code(403).send({ error: "tenant_context_required" });
+    const access = await requireTenantAccess(s.user, s.tenant.id);
+    if (!access.ok) return reply.code(403).send({ error: access.error ?? "forbidden" });
     if (!hasPermissionForSession(s, "team.view") && s.membership?.role !== "ADVISOR") {
       return reply.code(403).send({ error: "permission_denied" });
     }
@@ -48,9 +56,8 @@ export async function registerTenantInvitationRoutes(app: FastifyInstance): Prom
       return reply.code(403).send({ error: "tenant_context_required" });
     }
 
-    if (!s.user.platformAdmin && targetTenantId !== s.tenant?.id) {
-      return reply.code(403).send({ error: "forbidden" });
-    }
+    const targetAccess = await requireTenantAccess(s.user, targetTenantId);
+    if (!targetAccess.ok) return reply.code(403).send({ error: targetAccess.error ?? "forbidden" });
     if (!s.user.platformAdmin) {
       const canManageTeam = hasPermissionForSession(s, "team.manage");
       const isAdvisor = s.membership?.role === "ADVISOR";
@@ -100,5 +107,30 @@ export async function registerTenantInvitationRoutes(app: FastifyInstance): Prom
       },
     });
     return created;
+  });
+
+  app.post<{ Body: unknown }>("/tenant/invitations/accept", { preHandler: [authPreHandler] }, async (req, reply) => {
+    const s = req.authSession as SessionPayload;
+    const parsed = parseWithSchema(invitationAcceptBodySchema, req.body);
+    if (!parsed.ok) {
+      return reply.code(400).send({ error: parsed.error, message: parsed.message });
+    }
+
+    try {
+      const accepted = await acceptInvitation({
+        user: {
+          id: s.user.id,
+          email: s.user.email,
+        },
+        token: parsed.data.token,
+      });
+      return reply.send(accepted);
+    } catch (err) {
+      if (err instanceof InvitationAcceptanceError) {
+        return reply.code(err.statusCode).send({ error: err.code });
+      }
+      req.log.error({ err }, "tenant_invitation_accept_failed");
+      return reply.code(500).send({ error: "membership_create_failed" });
+    }
   });
 }

@@ -1,7 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import rateLimit from "@fastify/rate-limit";
 import { compare } from "bcryptjs";
-import { randomUUID } from "node:crypto";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { issueSession } from "../lib/auth-memory.js";
 import { buildSessionMembership } from "../lib/session-branch-membership.js";
@@ -44,7 +43,6 @@ export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
         const user = await prisma.user.findUnique({
           where: { email },
           include: {
-            tenant: true,
             memberships: {
               include: { tenant: true },
               orderBy: { createdAt: "asc" },
@@ -77,23 +75,11 @@ export async function registerAuthLogin(app: FastifyInstance): Promise<void> {
             : { membership: payload.membership };
         }
 
+        // TenantMembership is the source of truth for tenant access.
         const effectiveMemberships =
           user.memberships.length > 0
             ? user.memberships
-            : user.tenantId && user.tenant
-              ? [
-                  {
-                    id: `legacy-${randomUUID()}`,
-                    tenantId: user.tenantId,
-                    userId: user.id,
-                    role: user.role === "advisor" ? "ADVISOR" : "MEMBER",
-                    isExternal: false,
-                    createdAt: user.createdAt,
-                    updatedAt: user.updatedAt,
-                    tenant: user.tenant,
-                  },
-                ]
-              : [];
+            : [];
 
         if (effectiveMemberships.length === 0) {
           return reply.code(403).send({

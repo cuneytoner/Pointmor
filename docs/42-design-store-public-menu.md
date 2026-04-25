@@ -1,6 +1,6 @@
-# Store Experience Foundation — mağaza ayarları, dil, menü, kamuya açık menü
+# Mağaza Deneyimi Temeli — mağaza ayarları, dil, menü, kamuya açık menü
 
-**Kapsam:** Tenant App içinde **Store settings** + **menü yönetimi**; müşteri tarafında **salt okunur kamuya açık menü** (`/m/:tenantSlug`). **Sipariş, ödeme, mutfak, envanter yok** (bu fazın dışında).
+**Kapsam:** Tenant App içinde **Mağaza ayarları** + **menü yönetimi**; müşteri tarafında **salt okunur kamuya açık menü** (`/m/:tenantSlug`). **Sipariş, ödeme, mutfak, envanter yok** (bu fazın dışında).
 
 **İlgili:** Müşteri sadakat PWA [`42-design-admin-ui.md`](./42-design-admin-ui.md) bağlamında `apps/admin-web` — rotalar [`10-meta-002-project-overview.md`](./10-meta-002-project-overview.md). Mevcut loyalty PWA: `/c/:tenantSlug/*`.
 
@@ -34,7 +34,7 @@
 
 ---
 
-## 3. Store settings (Tenant App)
+## 3. Mağaza ayarları (Tenant App)
 
 Tek ekran veya “Mağaza” altında bölüm:
 
@@ -78,7 +78,7 @@ Kaynak: `StoreSettings` 1:1 `tenantId` (bkz. veri modeli).
 
 ---
 
-## 5. Menu management UI (Tenant App)
+## 5. Menü yönetimi UI (Tenant App)
 
 - Kenar çubukta **Menü** veya **Mağaza > Menü** (tek özellik).
 - Liste: kategoriler; kategori altında kalemler; **Aktif/Pasif** toggle; sıra için sayı alanı veya ↑↓ (D&D yok).
@@ -86,7 +86,7 @@ Kaynak: `StoreSettings` 1:1 `tenantId` (bkz. veri modeli).
 
 ---
 
-## 6. Public menu page
+## 6. Kamuya açık menü sayfası
 
 - Route: **`/m/:tenantSlug`**
 - Layout: `menu-public.css` — loyalty `customer-pwa.css` ile **paylaşma** minimal (marka renk CSS değişkeni).
@@ -95,7 +95,7 @@ Kaynak: `StoreSettings` 1:1 `tenantId` (bkz. veri modeli).
 
 ---
 
-## 7. Menu QR stratejisi
+## 7. Menü QR stratejisi
 
 | QR | URL | Amaç |
 |----|-----|------|

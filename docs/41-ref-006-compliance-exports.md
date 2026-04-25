@@ -1,37 +1,34 @@
-# Compliance: dışa aktarım ve GDPR-lite
+# Compliance dışa aktarımları — kurallar
 
-## Uçlar (kiracı kapsamlı)
+## Uçlar ve izinler
 
-Aşağıdaki yollar **çift kayıtlıdır**: `/tenant/...` (mevcut) ve kök alias (`/audit/...`, `/summary/...`, `/anomalies/...`) — aynı işleyici ve izinler.
-
-| Uç | İzin |
+| Endpoint | İzin |
 |----|------|
-| `GET /tenant/audit/export/csv` · `GET /audit/export/csv` | `audit.export` (owner) |
-| `GET /tenant/audit/export/pdf` · `GET /audit/export/pdf` | `audit.export` (owner) |
-| `GET /tenant/summary/export/pdf` · `GET /summary/export/pdf` | `summary.export` (manager, owner) |
-| `GET /tenant/anomalies/export/pdf` · `GET /anomalies/export/pdf` | `anomaly.export` (manager, owner); plan `manager_closing` |
-| `GET /tenant/customers/:id/gdpr-export` | `gdpr.customer_export` (owner) |
+| `GET /tenant/audit/export/csv` (`/audit/export/csv`) | `audit.export` |
+| `GET /tenant/audit/export/pdf` (`/audit/export/pdf`) | `audit.export` |
+| `GET /tenant/summary/export/pdf` (`/summary/export/pdf`) | `summary.export` |
+| `GET /tenant/anomalies/export/pdf` (`/anomalies/export/pdf`) | `anomaly.export` (+ plan kısıtı) |
+| `GET /tenant/customers/:id/gdpr-export` | `gdpr.customer_export` |
 | `POST /tenant/customers/:id/anonymize` | `settings.manage` |
 
-**Sorgu parametreleri (audit CSV/PDF):** `from`, `to` (ISO), `eventType`, `actorUserId`, `branchId`, `entityType`, `entityId`, `maxRows`.
+Audit export filtreleri: `from`, `to`, `eventType`, `actorUserId`, `branchId`, `entityType`, `entityId`, `maxRows`.
 
-## Redaksiyon
+## Redaksiyon kuralları
 
-- CSV’de audit payload sütunu **`payload_summary`**: redakte JSON, uzunluk sınırlı (ham döküm değil).
-- PDF satırlarında payload **kısa özet** (birkaç alan + uzunluk sınırı).
-- Anomali PDF’de müşteri kimliği **kısaltılmış** gösterilir; payload `export-redaction` ile uyumlu özetlenir.
-- GDPR müşteri export’unda telefon kısaltılır, e-posta maskelenir.
+- Ham payload dışa aktarılmaz; yalnızca redakte özet verilir.
+- GDPR export alanları maskelenir (özellikle iletişim verileri).
+- Anomaly export müşteri kimliğini kısaltılmış gösterir.
 
-## `EXPORT` audit kaydı
+## Audit kaydı kuralları
 
-`eventType: EXPORT` ile yalnızca `exportKind`, `exportType` (CSV / PDF / JSON) ve **filtre özeti** yazılır; dışa aktarılan dosya içeriği veya tam payload loglanmaz.
+- Dışa aktarım olayları `eventType: EXPORT` ile loglanır.
+- Log içeriğinde yalnızca export tipi ve filtre özeti tutulur.
+- Dışa aktarılan dosyanın ham içeriği loglanmaz.
 
-(Eski `data_export` tipi kullanımdan kalktı; raporlama sorgularını `EXPORT` ile güncelleyin.)
+## Rate limit
 
-## Saklama (isteğe bağlı)
+- Export endpoint'leri: dakika başına 15 istek (genel API limitine ek).
 
-Eski audit satırları için bkz. [41-ref-007-data-retention.md](./41-ref-007-data-retention.md) — `runRetentionCleanup` / `purgeAuditEventsOlderThan` (env tabanlı süreler).
+## İlgili doküman
 
-## Oran sınırı
-
-Dışa aktarım uçları dakikada 15 istek ile sınırlıdır (genel API limitine ek).
+- [`41-ref-007-data-retention.md`](./41-ref-007-data-retention.md)

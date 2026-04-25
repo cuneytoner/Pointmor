@@ -1,146 +1,99 @@
 # Mimari kuralları
 
-**Amaç:** Monorepo içinde sınırları net, değişime açık ama gereksiz soyutlamasız bir yapı.
-
-> **Pointmor (güncel):** Ürün **modüler multi-tenant platform** (`apps/api` + `apps/admin-web`).
->
-> **[DEPRECATED – legacy document SaaS template, not part of current platform architecture]** Bu dokümandaki **document / connector / PDF** odaklı bazı örnekler eski şablondan kalmadır. Bağlayıcı kalan kısım: katman ayrımı, bağımlılık yönü, UI ↔ DB ayrımı.
+**Amaç:** Pointmor'un module tabanlı çok kiracılı mimarisinde katman sorumluluklarını, sınırlarını ve bağımlılık yönünü netleştirmek.
 
 ---
 
 ## Özet kararlar
 
-| Katman | Tek cümle |
+| Katman | Sorumluluk |
 |--------|------------|
-| INPUT | Harici veya uygulama içi kaynak (URL, dosya, form) → ham veya yarı yapılandırılmış veri. |
-| PROCESS | Normalize, doğrula, zenginleştir → **internal document model**. |
-| OUTPUT | Model → tek HTML string (tema ile). |
-| DELIVERY | Hosted URL, PDF, e-posta eki, API yanıtı. |
-| PRESENTATION | Admin UI, profil listesi, paylaşım ekranı — **modeli doğrudan DB şemasına eşitlemez**. |
+| **API** | Kimlik doğrulama, tenant context çözümü, membership/role/module kontrolleri, sözleşmeli response |
+| **Service** | Tenant-scoped iş kuralları ve use-case orkestrasyonu |
+| **Database** | Yapısal bütünlük (FK, unique, index) ve tenant-bound veri modeli |
+| **Module layer** | Domain fonksiyonlarının izole edilmesi (`cafe`, `ai_act`, vb.) |
 
-**Altın kural:** **Internal document model** ile **Prisma entity** ayrı düşünülür; UI yalnızca API veya sunucu tarafından hazırlanmış DTO görür.
-
----
-
-## Ana prensipler
-
-1. **Separation of concerns:** Parser import etmez; renderer harici SDK bilmez.
-2. **Tek sorumluluk:** Bir modül tek işi yapar (ör. `markdown-import` sadece Markdown → model).
-3. **Modülerlik:** Özellikler `core/` + `app/api` + `lib` ile sınırlı; “god file” yok.
-4. **YAGNI:** İlk aşamada microservice ve dağıtık event bus yok; ihtiyaç ölçülür.
+**Temel ilke:** Core platform ortak, domain davranışı module bazlıdır.
 
 ---
 
-## Sistem katmanları ve bağımlılıklar
+## Platform katmanları
 
-```
-INPUT (connectors)  →  PROCESS (normalize, validate)  →  OUTPUT (render)
-                              ↓
-                      STORAGE (DB, object storage)
-                              ↓
-DELIVERY (routes, jobs, email)  →  PRESENTATION (Next pages, PDF, iframe)
-```
+### API layer
 
-**İzin verilen bağımlılık yönü:**  
-`INPUT` → `PROCESS` → `OUTPUT` → `DELIVERY`  
-`STORAGE` ← `PROCESS`, `DELIVERY`  
-`PRESENTATION` → API/route (sunucu), asla doğrudan DB’ye (client’tan) değil.
+- Her istek tenant bağlamına çözülür.
+- Access control: membership + role + module activation.
+- API, service katmanına yetkisiz çağrı geçirmez.
 
-**Yasak:** `OUTPUT` (HTML renderer) modülünün `INPUT` parser’ı import etmesi.
+### Service layer
 
----
+- İş kuralları tenant kapsamı dışında çalışmaz.
+- API guard’larını bypass eden arka kapı iş akışı olmamalıdır.
+- Service çağrıları tenant context ile çalışır ve gerektiğinde yeniden doğrular.
 
-## Monorepo
+### Database layer
 
-| Alan | Kural |
-|------|--------|
-| `apps/*` | Çalışan uygulama (ör. admin-web, api). |
-| `packages/*` | Paylaşılan kod **gerçekten iki app’te kullanılacaksa** çıkar. |
-| **Ne zaman package?** | Aynı tip tanımı + utils üçüncü kez kopyalanıyorsa; tek app’e özel ise çıkarma. |
+- Tenant-scoped tablolar `tenantId` içerir.
+- Foreign key, unique ve index kuralları açık tanımlanır.
+- DB yapısal güvence sağlar; access control’ün tamamını tek başına garanti etmez.
 
-**Shared utilities:** `packages/shared-types` veya `apps/xxx/src/core` — önce app içi `core`, tekrar edince package.
+### Module layer
+
+- Module'ler domain izolasyonu ile çalışır.
+- Module verisi tenant scoped olmalıdır.
+- Module'ler core kimlik/üyelik modelini değiştirmez.
 
 ---
 
-## Render mimarisi
+## Multi-tenant sınırları
 
-1. **Internal document model** (JSON, version alanlı) tek doğruluk kaynağı.
-2. **HTML üretimi** tek fonksiyon/hattı: `model + theme + brand` → string.
-3. **Hosted:** Aynı HTML (veya aynı pipeline çıktısı) sunulur.
-4. **PDF:** Puppeteer/playwright ile aynı HTML yüklenir; ayrı React tree üretilmez.
-
----
-
-## Repository / service / route
-
-- **Route handler:** İstek doğrula, orchestration, yanıt. İş mantığı 300 satır route içinde değil.
-- **Service:** `createDocument`, `renderPdf`, `sendEmail` gibi use-case fonksiyonları.
-- **Repository:** Prisma çağrıları tek yerde toplanabilir (küçük projede service içi de olabilir; büyüyünce ayrılır).
-
-**UI:** `app/` veya `pages/` = route + composition; `components/` = yeniden kullanılabilir; `features/<name>/` = özellik kümesi (isteğe bağlı).
+1. Tenant izolasyonu varsayılandır.
+2. Cross-tenant erişim membership olmadan mümkün değildir.
+3. `tenantId` tüm tenant-scoped sorgularda zorunlu scope alanıdır.
+4. Bir request yaşam döngüsü boyunca tek tenant context içinde çalışır.
 
 ---
 
-## Async job ve worker
+## Module isolation kuralları
 
-| Ne zaman sync? | Ne zaman queue? |
-|----------------|-----------------|
-| Import < few s, kullanıcı bekleyebilir | Büyük doküman, toplu export |
-| Tek PDF, timeout içinde | E-posta toplu gönderim, analytics batch |
-
-**Kural:** Önce sync + timeout + kullanıcı geri bildirimi; queue, ölçüm sonrası.
-
-**Queue gerektiren işler:** Toplu PDF, e-posta kampanyası, webhooks sonrası yeniden işleme, ağır görsel işleme.
+1. Module activation tenant bazlıdır (`TenantModule`).
+2. Pasif module tenant için API/UI yüzeyi açmaz.
+3. Module sınırları arası coupling en düşük seviyede tutulur.
+4. Module, core tablo davranışını mutasyona zorlayamaz.
 
 ---
 
-## Cache
+## API boundary kuralları
 
-- **CDN / HTTP cache:** Hosted statik HTML ve public asset için; `Cache-Control` ve invalidation stratejisi dokümante.
-- **Uygulama cache:** Redis vb. yalnız ölçülen darboğazda; **cache key** = `documentId` + `revision` veya `etag`.
-
----
-
-## Feature ekleme — karar ağacı
-
-1. Veri modeli değişiyor mu? → `20-rules-003-data-model.md` + migration planı.
-2. API sözleşmesi değişiyor mu? → `20-rules-004-api-design.md`.
-3. Çoklu dil metni var mı? → `20-rules-010-i18n.md`.
-4. Hosted/PDF görünümü değişiyor mu? → `20-rules-008-design-system.md` + tek render hattı.
-5. Secret / dış URL? → `20-rules-005-security.md`.
-
----
-
-## Route ve URL
-
-- **Slug:** İnsan okunur + çakışmada kısa suffix; immutable slug vs redirect politikası ürün kararı.
-- **Public / unlisted / password:** Query veya path sözleşmesi tutarlı; token **loglanmaz**.
-- **Canonical:** SEO gerekiyorsa tek canonical URL; parametreli paylaşımda `noindex` düşünülmeli.
+- Route katmanı: doğrulama + yetkilendirme + orchestration.
+- Service katmanı: iş kuralı.
+- Repository/DB erişimi: tenant filtreli ve açık.
+- Frontend istemcisi doğrudan DB modeline bağlanmaz; yalnız API sözleşmesini tüketir.
 
 ---
 
 ## Anti-pattern’ler
 
-- Route dosyasında iş mantığı ve DB + harici API çağrısı üst üste.
-- Parser çıktısını doğrudan React props’a bağlamak (normalize adımı atlanmış).
-- Prisma modelini frontend’e sızdırmak.
-- İlk sprintte “her servis ayrı repo” microservice taklidi.
+- `tenantId` olmadan sorgu çalıştırmak.
+- Membership doğrulaması olmadan tenant verisi döndürmek.
+- Bir module'ün başka module domain akışını doğrudan kontrol etmesi.
+- Route içinde policy bypass eden shortcut erişim.
 
 ---
 
 ## Kısa checklist
 
-- [ ] Yeni kod hangi katmana ait?
-- [ ] Import yönü yukarıdaki kurallara uyuyor mu?
-- [ ] HTML/PDF tek kaynaktan mı?
-- [ ] Async gereksinimi ölçüldü mü?
+- [ ] İstek tek tenant context’e bağlanıyor mu?
+- [ ] Membership/role/module activation kontrolleri var mı?
+- [ ] Sorgular tenantId ile scope ediliyor mu?
+- [ ] Module sınırı ve core sınırı korunuyor mu?
 
 ---
 
 ## İlgili dokümanlar
 
-- **Görsel/print detay** (token, `@media print`): [20-rules-008-design-system.md](./20-rules-008-design-system.md) — mimari burada tekrar edilmez.
-- **Şema, revision, slug**: [20-rules-003-data-model.md](./20-rules-003-data-model.md); **migration deploy sırası**: [20-rules-006-deployment-and-ops.md](./20-rules-006-deployment-and-ops.md).
-- **API şekli**: [20-rules-004-api-design.md](./20-rules-004-api-design.md); **rate limit / XSS / SSRF derinliği**: [20-rules-005-security.md](./20-rules-005-security.md).
-- **Queue/worker operasyonu** (CPU, alert): [20-rules-006-deployment-and-ops.md](./20-rules-006-deployment-and-ops.md).
-- **Merkez indeks, terminoloji, altın kurallar**: [10-meta-001-rules-index.md](./10-meta-001-rules-index.md).
+- Core platform tanımı: [10-meta-004-core-platform-definition.md](./10-meta-004-core-platform-definition.md)
+- Veri modeli: [20-rules-003-data-model.md](./20-rules-003-data-model.md)
+- API kuralları: [20-rules-004-api-design.md](./20-rules-004-api-design.md)
+- Güvenlik: [20-rules-005-security.md](./20-rules-005-security.md)
+- Module kuralları: [20-rules-013-platform-modules.md](./20-rules-013-platform-modules.md)

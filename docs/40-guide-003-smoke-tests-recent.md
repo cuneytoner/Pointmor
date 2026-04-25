@@ -1,6 +1,6 @@
-# Smoke test — son yapılan işler
+# Smoke testi — son yapılan işler
 
-Bu liste, **yakın zamanda eklenen veya değişen** parçaları doğrulamak içindir. Genel test stratejisi için [`40-guide-002-testing.md`](./40-guide-002-testing.md) dosyasına bakın.
+Bu liste, **yakın zamanda eklenen veya değişen** parçaları doğrulamak içindir. Genel komut akışı için [`40-guide-001-run-local.md`](./40-guide-001-run-local.md) dosyasına bakın.
 
 **Kapsam (güncel):** monorepo çalıştırma, API sağlık kontrolü, PostgreSQL + Prisma migration’ları, admin statik önizleme.
 
@@ -23,7 +23,7 @@ Komut biçimi için: [`40-guide-001-run-local.md`](./40-guide-001-run-local.md).
    - `npm.cmd run dev:api`  
    - Tarayıcı veya `curl`: `GET http://127.0.0.1:3000/health` → JSON içinde `"ok": true`.
 
-3. **Prisma / DB (şema değiştiyse veya yeni klon)**  
+3. **Prisma / DB (schema değiştiyse veya yeni klon)**  
    - `cd apps\api`  
    - `npm.cmd run db:generate`  
    - Gerekirse: `npm.cmd run db:deploy` (migration’ları uygula) veya geliştirme için `npm.cmd run db:migrate`.  

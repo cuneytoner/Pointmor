@@ -1,6 +1,6 @@
 # API tasarım kuralları
 
-**Amaç:** Tutarlı route’lar, öngörülebilir hatalar ve güvenli genişleme; **admin / ürün içi API** için zorunlu çerçeve; gelecekteki **public müşteri API’si** aynı prensipleri miras alır ([20-rules-001-product-scope.md](./20-rules-001-product-scope.md) — public API MVP dışı olabilir, tasarım dili burada kopmaz).
+**Amaç:** Tutarlı route'lar, öngörülebilir hatalar ve güvenli genişleme; admin/ürün içi API için zorunlu çerçeveyi tanımlamak. Gelecekteki public müşteri API'si de aynı prensipleri izler ([20-rules-001-product-scope.md](./20-rules-001-product-scope.md)).
 
 ---
 
@@ -17,18 +17,18 @@
 
 ## Tasarım prensipleri
 
-1. **Tutarlılık:** Aynı kavram her yerde aynı isim (`document`, `workspace`).
-2. **Tahmin edilebilirlik:** `GET /documents` liste, `GET /documents/:id` detay.
-3. **Açık sözleşme:** Request/response şeması (OpenAPI veya TypeScript paylaşılan tipler).
+1. **Tutarlılık:** Aynı kavram her yerde aynı isim (`tenant`, `membership`, `module`).
+2. **Tahmin edilebilirlik:** `GET /tenants` liste, `GET /tenants/:id` detay.
+3. **Açık sözleşme:** Request/response schema'sı (OpenAPI veya TypeScript paylaşılan tipler).
 4. **Minimal response:** İhtiyaç fazlası alan her zaman dönmez; `?expand=` ile genişletme.
 
 ---
 
 ## Route isimlendirme
 
-- **Resource:** `/documents`, `/users`, `/subscriptions`.
-- **Action endpoint:** Sadece fiil gerekliyse ve REST’e sığmıyorsa — örn. `POST /documents/:id/publish` (tek seferlik işlem).
-- **Nested route:** Alt kaynak net ise — `GET /documents/:id/revisions`; derinlik 2–3 ile sınırlı.
+- **Resource:** `/tenants`, `/users`, `/subscriptions`, `/modules`.
+- **Action endpoint:** Sadece fiil gerekliyse ve REST’e sığmıyorsa — örn. `POST /tenant/modules` (aktivasyon işlemi).
+- **Nested route:** Alt kaynak net ise — `GET /tenants/:id/memberships`; derinlik 2–3 ile sınırlı.
 
 ---
 
@@ -65,7 +65,7 @@ veya liste için `{ "data": [...], "pagination": { ... } }` — proje tek stile 
 
 **HTTP status:** 4xx istemci, 5xx sunucu; `401`/`403` ayrımı net.
 
-**Bilinen pragmatik sapma (plan):** Bazı iç uçlar (ör. entitlement ihlali) düz JSON `{ "error": "plan_limit_exceeded", "metric": "..." }` dönebilir; uzun vadede üstteki `error` nesne modeli ile hizalanması hedeflenir ([`10-meta-003-project-tracker.md`](./10-meta-003-project-tracker.md) — sıradaki adımlar).
+**Bilinen pragmatik sapma (plan):** Bazı iç endpoint'ler (ör. entitlement ihlali) düz JSON `{ "error": "plan_limit_exceeded", "metric": "..." }` dönebilir; uzun vadede üstteki `error` nesne modeli ile hizalanması hedeflenir ([`10-meta-003-project-tracker.md`](./10-meta-003-project-tracker.md) — sıradaki adımlar).
 
 ---
 
@@ -82,16 +82,22 @@ veya liste için `{ "data": [...], "pagination": { ... } }` — proje tek stile 
 - **Session/cookie:** Tarayıcı admin UI.
 - **Bearer token:** API ve mobil/script.
 - **API key:** Sunucu-to-sunucu; scope başına izin (`documents:read`).
-- **Owner-only:** `document.userId === auth.userId` kontrolü middleware veya service katmanında tek yerde.
+- **Tenant-only:** tenant erişimi membership üzerinden middleware veya service katmanında tek yerde doğrulanır.
 
-**Zorunlu erişim doğrulama kuralı:** Every API request must:
+**Zorunlu erişim doğrulama kuralı:** Her API isteği şunları sağlamalıdır:
 
-1. resolve tenant context
-2. validate membership
-3. validate role permissions
-4. validate module activation state
+1. tenant context çözülmeli
+2. membership doğrulanmalı
+3. role izinleri doğrulanmalı
+4. module activation durumu doğrulanmalı
 
-`tenantId` MUST be present (path/header/session) and used to scope all queries.
+`tenantId` zorunlu olmalı (path/header/session) ve tüm query'ler bu değere göre scope edilmelidir.
+
+**Çok katmanlı enforcement açıklaması:** Access control çok katmanda enforce edilir:
+
+- API layer
+- service layer
+- database layer
 
 ---
 
@@ -125,7 +131,7 @@ veya liste için `{ "data": [...], "pagination": { ... } }` — proje tek stile 
 
 ## Validation
 
-- Sunucuda şema zorunlu; client validation UX içindir, güvenlik değildir.
+- Sunucuda schema zorunludur; client validation yalnız UX içindir, güvenlik yerine geçmez.
 
 ---
 
@@ -156,6 +162,6 @@ veya liste için `{ "data": [...], "pagination": { ... } }` — proje tek stile 
 
 ## İlgili dokümanlar
 
-- **Entity ve slug veri modeli**: [20-rules-003-data-model.md](./20-rules-003-data-model.md).
+- **Tenant/membership/module veri modeli**: [20-rules-003-data-model.md](./20-rules-003-data-model.md).
 - **Güvenlik derinliği**: [20-rules-005-security.md](./20-rules-005-security.md).
 - **Merkez indeks**: [10-meta-001-rules-index.md](./10-meta-001-rules-index.md).

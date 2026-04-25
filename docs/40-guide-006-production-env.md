@@ -1,4 +1,4 @@
-# Production environment reference (Pointmor)
+# Production ortam referansı (Pointmor)
 
 Bu doküman production ortamı için zorunlu/opsiyonel environment değişkenlerini ve altyapı beklentilerini netleştirir.
 
@@ -6,7 +6,6 @@ Demo odaklı dosyalar:
 
 - `infra/docker/.env.demo.example`
 - `docs/40-guide-004-demo-deployment.md`
-- `docs/40-guide-005-demo-deployment-runbook.md`
 
 Production için:
 
@@ -76,7 +75,7 @@ Bu değişkenler boş ise deploy yapılmamalıdır:
 
 ## 4) Internal job / webhook secret seti
 
-### Internal jobs
+### Internal job'lar
 
 - `RETENTION_JOB_SECRET` (retention job kullanılıyorsa)
 - `HQ_INSIGHT_JOB_SECRET` (hq insight job kullanılıyorsa)
@@ -95,7 +94,7 @@ HMAC imzalama örneği için:
 
 ---
 
-## 5) Rotation basics (minimum)
+## 5) Rotation temel kuralları (minimum)
 
 | Secret | Rotation önerisi |
 |--------|------------------|
@@ -116,7 +115,7 @@ Rotation sonrası zorunlu kontroller:
 
 ---
 
-## 6) Demo vs production farkları (özet)
+## 6) Demo ve production farkları (özet)
 
 | Konu | Demo | Production |
 |------|------|------------|

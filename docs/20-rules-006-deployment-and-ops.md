@@ -54,19 +54,19 @@
 - **Yerel:** `migrate dev` ile geliştir; migration dosyası PR’da.
 - **Prod:** Backup penceresi veya düşük trafik; uzun kilit süreni transaction’lar ayrı planlanır.
 - **Rollback:** Mümkünse forward-fix; geri migration nadiren ve bilinçli.
-- **Şema kuralları, revision, soft delete:** [20-rules-003-data-model.md](./20-rules-003-data-model.md) — bu dosya *ne zaman* deploy edileceğini ve pipeline’ı tanımlar; veri anlamı `rules-003-data-model` ile uyumlu olmalıdır.
+- **Schema kuralları, revision, soft delete:** [20-rules-003-data-model.md](./20-rules-003-data-model.md) — bu dosya *ne zaman* deploy edileceğini ve pipeline'ı tanımlar; veri anlamı `rules-003-data-model` ile uyumlu olmalıdır.
 
 <a id="pointmor-local-db-migrate-deploy"></a>
 
 ### Pointmor local DB migrate deploy (apps/api)
 
-**Kural:** Repoda yeni migration dosyası varken veya `schema.prisma` güncellendiyse, bağlı geliştirme veritabanı **güncel şema ile uyumlu** olmalıdır. Aksi halde API çalışırken Prisma `P2021` (tablo yok) vb. ile **500** üretebilir.
+**Kural:** Repoda yeni migration dosyası varken veya `schema.prisma` güncellendiyse, bağlı geliştirme veritabanı güncel schema ile uyumlu olmalıdır. Aksi halde API çalışırken Prisma `P2021` (tablo yok) vb. ile 500 üretebilir.
 
 | Durum | Ne yapılır |
 |--------|------------|
 | `git pull` / branch değişimi sonrası | `apps/api` içinde `npx prisma migrate deploy` — bekleyen migration’ları uygular. |
 | Yeni migration bu görevde eklendiyse | Aynı görev kapsamında hedef **dev** veritabanına `migrate deploy` çalıştırılır (agent/otomasyon mümkünse burada yapar). |
-| İlk kez şema oluşturma | `migrate dev` (migration üretimi); deploy ortamlarında her zaman `migrate deploy`. |
+| İlk kez schema oluşturma | `migrate dev` (migration üretimi); deploy ortamlarında her zaman `migrate deploy`. |
 
 **Prod / staging:** Onaylı pipeline veya operatör; yerelden prod’a doğrudan `migrate` bağlantısı yok (secret ve süreç ayrı).
 
@@ -97,19 +97,18 @@
 
 ---
 
-## MVP deployment notları
+## MVP dağıtım notları
 
 - Tek region yeterli; multi-region sonra.
 - **Worker ayrımı:** Queue derinliği ve timeout sürekli patlıyorsa ayrı process.
-- **Queue:** Toplu e-posta, büyük PDF, webhook retry.
-- **PDF:** CPU/memory limit; timeout; ayrı worker önerilir yoğunlukta.
-- **Hosted documents:** CDN cache + invalidation (publish sonrası); `Cache-Control` politikası net.
+- **Queue:** Toplu e-posta, webhook retry, zamanlanmış operasyon işleri.
+- **Tenant API cache:** CDN/HTTP cache sadece güvenli read yüzeylerinde; `Cache-Control` politikası net.
 
 ---
 
 ## Anti-pattern’ler
 
-- Production veritabanında elle şema değişikliği.
+- Production veritabanında elle schema değişikliği.
 - Migration’ı CI’da çalıştırmadan prod deploy.
 - Secret’ı Slack/email ile paylaşma veya repoya gömme.
 - Tek VM’de gereksiz 5 microservice (operasyon yükü > kazanç).

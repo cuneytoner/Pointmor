@@ -1,4 +1,4 @@
-# Tenant App — Cashier single-screen flow (ürün / UX spec)
+# Tenant App — Cashier tek ekran akışı (ürün / UX spec)
 
 **Kapsam:** Tenant App (`/app/*`) içinde tek ekranda müşteri seçimi, tutar (visit), puan özeti ve ödül kullanımı (redemption). **Modal yok**; tam sayfa `PageShell`.  
 **İlgili:** [`42-design-admin-ui.md`](./42-design-admin-ui.md) (düğme sınıfları, Plus shell), [`20-rules-010-i18n.md`](./20-rules-010-i18n.md) (kullanıcı metinleri).
@@ -25,7 +25,7 @@
 
 ## 2. Bileşen sınırları (referans)
 
-| Bileşen | Rol |
+| Bileşen | Görev |
 |---------|-----|
 | `CashierPage` | Container: state, API, orchestration |
 | `CustomerPanel` | Arama, seçim, quick create |

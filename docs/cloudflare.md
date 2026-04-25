@@ -1,8 +1,8 @@
-# Cloudflare Tunnel (Pointmor demo)
+# Cloudflare Tüneli (Pointmor demo)
 
 **Sırlar repoda tutulmaz.** Tunnel token’ı yalnızca sunucudaki `infra/docker/.env.demo` içinde (`CLOUDFLARE_TUNNEL_TOKEN`) veya GitHub Secrets’ta saklayın.
 
-## Compose
+## Compose kullanımı
 
 ```bash
 docker compose -f infra/docker/docker-compose.demo.yml \
@@ -15,4 +15,4 @@ Token’ı Cloudflare Zero Trust → Tunnels → ilgili tunnel → **Configure**
 ## Ayrıntı
 
 - [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md) — Cloudflare ve ingress notları  
-- [`40-guide-005-demo-deployment-runbook.md`](./40-guide-005-demo-deployment-runbook.md) — **bölüm 7** (tunnel komutu, `deploy-demo.sh` ile ilişki, reboot / yeni deployment sonrası ne yapılır)  
+- [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md) — deploy + tunnel akışı  

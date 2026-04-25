@@ -1,11 +1,11 @@
-# Production deployment guide (Pointmor)
+# Production dağıtım rehberi (Pointmor)
 
 Bu kılavuz, Pointmor’u production’da güvenli şekilde canlıya alma akışını tanımlar.
 
 İlgili dosyalar:
 
 - Env: `docs/40-guide-006-production-env.md`
-- Runbook: `docs/40-guide-008-production-runbook.md`
+- Çalıştırma rehberi: `docs/40-guide-008-production-runbook.md`
 - Prod compose: `infra/docker/docker-compose.prod.yml`
 - Prod deploy script: `infra/scripts/deploy-prod.sh`
 - Prod env preflight: `infra/scripts/preflight-prod-env.sh`
@@ -14,7 +14,7 @@ Bu kılavuz, Pointmor’u production’da güvenli şekilde canlıya alma akış
 
 ## 1) Önerilen CI/CD modeli
 
-### PR gate
+### PR geçidi
 
 1. `CI` workflow (lint + prisma validate/generate + tests + build)
 2. Required checks: `CI / check`
@@ -27,7 +27,7 @@ Bu kılavuz, Pointmor’u production’da güvenli şekilde canlıya alma akış
 3. SHA traceability: `sha-<commit>` tag + digest
 4. `release-manifest.json` artifact
 
-### Production deploy
+### Production dağıtımı
 
 1. `.github/workflows/deploy-production.yml` (manual dispatch)
 2. `environment: production` (manual approval gate)
@@ -35,7 +35,7 @@ Bu kılavuz, Pointmor’u production’da güvenli şekilde canlıya alma akış
 
 ---
 
-## 2) Production startup checklist
+## 2) Production başlangıç kontrol listesi
 
 - [ ] `infra/docker/.env.prod` hazır ve `preflight-prod-env.sh` PASS
 - [ ] `POINTMOR_API_IMAGE` ve `POINTMOR_ADMIN_IMAGE` immutable ref
@@ -50,7 +50,7 @@ Bu kılavuz, Pointmor’u production’da güvenli şekilde canlıya alma akış
 
 ---
 
-## 3) First production deploy checklist
+## 3) İlk production dağıtım kontrol listesi
 
 1. Release commit SHA belirle.
 2. `Release images` workflow ile image üret/push et.

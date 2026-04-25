@@ -46,6 +46,12 @@ const adminEmail =
   process.env.DEMO_ADMIN_EMAIL?.trim() || "admin-demo@pointmor.demo";
 const operatorEmail =
   process.env.DEMO_OPERATOR_EMAIL?.trim() || "owner-demo@pointmor.demo";
+const advisorAdminEmail =
+  process.env.DEMO_ADVISOR_ADMIN_EMAIL?.trim() || "advisor-admin@pointmor.demo";
+const advisorStaffEmail =
+  process.env.DEMO_ADVISOR_STAFF_EMAIL?.trim() || "advisor-staff@pointmor.demo";
+const clientOwnerEmail =
+  process.env.DEMO_CLIENT_OWNER_EMAIL?.trim() || "client-owner@pointmor.demo";
 
 const demoTenant = await prisma.tenant.upsert({
   where: { slug: "demo-cafe" },
@@ -58,6 +64,36 @@ const demoTenant = await prisma.tenant.upsert({
   },
   update: {
     name: "Pointmor Demo Cafe",
+    type: "BUSINESS",
+  },
+});
+
+const advisorTenant = await prisma.tenant.upsert({
+  where: { slug: "demo-advisor" },
+  create: {
+    slug: "demo-advisor",
+    name: "Pointmor Demo Advisor",
+    type: "ADVISOR",
+    onboardingStep: 6,
+    onboardingCompletedAt: new Date(),
+  },
+  update: {
+    name: "Pointmor Demo Advisor",
+    type: "ADVISOR",
+  },
+});
+
+const clientTenant = await prisma.tenant.upsert({
+  where: { slug: "demo-client" },
+  create: {
+    slug: "demo-client",
+    name: "Pointmor Demo Client",
+    type: "BUSINESS",
+    onboardingStep: 6,
+    onboardingCompletedAt: new Date(),
+  },
+  update: {
+    name: "Pointmor Demo Client",
     type: "BUSINESS",
   },
 });
@@ -151,7 +187,7 @@ const growth = await prisma.plan.upsert({
   update: { planType: "pro", featureTags: growthFeaturesDemo, limits: {} },
 });
 
-await prisma.user.upsert({
+const platformAdminUser = await prisma.user.upsert({
   where: { email: adminEmail },
   create: {
     email: adminEmail,
@@ -169,45 +205,167 @@ await prisma.user.upsert({
   },
 });
 
-const demoBusinessUser = await prisma.user.findUnique({
-  where: { email: operatorEmail },
-  select: { id: true },
-});
-if (demoBusinessUser) {
-  await prisma.tenantMembership.upsert({
-    where: {
-      userId_tenantId: {
-        userId: demoBusinessUser.id,
-        tenantId: demoTenant.id,
-      },
-    },
-    create: {
-      userId: demoBusinessUser.id,
-      tenantId: demoTenant.id,
-      role: "MEMBER",
-      isExternal: false,
-    },
-    update: {
-      role: "MEMBER",
-      isExternal: false,
-    },
-  });
-}
-
-await prisma.user.upsert({
+const demoBusinessUser = await prisma.user.upsert({
   where: { email: operatorEmail },
   create: {
     email: operatorEmail,
     name: "Demo işletme kullanıcısı",
     passwordHash: hashOperator,
     platformAdmin: false,
-    tenantId: demoTenant.id,
+    tenantId: null,
     role: "tenant_operator",
   },
   update: {
     passwordHash: hashOperator,
-    tenantId: demoTenant.id,
+    tenantId: null,
     role: "tenant_operator",
+  },
+});
+
+const advisorAdminUser = await prisma.user.upsert({
+  where: { email: advisorAdminEmail },
+  create: {
+    email: advisorAdminEmail,
+    name: "Demo advisor admin",
+    passwordHash: hashOperator,
+    platformAdmin: false,
+    tenantId: null,
+    role: "advisor_admin",
+  },
+  update: {
+    passwordHash: hashOperator,
+    tenantId: null,
+    role: "advisor_admin",
+  },
+});
+
+const advisorStaffUser = await prisma.user.upsert({
+  where: { email: advisorStaffEmail },
+  create: {
+    email: advisorStaffEmail,
+    name: "Demo advisor staff",
+    passwordHash: hashOperator,
+    platformAdmin: false,
+    tenantId: null,
+    role: "advisor_staff",
+  },
+  update: {
+    passwordHash: hashOperator,
+    tenantId: null,
+    role: "advisor_staff",
+  },
+});
+
+const clientOwnerUser = await prisma.user.upsert({
+  where: { email: clientOwnerEmail },
+  create: {
+    email: clientOwnerEmail,
+    name: "Demo client owner",
+    passwordHash: hashOperator,
+    platformAdmin: false,
+    tenantId: null,
+    role: "client_owner",
+  },
+  update: {
+    passwordHash: hashOperator,
+    tenantId: null,
+    role: "client_owner",
+  },
+});
+
+// TenantMembership is the source of truth for tenant-scoped access.
+await prisma.tenantMembership.upsert({
+  where: {
+    userId_tenantId: {
+      userId: demoBusinessUser.id,
+      tenantId: demoTenant.id,
+    },
+  },
+  create: {
+    userId: demoBusinessUser.id,
+    tenantId: demoTenant.id,
+    role: "MEMBER",
+    isExternal: false,
+  },
+  update: {
+    role: "MEMBER",
+    isExternal: false,
+  },
+});
+
+await prisma.tenantMembership.upsert({
+  where: {
+    userId_tenantId: {
+      userId: advisorAdminUser.id,
+      tenantId: advisorTenant.id,
+    },
+  },
+  create: {
+    userId: advisorAdminUser.id,
+    tenantId: advisorTenant.id,
+    role: "ADMIN",
+    isExternal: false,
+  },
+  update: {
+    role: "ADMIN",
+    isExternal: false,
+  },
+});
+
+await prisma.tenantMembership.upsert({
+  where: {
+    userId_tenantId: {
+      userId: advisorStaffUser.id,
+      tenantId: advisorTenant.id,
+    },
+  },
+  create: {
+    userId: advisorStaffUser.id,
+    tenantId: advisorTenant.id,
+    role: "MEMBER",
+    isExternal: false,
+  },
+  update: {
+    role: "MEMBER",
+    isExternal: false,
+  },
+});
+
+await prisma.tenantMembership.upsert({
+  where: {
+    userId_tenantId: {
+      userId: advisorAdminUser.id,
+      tenantId: clientTenant.id,
+    },
+  },
+  create: {
+    userId: advisorAdminUser.id,
+    tenantId: clientTenant.id,
+    role: "ADVISOR",
+    isExternal: true,
+  },
+  update: {
+    role: "ADVISOR",
+    isExternal: true,
+  },
+});
+
+await prisma.tenantMembership.upsert({
+  where: {
+    userId_tenantId: {
+      userId: clientOwnerUser.id,
+      tenantId: clientTenant.id,
+    },
+  },
+  create: {
+    userId: clientOwnerUser.id,
+    tenantId: clientTenant.id,
+    role: "ADMIN",
+    isExternal: false,
+  },
+  update: {
+    role: "ADMIN",
+    isExternal: false,
   },
 });
 
@@ -216,6 +374,18 @@ await prisma.subscription.upsert({
   create: {
     id: "seed_sub_demo",
     tenantId: demoTenant.id,
+    planId: growth.id,
+    status: "active",
+    renewsAt: new Date("2026-05-01T00:00:00.000Z"),
+  },
+  update: {},
+});
+
+await prisma.subscription.upsert({
+  where: { id: "seed_sub_demo_client" },
+  create: {
+    id: "seed_sub_demo_client",
+    tenantId: clientTenant.id,
     planId: growth.id,
     status: "active",
     renewsAt: new Date("2026-05-01T00:00:00.000Z"),

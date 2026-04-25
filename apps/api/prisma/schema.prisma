@@ -91,6 +91,8 @@ model TenantMembership {
   invitationsSent TenantInvitation[] @relation("TenantInvitationInviterMembership")
 
   @@unique([userId, tenantId])
+  @@index([tenantId])
+  @@index([role])
   @@index([tenantId, role])
   @@index([userId])
 }
@@ -113,6 +115,9 @@ model TenantInvitation {
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
 
+  @@index([tenantId])
+  @@index([email])
+  @@index([status])
   @@index([tenantId, status, invitedAt])
   @@index([email, status])
 }

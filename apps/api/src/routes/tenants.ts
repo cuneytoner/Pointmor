@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { authPreHandler } from "../lib/http-auth.js";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { writeAudit } from "../lib/audit.js";
-import { canAccessTenant, requirePlatformAdmin } from "../lib/guards.js";
+import { requirePlatformAdmin, requireTenantAccess } from "../lib/guards.js";
 import { prisma } from "../lib/prisma.js";
 import { parseWithSchema, z } from "../lib/validation.js";
 
@@ -31,9 +31,12 @@ export async function registerTenantRoutes(app: FastifyInstance): Promise<void> 
       if (s.user.platformAdmin) {
         return prisma.tenant.findMany({ orderBy: { name: "asc" } });
       }
-      if (!s.tenant) return [];
-      const row = await prisma.tenant.findUnique({ where: { id: s.tenant.id } });
-      return row ? [row] : [];
+      const membershipIds = (s.memberships ?? []).map((m) => m.tenant.id);
+      if (membershipIds.length === 0) return [];
+      return prisma.tenant.findMany({
+        where: { id: { in: membershipIds } },
+        orderBy: { name: "asc" },
+      });
     },
   );
 
@@ -47,8 +50,9 @@ export async function registerTenantRoutes(app: FastifyInstance): Promise<void> 
         return reply.code(400).send({ error: paramsParsed.error, message: paramsParsed.message });
       }
       const tenantId = paramsParsed.data.tenantId.trim();
-      if (!canAccessTenant(s, tenantId)) {
-        return reply.code(403).send({ error: "forbidden" });
+      const access = await requireTenantAccess(s.user, tenantId);
+      if (!access.ok) {
+        return reply.code(403).send({ error: access.error ?? "forbidden" });
       }
       const row = await prisma.tenant.findUnique({ where: { id: tenantId } });
       if (!row) return reply.code(404).send({ error: "not_found" });
@@ -92,8 +96,9 @@ export async function registerTenantRoutes(app: FastifyInstance): Promise<void> 
         return reply.code(400).send({ error: paramsParsed.error, message: paramsParsed.message });
       }
       const tenantId = paramsParsed.data.tenantId.trim();
-      if (!canAccessTenant(s, tenantId)) {
-        return reply.code(403).send({ error: "forbidden" });
+      const access = await requireTenantAccess(s.user, tenantId);
+      if (!access.ok) {
+        return reply.code(403).send({ error: access.error ?? "forbidden" });
       }
       const bodyParsed = parseWithSchema(tenantPatchBodySchema, req.body);
       if (!bodyParsed.ok) {

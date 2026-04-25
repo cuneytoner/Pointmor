@@ -2,7 +2,7 @@
 
 **Amaç:** Pointmor platformunda tekrarlayan güvenlik hatalarını azaltmak; özellikle tenant izolasyonu, erişim kontrolü ve veri sızıntısı riskleri.
 
-> **[DEPRECATED – legacy document SaaS template, not part of current platform architecture]** Bu dokümandaki bazı import/render/paylaşım örnekleri document-SaaS şablonundan kalmadır. Tenant/membership/modül erişim modeli için öncelik: [`20-rules-015-cross-tenant-access-security.md`](./20-rules-015-cross-tenant-access-security.md) ve [`10-meta-004-core-platform-definition.md`](./10-meta-004-core-platform-definition.md).
+> **[DEPRECATED – legacy document SaaS template, not part of current platform architecture]** Bu dokümandaki bazı import/render/paylaşım örnekleri document-SaaS şablonundan kalmadır. Tenant/membership/module erişim modeli için öncelik: [`20-rules-015-cross-tenant-access-security.md`](./20-rules-015-cross-tenant-access-security.md) ve [`10-meta-004-core-platform-definition.md`](./10-meta-004-core-platform-definition.md).
 
 ---
 
@@ -13,7 +13,6 @@
 | XSS | Çıktı bağlamına göre escape/sanitize; `dangerouslySetInnerHTML` yalnız güvenilir pipeline çıktısı. |
 | SSRF | Sunucu taraflı URL fetch whitelist veya blok listesi; iç IP yok. |
 | Token sızıntısı | Unlisted linkler log ve referrer’da dikkat; query token URL maskeleme. |
-| PDF | Güvenilir HTML kaynağı; uzaktan rastgele URL’ye headless gitme. |
 
 ---
 
@@ -33,20 +32,28 @@
 
 ---
 
-## Access evaluation order
+## Access değerlendirme sırası
 
 1. Authentication
-2. Resolve tenant context
-3. Scope request to tenant
-4. Validate membership
-5. Validate role permissions
-6. Validate module activation
+2. Tenant context çözümleme
+3. Request'i tenant scope'una bağlama
+4. Membership doğrulama
+5. Role izinlerini doğrulama
+6. Module activation doğrulama
 
-Access is denied by default unless explicitly allowed via:
+Açıkça izin verilmediği sürece access varsayılan olarak reddedilir:
 
 - membership
 - role
 - module activation
+
+Tüm query'ler tenant scope'lu olmalıdır.
+
+Access control çok katmanda enforce edilir:
+
+- API layer
+- service layer
+- database layer
 
 ### OAuth / OIDC (social login)
 
@@ -59,7 +66,7 @@ Access is denied by default unless explicitly allowed via:
 
 ## Rate limiting
 
-- Login, import, PDF export, paylaşım doğrulama endpoint’lerinde IP + kullanıcı bazlı limit.
+- Login, import, PDF export ve paylaşım doğrulama endpoint'lerinde IP + kullanıcı bazlı limit.
 - 429 ile tutarlı gövde (`retry-after` isteğe bağlı).
 - **API genel çerçeve** (hangi endpoint’lerde zorunlu olduğu tasarımı): [20-rules-004-api-design.md](./20-rules-004-api-design.md) — orada kısaca; uygulama detayı burada.
 
@@ -85,14 +92,6 @@ Access is denied by default unless explicitly allowed via:
 - MIME ve uzantı çift kontrolü; içerik başına magic byte.
 - Boyut limiti; depolama public URL ile doğrudan erişimde path traversal yok.
 - Dosya adı güvenli slug; kullanıcı adı ham kullanılmaz.
-
----
-
-## PDF üretimi
-
-- **Yalnız** uygulama tarafından üretilen veya güvenilir kaynaklı HTML.
-- Headless tarayıcıda `file://` veya rastgele dış URL navigasyonu yok (SSRF ile birleşik risk).
-- Kaynak tüketimi limitli (timeout, concurrency).
 
 ---
 
@@ -164,5 +163,5 @@ Access is denied by default unless explicitly allowed via:
 ## İlgili dokümanlar
 
 - **Validation ve hata gövdesi şekli**: [20-rules-004-api-design.md](./20-rules-004-api-design.md).
-- **PDF/HTML tek kaynak ve headless kısıtları (mimari)**: [20-rules-002-architecture.md](./20-rules-002-architecture.md).
+- **Mimari katman sınırları**: [20-rules-002-architecture.md](./20-rules-002-architecture.md).
 - **Merkez indeks**: [10-meta-001-rules-index.md](./10-meta-001-rules-index.md).

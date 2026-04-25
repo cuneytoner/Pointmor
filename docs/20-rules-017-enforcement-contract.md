@@ -1,101 +1,101 @@
-# Enforcement Contract (Platform Guarantees)
+# Enforcement Contract (Platform Garantileri)
 
-## Purpose
+## Amaç
 
-This document defines how platform rules are enforced across all layers.
+Bu doküman, platform kurallarının tüm katmanlarda nasıl enforce edildiğini tanımlar.
 
-It ensures that architectural rules are not optional and cannot be bypassed.
+Mimari kuralların opsiyonel olmamasını ve atlatılamamasını garanti eder.
 
 ---
 
-## 1) Layered enforcement model
+## 1) Katmanlı enforcement modeli
 
-Platform rules MUST be enforced at multiple layers:
+Platform kuralları birden fazla katmanda enforce edilmelidir:
 
-### API layer
+### API katmanı
 
-* tenant context resolution
-* membership validation
-* role permission checks
-* module activation checks
+* tenant context çözümleme
+* membership doğrulama
+* role yetki kontrolleri
+* module activation kontrolleri
 
-### Service layer
+### Service katmanı
 
-* business logic must not bypass API guards
-* all tenant-scoped operations must re-validate context
+* iş mantığı API guard'larını atlamamalı
+* tüm tenant kapsamlı işlemler context'i yeniden doğrulamalı
 
-### Database layer
+### Database katmanı
 
 * unique constraints
 * foreign keys
-* tenantId presence
+* tenantId varlığı
 * indexing
 
 ---
 
-## 2) Mandatory invariants
+## 2) Zorunlu değişmezler
 
-The following MUST always hold:
+Aşağıdakiler her zaman sağlanmalıdır:
 
-* every request resolves to exactly one tenant
-* no cross-tenant access without membership
-* membership is the single source of truth
-* module activation gates functionality
-* all database queries MUST be scoped by tenantId
-* request execution context MUST be bound to a single tenant for its entire lifecycle
-
----
-
-## 3) Deny-by-default guarantee
-
-If any validation step fails:
-
-→ access MUST be denied
-
-No fallback or implicit access is allowed.
-
-All denied access attempts MUST be logged for audit and security monitoring.
+* her request tam olarak bir tenant'a çözülür
+* membership olmadan cross-tenant access olmaz
+* membership tek source of truth'tur
+* module activation işlevselliği kapılar
+* tüm database query'leri tenantId ile scope edilmelidir
+* request execution context, tüm yaşam döngüsü boyunca tek bir tenant'a bağlı olmalıdır
 
 ---
 
-## 4) Forbidden patterns
+## 3) Deny-by-default garantisi
 
-The following are strictly forbidden:
+Herhangi bir doğrulama adımı başarısız olursa:
 
-* using User.tenantId as primary access control
-* querying without tenantId filter
-* bypassing membership checks
-* accessing module data without activation
+→ access reddedilmelidir
 
----
+Fallback veya örtük erişime izin verilmez.
 
-## 4.1) External advisor constraints
-
-If a user has isExternal = true:
-
-- must not be granted ADMIN-level permissions by default
-- must only access explicitly assigned tenant data
-- must pass all membership + role checks without exception
+Reddedilen tüm access denemeleri audit ve security izleme için loglanmalıdır.
 
 ---
 
-## 5) Developer responsibility
+## 4) Yasak desenler
 
-Any new feature MUST:
+Aşağıdakiler kesin olarak yasaktır:
 
-* respect tenant boundaries
-* use membership-based access
-* follow module isolation rules
-
-Failure to follow these rules is considered a critical bug.
+* User.tenantId değerini birincil access control olarak kullanmak
+* tenantId filtresi olmadan query yapmak
+* membership kontrollerini atlamak
+* activation olmadan module verisine erişmek
 
 ---
 
-## 6) Future enforcement
+## 4.1) External advisor kısıtları
 
-These rules may be further enforced via:
+Bir kullanıcıda `isExternal = true` ise:
 
-* middleware guards
-* lint rules
-* test automation
-* runtime assertions
+- varsayılan olarak ADMIN seviyesi yetki verilmemeli
+- yalnızca açıkça atanmış tenant verisine erişmeli
+- istisnasız tüm membership + role kontrollerinden geçmeli
+
+---
+
+## 5) Geliştirici sorumluluğu
+
+Her yeni feature şunları sağlamalıdır:
+
+* tenant sınırlarına uymalı
+* membership tabanlı access kullanmalı
+* module isolation kurallarını izlemeli
+
+Bu kurallara uyulmaması kritik bug kabul edilir.
+
+---
+
+## 6) Gelecek enforcement adımları
+
+Bu kurallar ileride şu yollarla daha sıkı enforce edilebilir:
+
+* middleware guard'ları
+* lint kuralları
+* test otomasyonu
+* runtime assertion'ları

@@ -66,7 +66,7 @@
 ## Debug ve feature flag
 
 - `console.log` geçici; merge öncesi kaldır veya logger’a çevir.
-- **Feature flag:** Uzun süreli deneme veya riskli rollout; `if (env)` dağınığı yerine tek modül (`features.ts`).
+- **Feature flag:** Uzun süreli deneme veya riskli rollout; `if (env)` dağınığı yerine tek module (`features.ts`).
 
 ---
 
@@ -76,11 +76,11 @@
 2. **Dosya üretmeden:** Mevcut klasör ve naming ile uyum; yeni pattern icat etme.
 3. **Kurallar:** Önce [10-meta-001-rules-index.md](./10-meta-001-rules-index.md) (terminoloji ve çakışmasız konu sahipliği), sonra ilgili `docs/*-rules.md` ve `.cursor/rules`.
 4. **Dağınık kod:** Tek görevde gereksiz 10 dosya oluşturma; minimum değişiklik.
-5. **Prisma şema / migration:** `apps/api/prisma` altında değişiklik varsa görev sonunda `migrate deploy` veya `migrate dev` uygulanmış olmalı — pratik adımlar [40-guide-001-run-local.md](./40-guide-001-run-local.md#prisma-migrate-after-schema); Cursor kuralı `.cursor/rules/prisma-migrate-after-schema.mdc`.
+5. **Prisma schema / migration:** `apps/api/prisma` altında değişiklik varsa görev sonunda `migrate deploy` veya `migrate dev` uygulanmış olmalı — pratik adımlar [40-guide-001-run-local.md](./40-guide-001-run-local.md#prisma-migrate-after-schema); Cursor kuralı `.cursor/rules/prisma-migrate-after-schema.mdc`.
 
 ---
 
-## Definition of Done
+## Tamamlanma Kriterleri
 
 - [ ] Kod çalışıyor (local veya review ortamı).
 - [ ] Lint ve typecheck temiz.

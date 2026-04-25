@@ -1,16 +1,16 @@
 # Ürün kapsamı kuralları — Pointmor
 
-**Amaç:** Core platform sınırlarını korumak, modül bazlı genişlemeyi düzenlemek ve gereksiz domain karışmasını önlemek.
+**Amaç:** Core platform sınırlarını korumak, module bazlı genişlemeyi düzenlemek ve gereksiz domain karışmasını önlemek.
 
 ---
 
 ## Ürün tanımı
 
-**Pointmor**, **modüler çok kiracılı platform** ürünüdür; işlevler modüllerle sunulur. Birincil kullanıcılar tenant işletmeleri, advisor yapıları ve operasyonları yöneten platform rolleridir.
+**Pointmor**, modüler çok kiracılı platform ürünüdür; işlevler module'lerle sunulur. Birincil kullanıcılar tenant işletmeleri, advisor yapıları ve operasyonları yöneten platform role'leridir.
 
-**Tek doğruluk ifadesi:** **Pointmor is a modular multi-tenant platform. Users access tenants via memberships. Functionality is delivered through modules.**
+**Tek doğruluk ifadesi:** **Pointmor modüler çok kiracılı bir platformdur. Kullanıcılar tenant'lara membership üzerinden erişir. İşlevsellik module'ler üzerinden sunulur.**
 
-**Şu anki repoda** core platform (kimlik, kiracı, membership, plan, abonelik, admin UI) ve **cafe modülü (existing module)** bulunur (müşteri, ziyaret, ödül, kullanım — Prisma + tenant kapsamlı API). Müşteri PWA + canonical public API, kasiyer onaylı talep → kullanım akışı ve Tenant App’te kullanım operasyon ekranı **mevcut kapsamda**dır. **Plan / entitlement:** `GET /tenant/entitlements`, yazma yollarında limit ve özellik kontrolleri, Tenant App’te kullanım ve yükseltme UX’i (demo plan değişimi; gerçek **ödeme / PSP / fatura** entegrasyonu ürün olgunluğuna göre sonraki adım).
+**Şu anki repoda** core platform (kimlik, kiracı, membership, plan, abonelik, admin UI) ve **cafe module (`cafe`)** bulunur (müşteri, ziyaret, ödül, kullanım — Prisma + tenant kapsamlı API). Müşteri PWA + canonical public API, kasiyer onaylı talep → kullanım akışı ve Tenant App'te kullanım operasyon ekranı mevcut kapsamda. **Plan / entitlement:** `GET /tenant/entitlements`, yazma yollarında limit ve özellik kontrolleri, Tenant App'te kullanım ve yükseltme UX'i (demo plan değişimi; gerçek ödeme/PSP/fatura entegrasyonu ürün olgunluğuna göre sonraki adım).
 
 **Tenant kasa yüzeyi (hedef):** Tek ekranda visit ve anında ödül kullanımı (`POST /visits`, `POST /redemptions`) — ürün sırası ve CTA kuralları [`42-design-tenant-cashier-flow.md`](./42-design-tenant-cashier-flow.md).
 
@@ -33,7 +33,7 @@ Eski plan/spec dosyaları repodan kaldırılmıştır (gerekirse git geçmişi).
 |------|----------|
 | **Kimlik / oturum** | Giriş, session, platform vs tenant bağlamı |
 | **Tenant** | Kiracı yaşam döngüsü, slug, ayarlar |
-| **Kullanıcı** | Üyelik, rol |
+| **Kullanıcı** | Üyelik, role |
 | **Plan / Subscription** | Fiyatlandırma sınıfı, özellik etiketleri, abonelik durumu |
 | **Denetim** | E-posta tabanlı `AuditLog` (admin eylemleri) + **yapısal** `AuditEvent` (loyalty/kasiyer kritik olaylar; immutable, tenant kapsamlı). İkisi farklı amaçlara hizmet eder; finans/SIEM platformu değildir. |
 | **Plan / entitlement** | `Plan` üzerinde `limits` (JSON) + `featureTags`; abonelik yoksa varsayılan `starter` planı. Ödeme sağlayıcısı yok; limit ve özellikler backend’de zorunlu. |
@@ -44,8 +44,9 @@ Eski plan/spec dosyaları repodan kaldırılmıştır (gerekirse git geçmişi).
 
 | Kavram | Kullanım |
 |--------|----------|
-| **Workspace / Tenant** | Kiracı; işletme veya marka hesabı |
-| **Platform Console** | SaaS operatörü — tüm kiracılar |
+| **Tenant** | Sistem modeli; kiracı/hesap sınırı |
+| **Workspace** | UI terimi; bazı ekranlarda tenant karşılığı olarak görünebilir |
+| **Platform Console** | SaaS operatörü — tüm tenant'lar |
 | **Tenant App** | Tek işletmenin yönetim alanı |
 
 **Billing** (gerçek ödeme, PSP, fatura): ürün olgunlaşana kadar **ertelenebilir**. Çekirdekte abonelik kaydı, platformdan plan `PATCH`, tenant’ta kullanım/limit görünürlüğü ve (ortamda açıksa) demo plan değişimi vardır; **tahsilat** yoktur.
@@ -62,9 +63,9 @@ Eski plan/spec dosyaları repodan kaldırılmıştır (gerekirse git geçmişi).
 
 ---
 
-## Store & kamuya açık menü (sınır)
+## Store ve kamuya açık menü (sınır)
 
-**Store Experience Foundation:** Tenant başına **mağaza ayarları** (dil listesi, varsayılan dil, para birimi, saat dilimi, iletişim, branding, **loyalty/menü kamuya açık** bayrakları) ve **salt okunur menü** vitrinu. Müşteri tarafında route **`/m/:tenantSlug`**; loyalty PWA **`/c/:tenantSlug`** ile aynı repo (`apps/admin-web`), farklı ürün amacı — tek “mega app” birleştirmesi zorunlu değil. **Sipariş, sepet, ödeme, mutfak, envanter** bu slice’da yok. Ayrıntı: [`42-design-store-public-menu.md`](./42-design-store-public-menu.md).
+**Store Experience Foundation:** Tenant başına mağaza ayarları (dil listesi, varsayılan dil, para birimi, saat dilimi, iletişim, branding, loyalty/menü kamuya açık bayrakları) ve salt okunur menü vitrini. Müşteri tarafında route `/m/:tenantSlug`; loyalty PWA `/c/:tenantSlug` ile aynı repo (`apps/admin-web`), farklı ürün amacıyla çalışır; tek "mega app" birleştirmesi zorunlu değildir. Sipariş, sepet, ödeme, mutfak ve envanter bu dilimde yoktur. Ayrıntı: [`42-design-store-public-menu.md`](./42-design-store-public-menu.md).
 
 ---
 
@@ -77,11 +78,11 @@ Yeni özellik şunları netleştirmeli: hangi **kiracı** verisini taşıyor, **
 ## Platform Extension Strategy
 
 - **Cafe domain korunur:** Mevcut cafe/loyalty kapsamı ve iş akışları bozulmadan devam eder.
-- **Yeni domain = modül:** Yeni iş alanları çekirdek yerine modül olarak eklenir.
-- **Domain logic karışmaz:** Modüller kendi domain sorumluluğunu taşır; farklı domain kuralları aynı iş akışında iç içe geçirilmez.
-- **Core platform ortaktır:** Auth, tenant, membership, plan/abonelik ve temel güvenlik katmanı tüm modüller için ortak altyapıdır.
+- **Yeni domain = module:** Yeni iş alanları çekirdek yerine module olarak eklenir.
+- **Domain logic karışmaz:** Module'ler kendi domain sorumluluğunu taşır; farklı domain kuralları aynı iş akışında iç içe geçirilmez.
+- **Core platform ortaktır:** auth, tenant, membership, plan/abonelik ve temel güvenlik katmanı tüm module'ler için ortak altyapıdır.
 
-**Yeni modül zorunlulukları:**
+**Yeni module zorunlulukları:**
 
 1. **Tenant-scoped** çalışmalıdır.
 2. **RBAC** kurallarına uymalıdır.

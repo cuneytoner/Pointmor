@@ -1,4 +1,4 @@
-# Production runbook (deploy / rollback / incident)
+# Production çalışma rehberi (dağıtım / geri alma / incident)
 
 Bu doküman production operasyonunda “insan tarafından uygulanabilir” adım setini verir.
 
@@ -11,9 +11,9 @@ Kapsam:
 
 ---
 
-## 1) Deploy runbook
+## 1) Dağıtım çalışma rehberi
 
-### 1.1 Pre-deploy
+### 1.1 Dağıtım öncesi
 
 - [ ] Change request/onay hazır
 - [ ] `release_sha` belirlendi
@@ -22,7 +22,7 @@ Kapsam:
 - [ ] `ENV_FILE=infra/docker/.env.prod ./infra/scripts/preflight-prod-env.sh` PASS
 - [ ] DB backup snapshot tamamlandı
 
-### 1.2 Deploy execution
+### 1.2 Dağıtım yürütme
 
 GitHub Actions:
 
@@ -41,7 +41,7 @@ chmod +x infra/scripts/*.sh
 ENV_FILE=infra/docker/.env.prod ./infra/scripts/deploy-prod.sh
 ```
 
-### 1.3 Post-deploy smoke
+### 1.3 Dağıtım sonrası smoke
 
 - [ ] `curl -fsS http://127.0.0.1:${API_HOST_PORT:-3000}/health`
 - [ ] preflight:
@@ -59,7 +59,7 @@ curl -fsS \
 
 ---
 
-## 2) Rollback runbook
+## 2) Geri alma çalışma rehberi
 
 ### 2.1 Ne zaman rollback?
 
@@ -89,7 +89,7 @@ curl -fsS \
 
 ---
 
-## 3) Incident / emergency checklist
+## 3) Incident / acil durum kontrol listesi
 
 ### 3.1 İlk 15 dakika
 
@@ -127,7 +127,7 @@ Rollout cutoff’ları içeren deploy sonrası:
 
 ---
 
-## 5) Secret rotation mini-runbook
+## 5) Secret döndürme mini rehberi
 
 1. Yeni secret üret (secret manager).
 2. Production env’e yaz (henüz aktif etme gerekiyorsa staged yaklaşım).

@@ -1,8 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
+import { requireTenantAccess } from "../lib/guards.js";
 import { prisma } from "../lib/prisma.js";
-import { hasPermissionForSession } from "../lib/tenant-permissions.js";
 import { parseWithSchema, z } from "../lib/validation.js";
 
 const tenantModuleBodySchema = z.object({
@@ -18,6 +18,8 @@ export async function registerModuleRoutes(app: FastifyInstance): Promise<void> 
   app.get("/tenant/modules", { preHandler: [authPreHandler] }, async (req, reply) => {
     const s = req.authSession as SessionPayload;
     if (!s.tenant) return reply.code(403).send({ error: "tenant_context_required" });
+    const access = await requireTenantAccess(s.user, s.tenant.id);
+    if (!access.ok) return reply.code(403).send({ error: access.error ?? "forbidden" });
     return prisma.tenantModule.findMany({
       where: { tenantId: s.tenant.id },
       include: { module: true },
@@ -31,8 +33,11 @@ export async function registerModuleRoutes(app: FastifyInstance): Promise<void> 
     async (req, reply) => {
       const s = req.authSession as SessionPayload;
       if (!s.tenant) return reply.code(403).send({ error: "tenant_context_required" });
-      if (!hasPermissionForSession(s, "settings.manage")) {
-        return reply.code(403).send({ error: "permission_denied" });
+      const access = await requireTenantAccess(s.user, s.tenant.id, {
+        permission: "settings.manage",
+      });
+      if (!access.ok) {
+        return reply.code(403).send({ error: access.error ?? "permission_denied" });
       }
       const parsed = parseWithSchema(tenantModuleBodySchema, req.body);
       if (!parsed.ok) {

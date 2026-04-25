@@ -2,41 +2,39 @@
 
 Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md). Genel bakış: [`10-meta-002-project-overview.md`](./10-meta-002-project-overview.md).
 
-Eski veri platformu faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor core platform + modül yaklaşımı** ile uyumludur.
-
 ---
 
 ## Mevcut durum (2026)
 
-- **Ürün adı:** Pointmor — modüler multi-tenant platform.
-- **Tek doğruluk ifadesi:** Pointmor is a modular multi-tenant platform. Users access tenants via memberships. Functionality is delivered through modules.
+- **Ürün adı:** Pointmor — modüler çok kiracılı platform.
+- **Tek doğruluk ifadesi:** Pointmor modüler çok kiracılı bir platformdur. Kullanıcılar tenant'lara membership üzerinden erişir. İşlevsellik module'ler üzerinden sunulur.
 - **Cafe konumu:** Loyalty/cafe alanı platformdaki **existing module (`cafe`)** olarak sürer.
-- **İlk non-loyalty modül:** **AI Act Compliance** (B2B compliance use-case).
+- **İlk loyalty dışı module:** **AI Act Compliance** (B2B compliance kullanım senaryosu).
 - **Çekirdek korundu:** Tenant, User, auth/session, Plan, Subscription, audit; Platform + Tenant admin yüzeyleri.
-- **Kaldırıldı:** Eski **data platform** modülleri (Data Health, Governance, Lineage, registry, scan, connector, import, ekip yönetimi API’si); ilgili Prisma tabloları ve migration baseline yenilendi.
-- **Loyalty (faz 1):** `Customer`, `Visit`, `Reward`, `Redemption` modelleri ve tenant kapsamlı API route’ları (`apps/api`) mevcut.
+- **Temizlik tamamlandı:** Eski data-platform bileşenleri kod ve schema'dan kaldırılmış, tracker yalnız mevcut platform ve module durumunu takip eder.
+- **Loyalty (faz 1):** `Customer`, `Visit`, `Reward`, `Redemption` modelleri ve tenant kapsamlı API endpoint'leri (`apps/api`) mevcut.
 - **Cashier operations (slice — cihaz / vardiya):** `Branch` (opsiyonel şube), `DeviceSession` (tablet/register oturumu), `CashierShift` (kullanıcı vardiyası). `Visit` / `Redemption` üzerinde isteğe bağlı `deviceSessionId` + `cashierShiftId` FK’lar. API: `GET /cashier/bootstrap`, `POST /cashier/device-sessions`, `POST /cashier/shifts`, `GET /cashier/shifts/:id/summary`; yazma uçlarına isteğe bağlı header’lar `X-Pointmor-Device-Session`, `X-Pointmor-Cashier-Shift`. Admin cashier ekranı açık vardiyayı bootstrap ile senkronlar ve header’ları gönderir.
-- **Şema:** Çekirdek + loyalty tabloları; genişletme (kampanya, ödeme, puan kuralları) sonraki migration’larla.
+- **Schema:** Çekirdek + loyalty tabloları; genişletme (kampanya, ödeme, puan kuralları) sonraki migration'larla.
 
-### Phase 3 — Customer Experience (PWA + public API)
+### Faz 3 — Müşteri Deneyimi (PWA + public API)
 
-**Durum:** Ürün akışı açısından **kapatıldı** (QR → gate/home → puan; telefon+token; ödül talebi; offline snapshot). **Canonical public müşteri API’si:** **`/public/tenants/:slug/*`** (bootstrap = `GET /public/tenants/:slug`, oturum, `customers/me`, `claims`, `analytics/events`). Legacy **`/public/loyalty/:slug/*`** — GET uçları **308** ile canonical’a yönlendirilir; POST uçları geçici uyumluluk için yerinde kalır. Global + public scope **rate limit** ve **Bearer + tenant slug** ile tenant izolasyonu uygulanıyor.
+**Durum:** Ürün akışı açısından kapatıldı (QR → gate/home → puan; telefon+token; ödül talebi; offline snapshot). **Canonical public müşteri API'si:** **`/public/tenants/:slug/*`** (bootstrap = `GET /public/tenants/:slug`, session, `customers/me`, `claims`, `analytics/events`). Legacy **`/public/loyalty/:slug/*`** — GET endpoint'leri 308 ile canonical'a yönlendirilir; POST endpoint'leri geçici uyumluluk için yerinde kalır. Global + public scope rate limit ve Bearer + tenant slug ile tenant izolasyonu uygulanır.
 
-**409 ayrımı:** `insufficient_points` vs `duplicate_pending_claim` canonical (ve legacy) `claims` yanıtında `error` stringi ile ayrılır; PWA toast ile farklı metin gösterir.
+**409 ayrımı:** `insufficient_points` ve `duplicate_pending_claim` canonical (ve legacy) `claims` yanıtında `error` alanı ile ayrılır; PWA toast ile farklı metin gösterir.
 
-### Phase 4 — Growth & automation (MVP)
+### Faz 4 — Büyüme ve otomasyon (MVP)
 
 **Durum:** **Uygulandı (backend).** `LoyaltyDomainEvent` (visit_created, reward_claimed, inactivity_detected), `CustomerAction` (pending/sent/failed), müşteri alanları `lastVisitAt`, `visitCount`, `lastActiveAt`. Ziyaret ve ödül talebi sonrası kurallar tetiklenir; bildirim katmanı **simulate/log** (`notification-provider`). Tenant API: `GET /actions`, `GET /customers/:id/actions`, `POST /automation/scan-inactivity` (cron yerine manuel/dış tetik). Kuyruk yok.
 
-### Phase 4.6 — Operasyonel audit + kapanış özeti + anomali (hafif)
+### Faz 4.6 — Operasyonel audit + kapanış özeti + anomali (hafif)
 
 **Durum:** **Uygulandı (backend).** `AuditEvent` (immutable, tenant kapsamlı) ve `AnomalySignal` (kural tabanlı bayrak; ML yok). Kritik loyalty + kasiyer olayları (`visit_created`, `reward_claimed` / `reward_redeemed` / `reward_rejected`, vardiya/cihaz aç-kapa) yapısal payload ile kaydedilir. **Manager API:** `GET /manager/audit-events`, `GET /manager/anomalies`, `GET /manager/shifts/:shiftId/closing-summary`, `GET /manager/branches/:branchId/closing-summary?date=` — kasiyer özeti `GET /cashier/shifts/:id/summary` genişletildi (`closing` alanı). UI (Tenant App manager görünümü) sırada: kapanış kartı, anomali listesi, son audit satırları.
 
-### Phase 4.7 — Entitlement + usage + plan gating (ödeme yok)
+### Faz 4.7 — Entitlement + kullanım + plan gating (ödeme yok)
 
 **Durum:** **Uygulandı (backend + tenant UX).** `Plan.limits` (JSON) + `featureTags`; aktif `Subscription` → plan çözümü; abonelik yoksa `starter` planı fallback. **Runtime kullanım sayımları** (tenant izolasyonlu): müşteri, aktif ödül, aktif kampanya (`status=active` ∧ `isActive`), UTC ay ziyareti, şube, staff kullanıcı. **Sert blok:** limit veya özellik yoksa 403 (`plan_limit_exceeded` / `plan_feature_disabled`). **Yumuşak uyarı:** `GET /tenant/entitlements` içinde `warnings` + `upgradeSuggested`. **Admin-web:** plan rozeti, limit/upgrade şeritleri, Billing sayfası (kullanım + demo upgrade), Kampanya/Büyüme için özellik yoksa kilit ekranı; platformda abonelik planı `PATCH`. Ödeme/checkout bu fazda yok; monetization erteli, entitlement + upgrade görünürlüğü aktif.
 
-### Phase 4.5 — Ürün analitiği (retention / huni)
+### Faz 4.5 — Ürün analitiği (retention / huni)
 
 **Durum:** **Uygulandı.** Harici analitik aracı yok; olaylar DB’de toplanıyor.
 
@@ -47,11 +45,11 @@ Eski veri platformu faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor core
 
 ### Store Experience Foundation (mağaza ayarları + kamuya açık menü)
 
-**Durum:** **Planlı / tasarım hazır** — kod iterasyonu sırayla. Müşteri loyalty PWA zaten **`/c/:tenantSlug/*`**; aynı **`apps/admin-web`** paketinde kamuya açık menü **`/m/:tenantSlug`** ile ayrılacak (yeni app yok). Tenant App’te **Store settings** + **menü yönetimi**; public **GET** menü API’si; **loyalty QR** (`/c/...`) ve **menü QR** (`/m/...`) ayrı. Dil: `?lang` → kayıtlı tercih → `navigator.languages` ∩ `supportedLanguages` → `defaultLanguage`. Sipariş / checkout / ödeme bu fazda yok.
+**Durum:** Planlı / tasarım hazır; kod iterasyonu sırayla ilerleyecek. Müşteri loyalty PWA zaten **`/c/:tenantSlug/*`**; aynı `apps/admin-web` paketinde kamuya açık menü **`/m/:tenantSlug`** ile ayrılacak (yeni app yok). Tenant App'te Store settings + menü yönetimi, public GET menü API'si, loyalty QR (`/c/...`) ve menü QR (`/m/...`) ayrı çalışacak. Dil çözümü: `?lang` → kayıtlı tercih → `navigator.languages` ∩ `supportedLanguages` → `defaultLanguage`. Sipariş/checkout/ödeme bu fazda yok.
 
 **Tasarım:** [`42-design-store-public-menu.md`](./42-design-store-public-menu.md).
 
-### Phase 7 — Real-world validation (pilot)
+### Faz 7 — Gerçek dünya doğrulaması (pilot)
 
 **Durum:** **Aktif ürün önceliği (saha / PMF).** Amaç: gerçek işletmede uçtan uca kullanımı **ölçmek** ve **öğrenmek**; yeni büyük özelliklerden önce sürtünme ve metriklerle yön vermek. Kod zorunluluğu yok; süreç + ortam + veri ayrımı esastır.
 
@@ -66,7 +64,7 @@ Eski veri platformu faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor core
 
 **Onboarding akışı (özet):**
 
-1. Platform: yeni **tenant** (demo seed ile karışmaması için ayrı workspace), plan limitleri pilot için yeterli Pro/Team veya manuel `PATCH`.
+1. Platform: yeni **tenant** (demo seed ile karışmaması için ayrı tenant), plan limitleri pilot için yeterli Pro/Team veya manuel `PATCH`.
 2. Tenant App: ödül/kural basit (1–2 ödül, gerekiyorsa tek kampanya); **Cashier** vardiya akışı eğitimi (10–15 dk); QR / müşteri giriş URL’si fiziksel olarak yerinde.
 3. “Canlı günü”: ilk ziyaret → talep/onay hattı gözlemi; sorun anında Slack/telefon ile ürün ekibine.
 4. Demo → gerçek: seed kullanıcıları yerine gerçek müşteri telefonları; gerekirse mevcut müşteri listesine CSV ile sınırlı import (süreç dokümante); **gerçek trafik** olmadan pilot tamamlanmış sayılmaz.
@@ -106,12 +104,19 @@ Eski veri platformu faz tablosu bu dosyada tutulmaz; kod tabanı **Pointmor core
 
 | Öncelik | Konu |
 |--------|------|
-| **0** | **Phase 7 — Real-world validation (pilot):** işletme seçimi, onboarding, canlı veri, ölçüm + geri bildirim döngüsü (bu dosyada üst bölüm). Genel bakış: [`10-meta-002-project-overview.md`](./10-meta-002-project-overview.md) — *Güncel odak*. |
-| 1 | Cashier / tenant ürün iyileştirmeleri — pilot bulgularına göre önceliklendirilir ([`42-design-tenant-cashier-flow.md`](./42-design-tenant-cashier-flow.md) referans; tek ekran akışı ürünte mevcut) |
+| **0** | **Faz 7 — Gerçek dünya doğrulaması (pilot):** işletme seçimi, onboarding, canlı veri, ölçüm + geri bildirim döngüsü (bu dosyada üst bölüm). Genel bakış: [`10-meta-002-project-overview.md`](./10-meta-002-project-overview.md) — *Güncel odak*. |
+| 1 | Cashier / tenant ürün iyileştirmeleri — pilot bulgularına göre önceliklendirilir ([`42-design-tenant-cashier-flow.md`](./42-design-tenant-cashier-flow.md) referans; tek ekran akışı üründe mevcut) |
 | 2 | İşletme **onboarding** ürünleştirme (self-serve; limit/usage + billing UX Phase 4.7 ile uyumlu) |
 | 3 | Gerçek ödeme / faturalama entegrasyonu (ürün olgunluğuna göre) |
-| 4 | Legacy `POST /public/loyalty/...` alias’larını kaldırma veya tek modüle indirgeme (istemci tamamen canonical olduğunda) |
+| 4 | Legacy `POST /public/loyalty/...` alias'larını kaldırma veya tek module'e indirgeme (istemci tamamen canonical olduğunda) |
 | 5 | Public API hata gövdesini uzun vadede `20-rules-004` ile tam hizalama (`error.code` nesnesi) |
+
+### Platform expansion roadmap (module separation)
+
+- Core platform: tenant/membership/auth/plan sınırlarını sert koru.
+- `cafe` module: mevcut operasyon iyileştirmeleri pilot bulgularına göre sürdür.
+- `ai_act` module: ilk loyalty dışı B2B compliance genişlemesi olarak ürünleştir.
+- Sonraki module'ler: module activation ve tenant izolasyonu kurallarına göre kademeli eklenir.
 
 **Tamamlanan (bu dilim):** PWA tabanı `/public/tenants/...`; Tenant App **Kullanımlar** — bekleyen/tamamlanan filtre, detay paneli, müşteri profilinde talep geçmişi; `409` mesaj ayrımı.
 

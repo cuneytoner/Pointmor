@@ -1,12 +1,12 @@
-# Schema Constraints (Enforcement of Platform Doctrine)
+# Schema Constraints (Platform Doktrininin Enforcement'u)
 
-**Purpose:** Enforce platform doctrine at database level.
+**Amaç:** Platform doktrinini veritabanı seviyesinde enforce etmek.
 
 ---
 
-## 1) Membership uniqueness
+## 1) Membership benzersizliği
 
-A user must not have duplicate memberships for the same tenant.
+Bir kullanıcı aynı tenant için yinelenen membership kaydına sahip olmamalıdır.
 
 Constraint:  
 `UNIQUE (userId, tenantId)`
@@ -15,51 +15,66 @@ Constraint:
 
 ## 2) Foreign key enforcement
 
-All tenant-scoped tables MUST include:
+Tüm tenant kapsamlı tablolar şunları içermelidir:
 
 - `tenantId` (FK → `Tenant.id`)
-- proper `ON DELETE` behavior (`RESTRICT` or `CASCADE` explicitly defined)
+- doğru `ON DELETE` davranışı (`RESTRICT` veya `CASCADE` açıkça tanımlı)
 
 ---
 
 ## 3) Module isolation
 
-Module tables MUST:
+Module tabloları şunları sağlamalıdır:
 
-- include `tenantId`
-- NOT reference other module tables directly
-- NOT modify core tables (`User`, `Tenant`, `Membership`)
-
----
-
-## 4) Advisor safety
-
-If `isExternal = true`:
-
-- must not be granted `ADMIN` permissions by default
-- role checks must be explicit
+- `tenantId` içermeli
+- diğer module tablolarına doğrudan referans vermemeli
+- çekirdek tabloları (`User`, `Tenant`, `Membership`) değiştirmemeli
 
 ---
 
-## 5) Indexing
+## 4) Advisor güvenliği
 
-Required indexes:
+`isExternal = true` ise:
 
-- `TenantMembership(userId)`
-- `TenantMembership(tenantId)`
-- `TenantMembership(role)`
-- `TenantModule(tenantId, moduleId)`
+- varsayılan olarak `ADMIN` yetkisi verilmemeli
+- role kontrolleri açık olmalı
 
 ---
 
-## 6) Soft delete / audit (recommended)
+## 5) Indexing (zorunlu)
 
-- `createdAt`, `updatedAt` required
-- audit log for cross-tenant actions
+TenantMembership:
+- @@index([userId])
+- @@index([tenantId])
+- @@index([role])
+
+TenantModule:
+- @@unique([tenantId, moduleId])
+
+TenantInvitation:
+- @@index([tenantId])
+- @@index([email])
+- @@index([status])
 
 ---
 
-## 7) Invariants
+## 6) Soft delete / audit (önerilen)
 
-- Every request MUST resolve to exactly one tenant
-- No cross-tenant query without explicit membership
+- `createdAt`, `updatedAt` zorunlu
+- cross-tenant işlemler için audit log
+
+---
+
+## 7) Değişmezler
+
+- Her request tam olarak bir tenant'a çözülmelidir
+- Açık membership olmadan cross-tenant query olmamalıdır
+
+---
+
+## 8) Enforcement sınırı
+
+Database constraints yapıyı enforce eder,
+ancak access control runtime'da membership tabanlı guard'lar ile enforce edilir.
+
+Tek başına database, erişim kurallarını enforce etmek için yeterli değildir.

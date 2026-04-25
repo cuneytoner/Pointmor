@@ -1,4 +1,4 @@
-# Cross-tenant erişim güvenlik kuralları
+# Cross-tenant access güvenlik kuralları
 
 **Amaç:** Çok kiracılı mimaride ve advisor kullanım senaryolarında tenant izolasyonunu katı şekilde korumak; veri sızıntısı ve yetki aşımı risklerini önlemek.
 
@@ -14,16 +14,18 @@ Bu ilke gereği her veri erişimi ve her iş akışı tenant sınırı içinde �
 
 ## Erişim kuralları
 
-**Erişim doktrini:** **All access control is based on: membership + role + module activation**
+**Erişim doktrini:** **Tüm access control şu temele dayanır: membership + role + module activation**
 
 1. Erişim yalnızca membership üzerinden verilir.
 2. Advisor erişimi için hedef tenant’ta açık membership zorunludur.
-3. Membership olmayan tenant için UI, API ve export erişimi verilmez.
-4. Rol bilgisi membership bağlamında değerlendirilir; tenant dışına taşınamaz.
+3. Membership olmayan tenant için UI, API ve export access verilmez.
+4. Role bilgisi membership bağlamında değerlendirilir; tenant dışına taşınamaz.
+5. Erişim yalnızca `TenantMembership` oluştuktan sonra başlar.
+6. Invitation tek başına access vermez.
 
 ---
 
-## Yasak desenler (forbidden patterns)
+## Yasak desenler
 
 - Tenant filtresi olmadan global sorgu (`findMany` / rapor / export) çalıştırmak.
 - “Kullanıcı advisor ise görebilir” gibi membership doğrulaması olmayan örtük erişim.
@@ -83,4 +85,4 @@ Cross-tenant riski taşıyan tüm kritik işlemlerde audit kaydı aşağıdaki a
 
 - Genel güvenlik kuralları: [`20-rules-005-security.md`](./20-rules-005-security.md)
 - Advisor–client üyelik modeli: [`20-rules-014-advisor-client-model.md`](./20-rules-014-advisor-client-model.md)
-- Platform modüler mimari: [`20-rules-013-platform-modules.md`](./20-rules-013-platform-modules.md)
+- Platform module mimarisi: [`20-rules-013-platform-modules.md`](./20-rules-013-platform-modules.md)
