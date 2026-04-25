@@ -36,6 +36,25 @@ type RequireTenantAccessOptions = {
   moduleName?: string;
 };
 
+const MODULE_SCOPED_PERMISSIONS = new Set<TenantPermission>([
+  "customers.view",
+  "customers.create",
+  "visits.view",
+  "visits.create",
+  "rewards.view",
+  "rewards.manage",
+  "campaigns.view",
+  "campaigns.manage",
+  "redemptions.view",
+  "redemptions.create",
+  "redemptions.approve",
+  "redemptions.reject",
+  "menu.view",
+  "menu.manage",
+  "analytics.view",
+  "automation.run",
+]);
+
 /**
  * TenantMembership is the source of truth for tenant-scoped runtime access.
  */
@@ -68,6 +87,9 @@ export async function requireTenantAccess(
   }
 
   if (options.permission) {
+    if (MODULE_SCOPED_PERMISSIONS.has(options.permission) && !options.moduleName) {
+      return { ok: false, error: "permission_denied" };
+    }
     const appRole = resolveTenantAppRoleFromMembership(membership.role);
     if (!hasPermissionForRole(appRole, options.permission)) {
       return { ok: false, error: "permission_denied" };

@@ -1,5 +1,7 @@
 # Pointmor Dokümantasyon Genel Bakış
 
+Bu dosya dokümantasyonun tek giriş noktasıdır.
+
 Pointmor modüler çok kiracılı bir platformdur.  
 Kullanıcılar tenant'lara membership üzerinden erişir.  
 İşlevsellik module'ler üzerinden sunulur.

@@ -167,12 +167,20 @@ async function loadUsersForSession(s: SessionPayload) {
   if (!hasPermissionForSession(s, "team.view")) {
     return [];
   }
-  const activeMembership = (s.memberships ?? []).find((m) => m.tenant.id === s.tenant?.id);
-  const isAdvisor = activeMembership?.membership.role === "ADVISOR";
+  const hasMembership = await prisma.tenantMembership.findUnique({
+    where: {
+      userId_tenantId: {
+        userId: s.user.id,
+        tenantId: s.tenant.id,
+      },
+    },
+    select: { id: true },
+  });
+  if (!hasMembership) {
+    return [];
+  }
   return prisma.user.findMany({
-    where: isAdvisor
-      ? { memberships: { some: { tenantId: s.tenant.id } } }
-      : { tenantId: s.tenant.id },
+    where: { memberships: { some: { tenantId: s.tenant.id } } },
     orderBy: { email: "asc" },
     select: {
       id: true,

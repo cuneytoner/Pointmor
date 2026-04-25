@@ -79,6 +79,35 @@ export async function registerTenantInvitationRoutes(app: FastifyInstance): Prom
       return reply.code(403).send({ error: "membership_required" });
     }
 
+    const requestedRole = parsed.data.role;
+    const requestedIsExternal = parsed.data.isExternal ?? requestedRole === "ADVISOR";
+    const inviterRole = s.membership?.role;
+    const inviterIsAdvisor = inviterRole === "ADVISOR";
+    const inviterIsAdmin = s.user.platformAdmin || inviterRole === "ADMIN";
+
+    // isExternal must match invitation role invariants.
+    if (requestedRole === "ADVISOR" && requestedIsExternal !== true) {
+      return reply.code(400).send({ error: "invitation_is_external_mismatch" });
+    }
+    if ((requestedRole === "ADMIN" || requestedRole === "MEMBER") && requestedIsExternal !== false) {
+      return reply.code(400).send({ error: "invitation_is_external_mismatch" });
+    }
+
+    // ADVISOR inviters are strictly limited to external ADVISOR invitations.
+    if (inviterIsAdvisor) {
+      if (requestedRole !== "ADVISOR") {
+        return reply.code(403).send({ error: "advisor_invite_role_forbidden" });
+      }
+      if (requestedIsExternal !== true) {
+        return reply.code(403).send({ error: "advisor_invite_external_required" });
+      }
+    }
+
+    // ADMIN/MEMBER invitations require ADMIN-level inviter in tenant context.
+    if ((requestedRole === "ADMIN" || requestedRole === "MEMBER") && !inviterIsAdmin) {
+      return reply.code(403).send({ error: "admin_role_required_for_invite" });
+    }
+
     const token = randomBytes(24).toString("hex");
     const expiresAt = parsed.data.expiresInDays
       ? new Date(Date.now() + parsed.data.expiresInDays * 24 * 60 * 60 * 1000)
@@ -89,7 +118,7 @@ export async function registerTenantInvitationRoutes(app: FastifyInstance): Prom
         tenantId: targetTenantId,
         email: parsed.data.email.toLowerCase(),
         role: parsed.data.role,
-        isExternal: parsed.data.isExternal ?? parsed.data.role === "ADVISOR",
+        isExternal: requestedIsExternal,
         token,
         invitedByUserId: s.user.id,
         invitedByMembershipId: inviterMembership?.id,

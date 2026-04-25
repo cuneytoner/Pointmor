@@ -9,7 +9,7 @@
 | Konu | Kural |
 |------|--------|
 | Kaynak | URL’ler **isimleri** (çoğul resource) ve HTTP fiilleri anlamlı kullanım. |
-| Hata | Tek yapı: `code`, `message`, isteğe bağlı `details` (validation alanları). |
+| Hata | Kanonik yapı: `{ "error": "string" }`. |
 | Kimlik | Public’te **slug** veya **opaque id**; ikisini aynı endpoint’te karıştırma. |
 | Versiyon | Public API `/v1/` prefix; internal API versiyonu header veya path ile dokümante. |
 
@@ -54,18 +54,12 @@ veya liste için `{ "data": [...], "pagination": { ... } }` — proje tek stile 
 **Error:**
 
 ```json
-{
-  "error": {
-    "code": "VALIDATION_FAILED",
-    "message": "Human readable",
-    "details": [{ "path": "email", "message": "..." }]
-  }
-}
+{ "error": "validation_error" }
 ```
 
 **HTTP status:** 4xx istemci, 5xx sunucu; `401`/`403` ayrımı net.
 
-**Bilinen pragmatik sapma (plan):** Bazı iç endpoint'ler (ör. entitlement ihlali) düz JSON `{ "error": "plan_limit_exceeded", "metric": "..." }` dönebilir; uzun vadede üstteki `error` nesne modeli ile hizalanması hedeflenir ([`10-meta-003-project-tracker.md`](./10-meta-003-project-tracker.md) — sıradaki adımlar).
+**Gelecek iyileştirme (plan):** Nested hata formatı (ör. `code`/`message`/`details` nesnesi) ileride değerlendirilebilir. Mevcut kanonik ve uygulanmış format `{ "error": "string" }` olarak korunur.
 
 ---
 

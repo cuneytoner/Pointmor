@@ -1,5 +1,7 @@
 # Kurallar Dizini (kanonik)
 
+Bu dosya destekleyici indekstir. Başlangıç için 00-overview.md dosyasını kullanın.
+
 Pointmor modüler çok kiracılı bir platformdur.  
 Kullanıcılar tenant'lara membership üzerinden erişir.  
 İşlevsellik module'ler üzerinden sunulur.
@@ -14,7 +16,7 @@ Kullanıcılar tenant'lara membership üzerinden erişir.
 | Mimari katmanlar | [`20-rules-002-architecture.md`](./20-rules-002-architecture.md) |
 | Veri modeli ve erişim kaynağı | [`20-rules-003-data-model.md`](./20-rules-003-data-model.md) |
 | API enforcement | [`20-rules-004-api-design.md`](./20-rules-004-api-design.md) |
-| Güvenlik doktrini | [`20-rules-005-security.md`](./20-rules-005-security.md) |
+| Güvenlik doktrini | [`20-rules-015-cross-tenant-access-security.md`](./20-rules-015-cross-tenant-access-security.md), [`20-rules-017-enforcement-contract.md`](./20-rules-017-enforcement-contract.md) |
 | schema constraints | [`20-rules-016-schema-constraints.md`](./20-rules-016-schema-constraints.md) |
 | Enforcement contract | [`20-rules-017-enforcement-contract.md`](./20-rules-017-enforcement-contract.md) |
 | Module'ler | [`20-rules-013-platform-modules.md`](./20-rules-013-platform-modules.md) |

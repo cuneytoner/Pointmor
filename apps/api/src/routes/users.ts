@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { authPreHandler } from "../lib/http-auth.js";
 import type { SessionPayload } from "../lib/auth-memory.js";
+import { requireTenantAccess } from "../lib/guards.js";
 import { hasPermissionForSession } from "../lib/tenant-permissions.js";
 import { prisma } from "../lib/prisma.js";
 
@@ -26,15 +27,16 @@ export async function registerUserRoutes(app: FastifyInstance): Promise<void> {
         });
       }
       if (!s.tenant) return [];
+      const access = await requireTenantAccess(s.user, s.tenant.id);
+      if (!access.ok) {
+        return reply.code(403).send({ error: access.error ?? "forbidden" });
+      }
       if (!hasPermissionForSession(s, "team.view")) {
         return reply.code(403).send({ error: "permission_denied" });
       }
       return prisma.user.findMany({
         where: {
-          OR: [
-            { tenantId: s.tenant.id },
-            { memberships: { some: { tenantId: s.tenant.id } } },
-          ],
+          memberships: { some: { tenantId: s.tenant.id } },
         },
         orderBy: { email: "asc" },
         select: {

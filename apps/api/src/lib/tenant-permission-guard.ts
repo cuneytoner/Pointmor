@@ -2,6 +2,23 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import type { SessionPayload } from "./auth-memory.js";
 import type { TenantPermission } from "./tenant-permissions.js";
 import { hasPermissionForSession } from "./tenant-permissions.js";
+import { requireTenantAccess } from "./guards.js";
+
+function moduleNameForPermission(permission: TenantPermission): string | undefined {
+  if (
+    permission.startsWith("customers.")
+    || permission.startsWith("visits.")
+    || permission.startsWith("rewards.")
+    || permission.startsWith("campaigns.")
+    || permission.startsWith("redemptions.")
+    || permission.startsWith("menu.")
+    || permission.startsWith("analytics.")
+    || permission === "automation.run"
+  ) {
+    return "cafe";
+  }
+  return undefined;
+}
 
 /** Senkron servis kodu: izin yoksa hata fırlatır. */
 export function assertPermission(session: SessionPayload, permission: TenantPermission): void {
@@ -28,8 +45,12 @@ export function requireTenantPermission(permission: TenantPermission) {
       await reply.code(403).send({ error: "tenant_context_required" });
       return;
     }
-    if (!hasPermissionForSession(s, permission)) {
-      await reply.code(403).send({ error: "permission_denied" });
+    const access = await requireTenantAccess(s.user, s.tenant.id, {
+      permission,
+      moduleName: moduleNameForPermission(permission),
+    });
+    if (!access.ok) {
+      await reply.code(403).send({ error: access.error ?? "permission_denied" });
     }
   };
 }
