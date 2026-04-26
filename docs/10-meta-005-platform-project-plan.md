@@ -76,6 +76,11 @@ Bu akış, advisor/client onboarding için kritik temel sağlar; erişim yalnız
 - cross-tenant access ihlali yok
 - manuel uçtan uca doğrulama
 
+### Durum Notu
+
+- Faz 4 için onboarding API tasarımı tamamlandı ve backend implementasyonu başlatıldı.
+- AI output bu fazda suggestion olarak ele alınır; source of truth değildir.
+
 ### Analiz Ekleri
 - Ürün analizi:
 - Teknik analiz:
@@ -167,10 +172,12 @@ upload
 ## Faz 4 — AI Act MVP
 
 - **Hedef:** İlk loyalty dışı module için çalışan bir MVP üretmek.
-- **Kod değişiklikleri:** `AiSystem`, `AiAssessment`, `AiDocument`, `AiRiskResult` veri modeli; `POST /ai/systems`, `GET /ai/systems`, `POST /ai/assessment`, `GET /ai/results` endpoint'leri; temel risk sınıflandırma.
+- **Kod değişiklikleri:** `AiSystem`, `AiAssessment`, `AiAssessmentAnswer`, `AiObligation`, `AiTask`, `AiEvidence`, `AiDocumentLink` tenant-scoped veri modeli; değerlendirme/risk akışı için derived-data kurgusu.
 - **Enforcement gereksinimleri:** Tenant izolasyonu, membership tabanlı erişim, module activation gate.
 - **Dokümantasyon güncellemeleri:** AI Act spec dosyasını endpoint/model ve akış detaylarıyla güncellemek; paylaşılan AI infrastructure spec ve AI risk guardrail dokümanlarıyla birlikte tutmak.
 - **Başarı kriterleri:** 10 soruluk assessment akışı tamamlanır; risk sınıfı ve temel rapor üretimi çalışır.
+- **RBAC kararı:** `ai_act.manage` yalnızca owner/admin; member/manager ve advisor için kapsam `ai_act.view` + `ai_act.assess`.
+- **API kapsam notu:** `GET /ai-act/systems/:id/obligations` MVP kapsamındadır; `ai_act.export` reserve edilir, export endpoint'i bu fazda uygulanmaz.
 
 ### Tamamlanma Kriterleri
 

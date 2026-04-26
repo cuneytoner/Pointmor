@@ -24,6 +24,9 @@ describe("RBAC matrix", () => {
     expect(hasPermissionForRole("manager", "audit.view")).toBe(true);
     expect(hasPermissionForRole("manager", "ai.systems.view")).toBe(true);
     expect(hasPermissionForRole("manager", "ai.results.view")).toBe(true);
+    expect(hasPermissionForRole("manager", "ai_act.view")).toBe(true);
+    expect(hasPermissionForRole("manager", "ai_act.assess")).toBe(true);
+    expect(hasPermissionForRole("manager", "ai_act.manage")).toBe(false);
   });
 
   it("staff can visits.create and redemptions.approve but not rewards.manage", () => {
@@ -61,6 +64,8 @@ describe("RBAC matrix", () => {
   it("viewer has narrow access", () => {
     expect(hasPermissionForRole("viewer", "customers.view")).toBe(true);
     expect(hasPermissionForRole("viewer", "rewards.manage")).toBe(false);
+    expect(hasPermissionForRole("viewer", "ai_act.view")).toBe(true);
+    expect(hasPermissionForRole("viewer", "ai_act.manage")).toBe(false);
   });
 });
 

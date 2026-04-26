@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { hashSync } from "bcryptjs";
-import { coreSeed, moduleSeed, scenarioSeed } from "./seed-layers.js";
+import { coreSeed, moduleSeed, scenarioSeed, seedAiActMvpScenarios } from "./seed-layers.js";
 import { createMembership, validateSeedConsistency } from "./seed-membership-helper.js";
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
@@ -192,6 +192,13 @@ await prisma.subscription.upsert({
     renewsAt: new Date("2026-05-01T00:00:00.000Z"),
   },
   update: {},
+});
+
+// Advisor/client visibility prep: AI Act data belongs to client tenant; advisor has external membership.
+await seedAiActMvpScenarios(prisma, {
+  tenantId: clientTenant.id,
+  createdByUserId: clientOwnerUser.id,
+  scopePrefix: "demo_client",
 });
 
 await validateSeedConsistency(prisma);

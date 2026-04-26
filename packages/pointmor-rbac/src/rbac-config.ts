@@ -58,6 +58,14 @@ export const TENANT_PERMISSIONS = [
   "ai.assessment.manage",
   /** AI Act risk sonuc goruntuleme. */
   "ai.results.view",
+  /** AI Act onboarding list/detail/task goruntuleme. */
+  "ai_act.view",
+  /** AI Act onboarding sistem yonetimi. */
+  "ai_act.manage",
+  /** AI Act onboarding assessment calistirma. */
+  "ai_act.assess",
+  /** AI Act onboarding export/disa aktarma. */
+  "ai_act.export",
 ] as const;
 
 export type TenantPermission = (typeof TENANT_PERMISSIONS)[number];
@@ -73,6 +81,8 @@ const MANAGER_EXCLUDED: ReadonlySet<TenantPermission> = new Set([
   "billing.manage",
   "audit.export",
   "gdpr.customer_export",
+  "ai_act.manage",
+  "ai_act.export",
 ]);
 
 const PERMISSIONS_BY_ROLE: Record<TenantAppRole, Set<TenantPermission>> = {
@@ -101,7 +111,7 @@ const PERMISSIONS_BY_ROLE: Record<TenantAppRole, Set<TenantPermission>> = {
     "menu.view",
     "automation.run",
   ),
-  viewer: permSet("customers.view", "analytics.view"),
+  viewer: permSet("customers.view", "analytics.view", "ai_act.view"),
 };
 
 export function permissionsForRole(role: TenantAppRole): Set<TenantPermission> {

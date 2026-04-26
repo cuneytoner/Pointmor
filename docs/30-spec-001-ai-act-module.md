@@ -23,12 +23,17 @@
 
 | Entity | Sorumluluk |
 |--------|-------------|
-| **AiSystem** | AI sistem temel kaydı (amaç, kullanım alanı, sahiplik bağlamı) |
-| **AiAssessment** | Soru seti ve değerlendirme girdisi |
-| **AiDocument** | OCR/extracted içerik ve embedding referans kaydı |
-| **AiRiskResult** | Risk seviyesi ve skor çıktısı |
+| **AiSystem** | Tenant-scoped AI sistem temel kaydı (provider, status, sahiplik bağlamı) |
+| **AiAssessment** | Sistem bazlı değerlendirme (version, classificationSource, confidence, riskLevel) |
+| **AiAssessmentAnswer** | Soru bazlı yanıt verisi (derived answer + confidence) |
+| **AiObligation** | Uyum gereksinimi kaydı (rule/AI/manual kaynaklı) |
+| **AiTask** | Uyum görevi ve iş takibi (priority/status/assignee) |
+| **AiEvidence** | Kanıt kaydı (document/link/note) |
+| **AiDocumentLink** | Sistem ile ilişkili doküman bağlantısı (contract/policy vb.) |
+| **AiRiskResult** | Derived risk çıktısı (authoritative olmayan değerlendirme sonucu) |
 
 **Kural:** Bu varlıklar tenant-scoped çalışır; tenant dışı görünürlük yoktur.
+**Source of truth kuralı:** Uploaded document source of truth olarak kalır; AI extraction/risk sonuçları derived data'dır.
 
 ---
 
@@ -42,14 +47,63 @@
 
 ---
 
-## MVP API endpoint'leri
+## MVP API surface (onboarding)
 
-- `POST /ai/systems`
-- `GET /ai/systems`
-- `POST /ai/assessment`
-- `GET /ai/results`
+Onboarding akışı:
 
-Bu endpoint'ler tenant context + `requireTenantPermission` + module activation (`ai_act`) ile korunur.
+AI system inventory
+→ 10-question assessment
+→ deterministic risk suggestion
+→ obligations/tasks
+→ review-ready output
+
+Endpoint'ler (`/ai-act`):
+
+- `GET /ai-act/systems`
+- `POST /ai-act/systems`
+- `GET /ai-act/systems/:id`
+- `POST /ai-act/systems/:id/assessment`
+- `GET /ai-act/systems/:id/assessment`
+- `GET /ai-act/systems/:id/obligations`
+- `GET /ai-act/systems/:id/tasks`
+
+Güvenlik:
+
+- Tenant isolation zorunlu (`tenantId` filtreleme)
+- membership-based access zorunlu
+- module activation (`ai_act`) zorunlu
+- AI output suggestion'dır; legal conclusion değildir
+- `ai_act.export` izni bu MVP fazında yalnızca reserve edilir; export endpoint'i henüz yoktur.
+
+Questionnaire keys (v1, 10 soru):
+
+- `q_ai_used`
+- `q_ai_purpose`
+- `q_personal_data`
+- `q_sensitive_data`
+- `q_automated_decision`
+- `q_human_oversight`
+- `q_employment_context`
+- `q_biometric_identification`
+- `q_safety_critical`
+- `q_provider_documentation`
+
+Deterministic MVP risk rules (özet):
+
+- biometric_identification = yes → `HIGH`
+- employment_context = yes + automated_decision = yes → `HIGH`
+- safety_critical = yes → `HIGH`
+- sensitive_data = yes + automated_decision = yes → `HIGH`
+- ai_used = no → `MINIMAL`
+- diğer durumlar → `LIMITED`
+
+## Seed senaryoları (MVP)
+
+- AI Act seed verisi sentetik demo senaryoları içerir; gerçek kişi/veri kullanılmaz.
+- Örnek sistemler: `Customer Support Chatbot` (LIMITED) ve `Employee Performance Scoring` (HIGH).
+- Senaryolarda 10 soru answer seti, confidence, obligation/task ve evidence bağlantıları bulunur.
+- Low-confidence + human review gerektiren örnekler özellikle seed edilir.
+- Tüm kayıtlar tenant-scoped üretilir; erişim modeli membership-first doktrine bağlıdır.
 
 ---
 
@@ -57,9 +111,10 @@ Bu endpoint'ler tenant context + `requireTenantPermission` + module activation (
 
 | Role | Yetki düzeyi |
 |-----|---------------|
-| **ADMIN** | Module üzerinde tam erişim (oluşturma, güncelleme, görev yönetimi, rapor/export) |
-| **MEMBER** | Sınırlı erişim (görüntüleme + tenant politikasına göre kısmi işlem) |
-| **ADVISOR** | Yalnızca ilgili tenant membership’i varsa erişim |
+| **ADMIN / owner** | `ai_act.view`, `ai_act.manage`, `ai_act.assess`, `ai_act.export` |
+| **MEMBER / manager** | `ai_act.view`, `ai_act.assess` |
+| **ADVISOR** | `ai_act.view`, `ai_act.assess` (yalnızca membership olan tenant kapsamında) |
+| **viewer** | `ai_act.view` |
 
 **Kural:** Advisor erişimi role adına göre değil, membership varlığı + izin kontrolü ile verilir.
 

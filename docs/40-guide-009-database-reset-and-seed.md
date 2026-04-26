@@ -108,6 +108,15 @@ npm run db:seed:full:demo
 - `User.tenantId` yalnız legacy uyumluluk alanıdır.
 - Access kontrolü yalnız membership tabanlıdır.
 
+## AI Act seed kapsamı
+
+- `db:seed` ve uygun demo akışlarında AI Act için sentetik demo verisi oluşturulur.
+- En az iki risk profili eklenir: `LIMITED` (daha düşük risk) ve `HIGH` (review odaklı).
+- Assessment answer, obligation, task, evidence ve confidence alanları senaryo kapsamında bulunur.
+- Low-confidence extraction örnekleri human review kaydıyla birlikte üretilir.
+- Gerçek müşteri/veri kullanılmaz; seed yalnız sentetik içerik üretir.
+- AI Act verisi tenant-scoped olarak oluşturulur ve `ai_act` module activation bağlamında test edilir.
+
 ## 4) Safety uyarıları
 
 - `db:reset` veri yok eder.

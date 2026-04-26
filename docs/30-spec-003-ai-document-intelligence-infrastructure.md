@@ -47,6 +47,18 @@ Bu akışta uzun süren işlemler sync endpoint yerine queue + worker modeliyle 
 
 ## 4. Data model draft
 
+Bu doküman platform ortak katmanı için hedef modeli tanımlar; AI Act MVP schema implementasyonu aşağıdaki çekirdek varlıklarla hizalıdır:
+
+- `AiSystem`
+- `AiAssessment`
+- `AiAssessmentAnswer`
+- `AiObligation`
+- `AiTask`
+- `AiEvidence`
+- `AiDocumentLink`
+
+Not: AI output verileri derived data olarak ele alınır; uploaded document source of truth olmaya devam eder.
+
 ### AiDocument
 
 - id

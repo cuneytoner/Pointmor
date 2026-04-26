@@ -77,15 +77,96 @@ model Tenant {
   modules                  TenantModule[]
   aiSystems                AiSystem[]
   aiAssessments            AiAssessment[]
+  aiAssessmentAnswers      AiAssessmentAnswer[]
+  aiObligations            AiObligation[]
+  aiTasks                  AiTask[]
+  aiEvidences              AiEvidence[]
+  aiDocumentLinks          AiDocumentLink[]
   aiDocuments              AiDocument[]
+  aiDocumentJobs           AiDocumentJob[]
+  aiExtractions            AiExtraction[]
+  aiReviews                AiReview[]
+  aiEmbeddings             AiEmbedding[]
   aiRiskResults            AiRiskResult[]
 }
 
+enum AiProviderType {
+  INTERNAL
+  EXTERNAL
+  HYBRID
+}
+
+enum AiSystemStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum AiAssessmentStatus {
+  DRAFT
+  COMPLETED
+  completed
+}
+
 enum AiRiskLevel {
+  MINIMAL
+  LIMITED
   LOW
   MEDIUM
   HIGH
+  PROHIBITED
   UNACCEPTABLE
+}
+
+enum AiClassificationSource {
+  MANUAL
+  AI
+  HYBRID
+}
+
+enum AiAnswerSource {
+  USER
+  AI
+}
+
+enum AiObligationStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  NOT_APPLICABLE
+}
+
+enum AiObligationSource {
+  RULE_ENGINE
+  AI
+  MANUAL
+}
+
+enum AiTaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum AiTaskStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum AiEvidenceType {
+  DOCUMENT
+  LINK
+  NOTE
+}
+
+enum AiDocumentRelationType {
+  CONTRACT
+  POLICY
+  SYSTEM_DESCRIPTION
+  VENDOR_DOC
+  OTHER
 }
 
 model AiSystem {
@@ -93,15 +174,26 @@ model AiSystem {
   tenantId    String
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name        String
-  purpose     String
   description String?
+  purpose     String?
+  providerType AiProviderType @default(INTERNAL)
+  status      AiSystemStatus @default(DRAFT)
+  createdByUserId String?
+  createdBy   User?    @relation("AiSystemsCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  assessments AiAssessment[]
-  documents   AiDocument[]
+  assessments  AiAssessment[]
+  obligations  AiObligation[]
+  tasks        AiTask[]
+  evidences    AiEvidence[]
+  documentLinks AiDocumentLink[]
+  documents    AiDocument[]
+  extractions  AiExtraction[]
+  embeddings   AiEmbedding[]
 
-  @@index([tenantId, createdAt])
+  @@index([tenantId])
+  @@index([tenantId, status])
   @@unique([id, tenantId])
 }
 
@@ -111,17 +203,116 @@ model AiAssessment {
   tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   aiSystemId    String
   aiSystem      AiSystem @relation(fields: [aiSystemId, tenantId], references: [id, tenantId], onDelete: Cascade)
-  status        String   @default("completed")
+  version       Int      @default(1)
+  status        AiAssessmentStatus @default(DRAFT)
+  riskLevel     AiRiskLevel?
+  classificationSource AiClassificationSource @default(MANUAL)
+  confidence    Float?
+  createdByUserId String?
+  createdBy     User?    @relation("AiAssessmentsCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   questionnaire Json     @default("{}")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  documents   AiDocument[]
+  answers    AiAssessmentAnswer[]
+  documents  AiDocument[]
   riskResults AiRiskResult[]
 
-  @@index([tenantId, createdAt])
+  @@index([tenantId])
   @@index([tenantId, aiSystemId])
+  @@index([tenantId, status])
   @@unique([id, tenantId])
+}
+
+model AiAssessmentAnswer {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assessmentId String
+  assessment   AiAssessment @relation(fields: [assessmentId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  questionKey  String
+  answerValue  Json
+  answerSource AiAnswerSource @default(USER)
+  confidence   Float?
+  createdAt    DateTime @default(now())
+
+  @@unique([assessmentId, questionKey])
+  @@index([tenantId])
+  @@index([tenantId, assessmentId])
+}
+
+model AiObligation {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  aiSystemId     String
+  aiSystem       AiSystem @relation(fields: [aiSystemId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  obligationType String
+  status         AiObligationStatus @default(PENDING)
+  source         AiObligationSource @default(RULE_ENGINE)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tasks AiTask[]
+
+  @@index([tenantId])
+  @@index([tenantId, aiSystemId])
+  @@index([tenantId, status])
+  @@unique([id, tenantId])
+}
+
+model AiTask {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  aiSystemId       String
+  aiSystem         AiSystem @relation(fields: [aiSystemId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  obligationId     String?
+  obligation       AiObligation? @relation(fields: [obligationId, tenantId], references: [id, tenantId], onDelete: Restrict)
+  title            String
+  description String?
+  priority         AiTaskPriority @default(MEDIUM)
+  status           AiTaskStatus @default(OPEN)
+  assignedToUserId String?
+  assignedTo       User? @relation("AiTasksAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, aiSystemId])
+  @@index([tenantId, status])
+  @@index([assignedToUserId])
+}
+
+model AiEvidence {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  aiSystemId String
+  aiSystem   AiSystem @relation(fields: [aiSystemId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  type       AiEvidenceType
+  documentId String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, aiSystemId])
+}
+
+model AiDocumentLink {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  aiSystemId   String
+  aiSystem     AiSystem @relation(fields: [aiSystemId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  documentId   String
+  relationType AiDocumentRelationType
+  createdAt    DateTime @default(now())
+
+  @@unique([aiSystemId, documentId, relationType])
+  @@index([tenantId])
+  @@index([tenantId, aiSystemId])
+  @@index([tenantId, documentId])
 }
 
 model AiDocument {
@@ -139,9 +330,92 @@ model AiDocument {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
+  jobs        AiDocumentJob[]
+  extractions AiExtraction[]
+  embeddings  AiEmbedding[]
+
   @@index([tenantId, createdAt])
   @@index([tenantId, aiSystemId])
   @@unique([id, tenantId])
+}
+
+model AiDocumentJob {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  documentId    String
+  document      AiDocument @relation(fields: [documentId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  jobType       String
+  status        String
+  errorCode     String?
+  modelName     String?
+  modelVersion  String?
+  promptVersion String?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime @default(now())
+
+  extractions AiExtraction[]
+
+  @@index([tenantId])
+  @@index([tenantId, documentId])
+  @@unique([id, tenantId])
+}
+
+model AiExtraction {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  documentId       String
+  document         AiDocument @relation(fields: [documentId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  aiSystemId       String?
+  aiSystem         AiSystem? @relation(fields: [aiSystemId, tenantId], references: [id, tenantId], onDelete: Restrict)
+  jobId            String?
+  job              AiDocumentJob? @relation(fields: [jobId, tenantId], references: [id, tenantId], onDelete: Restrict)
+  extractionSchema String?
+  extractedJson    Json?
+  confidence       Float?
+  requiresReview   Boolean @default(false)
+  createdAt        DateTime @default(now())
+
+  reviews AiReview[]
+
+  @@index([tenantId])
+  @@index([tenantId, documentId])
+  @@unique([id, tenantId])
+}
+
+model AiReview {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  extractionId     String
+  extraction       AiExtraction @relation(fields: [extractionId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  reviewedByUserId String
+  reviewedBy       User     @relation("AiReviewsReviewedBy", fields: [reviewedByUserId], references: [id], onDelete: Restrict)
+  correctedJson    Json?
+  reviewStatus     String
+  createdAt        DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, extractionId])
+}
+
+model AiEmbedding {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  documentId String
+  document   AiDocument @relation(fields: [documentId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  aiSystemId String?
+  aiSystem   AiSystem? @relation(fields: [aiSystemId, tenantId], references: [id, tenantId], onDelete: Restrict)
+  chunkIndex Int
+  vectorRef  String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, documentId])
 }
 
 model AiRiskResult {
@@ -1018,6 +1292,10 @@ model User {
   cashierShifts CashierShift[]
   branchAccess  UserBranchAccess[]
   memberships   TenantMembership[]
+  aiSystemsCreated      AiSystem[] @relation("AiSystemsCreatedBy")
+  aiAssessmentsCreated  AiAssessment[] @relation("AiAssessmentsCreatedBy")
+  aiTasksAssigned       AiTask[] @relation("AiTasksAssignedTo")
+  aiReviewsReviewed     AiReview[] @relation("AiReviewsReviewedBy")
 
   @@index([tenantId])
 }

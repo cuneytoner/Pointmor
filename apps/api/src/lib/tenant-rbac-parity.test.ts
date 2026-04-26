@@ -41,6 +41,18 @@ describe("hasPermissionForSession parity (UI ile aynı matris)", () => {
     expect(hasPermissionForSession(s, "campaigns.manage")).toBe(true);
     expect(hasPermissionForSession(s, "redemptions.approve")).toBe(false);
   });
+
+  it("manager ai_act.assess verir, ai_act.manage reddeder", () => {
+    const s = tenantSession(TENANT_MEMBERSHIP_ROLES.manager);
+    expect(hasPermissionForSession(s, "ai_act.assess")).toBe(true);
+    expect(hasPermissionForSession(s, "ai_act.manage")).toBe(false);
+  });
+
+  it("advisor ai_act.assess verir, ai_act.manage reddeder", () => {
+    const s = tenantSession("ADVISOR");
+    expect(hasPermissionForSession(s, "ai_act.assess")).toBe(true);
+    expect(hasPermissionForSession(s, "ai_act.manage")).toBe(false);
+  });
 });
 
 describe("assertPermission", () => {

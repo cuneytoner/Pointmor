@@ -69,6 +69,15 @@ Tenant erişimi için source of truth: `TenantMembership`.
 - `User.tenantId` yalnız legacy uyumluluk için tutulur.
 - Access membership tabanlı çalışır.
 
+## AI Act synthetic demo scenarios
+
+- Seed akışı AI Act için sentetik senaryolar üretir (`Customer Support Chatbot`, `Employee Performance Scoring`).
+- Senaryolar `LIMITED` ve `HIGH` risk seviyelerini içerir.
+- AI assessment cevapları, obligation/task kayıtları, evidence linkleri ve confidence alanları seed edilir.
+- Low-confidence + review-required örnekleri özellikle eklenir.
+- Seed verisi gerçek müşteri verisi içermez; yalnız sentetik/anonymized örnekler kullanılır.
+- AI Act verileri tenant-scoped üretilir ve module activation (`ai_act`) açık tenant bağlamında çalışır.
+
 ---
 
 ## Seed Reality
