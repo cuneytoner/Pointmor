@@ -65,3 +65,68 @@ Kural:
 
 - Schema değiştiyse migration (`db:migrate` veya `db:deploy`) çalıştır.
 - Sadece örnek veri değiştiyse seed yeterli.
+
+---
+
+## 5) Dev DB clean/reset/seed akışları
+
+Detaylı rehber: [`40-guide-009-database-reset-and-seed.md`](./40-guide-009-database-reset-and-seed.md)
+
+### Tipik yerel güncelleme (migration mevcutsa)
+
+```bash
+cd apps/api
+npm.cmd run db:generate
+npm.cmd run db:deploy
+npm.cmd run db:seed
+```
+
+### Full yerel reset (veri kaybı kabul ediliyorsa)
+
+```bash
+cd apps/api
+npm.cmd run db:reset
+```
+
+Uyarılar:
+
+- `db:reset` yerel veriyi siler.
+- `db:reset` production ortamında **asla** kullanılmaz.
+- Seed verisi `TenantMembership` kayıtlarını içermelidir.
+- `User.tenantId` legacy alandır; access kontrolü için kullanılmaz.
+
+### Clean/fresh akışı
+
+```bash
+cd apps/api
+npm.cmd run db:clean
+npm.cmd run db:fresh
+```
+
+Ne zaman:
+
+- `db:clean`: local `public` schema içeriğini temizlemek için.
+- `db:fresh`: temiz schema + yeni migration başlangıcı için (yerel geliştirme).
+
+Ne zaman kullanılmaz:
+
+- paylaşılan ortamlar, demo ve production.
+
+Beklenen etki:
+
+- tüm tenant verisi ve ilişkili kayıtlar kaybolur.
+
+---
+
+## 6) Dokümanı Güncel Tutma Kuralı
+
+Aynı PR/task içinde ilgili dokümanları güncelle:
+
+- `package.json` db script değişiklikleri
+- Prisma `schema` / `migration` akışı
+- `seed` dosyaları
+- demo/production deploy scriptleri
+- env var adları
+- Docker Compose dosyaları
+- smoke scriptleri
+- `auth` / `session` / `TenantMembership` davranışı

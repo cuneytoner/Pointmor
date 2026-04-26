@@ -26,6 +26,7 @@ Kullanıcılar tenant'lara membership üzerinden erişir.
 | Ürün shell'leri ve branding | [`30-spec-002-product-shells-and-branding.md`](./30-spec-002-product-shells-and-branding.md) |
 | Demo deployment (tek kaynak) | [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md) |
 | Yerel geliştirme komutları | [`40-guide-001-run-local.md`](./40-guide-001-run-local.md) |
+| Veritabanı reset/seed operasyonları | [`40-guide-009-database-reset-and-seed.md`](./40-guide-009-database-reset-and-seed.md) |
 | Production operasyonları | [`40-guide-006-production-env.md`](./40-guide-006-production-env.md), [`40-guide-007-production-deployment.md`](./40-guide-007-production-deployment.md), [`40-guide-008-production-runbook.md`](./40-guide-008-production-runbook.md) |
 | Seed users (tek kaynak) | [`41-ref-001-dev-seed-users.md`](./41-ref-001-dev-seed-users.md) |
 | RBAC (tek kaynak) | [`41-ref-002-tenant-rbac.md`](./41-ref-002-tenant-rbac.md) |

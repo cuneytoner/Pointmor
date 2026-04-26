@@ -55,6 +55,36 @@ Tenant erişimi için source of truth: `TenantMembership`.
 
 ---
 
+## Seed doctrine
+
+- Seed verisi güncel platform mimarisi ile uyumlu olmalıdır.
+- Access kaynağı `TenantMembership` olmalıdır.
+- `User.tenantId` legacy uyumluluk alanıdır; access kontrolü için kullanılmaz.
+- Advisor/client test senaryosu seed içinde olmalı; eksikse backlog TODO olarak takip edilmelidir.
+- Hardcoded şifreler demo/production operasyon dokümanlarında tutulmaz.
+
+---
+
+## Güvenlik uyarıları
+
+- `db:reset` veri yok eder; yalnız local geliştirmede kullanılmalıdır.
+- Demo seed production seed değildir.
+- Yeni Tenant-scoped seed verisi `tenantId` ve membership hizasını açıkça içermelidir.
+- Seed, `TenantMembership` olmadan sessiz erişim vermemelidir.
+
+---
+
+## Dokümanı Güncel Tutma Kuralı
+
+Aşağıdaki değişikliklerde aynı PR/task içinde bu dokümanı güncelle:
+
+- seed scriptleri ve seed dosyaları
+- oluşturulan kullanıcı/tenant senaryoları
+- env var isimleri
+- `auth` / `session` / `TenantMembership` davranışı
+
+---
+
 ## İlgili dosyalar
 
 - [`apps/api/prisma/seed.ts`](../apps/api/prisma/seed.ts)

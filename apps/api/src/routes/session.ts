@@ -1,13 +1,13 @@
 import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { issueSession, revokeSession } from "../lib/auth-memory.js";
+import { requireTenantAccess } from "../lib/guards.js";
 import { authPreHandler, parseSessionToken } from "../lib/http-auth.js";
 import { SESSION_COOKIE_NAME } from "../lib/session-cookie.js";
 import { sessionCookieOptions } from "../lib/session-cookie.js";
 import { getUserActivationMilestones } from "../lib/analytics-service.js";
 import { buildSessionMembership } from "../lib/session-branch-membership.js";
 import { prisma } from "../lib/prisma.js";
-import { hasPermissionForSession } from "../lib/tenant-permissions.js";
 import { parseWithSchema, z } from "../lib/validation.js";
 
 const tenantSwitchBodySchema = z.object({
@@ -164,19 +164,10 @@ async function loadUsersForSession(s: SessionPayload) {
     });
   }
   if (!s.tenant) return [];
-  if (!hasPermissionForSession(s, "team.view")) {
-    return [];
-  }
-  const hasMembership = await prisma.tenantMembership.findUnique({
-    where: {
-      userId_tenantId: {
-        userId: s.user.id,
-        tenantId: s.tenant.id,
-      },
-    },
-    select: { id: true },
+  const access = await requireTenantAccess(s.user, s.tenant.id, {
+    permission: "team.view",
   });
-  if (!hasMembership) {
+  if (!access.ok) {
     return [];
   }
   return prisma.user.findMany({
@@ -202,7 +193,10 @@ async function loadSubscriptionsForSession(s: SessionPayload) {
     });
   }
   if (!s.tenant) return [];
-  if (!hasPermissionForSession(s, "billing.view")) {
+  const access = await requireTenantAccess(s.user, s.tenant.id, {
+    permission: "billing.view",
+  });
+  if (!access.ok) {
     return [];
   }
   return prisma.subscription.findMany({

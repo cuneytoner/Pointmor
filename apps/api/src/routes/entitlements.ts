@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
+import { requireTenantAccess } from "../lib/guards.js";
 import { requireTenantPermission } from "../lib/tenant-permission-guard.js";
 import { requireTenantIdFromRequest } from "../lib/tenant-context.js";
 import { writeAudit } from "../lib/audit.js";
@@ -108,8 +109,13 @@ export async function registerEntitlementsRoutes(app: FastifyInstance): Promise<
   );
 
   app.get("/tenant/entitlements", { preHandler: [authPreHandler] }, async (req, reply) => {
+    const s = req.authSession as SessionPayload;
     const tenantId = await requireTenantIdFromRequest(req, reply);
     if (!tenantId) return;
+    const access = await requireTenantAccess(s.user, tenantId);
+    if (!access.ok) {
+      return reply.code(403).send({ error: access.error ?? "forbidden" });
+    }
     try {
       return await buildEntitlementsPayload(tenantId);
     } catch (e) {

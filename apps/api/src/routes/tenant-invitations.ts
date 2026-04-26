@@ -5,7 +5,6 @@ import { authPreHandler } from "../lib/http-auth.js";
 import { requireTenantAccess } from "../lib/guards.js";
 import { InvitationAcceptanceError, acceptInvitation } from "../lib/invitation-acceptance.js";
 import { prisma } from "../lib/prisma.js";
-import { hasPermissionForSession } from "../lib/tenant-permissions.js";
 import { parseWithSchema, z } from "../lib/validation.js";
 
 const invitationCreateBodySchema = z.object({
@@ -26,7 +25,7 @@ export async function registerTenantInvitationRoutes(app: FastifyInstance): Prom
     if (!s.tenant) return reply.code(403).send({ error: "tenant_context_required" });
     const access = await requireTenantAccess(s.user, s.tenant.id);
     if (!access.ok) return reply.code(403).send({ error: access.error ?? "forbidden" });
-    if (!hasPermissionForSession(s, "team.view") && s.membership?.role !== "ADVISOR") {
+    if (!s.user.platformAdmin && s.membership?.role !== "ADMIN") {
       return reply.code(403).send({ error: "permission_denied" });
     }
     return prisma.tenantInvitation.findMany({
@@ -58,32 +57,31 @@ export async function registerTenantInvitationRoutes(app: FastifyInstance): Prom
 
     const targetAccess = await requireTenantAccess(s.user, targetTenantId);
     if (!targetAccess.ok) return reply.code(403).send({ error: targetAccess.error ?? "forbidden" });
-    if (!s.user.platformAdmin) {
-      const canManageTeam = hasPermissionForSession(s, "team.manage");
-      const isAdvisor = s.membership?.role === "ADVISOR";
-      if (!canManageTeam && !isAdvisor) {
-        return reply.code(403).send({ error: "permission_denied" });
-      }
+    const inviterRole = s.membership?.role;
+    const inviterIsAdmin = s.user.platformAdmin || inviterRole === "ADMIN";
+    const inviterIsAdvisor = inviterRole === "ADVISOR";
+    if (!inviterIsAdmin && !inviterIsAdvisor) {
+      return reply.code(403).send({ error: "permission_denied" });
     }
 
-    const inviterMembership = await prisma.tenantMembership.findUnique({
-      where: {
-        userId_tenantId: {
-          userId: s.user.id,
-          tenantId: targetTenantId,
-        },
-      },
-      select: { id: true },
-    });
+    const inviterMembership = s.user.platformAdmin
+      ? null
+      : await prisma.tenantMembership.findUnique({
+          where: {
+            userId_tenantId: {
+              userId: s.user.id,
+              tenantId: targetTenantId,
+            },
+          },
+          select: { id: true, role: true },
+        });
     if (!s.user.platformAdmin && !inviterMembership) {
       return reply.code(403).send({ error: "membership_required" });
     }
 
     const requestedRole = parsed.data.role;
     const requestedIsExternal = parsed.data.isExternal ?? requestedRole === "ADVISOR";
-    const inviterRole = s.membership?.role;
-    const inviterIsAdvisor = inviterRole === "ADVISOR";
-    const inviterIsAdmin = s.user.platformAdmin || inviterRole === "ADMIN";
+    const effectiveInviterRole = s.user.platformAdmin ? "ADMIN" : inviterMembership?.role;
 
     // isExternal must match invitation role invariants.
     if (requestedRole === "ADVISOR" && requestedIsExternal !== true) {
@@ -94,7 +92,7 @@ export async function registerTenantInvitationRoutes(app: FastifyInstance): Prom
     }
 
     // ADVISOR inviters are strictly limited to external ADVISOR invitations.
-    if (inviterIsAdvisor) {
+    if (effectiveInviterRole === "ADVISOR") {
       if (requestedRole !== "ADVISOR") {
         return reply.code(403).send({ error: "advisor_invite_role_forbidden" });
       }
@@ -104,7 +102,7 @@ export async function registerTenantInvitationRoutes(app: FastifyInstance): Prom
     }
 
     // ADMIN/MEMBER invitations require ADMIN-level inviter in tenant context.
-    if ((requestedRole === "ADMIN" || requestedRole === "MEMBER") && !inviterIsAdmin) {
+    if ((requestedRole === "ADMIN" || requestedRole === "MEMBER") && effectiveInviterRole !== "ADMIN") {
       return reply.code(403).send({ error: "admin_role_required_for_invite" });
     }
 

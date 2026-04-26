@@ -37,6 +37,8 @@ export const TENANT_PERMISSIONS = [
   "billing.view",
   "billing.manage",
   "analytics.view",
+  /** Manager denetim olayları görüntüleme izni. */
+  "audit.view",
   "menu.view",
   "menu.manage",
   "automation.run",

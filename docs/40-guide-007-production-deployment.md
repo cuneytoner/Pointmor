@@ -77,6 +77,12 @@ Production’da migration için policy:
 3. Failure olursa app up adımına geçilmez.
 4. Rollback için öncelik **forward-fix**; DB geri alma yalnız onaylı bakım penceresiyle.
 
+Ek zorunlular:
+
+- Production’da `db:reset` **yasak**.
+- Production’da `db:seed:demo` ve `db:seed:full:demo` **yasak**.
+- Demo ile production veritabanı paylaşımı **yasak**.
+
 Neden:
 
 - Startup sırasında implicit migration, ölçekli/çok instance ortamlarda kontrolsüz davranışa yol açar.
@@ -96,6 +102,17 @@ Promote/başarılı deploy kabulü için minimum smoke:
 6. (Varsa) webhook test event
 
 Bu adımların herhangi biri fail ise deploy “successful” kabul edilmemelidir.
+
+---
+
+## 5.1 Özet production deploy akışı
+
+1. Production env preflight PASS al.
+2. Release image (`tag@digest`) doğrula.
+3. Explicit `migration` adımını çalıştır.
+4. Deploy adımını çalıştır.
+5. Smoke + health doğrula.
+6. Gerekirse rollback kararını runbook sırasıyla uygula.
 
 ---
 
@@ -140,3 +157,15 @@ Her deploy için saklanması gereken minimum metadata:
   - manual approval
   - deploy secretleri sadece bu environment altında
   - mümkünse wait timer + restricted approvers
+
+---
+
+## 9) Dokümanı Güncel Tutma Kuralı
+
+Aşağıdaki değişikliklerde aynı PR/task içinde bu dokümanı güncelle:
+
+- deploy/migrate scriptleri
+- release image üretim/etiketleme akışı
+- smoke adımları
+- rollback kuralları
+- env var adları ve policy kuralları

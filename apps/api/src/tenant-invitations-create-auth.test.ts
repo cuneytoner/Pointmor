@@ -169,6 +169,72 @@ describe("Tenant invitation create authorization", () => {
     expect(body.email).toBe(email.toLowerCase());
   });
 
+  it("advisor invite with isExternal=false is rejected", async () => {
+    const tenant = await createTenant("adv-bad-external");
+    tenantIds.push(tenant.id);
+    const inviter = await createUser("adv-bad-external");
+    userIds.push(inviter.id);
+    await addMembership(inviter.id, tenant.id, "ADVISOR");
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/tenant/invitations",
+      headers: authHeaderFor({ user: inviter, tenant, role: "ADVISOR", isExternal: true }),
+      payload: {
+        email: `target-${randomUUID().slice(0, 8)}@example.com`,
+        role: "ADVISOR",
+        isExternal: false,
+      },
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).error).toBe("invitation_is_external_mismatch");
+  });
+
+  it("member cannot create advisor invite", async () => {
+    const tenant = await createTenant("member-no-advisor");
+    tenantIds.push(tenant.id);
+    const inviter = await createUser("member-no-advisor");
+    userIds.push(inviter.id);
+    await addMembership(inviter.id, tenant.id, "MEMBER");
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/tenant/invitations",
+      headers: authHeaderFor({ user: inviter, tenant, role: "MEMBER", isExternal: false }),
+      payload: {
+        email: `target-${randomUUID().slice(0, 8)}@example.com`,
+        role: "ADVISOR",
+        isExternal: true,
+      },
+    });
+
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body).error).toBe("permission_denied");
+  });
+
+  it("member cannot create member invite", async () => {
+    const tenant = await createTenant("member-no-member");
+    tenantIds.push(tenant.id);
+    const inviter = await createUser("member-no-member");
+    userIds.push(inviter.id);
+    await addMembership(inviter.id, tenant.id, "MEMBER");
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/tenant/invitations",
+      headers: authHeaderFor({ user: inviter, tenant, role: "MEMBER", isExternal: false }),
+      payload: {
+        email: `target-${randomUUID().slice(0, 8)}@example.com`,
+        role: "MEMBER",
+        isExternal: false,
+      },
+    });
+
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body).error).toBe("permission_denied");
+  });
+
   it("admin can create all invitation roles", async () => {
     const tenant = await createTenant("admin-all");
     tenantIds.push(tenant.id);
@@ -211,5 +277,39 @@ describe("Tenant invitation create authorization", () => {
       },
     });
     expect(advisorInvite.statusCode).toBe(200);
+  });
+
+  it("advisor cannot list invitations", async () => {
+    const tenant = await createTenant("adv-list-denied");
+    tenantIds.push(tenant.id);
+    const inviter = await createUser("adv-list-denied");
+    userIds.push(inviter.id);
+    await addMembership(inviter.id, tenant.id, "ADVISOR");
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/tenant/invitations",
+      headers: authHeaderFor({ user: inviter, tenant, role: "ADVISOR", isExternal: true }),
+    });
+
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body).error).toBe("permission_denied");
+  });
+
+  it("admin can list invitations", async () => {
+    const tenant = await createTenant("admin-list-ok");
+    tenantIds.push(tenant.id);
+    const inviter = await createUser("admin-list-ok");
+    userIds.push(inviter.id);
+    await addMembership(inviter.id, tenant.id, "ADMIN");
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/tenant/invitations",
+      headers: authHeaderFor({ user: inviter, tenant, role: "ADMIN", isExternal: false }),
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(JSON.parse(res.body))).toBe(true);
   });
 });

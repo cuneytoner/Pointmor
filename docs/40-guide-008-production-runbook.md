@@ -41,6 +41,11 @@ chmod +x infra/scripts/*.sh
 ENV_FILE=infra/docker/.env.prod ./infra/scripts/deploy-prod.sh
 ```
 
+Migration notu:
+
+- Production’da `migration` explicit adım olarak yürütülür.
+- `RUN_MIGRATIONS_ON_START=false` zorunludur.
+
 ### 1.3 Dağıtım sonrası smoke
 
 - [ ] `curl -fsS http://127.0.0.1:${API_HOST_PORT:-3000}/health`
@@ -74,6 +79,12 @@ curl -fsS \
 1. **Image rollback** (önceki doğrulanmış digest)
 2. **Code rollback** (önceki `release_sha`)
 3. **DB restore** (yalnız onaylı bakım penceresi + RTO/RPO planıyla)
+
+Yasak operasyonlar:
+
+- Production’da `db:reset`
+- Production’da `db:seed:demo`
+- Production’da `db:seed:full:demo`
 
 ### 2.3 Adımlar (image rollback)
 
@@ -143,3 +154,15 @@ Rollout cutoff’ları içeren deploy sonrası:
 - DB restore prosedürü bu repoda otomatikleştirilmedi (platform/DB sağlayıcısı prosedürü kullanılır).
 - WAF/CDN/LB policy değişiklikleri infra platformunda izlenmelidir.
 - Cron scheduler’ın HMAC header üretimi için `infra/scripts/sign-internal-job-request.sh` referans alınır.
+
+---
+
+## 7) Dokümanı Güncel Tutma Kuralı
+
+Aşağıdaki değişikliklerde aynı PR/task içinde bu runbook’u güncelle:
+
+- deploy/migrate/health/smoke scriptleri
+- rollback prosedürü
+- preflight davranışı
+- env var adları
+- `auth` / `session` / `TenantMembership` davranışı

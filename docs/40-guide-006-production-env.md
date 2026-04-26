@@ -71,6 +71,11 @@ Bu değişkenler boş ise deploy yapılmamalıdır:
 | `POINTMOR_PREFLIGHT_ALLOW_QUERY` | `false` |
 | `RUN_MIGRATIONS_ON_START` | `false` (pipeline’da explicit migrate) |
 
+Production kuralı:
+
+- `RUN_MIGRATIONS_ON_START=false` zorunludur.
+- `migration` adımı uygulama başlangıcından ayrı explicit deploy adımıdır.
+
 ---
 
 ## 4) Internal job / webhook secret seti
@@ -136,3 +141,24 @@ ENV_FILE=infra/docker/.env.prod ./infra/scripts/preflight-prod-env.sh
 ```
 
 PASS almadan deploy etmeyin.
+
+---
+
+## 8) Production güvenlik uyarıları
+
+- Production’da `db:reset` çalıştırılmaz.
+- Production’da `db:seed:demo` veya `db:seed:full:demo` çalıştırılmaz.
+- Seed operasyonu gerekiyorsa explicit, onaylı ve production’a özel içerik ile yürütülür.
+- Yeni Tenant verisi üretilecekse `tenantId` + `TenantMembership` hizası zorunludur.
+
+---
+
+## 9) Dokümanı Güncel Tutma Kuralı
+
+Aşağıdaki değişikliklerde aynı PR/task içinde bu dokümanı güncelle:
+
+- production env var adları
+- preflight script kontrol kuralları
+- `docker-compose.prod.yml`
+- deploy/migrate/rollback akışı
+- `auth` / `session` / `TenantMembership` davranışı

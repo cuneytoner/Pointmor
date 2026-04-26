@@ -90,7 +90,13 @@ export async function requireTenantAccess(
     if (MODULE_SCOPED_PERMISSIONS.has(options.permission) && !options.moduleName) {
       return { ok: false, error: "permission_denied" };
     }
-    const appRole = resolveTenantAppRoleFromMembership(membership.role);
+    const appRole = membership.role === "ADMIN"
+      ? "owner"
+      : membership.role === "MEMBER"
+        ? "manager"
+        : membership.role === "ADVISOR"
+          ? "viewer"
+          : resolveTenantAppRoleFromMembership(membership.role);
     if (!hasPermissionForRole(appRole, options.permission)) {
       return { ok: false, error: "permission_denied" };
     }

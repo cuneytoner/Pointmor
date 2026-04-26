@@ -2,7 +2,7 @@
 
 > Bu doküman yalnızca demo ortamı içindir.
 
-Demo akışı: `.env.demo` hazırla → deploy et → migrate doğrula → seed (gerekirse) → smoke test.
+Demo akışı: `.env.demo` hazırla → deploy et → migrate çalıştır → seed çalıştır → smoke/health doğrula.
 
 ---
 
@@ -15,6 +15,7 @@ Demo akışı: `.env.demo` hazırla → deploy et → migrate doğrula → seed 
 - `infra/scripts/seed-demo.sh`
 - `infra/scripts/seed-full-demo.sh` (opsiyonel)
 - `infra/scripts/smoke-demo.sh`
+- `infra/scripts/health-check-demo.sh`
 
 ---
 
@@ -33,9 +34,22 @@ cp infra/docker/.env.demo.example infra/docker/.env.demo
 - `DEMO_OPERATOR_PASSWORD`
 - (Cloudflare için) `CLOUDFLARE_TUNNEL_TOKEN`
 
+Demo DB, local dev DB ile paylaşılmamalıdır.
+
 ---
 
-## 2) Dağıtım
+## 2) Önerilen kısa akış
+
+1. `.env.demo` hazırla.
+2. Demo deploy çalıştır.
+3. Demo `migration` adımını çalıştır.
+4. `seed` adımını çalıştır.
+5. Smoke test çalıştır.
+6. Health kontrolü yap.
+
+---
+
+## 3) Deploy
 
 ```bash
 chmod +x infra/scripts/*.sh
@@ -48,19 +62,25 @@ Cloudflare tunnel ile:
 ./infra/scripts/deploy-demo.sh --cloud
 ```
 
-Dağıtım script'i build + up + migrate + health akışını çalıştırır.
+Not:
+
+- Deploy scriptinin otomatik seed davranışı script implementasyonuna bağlıdır.
+- Operasyonel standart: deploy sonrası seed adımını explicit çalıştır.
+- Demo deploy, production deploy değildir.
 
 ---
 
-## 3) Migration (gerekirse tekrar)
+## 4) Migration
 
 ```bash
 ./infra/scripts/migrate-demo.sh
 ```
 
+Production farkı: demo ortamında migration tekrar koşulabilir; production’da explicit onaylı adım olarak yönetilir.
+
 ---
 
-## 4) Seed
+## 5) Seed (demo vs full demo)
 
 İlk kurulum / manuel veri yükleme:
 
@@ -74,27 +94,37 @@ Full demo senaryosu (çok tenant + ağır örnek veri):
 ./infra/scripts/seed-full-demo.sh
 ```
 
-Seed komutları otomatik deploy’un parçası değildir.
+Seed farkı:
+
+- `seed-demo.sh`: temel demo verisi.
+- `seed-full-demo.sh`: daha geniş demo senaryosu, çok tenant/ek veri.
+
+Uyarılar:
+
+- Demo seed production seed değildir.
+- `seed` verisi `TenantMembership` hizasını korumalıdır.
+- `User.tenantId` legacy alandır; access için kullanılmaz.
 
 ---
 
-## 5) Smoke ve health
+## 6) Smoke ve health
 
 ```bash
 ./infra/scripts/smoke-demo.sh
 curl -sfS "http://127.0.0.1:${API_HOST_PORT:-3000}/health"
+./infra/scripts/health-check-demo.sh
 ```
 
 ---
 
-## 6) CI / workflow notu
+## 7) CI / workflow notu
 
 - Demo deploy, CI başarı sonrası veya manuel workflow ile tetiklenir.
 - Workflow seed çalıştırmaz; seed adımı operasyonel olarak manuel yönetilir.
 
 ---
 
-## 7) Hızlı refresh akışı
+## 8) Hızlı refresh akışı
 
 ```bash
 git fetch origin --prune
@@ -105,3 +135,15 @@ git clean -fd
 ./infra/scripts/seed-full-demo.sh
 ./infra/scripts/smoke-demo.sh
 ```
+
+---
+
+## 9) Dokümanı Güncel Tutma Kuralı
+
+Aşağıdaki değişikliklerde aynı PR/task içinde bu dokümanı güncelle:
+
+- demo deploy/migrate/seed/smoke scriptleri
+- `.env.demo` değişken adları
+- `docker-compose.demo.yml`
+- seed dosyaları
+- `auth` / `session` / `TenantMembership` davranışı

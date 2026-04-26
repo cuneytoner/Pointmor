@@ -3,7 +3,12 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { FastifyInstance } from "fastify";
 import { buildApp } from "./app.js";
 import { issueSession } from "./lib/auth-memory.js";
+import { authPreHandler } from "./lib/http-auth.js";
 import { prisma } from "./lib/prisma.js";
+import {
+  requireAnyTenantPermission,
+  requireTenantPermissions,
+} from "./lib/tenant-permission-guard.js";
 
 type TestUser = { id: string; email: string };
 type TestTenant = { id: string; slug: string; name: string };
@@ -87,6 +92,18 @@ describe("Module activation access guard", () => {
 
   beforeAll(async () => {
     app = await buildApp({ logger: false });
+    app.get("/_test/perm-all", {
+      preHandler: [
+        authPreHandler,
+        requireTenantPermissions("analytics.view", "menu.view"),
+      ],
+    }, async () => ({ ok: true }));
+    app.get("/_test/perm-any", {
+      preHandler: [
+        authPreHandler,
+        requireAnyTenantPermission("analytics.view", "menu.view"),
+      ],
+    }, async () => ({ ok: true }));
   });
 
   afterAll(async () => {
@@ -174,5 +191,83 @@ describe("Module activation access guard", () => {
     });
 
     expect(res.statusCode).toBe(200);
+  });
+
+  it("requireTenantPermissions denies inactive module", async () => {
+    const tenant = await createTenant("perm-all-off");
+    tenantIds.push(tenant.id);
+    const user = await createUser("perm-all-off");
+    userIds.push(user.id);
+    await prisma.tenantMembership.create({
+      data: {
+        tenantId: tenant.id,
+        userId: user.id,
+        role: "ADMIN",
+        isExternal: false,
+      },
+    });
+    const moduleRow = await ensureCafeModule();
+    await prisma.tenantModule.upsert({
+      where: {
+        tenantId_moduleId: {
+          tenantId: tenant.id,
+          moduleId: moduleRow.id,
+        },
+      },
+      create: {
+        tenantId: tenant.id,
+        moduleId: moduleRow.id,
+        isActive: false,
+      },
+      update: { isActive: false },
+    });
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/_test/perm-all",
+      headers: authHeaderFor(user, tenant),
+    });
+
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body).error).toBe("module_not_active");
+  });
+
+  it("requireAnyTenantPermission denies inactive module for module-scoped permissions", async () => {
+    const tenant = await createTenant("perm-any-off");
+    tenantIds.push(tenant.id);
+    const user = await createUser("perm-any-off");
+    userIds.push(user.id);
+    await prisma.tenantMembership.create({
+      data: {
+        tenantId: tenant.id,
+        userId: user.id,
+        role: "ADMIN",
+        isExternal: false,
+      },
+    });
+    const moduleRow = await ensureCafeModule();
+    await prisma.tenantModule.upsert({
+      where: {
+        tenantId_moduleId: {
+          tenantId: tenant.id,
+          moduleId: moduleRow.id,
+        },
+      },
+      create: {
+        tenantId: tenant.id,
+        moduleId: moduleRow.id,
+        isActive: false,
+      },
+      update: { isActive: false },
+    });
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/_test/perm-any",
+      headers: authHeaderFor(user, tenant),
+    });
+
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body).error).toBe("module_not_active");
   });
 });

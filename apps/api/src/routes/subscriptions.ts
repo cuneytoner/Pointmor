@@ -1,8 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { authPreHandler } from "../lib/http-auth.js";
 import type { SessionPayload } from "../lib/auth-memory.js";
-import { canAccessTenant, requirePlatformAdmin } from "../lib/guards.js";
-import { hasPermissionForSession } from "../lib/tenant-permissions.js";
+import { canAccessTenant, requirePlatformAdmin, requireTenantAccess } from "../lib/guards.js";
 import { writeAudit } from "../lib/audit.js";
 import { prisma } from "../lib/prisma.js";
 import { recordAuditEvent } from "../lib/operational-audit-service.js";
@@ -41,8 +40,11 @@ export async function registerSubscriptionRoutes(
         });
       }
       if (!s.tenant) return [];
-      if (!hasPermissionForSession(s, "billing.view")) {
-        return reply.code(403).send({ error: "permission_denied" });
+      const access = await requireTenantAccess(s.user, s.tenant.id, {
+        permission: "billing.view",
+      });
+      if (!access.ok) {
+        return reply.code(403).send({ error: access.error ?? "permission_denied" });
       }
       return prisma.subscription.findMany({
         where: mergeTenantWhere(s.tenant.id, {}),

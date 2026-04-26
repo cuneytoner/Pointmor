@@ -1,11 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import type { SessionPayload } from "../lib/auth-memory.js";
 import { authPreHandler } from "../lib/http-auth.js";
-import {
-  getBranchDayClosingSummary,
-  getShiftClosingSummary,
-  isManagerRole,
-} from "../lib/closing-summary-service.js";
+import { getBranchDayClosingSummary, getShiftClosingSummary } from "../lib/closing-summary-service.js";
+import { requireTenantPermission } from "../lib/tenant-permission-guard.js";
 import { listAuditEventsForTenant } from "../lib/operational-audit-service.js";
 import { listAnomalySignalsForTenant } from "../lib/operational-anomaly-service.js";
 import {
@@ -30,22 +27,6 @@ function requireTenantSession(
   return tenantId;
 }
 
-function requireManagerOrAdmin(
-  req: { authSession?: SessionPayload },
-  reply: { code: (n: number) => { send: (b: unknown) => unknown } },
-): SessionPayload | null {
-  const s = req.authSession as SessionPayload | undefined;
-  if (!s?.tenant?.id) {
-    reply.code(403).send({ error: "tenant_context_required" });
-    return null;
-  }
-  if (!isManagerRole(s.membership?.role) && !s.user.platformAdmin) {
-    reply.code(403).send({ error: "manager_role_required" });
-    return null;
-  }
-  return s;
-}
-
 export async function registerManagerRoutes(app: FastifyInstance): Promise<void> {
   app.get<{
     Querystring: {
@@ -55,13 +36,9 @@ export async function registerManagerRoutes(app: FastifyInstance): Promise<void>
       shiftId?: string;
       branchId?: string;
     };
-  }>("/manager/audit-events", { preHandler: [authPreHandler] }, async (req, reply) => {
+  }>("/manager/audit-events", { preHandler: [authPreHandler, requireTenantPermission("audit.view")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
-    const s = req.authSession as SessionPayload;
-    if (!isManagerRole(s.membership?.role) && !s.user.platformAdmin) {
-      return reply.code(403).send({ error: "manager_role_required" });
-    }
     try {
       const ent = await getTenantEntitlementContext(tenantId);
       assertComplianceLimited(ent);
@@ -91,13 +68,9 @@ export async function registerManagerRoutes(app: FastifyInstance): Promise<void>
       shiftId?: string;
       branchId?: string;
     };
-  }>("/manager/anomalies", { preHandler: [authPreHandler] }, async (req, reply) => {
+  }>("/manager/anomalies", { preHandler: [authPreHandler, requireTenantPermission("analytics.view")] }, async (req, reply) => {
     const tenantId = requireTenantSession(req, reply);
     if (!tenantId) return;
-    const s = req.authSession as SessionPayload;
-    if (!isManagerRole(s.membership?.role) && !s.user.platformAdmin) {
-      return reply.code(403).send({ error: "manager_role_required" });
-    }
     try {
       const ent = await getTenantEntitlementContext(tenantId);
       assertComplianceFull(ent);
@@ -121,7 +94,7 @@ export async function registerManagerRoutes(app: FastifyInstance): Promise<void>
 
   app.get<{ Params: { shiftId: string } }>(
     "/manager/shifts/:shiftId/closing-summary",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("analytics.view")] },
     async (req, reply) => {
       const tenantId = requireTenantSession(req, reply);
       if (!tenantId) return;
@@ -158,11 +131,11 @@ export async function registerManagerRoutes(app: FastifyInstance): Promise<void>
     Querystring: { date?: string };
   }>(
     "/manager/branches/:branchId/closing-summary",
-    { preHandler: [authPreHandler] },
+    { preHandler: [authPreHandler, requireTenantPermission("analytics.view")] },
     async (req, reply) => {
-      const s = requireManagerOrAdmin(req, reply);
-      if (!s) return;
-      const tenantId = s.tenant!.id;
+      const tenantId = requireTenantSession(req, reply);
+      if (!tenantId) return;
+      const s = req.authSession as SessionPayload;
       const date =
         typeof req.query.date === "string" && req.query.date.trim()
           ? req.query.date.trim()
