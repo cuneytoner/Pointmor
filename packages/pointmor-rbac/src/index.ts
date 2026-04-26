@@ -4,6 +4,7 @@ export {
   type TenantAppRole,
   type TenantPermission,
   hasAnyPermissionForRole,
+  hasPermissionForMembershipRole,
   hasPermissionForRole,
   permissionsForRole,
   resolveTenantAppRoleFromMembership,

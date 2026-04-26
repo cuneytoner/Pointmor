@@ -20,7 +20,26 @@ export const AI_ACT_QUESTION_KEYS = [
 
 export type AiActQuestionKey = (typeof AI_ACT_QUESTION_KEYS)[number];
 
+export const AI_ACT_PURPOSE_VALUES = [
+  "customer_support",
+  "employee_performance",
+  "other",
+] as const;
+
 export type AiActAnswerMap = Record<AiActQuestionKey, Prisma.InputJsonValue>;
+
+const QUESTION_TYPE_BY_KEY: Record<AiActQuestionKey, "boolean" | "enum"> = {
+  q_ai_used: "boolean",
+  q_ai_purpose: "enum",
+  q_personal_data: "boolean",
+  q_sensitive_data: "boolean",
+  q_automated_decision: "boolean",
+  q_human_oversight: "boolean",
+  q_employment_context: "boolean",
+  q_biometric_identification: "boolean",
+  q_safety_critical: "boolean",
+  q_provider_documentation: "boolean",
+};
 
 export function normalizeQuestionnaire(raw: Record<string, unknown>): {
   ok: true;
@@ -28,18 +47,29 @@ export function normalizeQuestionnaire(raw: Record<string, unknown>): {
 } | { ok: false; error: string } {
   const keys = Object.keys(raw);
   if (keys.length !== AI_ACT_QUESTION_KEYS.length) {
-    return { ok: false, error: "invalid_answer_count" };
+    return { ok: false, error: "invalid_answer_format" };
   }
   for (const key of keys) {
     if (!AI_ACT_QUESTION_KEYS.includes(key as AiActQuestionKey)) {
-      return { ok: false, error: "unknown_question_key" };
+      return { ok: false, error: "invalid_answer_format" };
     }
   }
   const answers = {} as AiActAnswerMap;
   for (const key of AI_ACT_QUESTION_KEYS) {
     const val = raw[key];
     if (val === undefined || val === null) {
-      return { ok: false, error: "missing_answer" };
+      return { ok: false, error: "invalid_answer_format" };
+    }
+    const expectedType = QUESTION_TYPE_BY_KEY[key];
+    if (expectedType === "boolean" && typeof val !== "boolean") {
+      return { ok: false, error: "invalid_answer_format" };
+    }
+    if (
+      expectedType === "enum" &&
+      (typeof val !== "string" ||
+        !AI_ACT_PURPOSE_VALUES.includes(val as (typeof AI_ACT_PURPOSE_VALUES)[number]))
+    ) {
+      return { ok: false, error: "invalid_answer_format" };
     }
     answers[key] = val as Prisma.InputJsonValue;
   }

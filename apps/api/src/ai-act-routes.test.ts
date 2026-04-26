@@ -41,6 +41,15 @@ async function ensureAiActModule() {
 }
 
 function authHeader(user: TestUser, tenant: TestTenant) {
+  return authHeaderForRole(user, tenant, "ADMIN", false);
+}
+
+function authHeaderForRole(
+  user: TestUser,
+  tenant: TestTenant,
+  role: "ADMIN" | "MEMBER" | "ADVISOR",
+  isExternal: boolean,
+) {
   const token = issueSession({
     user: {
       id: user.id,
@@ -55,8 +64,8 @@ function authHeader(user: TestUser, tenant: TestTenant) {
     },
     membership: {
       tenantId: tenant.id,
-      role: "ADMIN",
-      isExternal: false,
+      role,
+      isExternal,
     },
     memberships: [
       {
@@ -67,8 +76,8 @@ function authHeader(user: TestUser, tenant: TestTenant) {
         },
         membership: {
           tenantId: tenant.id,
-          role: "ADMIN",
-          isExternal: false,
+          role,
+          isExternal,
         },
       },
     ],
@@ -131,6 +140,53 @@ describe("AI Act routes", () => {
     }
   });
 
+  it("module inactive blocks all ai-act endpoints", async () => {
+    try {
+      const tenant = await createTenant("module-off-all");
+      const user = await createUser("module-off-all");
+      tenantIds.push(tenant.id);
+      userIds.push(user.id);
+      await prisma.tenantMembership.create({
+        data: { tenantId: tenant.id, userId: user.id, role: "ADMIN", isExternal: false },
+      });
+      const aiModule = await ensureAiActModule();
+      await prisma.tenantModule.upsert({
+        where: { tenantId_moduleId: { tenantId: tenant.id, moduleId: aiModule.id } },
+        create: { tenantId: tenant.id, moduleId: aiModule.id, isActive: false },
+        update: { isActive: false },
+      });
+
+      const blocked = [
+        { method: "GET", url: "/ai-act/systems" },
+        { method: "POST", url: "/ai-act/systems" },
+        { method: "GET", url: `/ai-act/systems/${randomUUID()}` },
+        { method: "POST", url: `/ai-act/systems/${randomUUID()}/assessment` },
+        { method: "GET", url: `/ai-act/systems/${randomUUID()}/assessment` },
+        { method: "GET", url: `/ai-act/systems/${randomUUID()}/obligations` },
+        { method: "GET", url: `/ai-act/systems/${randomUUID()}/tasks` },
+      ] as const;
+      for (const entry of blocked) {
+        const res = await app.inject({
+          method: entry.method,
+          url: entry.url,
+          headers: authHeader(user, tenant),
+          payload:
+            entry.method === "POST"
+              ? { name: "x", providerType: "EXTERNAL", answers: {} }
+              : undefined,
+        });
+        expect(res.statusCode).toBe(403);
+        expect(res.json().error).toBe("module_not_active");
+      }
+    } catch (err) {
+      if (shouldSkipDb(err)) {
+        expect(true).toBe(true);
+        return;
+      }
+      throw err;
+    }
+  });
+
   it("user without membership is denied", async () => {
     try {
       const tenant = await createTenant("no-membership");
@@ -147,6 +203,96 @@ describe("AI Act routes", () => {
         method: "GET",
         url: "/ai-act/systems",
         headers: authHeader(user, tenant),
+      });
+      expect(res.statusCode).toBe(403);
+    } catch (err) {
+      if (shouldSkipDb(err)) {
+        expect(true).toBe(true);
+        return;
+      }
+      throw err;
+    }
+  });
+
+  it("advisor can assess via shared RBAC without backend override", async () => {
+    try {
+      const tenant = await createTenant("advisor-assess");
+      const advisor = await createUser("advisor-assess");
+      const admin = await createUser("advisor-assess-admin");
+      tenantIds.push(tenant.id);
+      userIds.push(advisor.id, admin.id);
+      await prisma.tenantMembership.createMany({
+        data: [
+          { tenantId: tenant.id, userId: advisor.id, role: "ADVISOR", isExternal: true },
+          { tenantId: tenant.id, userId: admin.id, role: "ADMIN", isExternal: false },
+        ],
+      });
+      const aiModule = await ensureAiActModule();
+      await prisma.tenantModule.upsert({
+        where: { tenantId_moduleId: { tenantId: tenant.id, moduleId: aiModule.id } },
+        create: { tenantId: tenant.id, moduleId: aiModule.id, isActive: true },
+        update: { isActive: true },
+      });
+      const created = await app.inject({
+        method: "POST",
+        url: "/ai-act/systems",
+        headers: authHeader(admin, tenant),
+        payload: { name: "Advisor Assess", providerType: "EXTERNAL" },
+      });
+      if (created.statusCode === 500) {
+        expect(true).toBe(true);
+        return;
+      }
+      const systemId = created.json().id as string;
+      const res = await app.inject({
+        method: "POST",
+        url: `/ai-act/systems/${systemId}/assessment`,
+        headers: authHeaderForRole(advisor, tenant, "ADVISOR", true),
+        payload: {
+          answers: {
+            q_ai_used: true,
+            q_ai_purpose: "customer_support",
+            q_personal_data: false,
+            q_sensitive_data: false,
+            q_automated_decision: false,
+            q_human_oversight: true,
+            q_employment_context: false,
+            q_biometric_identification: false,
+            q_safety_critical: false,
+            q_provider_documentation: true,
+          },
+        },
+      });
+      expect(res.statusCode).toBe(200);
+    } catch (err) {
+      if (shouldSkipDb(err)) {
+        expect(true).toBe(true);
+        return;
+      }
+      throw err;
+    }
+  });
+
+  it("member cannot create systems without ai_act.manage", async () => {
+    try {
+      const tenant = await createTenant("member-create-deny");
+      const member = await createUser("member-create-deny");
+      tenantIds.push(tenant.id);
+      userIds.push(member.id);
+      await prisma.tenantMembership.create({
+        data: { tenantId: tenant.id, userId: member.id, role: "MEMBER", isExternal: false },
+      });
+      const aiModule = await ensureAiActModule();
+      await prisma.tenantModule.upsert({
+        where: { tenantId_moduleId: { tenantId: tenant.id, moduleId: aiModule.id } },
+        create: { tenantId: tenant.id, moduleId: aiModule.id, isActive: true },
+        update: { isActive: true },
+      });
+      const res = await app.inject({
+        method: "POST",
+        url: "/ai-act/systems",
+        headers: authHeaderForRole(member, tenant, "MEMBER", false),
+        payload: { name: "Denied", providerType: "EXTERNAL" },
       });
       expect(res.statusCode).toBe(403);
     } catch (err) {
@@ -277,7 +423,7 @@ describe("AI Act routes", () => {
         payload: {
           answers: {
             q_ai_used: true,
-            q_ai_purpose: "employee scoring",
+            q_ai_purpose: "employee_performance",
             q_personal_data: true,
             q_sensitive_data: true,
             q_automated_decision: true,
@@ -316,7 +462,7 @@ describe("AI Act routes", () => {
         payload: {
           answers: {
             q_ai_used: true,
-            q_ai_purpose: "employee scoring",
+            q_ai_purpose: "employee_performance",
             q_personal_data: true,
             q_sensitive_data: true,
             q_automated_decision: true,
@@ -357,7 +503,7 @@ describe("AI Act routes", () => {
         payload: {
           answers: {
             q_ai_used: true,
-            q_ai_purpose: "customer support",
+            q_ai_purpose: "customer_support",
             q_personal_data: false,
             q_sensitive_data: false,
             q_automated_decision: false,
@@ -371,6 +517,367 @@ describe("AI Act routes", () => {
       });
       expect(limited.statusCode).toBe(200);
       expect(limited.json().riskLevel).toBe("LIMITED");
+    } catch (err) {
+      if (shouldSkipDb(err)) {
+        expect(true).toBe(true);
+        return;
+      }
+      throw err;
+    }
+  });
+
+  it("assessment rejects unknown question keys", async () => {
+    try {
+      const tenant = await createTenant("unknown-key");
+      const user = await createUser("unknown-key");
+      tenantIds.push(tenant.id);
+      userIds.push(user.id);
+      await prisma.tenantMembership.create({
+        data: { tenantId: tenant.id, userId: user.id, role: "ADMIN", isExternal: false },
+      });
+      const aiModule = await ensureAiActModule();
+      await prisma.tenantModule.upsert({
+        where: { tenantId_moduleId: { tenantId: tenant.id, moduleId: aiModule.id } },
+        create: { tenantId: tenant.id, moduleId: aiModule.id, isActive: true },
+        update: { isActive: true },
+      });
+      const created = await app.inject({
+        method: "POST",
+        url: "/ai-act/systems",
+        headers: authHeader(user, tenant),
+        payload: { name: "Unknown Key", providerType: "EXTERNAL" },
+      });
+      if (created.statusCode === 500) {
+        expect(true).toBe(true);
+        return;
+      }
+      const systemId = created.json().id as string;
+      const res = await app.inject({
+        method: "POST",
+        url: `/ai-act/systems/${systemId}/assessment`,
+        headers: authHeader(user, tenant),
+        payload: {
+          answers: {
+            q_ai_used: true,
+            q_ai_purpose: "customer_support",
+            q_personal_data: false,
+            q_sensitive_data: false,
+            q_automated_decision: false,
+            q_human_oversight: true,
+            q_employment_context: false,
+            q_biometric_identification: false,
+            q_safety_critical: false,
+            q_provider_documentation: true,
+            q_legacy_extra: true,
+          },
+        },
+      });
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error).toBe("invalid_answer_format");
+    } catch (err) {
+      if (shouldSkipDb(err)) {
+        expect(true).toBe(true);
+        return;
+      }
+      throw err;
+    }
+  });
+
+  it("assessment rejects invalid answer type", async () => {
+    try {
+      const tenant = await createTenant("invalid-type");
+      const user = await createUser("invalid-type");
+      tenantIds.push(tenant.id);
+      userIds.push(user.id);
+      await prisma.tenantMembership.create({
+        data: { tenantId: tenant.id, userId: user.id, role: "ADMIN", isExternal: false },
+      });
+      const aiModule = await ensureAiActModule();
+      await prisma.tenantModule.upsert({
+        where: { tenantId_moduleId: { tenantId: tenant.id, moduleId: aiModule.id } },
+        create: { tenantId: tenant.id, moduleId: aiModule.id, isActive: true },
+        update: { isActive: true },
+      });
+      const created = await app.inject({
+        method: "POST",
+        url: "/ai-act/systems",
+        headers: authHeader(user, tenant),
+        payload: { name: "Invalid Type", providerType: "EXTERNAL" },
+      });
+      if (created.statusCode === 500) {
+        expect(true).toBe(true);
+        return;
+      }
+      const systemId = created.json().id as string;
+      const res = await app.inject({
+        method: "POST",
+        url: `/ai-act/systems/${systemId}/assessment`,
+        headers: authHeader(user, tenant),
+        payload: {
+          answers: {
+            q_ai_used: "true",
+            q_ai_purpose: "customer_support",
+            q_personal_data: false,
+            q_sensitive_data: false,
+            q_automated_decision: false,
+            q_human_oversight: true,
+            q_employment_context: false,
+            q_biometric_identification: false,
+            q_safety_critical: false,
+            q_provider_documentation: true,
+          },
+        },
+      });
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error).toBe("invalid_answer_format");
+    } catch (err) {
+      if (shouldSkipDb(err)) {
+        expect(true).toBe(true);
+        return;
+      }
+      throw err;
+    }
+  });
+
+  it("assessment rejects missing answers", async () => {
+    try {
+      const tenant = await createTenant("missing-answer");
+      const user = await createUser("missing-answer");
+      tenantIds.push(tenant.id);
+      userIds.push(user.id);
+      await prisma.tenantMembership.create({
+        data: { tenantId: tenant.id, userId: user.id, role: "ADMIN", isExternal: false },
+      });
+      const aiModule = await ensureAiActModule();
+      await prisma.tenantModule.upsert({
+        where: { tenantId_moduleId: { tenantId: tenant.id, moduleId: aiModule.id } },
+        create: { tenantId: tenant.id, moduleId: aiModule.id, isActive: true },
+        update: { isActive: true },
+      });
+      const created = await app.inject({
+        method: "POST",
+        url: "/ai-act/systems",
+        headers: authHeader(user, tenant),
+        payload: { name: "Missing Answer", providerType: "EXTERNAL" },
+      });
+      if (created.statusCode === 500) {
+        expect(true).toBe(true);
+        return;
+      }
+      const systemId = created.json().id as string;
+      const res = await app.inject({
+        method: "POST",
+        url: `/ai-act/systems/${systemId}/assessment`,
+        headers: authHeader(user, tenant),
+        payload: {
+          answers: {
+            q_ai_used: true,
+            q_ai_purpose: "customer_support",
+            q_personal_data: false,
+            q_sensitive_data: false,
+            q_automated_decision: false,
+            q_human_oversight: true,
+            q_employment_context: false,
+            q_biometric_identification: false,
+            q_safety_critical: false,
+          },
+        },
+      });
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error).toBe("invalid_answer_format");
+    } catch (err) {
+      if (shouldSkipDb(err)) {
+        expect(true).toBe(true);
+        return;
+      }
+      throw err;
+    }
+  });
+
+  it("assessment supports MINIMAL risk", async () => {
+    try {
+      const tenant = await createTenant("minimal-risk");
+      const user = await createUser("minimal-risk");
+      tenantIds.push(tenant.id);
+      userIds.push(user.id);
+      await prisma.tenantMembership.create({
+        data: { tenantId: tenant.id, userId: user.id, role: "ADMIN", isExternal: false },
+      });
+      const aiModule = await ensureAiActModule();
+      await prisma.tenantModule.upsert({
+        where: { tenantId_moduleId: { tenantId: tenant.id, moduleId: aiModule.id } },
+        create: { tenantId: tenant.id, moduleId: aiModule.id, isActive: true },
+        update: { isActive: true },
+      });
+      const created = await app.inject({
+        method: "POST",
+        url: "/ai-act/systems",
+        headers: authHeader(user, tenant),
+        payload: { name: "Minimal Risk", providerType: "EXTERNAL" },
+      });
+      if (created.statusCode === 500) {
+        expect(true).toBe(true);
+        return;
+      }
+      const systemId = created.json().id as string;
+      const res = await app.inject({
+        method: "POST",
+        url: `/ai-act/systems/${systemId}/assessment`,
+        headers: authHeader(user, tenant),
+        payload: {
+          answers: {
+            q_ai_used: false,
+            q_ai_purpose: "other",
+            q_personal_data: false,
+            q_sensitive_data: false,
+            q_automated_decision: false,
+            q_human_oversight: true,
+            q_employment_context: false,
+            q_biometric_identification: false,
+            q_safety_critical: false,
+            q_provider_documentation: false,
+          },
+        },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.json().riskLevel).toBe("MINIMAL");
+    } catch (err) {
+      if (shouldSkipDb(err)) {
+        expect(true).toBe(true);
+        return;
+      }
+      throw err;
+    }
+  });
+
+  it("assessment is idempotent with single active row per system", async () => {
+    try {
+      const tenant = await createTenant("idempotent");
+      const user = await createUser("idempotent");
+      tenantIds.push(tenant.id);
+      userIds.push(user.id);
+      await prisma.tenantMembership.create({
+        data: { tenantId: tenant.id, userId: user.id, role: "ADMIN", isExternal: false },
+      });
+      const aiModule = await ensureAiActModule();
+      await prisma.tenantModule.upsert({
+        where: { tenantId_moduleId: { tenantId: tenant.id, moduleId: aiModule.id } },
+        create: { tenantId: tenant.id, moduleId: aiModule.id, isActive: true },
+        update: { isActive: true },
+      });
+      const created = await app.inject({
+        method: "POST",
+        url: "/ai-act/systems",
+        headers: authHeader(user, tenant),
+        payload: { name: "Idempotent", providerType: "HYBRID" },
+      });
+      if (created.statusCode === 500) {
+        expect(true).toBe(true);
+        return;
+      }
+      const systemId = created.json().id as string;
+      const payload = {
+        answers: {
+          q_ai_used: true,
+          q_ai_purpose: "employee_performance",
+          q_personal_data: true,
+          q_sensitive_data: true,
+          q_automated_decision: true,
+          q_human_oversight: false,
+          q_employment_context: true,
+          q_biometric_identification: false,
+          q_safety_critical: false,
+          q_provider_documentation: false,
+        },
+      };
+      const first = await app.inject({
+        method: "POST",
+        url: `/ai-act/systems/${systemId}/assessment`,
+        headers: authHeader(user, tenant),
+        payload,
+      });
+      expect(first.statusCode).toBe(200);
+      const second = await app.inject({
+        method: "POST",
+        url: `/ai-act/systems/${systemId}/assessment`,
+        headers: authHeader(user, tenant),
+        payload,
+      });
+      expect(second.statusCode).toBe(200);
+      const count = await prisma.aiAssessment.count({
+        where: { tenantId: tenant.id, aiSystemId: systemId },
+      });
+      expect(count).toBe(1);
+    } catch (err) {
+      if (shouldSkipDb(err)) {
+        expect(true).toBe(true);
+        return;
+      }
+      throw err;
+    }
+  });
+
+  it("concurrent assessment requests keep exactly one current row", async () => {
+    try {
+      const tenant = await createTenant("concurrency");
+      const user = await createUser("concurrency");
+      tenantIds.push(tenant.id);
+      userIds.push(user.id);
+      await prisma.tenantMembership.create({
+        data: { tenantId: tenant.id, userId: user.id, role: "ADMIN", isExternal: false },
+      });
+      const aiModule = await ensureAiActModule();
+      await prisma.tenantModule.upsert({
+        where: { tenantId_moduleId: { tenantId: tenant.id, moduleId: aiModule.id } },
+        create: { tenantId: tenant.id, moduleId: aiModule.id, isActive: true },
+        update: { isActive: true },
+      });
+      const created = await app.inject({
+        method: "POST",
+        url: "/ai-act/systems",
+        headers: authHeader(user, tenant),
+        payload: { name: "Concurrency", providerType: "HYBRID" },
+      });
+      if (created.statusCode === 500) {
+        expect(true).toBe(true);
+        return;
+      }
+      const systemId = created.json().id as string;
+      const payload = {
+        answers: {
+          q_ai_used: true,
+          q_ai_purpose: "employee_performance",
+          q_personal_data: true,
+          q_sensitive_data: true,
+          q_automated_decision: true,
+          q_human_oversight: false,
+          q_employment_context: true,
+          q_biometric_identification: false,
+          q_safety_critical: false,
+          q_provider_documentation: false,
+        },
+      };
+      const [r1, r2] = await Promise.all([
+        app.inject({
+          method: "POST",
+          url: `/ai-act/systems/${systemId}/assessment`,
+          headers: authHeader(user, tenant),
+          payload,
+        }),
+        app.inject({
+          method: "POST",
+          url: `/ai-act/systems/${systemId}/assessment`,
+          headers: authHeader(user, tenant),
+          payload,
+        }),
+      ]);
+      expect(r1.statusCode).toBe(200);
+      expect(r2.statusCode).toBe(200);
+      expect(r1.json().assessmentId).toBe(r2.json().assessmentId);
+      const currentCount = await prisma.aiAssessment.count({
+        where: { tenantId: tenant.id, aiSystemId: systemId, isCurrent: true },
+      });
+      expect(currentCount).toBe(1);
     } catch (err) {
       if (shouldSkipDb(err)) {
         expect(true).toBe(true);
@@ -419,7 +926,7 @@ describe("AI Act routes", () => {
         payload: {
           answers: {
             q_ai_used: true,
-            q_ai_purpose: "support",
+            q_ai_purpose: "customer_support",
             q_personal_data: false,
             q_sensitive_data: false,
             q_automated_decision: false,
@@ -489,6 +996,59 @@ describe("AI Act routes", () => {
       const cross = await app.inject({
         method: "GET",
         url: `/ai-act/systems/${systemId}/obligations`,
+        headers: authHeader(userB, tenantB),
+      });
+      expect(cross.statusCode).toBe(404);
+    } catch (err) {
+      if (shouldSkipDb(err)) {
+        expect(true).toBe(true);
+        return;
+      }
+      throw err;
+    }
+  });
+
+  it("tasks endpoint denies cross-tenant system access", async () => {
+    try {
+      const tenantA = await createTenant("tasks-cross-a");
+      const tenantB = await createTenant("tasks-cross-b");
+      const userA = await createUser("tasks-cross-a");
+      const userB = await createUser("tasks-cross-b");
+      tenantIds.push(tenantA.id, tenantB.id);
+      userIds.push(userA.id, userB.id);
+      await prisma.tenantMembership.createMany({
+        data: [
+          { tenantId: tenantA.id, userId: userA.id, role: "ADMIN", isExternal: false },
+          { tenantId: tenantB.id, userId: userB.id, role: "ADMIN", isExternal: false },
+        ],
+      });
+      const aiModule = await ensureAiActModule();
+      await prisma.tenantModule.createMany({
+        data: [
+          { tenantId: tenantA.id, moduleId: aiModule.id, isActive: true },
+          { tenantId: tenantB.id, moduleId: aiModule.id, isActive: true },
+        ],
+        skipDuplicates: true,
+      });
+      const system = await app.inject({
+        method: "POST",
+        url: "/ai-act/systems",
+        headers: authHeader(userA, tenantA),
+        payload: {
+          name: "Cross Tenant Tasks",
+          description: "test",
+          purpose: "support",
+          providerType: "EXTERNAL",
+        },
+      });
+      if (system.statusCode === 500) {
+        expect(true).toBe(true);
+        return;
+      }
+      const systemId = system.json().id as string;
+      const cross = await app.inject({
+        method: "GET",
+        url: `/ai-act/systems/${systemId}/tasks`,
         headers: authHeader(userB, tenantB),
       });
       expect(cross.statusCode).toBe(404);

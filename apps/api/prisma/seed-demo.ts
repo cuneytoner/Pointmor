@@ -41,6 +41,19 @@ const advisorStaffEmail =
 const clientOwnerEmail =
   process.env.DEMO_CLIENT_OWNER_EMAIL?.trim() || "client-owner@pointmor.demo";
 
+async function ensureAiActActiveForTenant(tenantId: string) {
+  const aiActModule = await prisma.module.upsert({
+    where: { name: "ai_act" },
+    create: { name: "ai_act", description: "AI Act compliance module" },
+    update: {},
+  });
+  await prisma.tenantModule.upsert({
+    where: { tenantId_moduleId: { tenantId, moduleId: aiActModule.id } },
+    create: { tenantId, moduleId: aiActModule.id, isActive: true },
+    update: { isActive: true },
+  });
+}
+
 const core = await coreSeed({
   prisma,
   adminPasswordHash: hashSync(adminPw, 12),
@@ -55,6 +68,7 @@ await scenarioSeed({
   adminEmailForAudit: adminEmail,
   includeDemoScenarios: false,
 });
+await ensureAiActActiveForTenant(core.demoTenantId);
 
 // Demo-specific identities.
 const demoBusinessUser = await prisma.user.upsert({
@@ -103,6 +117,8 @@ const clientTenant = await prisma.tenant.upsert({
   },
   update: { name: "Pointmor Demo Client", type: "BUSINESS" },
 });
+await ensureAiActActiveForTenant(advisorTenant.id);
+await ensureAiActActiveForTenant(clientTenant.id);
 
 const advisorAdminUser = await prisma.user.upsert({
   where: { email: advisorAdminEmail },

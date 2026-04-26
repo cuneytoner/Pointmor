@@ -3,6 +3,7 @@ import type { Prisma, PrismaClient } from "../src/generated/prisma/client.js";
 import { createMembership } from "./seed-membership-helper.js";
 import { MESSAGE_TEMPLATE_SEED } from "./seed-message-templates.js";
 import { seedDemoScenarios } from "./seed-demo-scenarios.js";
+import { AI_ACT_QUESTION_KEYS, type AiActQuestionKey } from "../src/lib/ai-act-assessment.js";
 
 export type CoreSeedContext = {
   demoTenantId: string;
@@ -349,18 +350,19 @@ export async function seedAiActMvpScenarios(
     },
   });
 
-  const assessmentAQuestionnaire: Prisma.InputJsonValue = {
-    q01_customer_chat: true,
-    q02_public_users: true,
-    q03_decision_automation: false,
-    q04_human_override: true,
-    q05_sensitive_data: false,
-    q06_model_monitoring: true,
-    q07_explainability: true,
-    q08_vendor_controls: true,
-    q09_logging: true,
-    q10_incident_process: true,
-  };
+  const assessmentAValues = {
+    q_ai_used: true,
+    q_ai_purpose: "customer_support",
+    q_personal_data: true,
+    q_sensitive_data: false,
+    q_automated_decision: false,
+    q_human_oversight: true,
+    q_employment_context: false,
+    q_biometric_identification: false,
+    q_safety_critical: false,
+    q_provider_documentation: true,
+  } satisfies Record<(typeof AI_ACT_QUESTION_KEYS)[number], Prisma.InputJsonValue>;
+  const assessmentAQuestionnaire: Prisma.InputJsonValue = assessmentAValues;
   const assessmentA = await prisma.aiAssessment.upsert({
     where: { id: `seed_${scopePrefix}_ai_assessment_chatbot_v1` },
     create: {
@@ -392,18 +394,7 @@ export async function seedAiActMvpScenarios(
     assessmentId: assessmentA.id,
     answerSource: "AI",
     confidence: 0.75,
-    values: {
-      q01_customer_chat: true,
-      q02_public_users: true,
-      q03_decision_automation: false,
-      q04_human_override: true,
-      q05_sensitive_data: false,
-      q06_model_monitoring: true,
-      q07_explainability: true,
-      q08_vendor_controls: true,
-      q09_logging: true,
-      q10_incident_process: true,
-    },
+    values: assessmentAValues,
   });
 
   const systemB = await prisma.aiSystem.upsert({
@@ -428,18 +419,19 @@ export async function seedAiActMvpScenarios(
     },
   });
 
-  const assessmentBQuestionnaire: Prisma.InputJsonValue = {
-    q01_employee_profiling: true,
-    q02_automated_scoring: true,
-    q03_hiring_or_firing_impact: "review_required",
-    q04_sensitive_attributes: "unknown",
-    q05_human_oversight: false,
-    q06_data_quality_controls: "partial",
-    q07_bias_testing: false,
-    q08_vendor_documentation: "missing",
-    q09_logging: "partial",
-    q10_appeal_process: "review_required",
-  };
+  const assessmentBValues = {
+    q_ai_used: true,
+    q_ai_purpose: "employee_performance",
+    q_personal_data: true,
+    q_sensitive_data: true,
+    q_automated_decision: true,
+    q_human_oversight: false,
+    q_employment_context: true,
+    q_biometric_identification: false,
+    q_safety_critical: false,
+    q_provider_documentation: false,
+  } satisfies Record<(typeof AI_ACT_QUESTION_KEYS)[number], Prisma.InputJsonValue>;
+  const assessmentBQuestionnaire: Prisma.InputJsonValue = assessmentBValues;
   const assessmentB = await prisma.aiAssessment.upsert({
     where: { id: `seed_${scopePrefix}_ai_assessment_performance_v1` },
     create: {
@@ -471,18 +463,7 @@ export async function seedAiActMvpScenarios(
     assessmentId: assessmentB.id,
     answerSource: "AI",
     confidence: 0.62,
-    values: {
-      q01_employee_profiling: true,
-      q02_automated_scoring: true,
-      q03_hiring_or_firing_impact: "review_required",
-      q04_sensitive_attributes: "unknown",
-      q05_human_oversight: false,
-      q06_data_quality_controls: "partial",
-      q07_bias_testing: false,
-      q08_vendor_documentation: "missing",
-      q09_logging: "partial",
-      q10_appeal_process: "review_required",
-    },
+    values: assessmentBValues,
   });
 
   await prisma.aiObligation.upsert({
@@ -509,7 +490,7 @@ export async function seedAiActMvpScenarios(
     },
     update: { tenantId, aiSystemId: systemA.id, status: "IN_PROGRESS" },
   });
-  const oblRiskManagement = await prisma.aiObligation.upsert({
+  await prisma.aiObligation.upsert({
     where: { id: `seed_${scopePrefix}_obl_risk_management` },
     create: {
       id: `seed_${scopePrefix}_obl_risk_management`,
@@ -521,7 +502,7 @@ export async function seedAiActMvpScenarios(
     },
     update: { tenantId, aiSystemId: systemB.id, status: "PENDING" },
   });
-  await prisma.aiObligation.upsert({
+  const oblHumanOversight = await prisma.aiObligation.upsert({
     where: { id: `seed_${scopePrefix}_obl_human_oversight` },
     create: {
       id: `seed_${scopePrefix}_obl_human_oversight`,
@@ -564,13 +545,14 @@ export async function seedAiActMvpScenarios(
       id: `seed_${scopePrefix}_task_chatbot_notice`,
       tenantId,
       aiSystemId: systemA.id,
+      obligationType: "transparency_notice",
       title: "Add chatbot transparency notice",
       description: "Musteri arayuzunde sentetik chatbot bildirimi ekle.",
       priority: "MEDIUM",
       status: "OPEN",
       assignedToUserId: createdByUserId,
     },
-    update: { status: "OPEN", assignedToUserId: createdByUserId },
+    update: { status: "OPEN", assignedToUserId: createdByUserId, obligationType: "transparency_notice" },
   });
   await prisma.aiTask.upsert({
     where: { id: `seed_${scopePrefix}_task_vendor_terms` },
@@ -578,13 +560,14 @@ export async function seedAiActMvpScenarios(
       id: `seed_${scopePrefix}_task_vendor_terms`,
       tenantId,
       aiSystemId: systemA.id,
+      obligationType: "user_information",
       title: "Review vendor terms",
       description: "Vendor AI sartlarini legal checklist ile incele.",
       priority: "MEDIUM",
       status: "IN_PROGRESS",
       assignedToUserId: createdByUserId,
     },
-    update: { status: "IN_PROGRESS", assignedToUserId: createdByUserId },
+    update: { status: "IN_PROGRESS", assignedToUserId: createdByUserId, obligationType: "user_information" },
   });
   await prisma.aiTask.upsert({
     where: { id: `seed_${scopePrefix}_task_human_oversight` },
@@ -592,14 +575,15 @@ export async function seedAiActMvpScenarios(
       id: `seed_${scopePrefix}_task_human_oversight`,
       tenantId,
       aiSystemId: systemB.id,
-      obligationId: oblRiskManagement.id,
+      obligationId: oblHumanOversight.id,
+      obligationType: "human_oversight",
       title: "Define human oversight process",
       description: "Dunya verisi kullanmadan synthetic review adimlarini tanimla.",
       priority: "HIGH",
       status: "OPEN",
       assignedToUserId: createdByUserId,
     },
-    update: { status: "OPEN", assignedToUserId: createdByUserId },
+    update: { status: "OPEN", assignedToUserId: createdByUserId, obligationType: "human_oversight" },
   });
   await prisma.aiTask.upsert({
     where: { id: `seed_${scopePrefix}_task_data_governance` },
@@ -607,13 +591,14 @@ export async function seedAiActMvpScenarios(
       id: `seed_${scopePrefix}_task_data_governance`,
       tenantId,
       aiSystemId: systemB.id,
+      obligationType: "data_governance",
       title: "Review data governance controls",
       description: "Feature icin data governance kontrollerini dogrula.",
       priority: "HIGH",
       status: "IN_PROGRESS",
       assignedToUserId: createdByUserId,
     },
-    update: { status: "IN_PROGRESS", assignedToUserId: createdByUserId },
+    update: { status: "IN_PROGRESS", assignedToUserId: createdByUserId, obligationType: "data_governance" },
   });
   await prisma.aiTask.upsert({
     where: { id: `seed_${scopePrefix}_task_provider_docs` },
@@ -621,13 +606,14 @@ export async function seedAiActMvpScenarios(
       id: `seed_${scopePrefix}_task_provider_docs`,
       tenantId,
       aiSystemId: systemB.id,
+      obligationType: "provider_documentation",
       title: "Collect provider documentation",
       description: "Provider kaynakli synthetic sozlesme/policy dokumanlarini ekle.",
       priority: "MEDIUM",
       status: "OPEN",
       assignedToUserId: createdByUserId,
     },
-    update: { status: "OPEN", assignedToUserId: createdByUserId },
+    update: { status: "OPEN", assignedToUserId: createdByUserId, obligationType: "provider_documentation" },
   });
 
   const docs = [
@@ -816,13 +802,14 @@ async function seedAssessmentAnswers(
   input: {
     tenantId: string;
     assessmentId: string;
-    values: Record<string, Prisma.InputJsonValue>;
+    values: Record<AiActQuestionKey, Prisma.InputJsonValue>;
     answerSource: "USER" | "AI";
     confidence: number;
   },
 ): Promise<void> {
   const { tenantId, assessmentId, values, answerSource, confidence } = input;
-  for (const [questionKey, answerValue] of Object.entries(values)) {
+  for (const questionKey of AI_ACT_QUESTION_KEYS) {
+    const answerValue = values[questionKey];
     await prisma.aiAssessmentAnswer.upsert({
       where: {
         assessmentId_questionKey: {
@@ -876,5 +863,27 @@ async function assertAiSeedConsistency(prisma: PrismaClient, tenantId: string): 
   });
   if (tasksCrossTenant > 0) {
     throw new Error("seed_ai_task_cross_tenant");
+  }
+  const obligationsCrossTenant = await prisma.aiObligation.count({
+    where: {
+      tenantId,
+      aiSystem: {
+        tenantId: { not: tenantId },
+      },
+    },
+  });
+  if (obligationsCrossTenant > 0) {
+    throw new Error("seed_ai_obligation_cross_tenant");
+  }
+  const answersCrossTenant = await prisma.aiAssessmentAnswer.count({
+    where: {
+      tenantId,
+      assessment: {
+        tenantId: { not: tenantId },
+      },
+    },
+  });
+  if (answersCrossTenant > 0) {
+    throw new Error("seed_ai_answer_cross_tenant");
   }
 }

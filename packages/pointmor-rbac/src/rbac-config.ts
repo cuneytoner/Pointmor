@@ -129,6 +129,23 @@ export function hasAnyPermissionForRole(
   return permissions.some((p) => hasPermissionForRole(role, p));
 }
 
+const ADVISOR_MEMBERSHIP_EXTRA_PERMISSIONS: ReadonlySet<TenantPermission> = new Set([
+  "ai_act.view",
+  "ai_act.assess",
+]);
+
+export function hasPermissionForMembershipRole(
+  membershipRole: string | null | undefined,
+  permission: TenantPermission,
+): boolean {
+  const normalized = (membershipRole ?? "").trim();
+  if (normalized === "ADVISOR") {
+    return ADVISOR_MEMBERSHIP_EXTRA_PERMISSIONS.has(permission);
+  }
+  const appRole = resolveTenantAppRoleFromMembership(membershipRole);
+  return hasPermissionForRole(appRole, permission);
+}
+
 /** Ham `membership.role` → ürün rolü (platform oturumu burada işlenmez). */
 export function resolveTenantAppRoleFromMembership(
   membershipRole: string | null | undefined,

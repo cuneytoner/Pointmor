@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  hasPermissionForMembershipRole,
   hasPermissionForRole,
   resolveTenantAppRoleFromMembership,
   TENANT_MEMBERSHIP_ROLES,
@@ -80,5 +81,11 @@ describe("membership role resolution", () => {
 
   it("maps tenant_ops to ops", () => {
     expect(resolveTenantAppRoleFromMembership(TENANT_MEMBERSHIP_ROLES.ops)).toBe("ops");
+  });
+
+  it("advisor membership has ai_act.view and ai_act.assess only", () => {
+    expect(hasPermissionForMembershipRole("ADVISOR", "ai_act.view")).toBe(true);
+    expect(hasPermissionForMembershipRole("ADVISOR", "ai_act.assess")).toBe(true);
+    expect(hasPermissionForMembershipRole("ADVISOR", "ai_act.manage")).toBe(false);
   });
 });

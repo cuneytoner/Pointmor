@@ -15,7 +15,7 @@
 1. **AI system inventory:** Tenant içindeki AI sistemlerinin kayıt altına alınması
 2. **Risk assessment:** Sistem bazlı risk seviyesinin değerlendirilmesi
 3. **Compliance tasks:** Eksik kontroller için görev üretimi ve takibi
-4. **Reports:** Denetim ve iç kontrol için uyum raporlarının dışa aktarımı
+4. **Review-ready output:** Değerlendirme ve görev çıktılarının operasyonel kullanıma hazır sunulması
 
 ---
 
@@ -43,7 +43,7 @@
 2. **Run questionnaire:** Sistem için değerlendirme soru seti tamamlanır.
 3. **Calculate risk:** Yanıtlara göre risk seviyesi hesaplanır ve `AiRiskResult` kaydı oluşur.
 4. **Store evidence:** OCR sonucu ve embedding referansı `AiDocument` ile tenant scope içinde saklanır.
-5. **List results:** Sonuçlar tenant bazlı `GET /ai/results` ile erişilir.
+5. **Review-ready output:** Sonuçlar tenant bazlı assessment/obligation/task endpoint'leri üzerinden erişilir.
 
 ---
 
@@ -77,6 +77,8 @@ Güvenlik:
 
 Questionnaire keys (v1, 10 soru):
 
+Bu key seti için tek kaynak `apps/api/src/lib/ai-act-assessment.ts` dosyasındaki `AI_ACT_QUESTION_KEYS` tanımıdır; legacy key setleri kullanılmaz.
+
 - `q_ai_used`
 - `q_ai_purpose`
 - `q_personal_data`
@@ -90,12 +92,19 @@ Questionnaire keys (v1, 10 soru):
 
 Deterministic MVP risk rules (özet):
 
+`q_ai_purpose` değeri `customer_support`, `employee_performance`, `other` enum seti ile sınırlandırılır.
+
 - biometric_identification = yes → `HIGH`
 - employment_context = yes + automated_decision = yes → `HIGH`
 - safety_critical = yes → `HIGH`
 - sensitive_data = yes + automated_decision = yes → `HIGH`
 - ai_used = no → `MINIMAL`
 - diğer durumlar → `LIMITED`
+
+Assessment lifecycle notu:
+
+- AI assessments versioned tutulur.
+- Her `AiSystem` için yalnızca bir adet `current` assessment bulunur.
 
 ## Seed senaryoları (MVP)
 

@@ -26,13 +26,13 @@ Platform çekirdeği tenant, membership, auth/session, güvenlik ve module activ
 
 ---
 
-## 3. Mevcut Faz — Faz 2: Davet Kabul Akışı
+## 3. Mevcut Faz — Faz 4: AI Act MVP (backend stabilized)
 
-Bu fazın hedefi, davet kabulünü platform doktrinine uygun biçimde tamamlamaktır:
+Bu fazın hedefi, AI Act MVP backend kontratını production-safe seviyede stabilize etmektir:
 
-**invite → accept → membership created → access granted**
+**system inventory → assessment → risk suggestion → obligations/tasks**
 
-Bu akış, advisor/client onboarding için kritik temel sağlar; erişim yalnızca `TenantMembership` oluşturulduktan sonra başlar.
+Akış tenant-scoped, membership-based ve module-gated çalışır; AI assessment kayıtları versioned tutulur.
 
 ### Tamamlanma Kriterleri
 
@@ -48,6 +48,12 @@ Bu akış, advisor/client onboarding için kritik temel sağlar; erişim yalnız
 - uç durumlar için test kapsamı
 - cross-tenant access ihlali yok
 - manuel uçtan uca doğrulama
+
+### Durum Notu
+
+- AI Act backend akışı stabilize edildi.
+- AI assessments versioned olarak tutulur.
+- Her sistem için yalnızca bir adet `current` assessment bulunur.
 
 ---
 
@@ -326,7 +332,6 @@ MVP kapsamı:
 - tenant switching
 - AI Act 10-question assessment
 - risk classification
-- basic compliance report/export
 
 ### Olmazsa Olmazlar
 
@@ -334,7 +339,7 @@ MVP kapsamı:
 - Tenant switching (session context için güvenli geçiş)
 - AI Act 10-question assessment akışı
 - Temel risk sınıflandırma
-- Temel compliance report/export
+- AI assessments versioned tutulur ve sistem başına tek `current` assessment kuralı uygulanır
 
 ### Olması Faydalı Olanlar
 
@@ -354,6 +359,7 @@ MVP kapsamı:
 - Geniş kapsamlı billing/PSP otomasyonları
 - İleri düzey AI/otomasyon özellikleri
 - Çok sayıda yeni module'ün paralel geliştirilmesi
+- AI Act export/report endpoint'leri (gelecek faz)
 
 ---
 

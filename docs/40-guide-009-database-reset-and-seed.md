@@ -113,6 +113,7 @@ npm run db:seed:full:demo
 - `db:seed` ve uygun demo akışlarında AI Act için sentetik demo verisi oluşturulur.
 - En az iki risk profili eklenir: `LIMITED` (daha düşük risk) ve `HIGH` (review odaklı).
 - Assessment answer, obligation, task, evidence ve confidence alanları senaryo kapsamında bulunur.
+- Assessment key seti runtime ile birebir hizalıdır; tek kaynak `apps/api/src/lib/ai-act-assessment.ts` içindeki `AI_ACT_QUESTION_KEYS` tanımıdır.
 - Low-confidence extraction örnekleri human review kaydıyla birlikte üretilir.
 - Gerçek müşteri/veri kullanılmaz; seed yalnız sentetik içerik üretir.
 - AI Act verisi tenant-scoped olarak oluşturulur ve `ai_act` module activation bağlamında test edilir.

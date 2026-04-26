@@ -74,6 +74,7 @@ Tenant erişimi için source of truth: `TenantMembership`.
 - Seed akışı AI Act için sentetik senaryolar üretir (`Customer Support Chatbot`, `Employee Performance Scoring`).
 - Senaryolar `LIMITED` ve `HIGH` risk seviyelerini içerir.
 - AI assessment cevapları, obligation/task kayıtları, evidence linkleri ve confidence alanları seed edilir.
+- AI assessment key seti runtime ile birebir hizalıdır; tek kaynak `apps/api/src/lib/ai-act-assessment.ts` içindeki `AI_ACT_QUESTION_KEYS` tanımıdır.
 - Low-confidence + review-required örnekleri özellikle eklenir.
 - Seed verisi gerçek müşteri verisi içermez; yalnız sentetik/anonymized örnekler kullanılır.
 - AI Act verileri tenant-scoped üretilir ve module activation (`ai_act`) açık tenant bağlamında çalışır.

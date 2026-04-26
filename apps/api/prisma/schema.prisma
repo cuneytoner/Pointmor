@@ -208,6 +208,7 @@ model AiAssessment {
   riskLevel     AiRiskLevel?
   classificationSource AiClassificationSource @default(MANUAL)
   confidence    Float?
+  isCurrent     Boolean  @default(true)
   createdByUserId String?
   createdBy     User?    @relation("AiAssessmentsCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   questionnaire Json     @default("{}")
@@ -221,6 +222,7 @@ model AiAssessment {
   @@index([tenantId])
   @@index([tenantId, aiSystemId])
   @@index([tenantId, status])
+  @@unique([tenantId, aiSystemId, isCurrent])
   @@unique([id, tenantId])
 }
 
@@ -258,6 +260,7 @@ model AiObligation {
   @@index([tenantId])
   @@index([tenantId, aiSystemId])
   @@index([tenantId, status])
+  @@unique([tenantId, aiSystemId, obligationType])
   @@unique([id, tenantId])
 }
 
@@ -269,6 +272,7 @@ model AiTask {
   aiSystem         AiSystem @relation(fields: [aiSystemId, tenantId], references: [id, tenantId], onDelete: Cascade)
   obligationId     String?
   obligation       AiObligation? @relation(fields: [obligationId, tenantId], references: [id, tenantId], onDelete: Restrict)
+  obligationType   String
   title            String
   description String?
   priority         AiTaskPriority @default(MEDIUM)
@@ -282,6 +286,7 @@ model AiTask {
   @@index([tenantId, aiSystemId])
   @@index([tenantId, status])
   @@index([assignedToUserId])
+  @@unique([tenantId, aiSystemId, obligationType, title])
 }
 
 model AiEvidence {

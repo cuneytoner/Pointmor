@@ -6,6 +6,7 @@ import { requireTenantPermission } from "../lib/tenant-permission-guard.js";
 import { prisma } from "../lib/prisma.js";
 import { parseWithSchema, z } from "../lib/validation.js";
 import {
+  AI_ACT_PURPOSE_VALUES,
   AI_ACT_QUESTION_KEYS,
   classifyRisk,
   makeAssessmentVersion,
@@ -28,7 +29,20 @@ const aiSystemIdParamsSchema = z.object({
 
 const submitAssessmentBodySchema = z.object({
   version: z.number().int().positive().optional(),
-  answers: z.record(z.string(), z.unknown()),
+  answers: z
+    .object({
+      q_ai_used: z.boolean(),
+      q_ai_purpose: z.enum(AI_ACT_PURPOSE_VALUES),
+      q_personal_data: z.boolean(),
+      q_sensitive_data: z.boolean(),
+      q_automated_decision: z.boolean(),
+      q_human_oversight: z.boolean(),
+      q_employment_context: z.boolean(),
+      q_biometric_identification: z.boolean(),
+      q_safety_critical: z.boolean(),
+      q_provider_documentation: z.boolean(),
+    })
+    .strict(),
 });
 
 function resolveTenantId(
@@ -113,7 +127,7 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
       const params = parseWithSchema(aiSystemIdParamsSchema, req.params);
       if (!params.ok) return reply.code(400).send({ error: params.error });
       const body = parseWithSchema(submitAssessmentBodySchema, req.body);
-      if (!body.ok) return reply.code(400).send({ error: body.error });
+      if (!body.ok) return reply.code(400).send({ error: "invalid_answer_format" });
 
       const system = await ensureTenantSystem(tenantId, params.data.id);
       if (!system) {
@@ -125,100 +139,140 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
       }
       const classification = classifyRisk(normalized.answers);
 
-      const latest = await prisma.aiAssessment.findFirst({
-        where: { tenantId, aiSystemId: system.id },
-        orderBy: { createdAt: "desc" },
-      });
-      const assessmentVersion = body.data.version ?? makeAssessmentVersion(system, latest?.version ?? null);
-
-      const result = await prisma.$transaction(async (tx) => {
-        const assessment = await tx.aiAssessment.create({
-          data: {
-            tenantId,
-            aiSystemId: system.id,
-            version: assessmentVersion,
-            status: "COMPLETED",
-            riskLevel: classification.riskLevel,
-            classificationSource: classification.classificationSource,
-            confidence: classification.confidence,
-            createdByUserId: s.user.id,
-            questionnaire: normalized.answers as unknown as Prisma.InputJsonValue,
-          },
-        });
-
-        for (const key of AI_ACT_QUESTION_KEYS) {
-          const questionKey = key as AiActQuestionKey;
-          await tx.aiAssessmentAnswer.create({
-            data: {
-              tenantId,
-              assessmentId: assessment.id,
-              questionKey,
-              answerValue: normalized.answers[questionKey],
-              answerSource: "USER",
-              confidence: classification.confidence,
-            },
+      let result;
+      try {
+        result = await prisma.$transaction(async (tx) => {
+          const latest = await tx.aiAssessment.findFirst({
+            where: { tenantId, aiSystemId: system.id, isCurrent: true },
+            orderBy: { createdAt: "desc" },
           });
-        }
-
-        const obligations = obligationsForRisk(classification.riskLevel, normalized.answers);
-        for (const obligation of obligations) {
-          const existingObligation = await tx.aiObligation.findFirst({
+          const assessmentVersion =
+            body.data.version ?? makeAssessmentVersion(system, latest?.version ?? null);
+          if (latest) {
+            await tx.aiAssessment.update({
+              where: { id: latest.id },
+              data: { isCurrent: false },
+            });
+          }
+          await tx.aiAssessment.deleteMany({
             where: {
               tenantId,
               aiSystemId: system.id,
-              obligationType: obligation.obligationType,
+              isCurrent: false,
             },
           });
-          const obligationRow =
-            existingObligation ??
-            (await tx.aiObligation.create({
+          const assessment = await tx.aiAssessment.create({
+            data: {
+              tenantId,
+              aiSystemId: system.id,
+              version: assessmentVersion,
+              status: "COMPLETED",
+              riskLevel: classification.riskLevel,
+              classificationSource: classification.classificationSource,
+              confidence: classification.confidence,
+              createdByUserId: s.user.id,
+              questionnaire: normalized.answers as unknown as Prisma.InputJsonValue,
+              isCurrent: true,
+            },
+          });
+
+          for (const key of AI_ACT_QUESTION_KEYS) {
+            const questionKey = key as AiActQuestionKey;
+            await tx.aiAssessmentAnswer.create({
               data: {
+                tenantId,
+                assessmentId: assessment.id,
+                questionKey,
+                answerValue: normalized.answers[questionKey],
+                answerSource: "USER",
+                confidence: classification.confidence,
+              },
+            });
+          }
+
+          const obligations = obligationsForRisk(classification.riskLevel, normalized.answers);
+          for (const obligation of obligations) {
+            const obligationRow = await tx.aiObligation.upsert({
+              where: {
+                tenantId_aiSystemId_obligationType: {
+                  tenantId,
+                  aiSystemId: system.id,
+                  obligationType: obligation.obligationType,
+                },
+              },
+              create: {
                 tenantId,
                 aiSystemId: system.id,
                 obligationType: obligation.obligationType,
                 status: "PENDING",
                 source: "RULE_ENGINE",
               },
-            }));
+              update: {
+                status: "PENDING",
+                source: "RULE_ENGINE",
+              },
+            });
 
-          const existingTask = await tx.aiTask.findFirst({
-            where: {
-              tenantId,
-              aiSystemId: system.id,
-              obligationId: obligationRow.id,
-            },
-          });
-          if (!existingTask) {
-            await tx.aiTask.create({
-              data: {
+            await tx.aiTask.upsert({
+              where: {
+                tenantId_aiSystemId_obligationType_title: {
+                  tenantId,
+                  aiSystemId: system.id,
+                  obligationType: obligation.obligationType,
+                  title: obligation.title,
+                },
+              },
+              create: {
                 tenantId,
                 aiSystemId: system.id,
                 obligationId: obligationRow.id,
+                obligationType: obligation.obligationType,
                 title: obligation.title,
+                priority: obligation.priority,
+                status: "OPEN",
+              },
+              update: {
+                obligationId: obligationRow.id,
+                obligationType: obligation.obligationType,
                 priority: obligation.priority,
                 status: "OPEN",
               },
             });
           }
-        }
 
-        await tx.aiRiskResult.create({
-          data: {
-            tenantId,
-            aiAssessmentId: assessment.id,
-            riskLevel: classification.riskLevel,
-            score: Math.round(classification.confidence * 100),
-            rationale: classification.rationale,
-          },
+          await tx.aiRiskResult.create({
+            data: {
+              tenantId,
+              aiAssessmentId: assessment.id,
+              riskLevel: classification.riskLevel,
+              score: Math.round(classification.confidence * 100),
+              rationale: classification.rationale,
+            },
+          });
+
+          return assessment;
         });
-
-        return assessment;
-      });
+      } catch (err) {
+        const maybeCode = (err as { code?: string })?.code;
+        if (maybeCode === "P2002") {
+          const existingCurrent = await prisma.aiAssessment.findFirst({
+            where: { tenantId, aiSystemId: system.id, isCurrent: true },
+            orderBy: { createdAt: "desc" },
+          });
+          if (existingCurrent) {
+            result = existingCurrent;
+          } else {
+            throw err;
+          }
+        } else {
+          throw err;
+        }
+      }
 
       return {
         assessmentId: result.id,
-        riskLevel: classification.riskLevel,
-        confidence: classification.confidence,
+        riskLevel: result.riskLevel,
+        confidence: result.confidence,
         suggested: true,
       };
     },
@@ -236,7 +290,7 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
       if (!system) return reply.code(404).send({ error: "not_found" });
 
       const assessment = await prisma.aiAssessment.findFirst({
-        where: { tenantId, aiSystemId: system.id },
+        where: { tenantId, aiSystemId: system.id, isCurrent: true },
         orderBy: { createdAt: "desc" },
       });
       if (!assessment) {
