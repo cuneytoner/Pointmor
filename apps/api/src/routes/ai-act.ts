@@ -64,6 +64,27 @@ async function ensureTenantSystem(tenantId: string, systemId: string) {
   });
 }
 
+async function findCurrentAssessmentWithRetry(
+  tenantId: string,
+  aiSystemId: string,
+): Promise<{ id: string; riskLevel: string | null; confidence: number | null } | null> {
+  const attempts = 6;
+  for (let i = 0; i < attempts; i += 1) {
+    const current = await prisma.aiAssessment.findFirst({
+      where: { tenantId, aiSystemId, isCurrent: true },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, riskLevel: true, confidence: true },
+    });
+    if (current) return current;
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  return prisma.aiAssessment.findFirst({
+    where: { tenantId, aiSystemId, isCurrent: true },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, riskLevel: true, confidence: true },
+  });
+}
+
 export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
   app.get(
     "/ai-act/systems",
@@ -255,10 +276,7 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
       } catch (err) {
         const maybeCode = (err as { code?: string })?.code;
         if (maybeCode === "P2002") {
-          const existingCurrent = await prisma.aiAssessment.findFirst({
-            where: { tenantId, aiSystemId: system.id, isCurrent: true },
-            orderBy: { createdAt: "desc" },
-          });
+          const existingCurrent = await findCurrentAssessmentWithRetry(tenantId, system.id);
           if (existingCurrent) {
             result = existingCurrent;
           } else {
