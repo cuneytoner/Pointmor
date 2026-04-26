@@ -857,6 +857,7 @@ describe("AI Act routes", () => {
           q_provider_documentation: false,
         },
       };
+      // Advisory transaction lock serializes first-submit race for same tenant/system.
       const [r1, r2] = await Promise.all([
         app.inject({
           method: "POST",

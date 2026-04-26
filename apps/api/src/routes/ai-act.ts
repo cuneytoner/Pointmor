@@ -64,27 +64,6 @@ async function ensureTenantSystem(tenantId: string, systemId: string) {
   });
 }
 
-async function findCurrentAssessmentWithRetry(
-  tenantId: string,
-  aiSystemId: string,
-): Promise<{ id: string; riskLevel: string | null; confidence: number | null } | null> {
-  const attempts = 6;
-  for (let i = 0; i < attempts; i += 1) {
-    const current = await prisma.aiAssessment.findFirst({
-      where: { tenantId, aiSystemId, isCurrent: true },
-      orderBy: { createdAt: "desc" },
-      select: { id: true, riskLevel: true, confidence: true },
-    });
-    if (current) return current;
-    await new Promise((resolve) => setTimeout(resolve, 25));
-  }
-  return prisma.aiAssessment.findFirst({
-    where: { tenantId, aiSystemId, isCurrent: true },
-    orderBy: { createdAt: "desc" },
-    select: { id: true, riskLevel: true, confidence: true },
-  });
-}
-
 export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
   app.get(
     "/ai-act/systems",
@@ -163,38 +142,51 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
       let result;
       try {
         result = await prisma.$transaction(async (tx) => {
+          const lockKey = `${tenantId}:${system.id}`;
+          await tx.$executeRaw`
+            SELECT pg_advisory_xact_lock(hashtext(${lockKey}))
+          `;
+
           const latest = await tx.aiAssessment.findFirst({
             where: { tenantId, aiSystemId: system.id, isCurrent: true },
             orderBy: { createdAt: "desc" },
           });
           const assessmentVersion =
             body.data.version ?? makeAssessmentVersion(system, latest?.version ?? null);
-          if (latest) {
-            await tx.aiAssessment.update({
-              where: { id: latest.id },
-              data: { isCurrent: false },
-            });
-          }
-          await tx.aiAssessment.deleteMany({
-            where: {
-              tenantId,
-              aiSystemId: system.id,
-              isCurrent: false,
-            },
+          const assessment = latest
+            ? await tx.aiAssessment.update({
+                where: { id: latest.id },
+                data: {
+                  version: assessmentVersion,
+                  status: "COMPLETED",
+                  riskLevel: classification.riskLevel,
+                  classificationSource: classification.classificationSource,
+                  confidence: classification.confidence,
+                  createdByUserId: s.user.id,
+                  questionnaire: normalized.answers as unknown as Prisma.InputJsonValue,
+                  isCurrent: true,
+                },
+              })
+            : await tx.aiAssessment.create({
+                data: {
+                  tenantId,
+                  aiSystemId: system.id,
+                  version: assessmentVersion,
+                  status: "COMPLETED",
+                  riskLevel: classification.riskLevel,
+                  classificationSource: classification.classificationSource,
+                  confidence: classification.confidence,
+                  createdByUserId: s.user.id,
+                  questionnaire: normalized.answers as unknown as Prisma.InputJsonValue,
+                  isCurrent: true,
+                },
+              });
+
+          await tx.aiAssessmentAnswer.deleteMany({
+            where: { tenantId, assessmentId: assessment.id },
           });
-          const assessment = await tx.aiAssessment.create({
-            data: {
-              tenantId,
-              aiSystemId: system.id,
-              version: assessmentVersion,
-              status: "COMPLETED",
-              riskLevel: classification.riskLevel,
-              classificationSource: classification.classificationSource,
-              confidence: classification.confidence,
-              createdByUserId: s.user.id,
-              questionnaire: normalized.answers as unknown as Prisma.InputJsonValue,
-              isCurrent: true,
-            },
+          await tx.aiRiskResult.deleteMany({
+            where: { tenantId, aiAssessmentId: assessment.id },
           });
 
           for (const key of AI_ACT_QUESTION_KEYS) {
@@ -276,7 +268,11 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
       } catch (err) {
         const maybeCode = (err as { code?: string })?.code;
         if (maybeCode === "P2002") {
-          const existingCurrent = await findCurrentAssessmentWithRetry(tenantId, system.id);
+          const existingCurrent = await prisma.aiAssessment.findFirst({
+            where: { tenantId, aiSystemId: system.id, isCurrent: true },
+            orderBy: { createdAt: "desc" },
+            select: { id: true, riskLevel: true, confidence: true },
+          });
           if (existingCurrent) {
             result = existingCurrent;
           } else {
