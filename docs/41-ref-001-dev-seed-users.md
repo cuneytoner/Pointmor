@@ -16,7 +16,7 @@ npm run db:seed:full:demo
 
 | Komut | Amaç | Kısa not |
 |-------|------|----------|
-| `db:seed` | Yerel geliştirme temel verisi | plan + tenant + kullanıcı + örnek operasyon verisi |
+| `db:seed` | Yerel geliştirme seed | demo senaryo verisi dahil, çok tenant + çok kullanıcı üretir |
 | `db:seed:demo` | Demo/izole ortam seed | daha hafif demo verisi |
 | `db:seed:full:demo` | Full demo seed | yalnızca açık demo guard koşullarında çalışır |
 
@@ -63,11 +63,36 @@ Tenant erişimi için source of truth: `TenantMembership`.
 - Advisor/client test senaryosu seed içinde olmalı; eksikse backlog TODO olarak takip edilmelidir.
 - Hardcoded şifreler demo/production operasyon dokümanlarında tutulmaz.
 
+## Membership-first seed model
+
+- Tüm seed akışları `TenantMembership` kaydı üretir.
+- `User.tenantId` yalnız legacy uyumluluk için tutulur.
+- Access membership tabanlı çalışır.
+
+---
+
+## Seed Reality
+
+- `seed.ts` demo senaryosu verilerini içerir.
+- `db:seed` yalnız base data değildir.
+- `db:seed` birden fazla tenant ve kullanıcı oluşturur.
+- seed çıktısı production-benzeri minimal veri modeli değildir.
+
+---
+
+## Seed vs Doctrine Mismatch
+
+- Mevcut seed akışında bazı kayıtlar `User.tenantId` kullanımını içerebilir.
+- Bazı seed senaryoları `TenantMembership` doktrinini tam enforce etmeyebilir.
+- Bu bilinen bir sınırlamadır.
+- Seed akışı gelecek fazda doktrinle hizalanacaktır.
+
 ---
 
 ## Güvenlik uyarıları
 
-- `db:reset` veri yok eder; yalnız local geliştirmede kullanılmalıdır.
+- `db:reset` yıkıcıdır ve seed’i otomatik yeniden çalıştırır; yalnız local geliştirmede kullanılmalıdır.
+- `db:reset` sonrası veritabanı boş kalmaz.
 - Demo seed production seed değildir.
 - Yeni Tenant-scoped seed verisi `tenantId` ve membership hizasını açıkça içermelidir.
 - Seed, `TenantMembership` olmadan sessiz erişim vermemelidir.

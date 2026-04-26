@@ -75,6 +75,90 @@ model Tenant {
   memberships              TenantMembership[]
   invitations              TenantInvitation[]
   modules                  TenantModule[]
+  aiSystems                AiSystem[]
+  aiAssessments            AiAssessment[]
+  aiDocuments              AiDocument[]
+  aiRiskResults            AiRiskResult[]
+}
+
+enum AiRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  UNACCEPTABLE
+}
+
+model AiSystem {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  purpose     String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assessments AiAssessment[]
+  documents   AiDocument[]
+
+  @@index([tenantId, createdAt])
+  @@unique([id, tenantId])
+}
+
+model AiAssessment {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  aiSystemId    String
+  aiSystem      AiSystem @relation(fields: [aiSystemId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  status        String   @default("completed")
+  questionnaire Json     @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  documents   AiDocument[]
+  riskResults AiRiskResult[]
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, aiSystemId])
+  @@unique([id, tenantId])
+}
+
+model AiDocument {
+  id             String        @id @default(cuid())
+  tenantId       String
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  aiSystemId     String
+  aiSystem       AiSystem      @relation(fields: [aiSystemId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  aiAssessmentId String?
+  aiAssessment   AiAssessment? @relation(fields: [aiAssessmentId, tenantId], references: [id, tenantId], onDelete: SetNull)
+  title          String
+  sourceType     String        @default("upload")
+  extractedText  String?
+  embeddingRef   String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, aiSystemId])
+  @@unique([id, tenantId])
+}
+
+model AiRiskResult {
+  id             String       @id @default(cuid())
+  tenantId       String
+  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  aiAssessmentId String
+  aiAssessment   AiAssessment @relation(fields: [aiAssessmentId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  riskLevel      AiRiskLevel
+  score          Int
+  rationale      String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, aiAssessmentId])
+  @@unique([id, tenantId])
 }
 
 model TenantMembership {

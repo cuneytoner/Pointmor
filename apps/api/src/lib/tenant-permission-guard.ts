@@ -23,6 +23,10 @@ const MODULE_SCOPED_PERMISSION_SET = new Set<string>([
   "menu.manage",
   "analytics.view",
   "automation.run",
+  "ai.systems.view",
+  "ai.systems.manage",
+  "ai.assessment.manage",
+  "ai.results.view",
 ]);
 
 const MODULE_BY_PERMISSION = new Map<string, string>([
@@ -42,6 +46,10 @@ const MODULE_BY_PERMISSION = new Map<string, string>([
   ["menu.manage", "cafe"],
   ["analytics.view", "cafe"],
   ["automation.run", "cafe"],
+  ["ai.systems.view", "ai_act"],
+  ["ai.systems.manage", "ai_act"],
+  ["ai.assessment.manage", "ai_act"],
+  ["ai.results.view", "ai_act"],
 ]);
 
 for (const permission of MODULE_SCOPED_PERMISSION_SET) {

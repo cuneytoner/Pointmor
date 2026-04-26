@@ -136,6 +136,12 @@ git clean -fd
 ./infra/scripts/smoke-demo.sh
 ```
 
+Destructive uyarı:
+
+- `git reset --hard origin/main` yerel değişiklikleri siler.
+- `git clean -fd` untracked dosyaları siler.
+- Bu akış demo refresh için yıkıcıdır; çalışma kopyasındaki local değişiklikler korunmaz.
+
 ---
 
 ## 9) Dokümanı Güncel Tutma Kuralı

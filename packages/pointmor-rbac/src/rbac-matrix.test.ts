@@ -22,6 +22,8 @@ describe("RBAC matrix", () => {
     expect(hasPermissionForRole("manager", "messaging.manage")).toBe(true);
     expect(hasPermissionForRole("manager", "team.view")).toBe(true);
     expect(hasPermissionForRole("manager", "audit.view")).toBe(true);
+    expect(hasPermissionForRole("manager", "ai.systems.view")).toBe(true);
+    expect(hasPermissionForRole("manager", "ai.results.view")).toBe(true);
   });
 
   it("staff can visits.create and redemptions.approve but not rewards.manage", () => {

@@ -56,7 +56,7 @@ cd d:\Projects\Pointmor\apps\api
 | `npm run db:generate` | Prisma client üretir |
 | `npm run db:migrate` | Yeni migration oluşturur/uygular |
 | `npm run db:deploy` | Mevcut migration’ları uygular |
-| `npm run db:reset` | DB’yi sıfırlar (veri kaybı) |
+| `npm run db:reset` | `prisma migrate reset --force` çalıştırır, DB’yi sıfırlar ve seed’i otomatik tekrar çalıştırır |
 | `npm run db:seed` | Dev seed verisi yükler |
 | `npm run db:seed:demo` | Demo seed |
 | `npm run db:seed:full:demo` | Full demo seed |
@@ -90,7 +90,8 @@ npm.cmd run db:reset
 
 Uyarılar:
 
-- `db:reset` yerel veriyi siler.
+- `db:reset` (`prisma migrate reset --force`) yıkıcıdır ve seed’i otomatik çalıştırır.
+- `db:reset` sonrası DB boş kalmaz; seed verisi tekrar yazılır.
 - `db:reset` production ortamında **asla** kullanılmaz.
 - Seed verisi `TenantMembership` kayıtlarını içermelidir.
 - `User.tenantId` legacy alandır; access kontrolü için kullanılmaz.
@@ -105,7 +106,7 @@ npm.cmd run db:fresh
 
 Ne zaman:
 
-- `db:clean`: local `public` schema içeriğini temizlemek için.
+- `db:clean`: `public` schema’yı komple düşürür; tüm tabloları siler ve schema durumunu sıfırlar.
 - `db:fresh`: temiz schema + yeni migration başlangıcı için (yerel geliştirme).
 
 Ne zaman kullanılmaz:
@@ -114,6 +115,7 @@ Ne zaman kullanılmaz:
 
 Beklenen etki:
 
+- `db:clean` yalnız veri temizliği değildir; FULL schema reset etkisi yaratır.
 - tüm tenant verisi ve ilişkili kayıtlar kaybolur.
 
 ---

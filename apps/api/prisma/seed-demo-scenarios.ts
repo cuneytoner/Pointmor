@@ -4,6 +4,7 @@
  */
 import { hashSync } from "bcryptjs";
 import type { Prisma, PrismaClient } from "../src/generated/prisma/client.js";
+import { createMembership } from "./seed-membership-helper.js";
 
 const GROWTH_FEATURES = [
   "loyalty_core",
@@ -270,7 +271,7 @@ export async function seedDemoScenarios(prisma: PrismaClient): Promise<void> {
       },
     });
 
-    await prisma.user.upsert({
+    const scenarioOwner = await prisma.user.upsert({
       where: { email: spec.ownerEmail },
       create: {
         email: spec.ownerEmail,
@@ -285,6 +286,13 @@ export async function seedDemoScenarios(prisma: PrismaClient): Promise<void> {
         passwordHash: devPassword,
         role: "tenant_operator",
       },
+    });
+    await createMembership({
+      prisma,
+      userId: scenarioOwner.id,
+      tenantId: tenant.id,
+      role: "ADMIN",
+      isExternal: false,
     });
 
     const existingCustomers = await prisma.customer.count({ where: { tenantId: tenant.id } });

@@ -17,7 +17,7 @@ Kapsam:
 
 - [ ] Change request/onay hazır
 - [ ] `release_sha` belirlendi
-- [ ] release image digest’leri doğrulandı
+- [ ] release image referansları doğrulandı (tag zorunlu, digest önerilir)
 - [ ] `infra/docker/.env.prod` güncel
 - [ ] `ENV_FILE=infra/docker/.env.prod ./infra/scripts/preflight-prod-env.sh` PASS
 - [ ] DB backup snapshot tamamlandı
@@ -45,6 +45,12 @@ Migration notu:
 
 - Production’da `migration` explicit adım olarak yürütülür.
 - `RUN_MIGRATIONS_ON_START=false` zorunludur.
+
+Image seçimi notu:
+
+- `git checkout --detach <release_sha>` adımı yalnız script/compose dosyalarını belirler.
+- Gerçek deploy image’i env içindeki image referanslarıyla seçilir.
+- Bu yüzden image seçimi (API + admin) zorunlu adımdır.
 
 ### 1.3 Dağıtım sonrası smoke
 
@@ -76,7 +82,7 @@ curl -fsS \
 
 Öncelik sırası:
 
-1. **Image rollback** (önceki doğrulanmış digest)
+1. **Image rollback** (önceki doğrulanmış image referansı; digest önerilir)
 2. **Code rollback** (önceki `release_sha`)
 3. **DB restore** (yalnız onaylı bakım penceresi + RTO/RPO planıyla)
 
@@ -154,6 +160,14 @@ Rollout cutoff’ları içeren deploy sonrası:
 - DB restore prosedürü bu repoda otomatikleştirilmedi (platform/DB sağlayıcısı prosedürü kullanılır).
 - WAF/CDN/LB policy değişiklikleri infra platformunda izlenmelidir.
 - Cron scheduler’ın HMAC header üretimi için `infra/scripts/sign-internal-job-request.sh` referans alınır.
+
+---
+
+## 6.1 Destructive komut uyarısı
+
+- `git reset --hard` yerel değişiklikleri geri döndürülemez şekilde temizler.
+- `git clean -fd` untracked dosyaları siler.
+- Bu komutlar yalnız onaylı operasyon senaryosunda kullanılmalıdır.
 
 ---
 

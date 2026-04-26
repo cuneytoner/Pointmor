@@ -33,6 +33,7 @@ import { registerHqInsightRoutes } from "./routes/hq-insights.js";
 import { registerTenantAutomationRoutes } from "./routes/tenant-automation.js";
 import { registerTenantInvitationRoutes } from "./routes/tenant-invitations.js";
 import { registerModuleRoutes } from "./routes/modules.js";
+import { registerAiActRoutes } from "./routes/ai-act.js";
 import { registerSecurityHeaders } from "./lib/security-headers.js";
 import {
   getSecurityPreflightSnapshot,
@@ -183,6 +184,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerTenantAutomationRoutes(app);
   await registerTenantInvitationRoutes(app);
   await registerModuleRoutes(app);
+  await registerAiActRoutes(app);
 
   const isProd = process.env.NODE_ENV === "production";
   app.setErrorHandler((error: unknown, request, reply) => {

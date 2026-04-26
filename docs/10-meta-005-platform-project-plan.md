@@ -83,10 +83,38 @@ Bu akış, advisor/client onboarding için kritik temel sağlar; erişim yalnız
 - Risk analizi:
 - Açık sorular:
 
+## Faz 3.5 — AI Infrastructure (Self-hosted)
+
+- **Hedef:** AI Act ve gelecekteki AI module'leri için tenant-aware, self-hosted ve kontrol edilebilir bir AI altyapı temelini kurmak.
+- **Mimari:** OCR katmanı + embedding katmanı + vector DB + LLM orkestrasyonu + API integration hattı, tamamı tenant scope ile çalışan pipeline olarak tasarlanır.
+- **Tech stack:** OCR için Tesseract / PaddleOCR, LLM için Ollama, vector DB için Qdrant, embedding layer için tenant-aware embedding işleyicileri, API integration için platform API gateway + arka uç servis katmanı.
+- **Deploy modeli:** Self-hosted servisler container tabanlı olarak ayrık bileşenler halinde deploy edilir; OCR, embedding, Qdrant ve Ollama servisleri environment bazında izole edilir.
+- **Cost stratejisi:** Öncelik self-hosted inference ile sabit maliyet kontrolü, kaynak limitleri ve tenant bazlı kullanım ölçümü; gereksiz inference çağrılarını azaltan cache/chunking yaklaşımı uygulanır.
+
+### Success criteria
+
+- OCR metni kabul edilebilir doğrulukta çıkarır.
+- Embedding kayıtları tenant bazında saklanır.
+- LLM, saklanan veriye dayalı olarak yanıt üretebilir.
+- Tenant isolation korunur.
+
+### Enforcement requirements
+
+- Tüm AI verisi `tenantId` ile scope edilmelidir.
+- Cross-tenant retrieval kesin olarak engellenmelidir.
+- AI endpoint'lerinde module activation zorunlu olmalıdır.
+
+### Risks
+
+- hallucination
+- OCR errors
+- data leakage
+- cost creep
+
 ## Faz 4 — AI Act MVP
 
 - **Hedef:** İlk loyalty dışı module için çalışan bir MVP üretmek.
-- **Kod değişiklikleri:** AI Act entity schema'sı, assessment API'leri, temel risk sınıflandırma ve rapor üretimi.
+- **Kod değişiklikleri:** `AiSystem`, `AiAssessment`, `AiDocument`, `AiRiskResult` veri modeli; `POST /ai/systems`, `GET /ai/systems`, `POST /ai/assessment`, `GET /ai/results` endpoint'leri; temel risk sınıflandırma.
 - **Enforcement gereksinimleri:** Tenant izolasyonu, membership tabanlı erişim, module activation gate.
 - **Dokümantasyon güncellemeleri:** AI Act spec dosyasını endpoint/model ve akış detaylarıyla güncellemek.
 - **Başarı kriterleri:** 10 soruluk assessment akışı tamamlanır; risk sınıfı ve temel rapor üretimi çalışır.

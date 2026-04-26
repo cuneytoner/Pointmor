@@ -24,7 +24,7 @@ Bu kılavuz, Pointmor’u production’da güvenli şekilde canlıya alma akış
 
 1. `.github/workflows/release-images.yml`
 2. API + admin image GHCR push
-3. SHA traceability: `sha-<commit>` tag + digest
+3. SHA traceability: `sha-<commit>` tag (digest önerilir ancak zorunlu enforce edilmez)
 4. `release-manifest.json` artifact
 
 ### Production dağıtımı
@@ -38,7 +38,7 @@ Bu kılavuz, Pointmor’u production’da güvenli şekilde canlıya alma akış
 ## 2) Production başlangıç kontrol listesi
 
 - [ ] `infra/docker/.env.prod` hazır ve `preflight-prod-env.sh` PASS
-- [ ] `POINTMOR_API_IMAGE` ve `POINTMOR_ADMIN_IMAGE` immutable ref
+- [ ] `POINTMOR_API_IMAGE` ve `POINTMOR_ADMIN_IMAGE` image referansları açıkça seçildi
 - [ ] DB backup/PITR doğrulandı
 - [ ] Redis erişilebilir ve credential doğrulandı
 - [ ] `INTERNAL_JOB_REQUIRE_HMAC=true`
@@ -54,7 +54,7 @@ Bu kılavuz, Pointmor’u production’da güvenli şekilde canlıya alma akış
 
 1. Release commit SHA belirle.
 2. `Release images` workflow ile image üret/push et.
-3. Manifestte image reflerini doğrula (tag + digest).
+3. Manifestte image reflerini doğrula (pratikte tag tabanlı; digest önerilir).
 4. Production environment approval al.
 5. `Deploy production` workflow çalıştır:
    - `release_sha`
@@ -108,7 +108,7 @@ Bu adımların herhangi biri fail ise deploy “successful” kabul edilmemelidi
 ## 5.1 Özet production deploy akışı
 
 1. Production env preflight PASS al.
-2. Release image (`tag@digest`) doğrula.
+2. Release image referansını doğrula (tag tabanlı çalışma mevcut; digest önerilir).
 3. Explicit `migration` adımını çalıştır.
 4. Deploy adımını çalıştır.
 5. Smoke + health doğrula.
@@ -136,8 +136,8 @@ Ek öneri:
 Her deploy için saklanması gereken minimum metadata:
 
 - git `release_sha`
-- API image ref (`tag@digest`)
-- admin image ref (`tag@digest`)
+- API image ref (`tag` zorunlu, `digest` önerilir)
+- admin image ref (`tag` zorunlu, `digest` önerilir)
 - deploy zamanı (UTC)
 - runbook operator ve change request ID
 
@@ -157,6 +157,14 @@ Her deploy için saklanması gereken minimum metadata:
   - manual approval
   - deploy secretleri sadece bu environment altında
   - mümkünse wait timer + restricted approvers
+
+---
+
+## 8.1 Image seçimi kuralı
+
+- Production deploy adımında image seçimi zorunludur.
+- `git checkout` yalnız deploy scripti/compose sürümünü belirler; çalışan image’i tek başına belirlemez.
+- Çalışacak image referansı (`POINTMOR_API_IMAGE`, `POINTMOR_ADMIN_IMAGE`) explicit seçilmelidir.
 
 ---
 

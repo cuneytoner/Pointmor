@@ -22,9 +22,9 @@
 | Entity | Sorumluluk |
 |--------|-------------|
 | **AiSystem** | AI sistem temel kaydı (amaç, kullanım alanı, sahiplik bağlamı) |
-| **RiskAssessment** | Soru seti ve değerlendirme çıktısı |
-| **ComplianceTask** | Uyum eksiği için aksiyon/görev kaydı |
-| **ComplianceReport** | Değerlendirme + görev durumundan üretilen rapor |
+| **AiAssessment** | Soru seti ve değerlendirme girdisi |
+| **AiDocument** | OCR/extracted içerik ve embedding referans kaydı |
+| **AiRiskResult** | Risk seviyesi ve skor çıktısı |
 
 **Kural:** Bu varlıklar tenant-scoped çalışır; tenant dışı görünürlük yoktur.
 
@@ -34,9 +34,20 @@
 
 1. **Create AI system:** Kullanıcı tenant içinde yeni `AiSystem` kaydı oluşturur.
 2. **Run questionnaire:** Sistem için değerlendirme soru seti tamamlanır.
-3. **Calculate risk:** Yanıtlara göre risk seviyesi hesaplanır ve `RiskAssessment` kaydı oluşur.
-4. **Generate tasks:** Risk ve eksik kontrollerden `ComplianceTask` kayıtları üretilir.
-5. **Export report:** Süreç çıktısı `ComplianceReport` olarak dışa aktarılır.
+3. **Calculate risk:** Yanıtlara göre risk seviyesi hesaplanır ve `AiRiskResult` kaydı oluşur.
+4. **Store evidence:** OCR sonucu ve embedding referansı `AiDocument` ile tenant scope içinde saklanır.
+5. **List results:** Sonuçlar tenant bazlı `GET /ai/results` ile erişilir.
+
+---
+
+## MVP API endpoint'leri
+
+- `POST /ai/systems`
+- `GET /ai/systems`
+- `POST /ai/assessment`
+- `GET /ai/results`
+
+Bu endpoint'ler tenant context + `requireTenantPermission` + module activation (`ai_act`) ile korunur.
 
 ---
 

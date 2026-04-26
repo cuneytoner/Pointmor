@@ -50,6 +50,14 @@ export const TENANT_PERMISSIONS = [
   "anomaly.export",
   /** Tek müşteri GDPR veri dışa aktarımı — yalnızca owner. */
   "gdpr.customer_export",
+  /** AI Act module sistem listeleme/goruntuleme. */
+  "ai.systems.view",
+  /** AI Act module sistem olusturma/guncelleme. */
+  "ai.systems.manage",
+  /** AI Act assessment olusturma/calastirma. */
+  "ai.assessment.manage",
+  /** AI Act risk sonuc goruntuleme. */
+  "ai.results.view",
 ] as const;
 
 export type TenantPermission = (typeof TENANT_PERMISSIONS)[number];
