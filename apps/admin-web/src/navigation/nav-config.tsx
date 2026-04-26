@@ -125,6 +125,13 @@ export const TENANT_NAV: NavItemConfig[] = [
     tenant: true,
   },
   {
+    to: "/app/ai-act",
+    labelKey: "tenantLoyalty.nav.aiAct",
+    Icon: IconShield,
+    tenant: true,
+    navActivePrefix: "/app/ai-act",
+  },
+  {
     to: "/app/redemptions",
     labelKey: "tenantLoyalty.nav.redemptions",
     Icon: IconCredit,

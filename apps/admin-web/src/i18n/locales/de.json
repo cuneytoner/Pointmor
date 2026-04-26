@@ -688,12 +688,95 @@
     "description": "Keine Anmeldung nötig. Pläne erscheinen hier.",
     "ctaLogin": "Operator-Anmeldung"
   },
+  "aiAct": {
+    "common": {
+      "eyebrow": "AI Act",
+      "system": "AI-System",
+      "view": "Ansehen",
+      "select": "Auswählen",
+      "submitting": "Senden…",
+      "backToList": "Zurück zu AI-Systemen"
+    },
+    "list": {
+      "title": "AI-Systeme",
+      "description": "System anlegen, Assessment abschließen, Ergebnis prüfen.",
+      "newSystem": "Neues AI-System",
+      "columns": {
+        "name": "Name",
+        "riskLevel": "Risikostufe",
+        "updatedAt": "Zuletzt aktualisiert"
+      }
+    },
+    "new": {
+      "title": "Neues AI-System",
+      "description": "System erstellen und mit dem Assessment fortfahren.",
+      "submit": "Erstellen und fortfahren",
+      "fields": {
+        "name": "Name",
+        "purpose": "Zweck",
+        "providerType": "Anbietertyp"
+      }
+    },
+    "assessment": {
+      "title": "Assessment: {{name}}",
+      "description": "Alle 10 Fragen beantworten.",
+      "submit": "Assessment senden"
+    },
+    "result": {
+      "title": "Ergebnis: {{name}}",
+      "description": "Risikovorschlag, Pflichten und Aufgaben.",
+      "riskLevel": "Risikostufe",
+      "confidence": "Konfidenz",
+      "suggested": "Vorgeschlagen",
+      "obligations": "Pflichten",
+      "tasks": "Aufgaben",
+      "emptyObligations": "Keine Pflichten erzeugt.",
+      "emptyTasks": "Keine Aufgaben erzeugt."
+    },
+    "providerType": {
+      "INTERNAL": "Intern",
+      "EXTERNAL": "Extern",
+      "HYBRID": "Hybrid"
+    },
+    "purpose": {
+      "customer_support": "Kundensupport",
+      "employee_performance": "Mitarbeiterleistung",
+      "other": "Sonstiges"
+    },
+    "questions": {
+      "q_ai_used": { "label": "Wird in diesem System AI verwendet?" },
+      "q_ai_purpose": { "label": "Was ist der Hauptzweck?" },
+      "q_personal_data": { "label": "Werden personenbezogene Daten genutzt?" },
+      "q_sensitive_data": { "label": "Werden sensible Daten genutzt?" },
+      "q_automated_decision": { "label": "Trifft es automatisierte Entscheidungen?" },
+      "q_human_oversight": { "label": "Gibt es menschliche Aufsicht?" },
+      "q_employment_context": { "label": "Wird es im Beschäftigungskontext genutzt?" },
+      "q_biometric_identification": { "label": "Nutzt es biometrische Identifikation?" },
+      "q_safety_critical": { "label": "Wird es in sicherheitskritischem Kontext genutzt?" },
+      "q_provider_documentation": { "label": "Ist Anbieterdokumentation vorhanden?" }
+    },
+    "errors": {
+      "unknown": "Anfrage fehlgeschlagen.",
+      "module_not_active": "AI-Act-Module ist für diesen Workspace nicht aktiv.",
+      "invalid_answer_format": "Ungültiges Antwortformat.",
+      "missing_answers": "Bitte alle Fragen beantworten.",
+      "not_found": "Eintrag nicht gefunden.",
+      "assessment_not_found": "Assessment nicht gefunden.",
+      "tenant_context_required": "Workspace-Kontext erforderlich.",
+      "create_failed": "System konnte nicht erstellt werden.",
+      "submit_failed": "Assessment konnte nicht gesendet werden.",
+      "load_result_failed": "Ergebnis konnte nicht geladen werden.",
+      "load_system_failed": "System konnte nicht geladen werden.",
+      "loadSystems": "Systeme konnten nicht geladen werden."
+    }
+  },
   "tenantLoyalty": {
     "nav": {
       "dashboard": "Übersicht",
       "hq": "HQ",
       "audit": "Audit",
       "growth": "Wachstum",
+      "aiAct": "AI Act",
       "customers": "Kunden",
       "visits": "Besuche",
       "rewards": "Prämien",

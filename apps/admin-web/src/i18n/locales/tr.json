@@ -688,12 +688,95 @@
     "description": "Oturum gerekmez. Planlar burada listelenecek.",
     "ctaLogin": "Operatör girişi"
   },
+  "aiAct": {
+    "common": {
+      "eyebrow": "AI Act",
+      "system": "AI sistemi",
+      "view": "Görüntüle",
+      "select": "Seçin",
+      "submitting": "Gönderiliyor…",
+      "backToList": "AI sistem listesine dön"
+    },
+    "list": {
+      "title": "AI sistemleri",
+      "description": "Sistem oluştur, assessment yap ve sonucu incele.",
+      "newSystem": "Yeni AI Sistemi",
+      "columns": {
+        "name": "Ad",
+        "riskLevel": "Risk seviyesi",
+        "updatedAt": "Son güncelleme"
+      }
+    },
+    "new": {
+      "title": "Yeni AI sistemi",
+      "description": "Sistemi oluşturup assessment adımına geçin.",
+      "submit": "Oluştur ve devam et",
+      "fields": {
+        "name": "Ad",
+        "purpose": "Amaç",
+        "providerType": "Sağlayıcı tipi"
+      }
+    },
+    "assessment": {
+      "title": "Assessment: {{name}}",
+      "description": "Tüm 10 soruyu yanıtlayın.",
+      "submit": "Assessment gönder"
+    },
+    "result": {
+      "title": "Sonuç: {{name}}",
+      "description": "Risk önerisi, yükümlülükler ve görevler.",
+      "riskLevel": "Risk seviyesi",
+      "confidence": "Güven",
+      "suggested": "Öneri",
+      "obligations": "Yükümlülükler",
+      "tasks": "Görevler",
+      "emptyObligations": "Yükümlülük üretilmedi.",
+      "emptyTasks": "Görev üretilmedi."
+    },
+    "providerType": {
+      "INTERNAL": "İç",
+      "EXTERNAL": "Dış",
+      "HYBRID": "Hibrit"
+    },
+    "purpose": {
+      "customer_support": "Müşteri desteği",
+      "employee_performance": "Çalışan performansı",
+      "other": "Diğer"
+    },
+    "questions": {
+      "q_ai_used": { "label": "Bu sistemde AI kullanılıyor mu?" },
+      "q_ai_purpose": { "label": "Temel amaç nedir?" },
+      "q_personal_data": { "label": "Kişisel veri kullanıyor mu?" },
+      "q_sensitive_data": { "label": "Hassas veri kullanıyor mu?" },
+      "q_automated_decision": { "label": "Otomatik karar veriyor mu?" },
+      "q_human_oversight": { "label": "İnsan gözetimi var mı?" },
+      "q_employment_context": { "label": "İstihdam bağlamında kullanılıyor mu?" },
+      "q_biometric_identification": { "label": "Biyometrik kimlik tespiti kullanıyor mu?" },
+      "q_safety_critical": { "label": "Güvenlik kritik alanda kullanılıyor mu?" },
+      "q_provider_documentation": { "label": "Sağlayıcı dokümantasyonu mevcut mu?" }
+    },
+    "errors": {
+      "unknown": "İstek başarısız oldu.",
+      "module_not_active": "Bu workspace için AI Act module aktif değil.",
+      "invalid_answer_format": "Yanıt biçimi geçersiz.",
+      "missing_answers": "Lütfen tüm soruları yanıtlayın.",
+      "not_found": "Kayıt bulunamadı.",
+      "assessment_not_found": "Assessment bulunamadı.",
+      "tenant_context_required": "Workspace bağlamı gerekli.",
+      "create_failed": "Sistem oluşturulamadı.",
+      "submit_failed": "Assessment gönderilemedi.",
+      "load_result_failed": "Sonuç yüklenemedi.",
+      "load_system_failed": "Sistem yüklenemedi.",
+      "loadSystems": "Sistemler yüklenemedi."
+    }
+  },
   "tenantLoyalty": {
     "nav": {
       "dashboard": "Özet",
       "hq": "Merkez (HQ)",
       "audit": "Denetim",
       "growth": "Büyüme",
+      "aiAct": "AI Act",
       "customers": "Müşteriler",
       "visits": "Ziyaretler",
       "rewards": "Ödüller",

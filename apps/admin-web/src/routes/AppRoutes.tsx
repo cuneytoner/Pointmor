@@ -49,6 +49,10 @@ import { CustomerMenuPage } from "../pages/customer/CustomerMenuPage";
 import { TenantMenuPage } from "../pages/TenantMenuPage";
 import { TenantMessagingPage } from "../pages/TenantMessagingPage";
 import { TenantAdminTeamPage } from "../pages/TenantAdminTeamPage";
+import { AiActSystemsPage } from "../pages/AiActSystemsPage";
+import { AiActNewSystemPage } from "../pages/AiActNewSystemPage";
+import { AiActAssessmentPage } from "../pages/AiActAssessmentPage";
+import { AiActSystemResultPage } from "../pages/AiActSystemResultPage";
 import { WorkspaceAdminLayout } from "../components/WorkspaceAdminLayout";
 import { CUSTOMER_LAST_TENANT_SLUG_KEY } from "../lib/customer-portal-api";
 
@@ -183,6 +187,10 @@ export function AppRoutes() {
               <Route path="rewards" element={<TenantRewardsPage />} />
               <Route path="campaigns" element={<TenantCampaignsPage />} />
               <Route path="menu" element={<TenantMenuPage />} />
+              <Route path="ai-act" element={<AiActSystemsPage />} />
+              <Route path="ai-act/new" element={<AiActNewSystemPage />} />
+              <Route path="ai-act/:id" element={<AiActSystemResultPage />} />
+              <Route path="ai-act/:id/assessment" element={<AiActAssessmentPage />} />
               <Route path="redemptions" element={<TenantRedemptionsPage />} />
               <Route path="billing" element={<Navigate to="/app/admin/billing" replace />} />
               <Route path="settings" element={<Navigate to="/app/admin/general" replace />} />
