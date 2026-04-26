@@ -17,12 +17,14 @@ Kullanıcılar tenant'lara membership üzerinden erişir.
 | Veri modeli ve erişim kaynağı | [`20-rules-003-data-model.md`](./20-rules-003-data-model.md) |
 | API enforcement | [`20-rules-004-api-design.md`](./20-rules-004-api-design.md) |
 | Güvenlik doktrini | [`20-rules-015-cross-tenant-access-security.md`](./20-rules-015-cross-tenant-access-security.md), [`20-rules-017-enforcement-contract.md`](./20-rules-017-enforcement-contract.md) |
+| AI guardrails (risk/security) | [`20-rules-019-ai-document-intelligence-risk.md`](./20-rules-019-ai-document-intelligence-risk.md) |
 | schema constraints | [`20-rules-016-schema-constraints.md`](./20-rules-016-schema-constraints.md) |
 | Enforcement contract | [`20-rules-017-enforcement-contract.md`](./20-rules-017-enforcement-contract.md) |
 | Module'ler | [`20-rules-013-platform-modules.md`](./20-rules-013-platform-modules.md) |
 | Advisor modeli | [`20-rules-014-advisor-client-model.md`](./20-rules-014-advisor-client-model.md) |
 | Cross-tenant security | [`20-rules-015-cross-tenant-access-security.md`](./20-rules-015-cross-tenant-access-security.md) |
 | AI Act module spec | [`30-spec-001-ai-act-module.md`](./30-spec-001-ai-act-module.md) |
+| Platform AI infrastructure spec | [`30-spec-003-ai-document-intelligence-infrastructure.md`](./30-spec-003-ai-document-intelligence-infrastructure.md) |
 | Ürün shell'leri ve branding | [`30-spec-002-product-shells-and-branding.md`](./30-spec-002-product-shells-and-branding.md) |
 | Demo deployment (tek kaynak) | [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md) |
 | Yerel geliştirme komutları | [`40-guide-001-run-local.md`](./40-guide-001-run-local.md) |

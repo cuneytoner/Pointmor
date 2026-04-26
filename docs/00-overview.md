@@ -33,6 +33,11 @@ Kullanıcılar tenant'lara membership üzerinden erişir.
 - `41-ref-*`: kısa referanslar (RBAC, seed users, compliance)
 - `42-design-*`: UI ve akış tasarım kararları
 
+## AI Document Intelligence navigasyonu
+
+- Risk / security guardrails: [`20-rules-019-ai-document-intelligence-risk.md`](./20-rules-019-ai-document-intelligence-risk.md)
+- Platform AI infrastructure spec: [`30-spec-003-ai-document-intelligence-infrastructure.md`](./30-spec-003-ai-document-intelligence-infrastructure.md)
+
 ## Kanonik kavram sahipliği
 
 - Platform kimliği ve doktrini: `10-meta-004`

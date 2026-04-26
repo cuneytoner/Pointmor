@@ -83,40 +83,93 @@ Bu akış, advisor/client onboarding için kritik temel sağlar; erişim yalnız
 - Risk analizi:
 - Açık sorular:
 
-## Faz 3.5 — AI Infrastructure (Self-hosted)
+## Phase 3.5 — AI Document Intelligence Infrastructure
 
-- **Hedef:** AI Act ve gelecekteki AI module'leri için tenant-aware, self-hosted ve kontrol edilebilir bir AI altyapı temelini kurmak.
-- **Mimari:** OCR katmanı + embedding katmanı + vector DB + LLM orkestrasyonu + API integration hattı, tamamı tenant scope ile çalışan pipeline olarak tasarlanır.
-- **Tech stack:** OCR için Tesseract / PaddleOCR, LLM için Ollama, vector DB için Qdrant, embedding layer için tenant-aware embedding işleyicileri, API integration için platform API gateway + arka uç servis katmanı.
-- **Deploy modeli:** Self-hosted servisler container tabanlı olarak ayrık bileşenler halinde deploy edilir; OCR, embedding, Qdrant ve Ollama servisleri environment bazında izole edilir.
-- **Cost stratejisi:** Öncelik self-hosted inference ile sabit maliyet kontrolü, kaynak limitleri ve tenant bazlı kullanım ölçümü; gereksiz inference çağrılarını azaltan cache/chunking yaklaşımı uygulanır.
+Purpose:
+Create a shared platform AI layer that can:
+- classify uploaded documents
+- extract structured fields
+- support OCR/VLM processing
+- support tenant-scoped retrieval
+- suggest actions for modules such as AI Act, expense capture, contract review, and e-invoice
+
+### Goal
+
+Build a low-cost, self-hostable AI document pipeline that goes beyond classic OCR.
+
+### Why this exists
+
+- classic OCR only extracts text
+- platform needs document understanding
+- AI Act needs contract/policy/system-document interpretation
+- future expense capture needs amount/vendor/date extraction
+
+### Architecture
+
+upload
+→ file validation
+→ document classification
+→ OCR / VLM extraction
+→ schema validation
+→ human review
+→ tenant-scoped storage
+→ action generation
+→ module output
+
+### Proposed stack
+
+- OCR/parser: PaddleOCR or Tesseract as fallback
+- VLM/LLM: Ollama-compatible local models or external worker
+- embeddings: sentence-transformers or equivalent
+- vector DB: Qdrant
+- queue: Redis/job worker
+- storage: object storage
+- metadata/results: PostgreSQL
+
+### MVP scope
+
+- no custom model training
+- prompt/schema extraction
+- validation rules
+- human review
+- audit trail
+- tenant isolation
+
+### Not now
+
+- no fine-tuning
+- no fully autonomous decisions
+- no cross-tenant learning
+- no production GPU dependency in MVP
 
 ### Success criteria
 
-- OCR metni kabul edilebilir doğrulukta çıkarır.
-- Embedding kayıtları tenant bazında saklanır.
-- LLM, saklanan veriye dayalı olarak yanıt üretebilir.
-- Tenant isolation korunur.
+- document type classification works
+- extracted fields are saved with confidence
+- low-confidence results go to review
+- all AI artifacts are tenant-scoped
+- AI Act MVP can consume extracted document insights
 
-### Enforcement requirements
+### Definition of Done
 
-- Tüm AI verisi `tenantId` ile scope edilmelidir.
-- Cross-tenant retrieval kesin olarak engellenmelidir.
-- AI endpoint'lerinde module activation zorunlu olmalıdır.
+- architecture documented
+- risks documented
+- requirements documented
+- AI data storage model defined
+- human review requirement defined
+- tenant isolation rules defined
 
-### Risks
+### İlgili dokümanlar
 
-- hallucination
-- OCR errors
-- data leakage
-- cost creep
+- Risk / security guardrails: [`20-rules-019-ai-document-intelligence-risk.md`](./20-rules-019-ai-document-intelligence-risk.md)
+- Platform AI infrastructure spec: [`30-spec-003-ai-document-intelligence-infrastructure.md`](./30-spec-003-ai-document-intelligence-infrastructure.md)
 
 ## Faz 4 — AI Act MVP
 
 - **Hedef:** İlk loyalty dışı module için çalışan bir MVP üretmek.
 - **Kod değişiklikleri:** `AiSystem`, `AiAssessment`, `AiDocument`, `AiRiskResult` veri modeli; `POST /ai/systems`, `GET /ai/systems`, `POST /ai/assessment`, `GET /ai/results` endpoint'leri; temel risk sınıflandırma.
 - **Enforcement gereksinimleri:** Tenant izolasyonu, membership tabanlı erişim, module activation gate.
-- **Dokümantasyon güncellemeleri:** AI Act spec dosyasını endpoint/model ve akış detaylarıyla güncellemek.
+- **Dokümantasyon güncellemeleri:** AI Act spec dosyasını endpoint/model ve akış detaylarıyla güncellemek; paylaşılan AI infrastructure spec ve AI risk guardrail dokümanlarıyla birlikte tutmak.
 - **Başarı kriterleri:** 10 soruluk assessment akışı tamamlanır; risk sınıfı ve temel rapor üretimi çalışır.
 
 ### Tamamlanma Kriterleri
@@ -248,10 +301,12 @@ O zaman:
 ## Faz Bağımlılıkları
 
 - Faz 2, Faz 3'ten önce tamamlanmalıdır.
-- Faz 3, Faz 4'ten önce tamamlanmalıdır.
+- Faz 3, Faz 3.5'ten önce tamamlanmalıdır.
+- Faz 3.5, Faz 4'ten önce tamamlanmalıdır.
 - Faz 4 (AI Act MVP) aşağıdakiler tamamlanmadan başlamamalıdır:
   - invitation flow kararlı olmalıdır
   - module activation guard enforce edilmiş olmalıdır
+  - AI Document Intelligence altyapısı (Faz 3.5) çalışır ve tenant-scope doğrulanmış olmalıdır
 - Faz 5, Faz 4 veri modeli ve erişim stabilitesine bağlıdır.
 
 ---
@@ -300,12 +355,13 @@ MVP kapsamı:
 Önerilen sıra:
 
 1. Platform onboarding
-2. AI Act module
-3. Advisor/client katmanı
-4. Compliance export/reporting
-5. Billing/pricing
-6. Mobile tenant-aware istemci
-7. Gelecek module'ler: e-invoice, Handwerker/job manager, expense capture
+2. AI Document Intelligence Infrastructure
+3. AI Act module
+4. Advisor/client katmanı
+5. Compliance export/reporting
+6. Billing/pricing
+7. Mobile tenant-aware istemci
+8. Gelecek module'ler: e-invoice, Handwerker/job manager, expense capture
 
 ---
 
@@ -315,6 +371,10 @@ MVP kapsamı:
 - invitation acceptance
 - policy helper standardizasyonu
 - module activation guard enforcement
+- AI document ingestion pipeline
+- OCR / VLM extraction + schema validation
+- tenant-scoped AI storage + retrieval
+- AI human review queue
 - AI Act data model
 - AI Act assessment API
 - AI Act UI

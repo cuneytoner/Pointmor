@@ -4,6 +4,8 @@
 
 **Konum:** `ai_act`, platformdaki **first non-loyalty module** olarak konumlanır; ana kullanım amacı **B2B compliance** süreçleridir.
 
+**Paylaşılan AI katmanı bağımlılığı:** `ai_act` module, ortak AI Document Intelligence altyapısını tüketir; doküman sınıflandırma, extraction, embedding ve tenant-scoped retrieval bu paylaşılan katman üzerinden sağlanır.
+
 ---
 
 ## Module hedefi
@@ -87,3 +89,5 @@ Bu genişletmeler, tenant izolasyonu ve membership tabanlı erişim ilkelerini d
 - Advisor–client modeli: [`20-rules-014-advisor-client-model.md`](./20-rules-014-advisor-client-model.md)
 - Cross-tenant güvenlik: [`20-rules-015-cross-tenant-access-security.md`](./20-rules-015-cross-tenant-access-security.md)
 - Genel güvenlik kuralları: [`20-rules-005-security.md`](./20-rules-005-security.md)
+- AI guardrails (risk/security): [`20-rules-019-ai-document-intelligence-risk.md`](./20-rules-019-ai-document-intelligence-risk.md)
+- Platform AI infrastructure spec: [`30-spec-003-ai-document-intelligence-infrastructure.md`](./30-spec-003-ai-document-intelligence-infrastructure.md)
