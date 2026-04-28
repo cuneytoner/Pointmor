@@ -50,6 +50,10 @@ export function AiActAssessmentPage() {
     () => AI_ACT_QUESTION_KEYS.every((key) => formState[key] !== undefined && formState[key] !== null),
     [formState],
   );
+  const answeredCount = useMemo(
+    () => AI_ACT_QUESTION_KEYS.filter((key) => formState[key] !== undefined && formState[key] !== null).length,
+    [formState],
+  );
 
   const setBooleanAnswer = (key: AiActQuestionKey, value: string) => {
     setFormState((prev) => ({ ...prev, [key]: value === "yes" }));
@@ -83,6 +87,12 @@ export function AiActAssessmentPage() {
       {loading ? <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p> : null}
       {!loading ? (
         <div className="admin-app__card admin-app__card--wide">
+          <p className="admin-app__card-text" style={{ marginBottom: "0.75rem" }}>
+            {t("aiAct.assessment.notice")}
+          </p>
+          <p className="admin-app__card-text" style={{ marginBottom: "0.75rem" }}>
+            {t("aiAct.assessment.progress", { completed: answeredCount })}
+          </p>
           <form className="loyalty-form-stack" onSubmit={onSubmit}>
             {AI_ACT_QUESTION_KEYS.map((key) => {
               const qType = AI_ACT_QUESTION_TYPE[key];

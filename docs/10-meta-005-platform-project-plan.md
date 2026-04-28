@@ -26,75 +26,35 @@ Platform çekirdeği tenant, membership, auth/session, güvenlik ve module activ
 
 ---
 
-## 3. Mevcut Faz — Faz 4: AI Act MVP (backend stabilized)
+## 3. Current Phase: Phase 7 - Pilot & Real-World Validation
 
-Bu fazın hedefi, AI Act MVP backend kontratını production-safe seviyede stabilize etmektir:
+Bu planın güncel odagi, teslim edilmis temel teknik kabiliyetler uzerinde gercek dunya dogrulamasidir.
 
-**system inventory → assessment → risk suggestion → obligations/tasks**
-
-Akış tenant-scoped, membership-based ve module-gated çalışır; AI assessment kayıtları versioned tutulur.
-
-### Tamamlanma Kriterleri
-
-- kod uygulandı
-- testler geçiyor
-- enforcement kuralları doğrulandı
-- dokümantasyon güncellendi
-- cross-tenant access ihlali yok
-
-### Çıkış Kriterleri
-
-- üretim hazırı uygulama
-- uç durumlar için test kapsamı
-- cross-tenant access ihlali yok
-- manuel uçtan uca doğrulama
-
-### Durum Notu
-
-- AI Act backend akışı stabilize edildi.
-- AI assessments versioned olarak tutulur.
-- Her sistem için yalnızca bir adet `current` assessment bulunur.
+**Aktif odak:** pilot onboarding, canli kullanim olcumu, geri bildirim dongusu ve GTM hazirligi.
 
 ---
 
-## 4. Sonraki Fazlar (Faz 3+)
+## 4. Completed Foundations (Locked)
 
-## Faz 3 — Policy Helpers + Module Activation Enforcement
+- **Invitation Security Hardening - DONE**
+  - Invitation acceptance akisi token + email eslesmesi ve guvenli membership olusumu ile sertlestirildi.
+- **Membership-First Access Enforcement - DONE**
+  - Erisim kararlari `TenantMembership` uzerinden zorunlu kilindi; legacy tenant baglantilari access source-of-truth olarak kullanilmiyor.
+- **Module Activation Enforcement - DONE**
+  - Module kapali oldugunda ilgili API/UI yuzeylerine erisim engellenir; deny-by-default ve tenant scope enforce edilir.
+- **AI Act MVP Backend - DONE**
+  - `system inventory -> assessment -> risk suggestion -> obligations/tasks` akisi tenant-scoped, membership-based ve module-gated olarak teslim edildi.
+  - Versioned assessment ve sistem basina tek `current` kurali uygulanir.
+- **AI Act MVP UI (end-to-end flow) - DONE**
+  - AI system listesi, yeni sistem olusturma, assessment, risk sonucu, obligations/tasks yuzeyleri calisir durumda ve backend kontratiyla hizalidir.
+- **Multi-product seed structure (platform demo baseline) - DONE**
+  - Seed tenant seti AI Act focused, Loyalty focused, Mixed ve Advisor senaryolarini module activation + membership-first doctrine ile temsil eder.
 
-- **Hedef:** Erişim kararını her tenant kapsamlı endpoint üzerinde tek tip policy helper ile zorunlu kılmak.
-- **Kod değişiklikleri:** Ortak guard/policy helper genişletmeleri; module activation kontrolünü route/service katmanında standartlaştırmak.
-- **Enforcement gereksinimleri:** deny-by-default, tenantId scope, membership + role + module activation.
-- **Dokümantasyon güncellemeleri:** API tasarımı, security ve enforcement contract örneklerini policy helper yaklaşımıyla hizalamak.
-- **Başarı kriterleri:** Module kapalıyken ilgili API/UI yüzeyi erişilemez; yeni endpoint'ler policy helper olmadan merge edilmez.
+---
 
-### Tamamlanma Kriterleri
+## 5. Delivered Phases and Forward Plan
 
-- kod uygulandı
-- testler geçiyor
-- enforcement kuralları doğrulandı
-- dokümantasyon güncellendi
-- cross-tenant access ihlali yok
-
-### Çıkış Kriterleri
-
-- üretim hazırı uygulama
-- uç durumlar için test kapsamı
-- cross-tenant access ihlali yok
-- manuel uçtan uca doğrulama
-
-### Durum Notu
-
-- Faz 4 için onboarding API tasarımı tamamlandı ve backend implementasyonu başlatıldı.
-- AI output bu fazda suggestion olarak ele alınır; source of truth değildir.
-
-### Analiz Ekleri
-- Ürün analizi:
-- Teknik analiz:
-- GTM / satış analizi:
-- Risk analizi:
-- Açık sorular:
-
-## Phase 3.5 — AI Document Intelligence Infrastructure
+## Phase 3.5 - AI Document Intelligence Infrastructure
 
 Purpose:
 Create a shared platform AI layer that can:
@@ -175,9 +135,9 @@ upload
 - Risk / security guardrails: [`20-rules-019-ai-document-intelligence-risk.md`](./20-rules-019-ai-document-intelligence-risk.md)
 - Platform AI infrastructure spec: [`30-spec-003-ai-document-intelligence-infrastructure.md`](./30-spec-003-ai-document-intelligence-infrastructure.md)
 
-## Faz 4 — AI Act MVP
+## Phase 4 - AI Act MVP (Delivered)
 
-- **Hedef:** İlk loyalty dışı module için çalışan bir MVP üretmek.
+- **Durum:** Ilk loyalty disi module MVP'i teslim edildi.
 - **Kod değişiklikleri:** `AiSystem`, `AiAssessment`, `AiAssessmentAnswer`, `AiObligation`, `AiTask`, `AiEvidence`, `AiDocumentLink` tenant-scoped veri modeli; değerlendirme/risk akışı için derived-data kurgusu.
 - **Enforcement gereksinimleri:** Tenant izolasyonu, membership tabanlı erişim, module activation gate.
 - **Dokümantasyon güncellemeleri:** AI Act spec dosyasını endpoint/model ve akış detaylarıyla güncellemek; paylaşılan AI infrastructure spec ve AI risk guardrail dokümanlarıyla birlikte tutmak.
@@ -185,41 +145,7 @@ upload
 - **RBAC kararı:** `ai_act.manage` yalnızca owner/admin; member/manager ve advisor için kapsam `ai_act.view` + `ai_act.assess`.
 - **API kapsam notu:** `GET /ai-act/systems/:id/obligations` MVP kapsamındadır; `ai_act.export` reserve edilir, export endpoint'i bu fazda uygulanmaz.
 
-### Tamamlanma Kriterleri
-
-- kod uygulandı
-- testler geçiyor
-- enforcement kuralları doğrulandı
-- dokümantasyon güncellendi
-- cross-tenant access ihlali yok
-
-### Çıkış Kriterleri
-
-- üretim hazırı uygulama
-- uç durumlar için test kapsamı
-- cross-tenant access ihlali yok
-- manuel uçtan uca doğrulama
-
-### Yön Değiştirme / Sonlandırma Kriterleri
-
-Kullanıcılar şu davranışları göstermiyorsa:
-- assessment tamamlamıyorsa
-- raporu indirmiyorsa
-- ürüne geri dönmüyorsa
-
-O zaman:
-- soru seti sadeleştirilir
-- UX iyileştirilir
-- değer önerisi yeniden değerlendirilir
-
-### Analiz Ekleri
-- Ürün analizi:
-- Teknik analiz:
-- GTM / satış analizi:
-- Risk analizi:
-- Açık sorular:
-
-## Faz 5 — Advisor Gösterge Paneli
+## Phase 5 - Advisor Dashboard
 
 - **Hedef:** Advisor kullanıcıların çoklu client tenant operasyonunu tek yüzeyden yönetebilmesi.
 - **Kod değişiklikleri:** Advisor odaklı tenant listesi, durum/aksiyon ekranları, membership tabanlı görünürlük.
@@ -242,7 +168,7 @@ O zaman:
 - Risk analizi:
 - Açık sorular:
 
-## Faz 6 — Ürünleştirme + Billing
+## Phase 6 - Productization + Billing
 
 - **Hedef:** Plan/entitlement ve fiyatlandırma akışlarını ürünleşme seviyesine taşımak.
 - **Kod değişiklikleri:** Plan feature gating olgunlaştırması, abonelik yaşam döngüsü, billing yüzeyi entegrasyonu.
@@ -265,7 +191,7 @@ O zaman:
 - Risk analizi:
 - Açık sorular:
 
-## Faz 7 — Mobil Platform İstemcisi
+## Phase 8 - Mobile Platform Client
 
 - **Hedef:** Mobil istemciyi platforma tenant-aware bir istemci olarak konumlandırmak.
 - **Kod değişiklikleri:** Mobil auth/session/tenant context, module bazlı ekran açılımı, API sözleşme uyumu.
@@ -288,7 +214,7 @@ O zaman:
 - Risk analizi:
 - Açık sorular:
 
-## Faz 8 — Gelecek Module'ler
+## Phase 9 - Future Modules
 
 - **Hedef:** Yeni alan module'lerini çekirdeğe zarar vermeden genişletebilmek.
 - **Kod değişiklikleri:** Module bazlı schema/service/UI paketleri (örn. e-invoice, job manager, expense capture).
@@ -311,20 +237,16 @@ O zaman:
 - Risk analizi:
 - Açık sorular:
 
-## Faz Bağımlılıkları
+## Phase Dependencies (Updated)
 
-- Faz 2, Faz 3'ten önce tamamlanmalıdır.
-- Faz 3, Faz 3.5'ten önce tamamlanmalıdır.
-- Faz 3.5, Faz 4'ten önce tamamlanmalıdır.
-- Faz 4 (AI Act MVP) aşağıdakiler tamamlanmadan başlamamalıdır:
-  - invitation flow kararlı olmalıdır
-  - module activation guard enforce edilmiş olmalıdır
-  - AI Document Intelligence altyapısı (Faz 3.5) çalışır ve tenant-scope doğrulanmış olmalıdır
-- Faz 5, Faz 4 veri modeli ve erişim stabilitesine bağlıdır.
+- Invitation security, membership-first access ve module activation enforcement katmanlari tamamlandi ve kilitlendi.
+- AI Act MVP backend + UI teslim edildi; sonraki AI Act yatirimlari Post-MVP iyilestirme backlog'unda ele alinacaktir.
+- Pilot/GTM fazi (Current Phase) mevcut teknik temel uzerinde gercek kullanim dogrulamasi ile ilerler.
+- Advisor, billing ve future module genislemeleri pilot geri bildirimleri ve saha ogrenimleriyle onceliklendirilir.
 
 ---
 
-## 5. MVP Tanımı
+## 6. MVP Tanımı (Delivered Scope)
 
 MVP kapsamı:
 
@@ -363,7 +285,25 @@ MVP kapsamı:
 
 ---
 
-## 6. Ürün Sıralaması
+## 7. AI Act Post-MVP Improvements
+
+- AI Act Wizard UX
+- Obligations & Tasks UX improvement (prioritization + clarity)
+- i18n polish (Turkish-first cleanup)
+- AI Act result explanation improvements
+
+---
+
+## 8. Go-To-Market & Pilot Phase
+
+- Demo script creation
+- Pilot customer onboarding
+- Feedback loop collection
+- First sales narrative
+
+---
+
+## 9. Ürün Sıralaması
 
 Önerilen sıra:
 
@@ -378,25 +318,25 @@ MVP kapsamı:
 
 ---
 
-## 7. Teknik Kilometre Taşları
+## 10. Teknik Kilometre Taşları
 
 - schema hardening
-- invitation acceptance
-- policy helper standardizasyonu
-- module activation guard enforcement
+- invitation security hardening (delivered)
+- policy helper / enforcement standardizasyonu (delivered baseline)
+- module activation guard enforcement (delivered)
 - AI document ingestion pipeline
 - OCR / VLM extraction + schema validation
 - tenant-scoped AI storage + retrieval
 - AI human review queue
-- AI Act data model
-- AI Act assessment API
-- AI Act UI
+- AI Act data model (delivered)
+- AI Act assessment API (delivered)
+- AI Act UI (delivered)
 - report/export
 - advisor dashboard
 
 ---
 
-## 8. Karar Günlüğü
+## 11. Karar Günlüğü
 
 - Pointmor platform kimliği korunur.
 - Cafe/loyalty alanı çekirdek değil, module olarak kalır.
@@ -408,13 +348,13 @@ MVP kapsamı:
 
 ---
 
-## 9. Riskler ve Koruyucu Kurallar
+## 12. Riskler ve Koruyucu Kurallar
 
 - Cross-tenant data leak riski (tenant scope ihlali).
 - Advisor privilege escalation riski (external kullanıcı yetki aşımı).
 - Module boundary leakage riski (alan sorumluluklarının karışması).
 - Seed verisinin legacy varsayımları gizleme riski.
-- AI Act MVP doğrulanmadan aşırı kapsam büyütme (overbuilding) riski.
+- Pilot/GTM sinyalleri toplanmadan aşiri kapsam buyutme (overbuilding) riski.
 
 Koruyucu kurallar:
 
@@ -426,10 +366,9 @@ Koruyucu kurallar:
 
 ---
 
-## 10. Sonraki Adımlar
+## 13. Sonraki Adımlar (Current Phase)
 
-1. invitation acceptance flow'u uygulamak
-2. route/service testlerini doğrulamak
-3. advisor dokümantasyonunu güncellemek
-4. module activation guard'ını genişletmek
-5. AI Act MVP schema'sını hazırlamak
+1. Pilot onboarding playbook'unu standartlastirmak
+2. Demo script ve ilk satis anlatisini paketlemek
+3. Pilot geri bildirimlerini haftalik product karar ritmine baglamak
+4. AI Act Post-MVP iyilestirmelerini pilot verisiyle onceliklendirmek

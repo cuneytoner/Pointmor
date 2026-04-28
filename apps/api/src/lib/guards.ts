@@ -1,6 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { SessionPayload } from "./auth-memory.js";
-import { hasPermissionForRole, resolveTenantAppRoleFromMembership, type TenantPermission } from "@pointmor/rbac";
+import {
+  hasPermissionForMembershipRole,
+  type TenantPermission,
+} from "@pointmor/rbac";
 import { prisma } from "./prisma.js";
 
 export async function requirePlatformAdmin(
@@ -90,14 +93,8 @@ export async function requireTenantAccess(
     if (MODULE_SCOPED_PERMISSIONS.has(options.permission) && !options.moduleName) {
       return { ok: false, error: "permission_denied" };
     }
-    const appRole = membership.role === "ADMIN"
-      ? "owner"
-      : membership.role === "MEMBER"
-        ? "manager"
-        : membership.role === "ADVISOR"
-          ? "viewer"
-          : resolveTenantAppRoleFromMembership(membership.role);
-    if (!hasPermissionForRole(appRole, options.permission)) {
+    // Membership role is the source of truth; ADVISOR has explicit narrow overrides.
+    if (!hasPermissionForMembershipRole(membership.role, options.permission)) {
       return { ok: false, error: "permission_denied" };
     }
   }

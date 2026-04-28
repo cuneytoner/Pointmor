@@ -197,7 +197,7 @@
   "dashboardPlatform": {
     "eyebrow": "Operaciones",
     "title": "Resumen de plataforma",
-    "description": "Métricas multi-inquilino del bootstrap; la tabla es demo.",
+    "description": "Métricas y actividad multi-inquilino desde datos bootstrap en vivo.",
     "hero": {
       "title": "Instantánea de operaciones SaaS",
       "subtitle": "Negocios, facturación y auditoría: alcance del operador."
@@ -566,38 +566,30 @@
       "trialingHint": "estado = trialing"
     },
     "activity": {
-      "title": "Actividad de ejemplo del negocio",
-      "badgeDemo": "Demo",
+      "title": "Actividad de negocios",
+      "badgeLive": "En vivo",
       "columns": {
         "workspace": "Negocio",
         "event": "Evento",
         "time": "Hora",
         "status": "Estado"
       },
+      "time": {
+        "activeSubscription": "Suscripción activa",
+        "noSubscription": "Sin suscripción"
+      },
       "statusBadge": {
         "success": "OK",
         "warning": "Atención",
         "info": "Info"
-      },
-      "demo": {
-        "row1": {
-          "workspace": "Pointmor Demo Cafe",
-          "when": "Hace 12 min"
-        },
-        "row2": {
-          "workspace": "Bistro Calle del Puerto",
-          "when": "Hace 1 h"
-        },
-        "row3": {
-          "workspace": "Campus Coffee",
-          "when": "Ayer"
-        }
       }
     },
     "events": {
-      "provision": "Aprovisionado",
-      "invite_sent": "Invitación enviada",
-      "subscription_hold": "En pausa"
+      "workspace_synced": "Negocio sincronizado",
+      "ai_risk_assessment_completed": "Evaluación de riesgo de IA completada",
+      "loyalty_campaign_activated": "Campaña de fidelidad activada",
+      "multi_product_onboarding_completed": "Onboarding multiproducto completado",
+      "advisor_access_granted": "Acceso de asesor concedido"
     }
   },
   "workspaces": {
@@ -701,6 +693,13 @@
       "title": "Sistemas AI",
       "description": "Crear sistema, completar assessment y revisar resultado.",
       "newSystem": "Nuevo sistema AI",
+      "startAssessment": "Iniciar assessment",
+      "viewResult": "Ver resultado",
+      "notAssessed": "Sin assessment",
+      "assessmentRequired": "Assessment requerido",
+      "emptyTitle": "Aún no hay sistemas AI",
+      "emptyCta": "Crea tu primer sistema AI",
+      "createRestrictedHelper": "Solicita apoyo de un usuario autorizado para crear un sistema AI.",
       "columns": {
         "name": "Nombre",
         "riskLevel": "Nivel de riesgo",
@@ -710,6 +709,8 @@
     "new": {
       "title": "Nuevo sistema AI",
       "description": "Crea el sistema y continúa al assessment.",
+      "helper": "Define el sistema con AI que usas. En el siguiente paso, obtendremos el nivel de riesgo con un assessment corto.",
+      "noPermission": "No tienes permiso para crear sistemas de IA.",
       "submit": "Crear y continuar",
       "fields": {
         "name": "Nombre",
@@ -717,21 +718,83 @@
         "providerType": "Tipo de proveedor"
       }
     },
+    "riskLevel": {
+      "HIGH": "Alto riesgo",
+      "LIMITED": "Riesgo limitado",
+      "MINIMAL": "Riesgo minimo"
+    },
     "assessment": {
       "title": "Assessment: {{name}}",
       "description": "Responde las 10 preguntas.",
-      "submit": "Enviar assessment"
+      "notice": "Este assessment no es una decisión legal; es una orientación inicial de riesgo.",
+      "progress": "{{completed}} de 10 preguntas completadas",
+      "submit": "Generar resultado de riesgo"
     },
     "result": {
       "title": "Resultado: {{name}}",
       "description": "Riesgo sugerido, obligaciones y tareas.",
+      "riskBadgeLabel": "Riesgo",
+      "confidenceLabel": "Confianza",
+      "suggestionNotice": "Este resultado es una sugerencia asistida por AI; no es una evaluación legal final.",
+      "guidanceHigh": "Este sistema requiere una revisión de cumplimiento más detallada.",
+      "guidanceLimited": "La transparencia y la información al usuario son prioritarias para este sistema.",
+      "guidanceMinimal": "Este sistema parece de bajo riesgo, pero igualmente debe mantenerse documentado.",
+      "guidanceUnknown": "Revisa los registros del sistema para una evaluación de riesgo más clara.",
       "riskLevel": "Nivel de riesgo",
       "confidence": "Confianza",
       "suggested": "Sugerido",
       "obligations": "Obligaciones",
-      "tasks": "Tareas",
-      "emptyObligations": "No hay obligaciones generadas.",
-      "emptyTasks": "No hay tareas generadas."
+      "tasks": "Tareas / Próximas acciones",
+      "emptyObligations": "Aún no se generaron obligaciones para este assessment.",
+      "emptyTasks": "Aún no hay tareas. Vuelve a ejecutar el assessment si es necesario.",
+      "rerunAssessment": "Ejecutar assessment de nuevo"
+    },
+    "obligationType": {
+      "transparency_notice": {
+        "label": "Aviso de transparencia",
+        "description": "Informa claramente a los usuarios sobre el uso de AI."
+      },
+      "user_information": {
+        "label": "Información al usuario",
+        "description": "Comparte alcance, impacto y reglas básicas de uso con los usuarios."
+      },
+      "risk_management": {
+        "label": "Gestión de riesgos",
+        "description": "Define un proceso continuo para identificar y mitigar riesgos."
+      },
+      "human_oversight": {
+        "label": "Supervisión humana",
+        "description": "Agrega aprobación o intervención humana para decisiones críticas."
+      },
+      "logging": {
+        "label": "Registro y monitoreo",
+        "description": "Mantén registros auditables de decisiones y eventos clave."
+      },
+      "data_governance": {
+        "label": "Gobernanza de datos",
+        "description": "Aclara calidad de datos, retención y controles de acceso."
+      },
+      "provider_documentation": {
+        "label": "Documentación del proveedor",
+        "description": "Recopila y mantén actualizada la documentación del proveedor."
+      }
+    },
+    "status": {
+      "obligation": {
+        "PENDING": "Estado: Pendiente",
+        "IN_PROGRESS": "Estado: En progreso",
+        "COMPLETED": "Estado: Completado",
+        "NOT_APPLICABLE": "Estado: No aplica"
+      },
+      "task": {
+        "OPEN": "Abierta",
+        "IN_PROGRESS": "En progreso",
+        "DONE": "Completada",
+        "CANCELLED": "Cancelada",
+        "PENDING": "Pendiente",
+        "COMPLETED": "Completada",
+        "NOT_APPLICABLE": "No aplica"
+      }
     },
     "providerType": {
       "INTERNAL": "Interno",

@@ -6,10 +6,16 @@ import { seedDemoScenarios } from "./seed-demo-scenarios.js";
 import { AI_ACT_QUESTION_KEYS, type AiActQuestionKey } from "../src/lib/ai-act-assessment.js";
 
 export type CoreSeedContext = {
-  demoTenantId: string;
+  loyaltyTenantId: string;
+  aiActTenantId: string;
+  mixedTenantId: string;
+  advisorTenantId: string;
   growthPlanId: string;
+  advisorPlanId: string;
   adminUserId: string;
-  demoOwnerUserId: string;
+  ownerUserId: string;
+  memberUserId: string;
+  advisorUserId: string;
 };
 
 export async function coreSeed(input: {
@@ -18,16 +24,60 @@ export async function coreSeed(input: {
   operatorPasswordHash: string;
 }): Promise<CoreSeedContext> {
   const { prisma, adminPasswordHash, operatorPasswordHash } = input;
-  const demoTenant = await prisma.tenant.upsert({
-    where: { slug: "demo-cafe" },
+  const loyaltyTenant = await prisma.tenant.upsert({
+    where: { slug: "urban-coffee-group" },
     create: {
-      slug: "demo-cafe",
-      name: "Pointmor Demo Cafe",
+      slug: "urban-coffee-group",
+      name: "Urban Coffee Group",
       onboardingStep: 6,
       onboardingCompletedAt: new Date(),
     },
     update: {
-      name: "Pointmor Demo Cafe",
+      name: "Urban Coffee Group",
+      onboardingStep: 6,
+      onboardingCompletedAt: new Date(),
+    },
+  });
+  const aiActTenant = await prisma.tenant.upsert({
+    where: { slug: "acme-ai-solutions" },
+    create: {
+      slug: "acme-ai-solutions",
+      name: "Acme AI Solutions",
+      onboardingStep: 6,
+      onboardingCompletedAt: new Date(),
+    },
+    update: {
+      name: "Acme AI Solutions",
+      onboardingStep: 6,
+      onboardingCompletedAt: new Date(),
+    },
+  });
+  const mixedTenant = await prisma.tenant.upsert({
+    where: { slug: "retailcorp-eu" },
+    create: {
+      slug: "retailcorp-eu",
+      name: "RetailCorp EU",
+      onboardingStep: 6,
+      onboardingCompletedAt: new Date(),
+    },
+    update: {
+      name: "RetailCorp EU",
+      onboardingStep: 6,
+      onboardingCompletedAt: new Date(),
+    },
+  });
+  const advisorTenant = await prisma.tenant.upsert({
+    where: { slug: "kanzlei-mueller-advisory" },
+    create: {
+      slug: "kanzlei-mueller-advisory",
+      name: "Kanzlei Muller Advisory",
+      type: "ADVISOR",
+      onboardingStep: 6,
+      onboardingCompletedAt: new Date(),
+    },
+    update: {
+      name: "Kanzlei Muller Advisory",
+      type: "ADVISOR",
       onboardingStep: 6,
       onboardingCompletedAt: new Date(),
     },
@@ -47,56 +97,55 @@ export async function coreSeed(input: {
     where: { slug: "starter" },
     create: {
       slug: "starter",
-      name: "Baslangic",
-      description: "Deneme ve kucuk isletmeler",
+      name: "Starter Platform",
+      description: "Core platform baseline for single-product usage",
       priceCents: 0,
       currency: "EUR",
       interval: "month",
       planType: "free",
-      featureTags: ["loyalty_core"],
+      featureTags: ["loyalty", "expense_capture", "e_invoice"],
       limits: starterLimits,
     },
     update: {
       planType: "free",
-      featureTags: ["loyalty_core"],
+      name: "Starter Platform",
+      description: "Core platform baseline for single-product usage",
+      featureTags: ["loyalty", "expense_capture", "e_invoice"],
       limits: starterLimits,
     },
   });
 
-  const proFeatures = [
-    "loyalty_core",
-    "customer_pwa",
-    "campaigns",
-    "manager_closing",
-    "compliance_limited",
-    "multi_branch",
-    "hq_dashboard",
-    "hq_ai_insights",
-    "hq_automation",
-  ];
+  const complianceFeatures = ["ai_act", "ai_document_intelligence", "advisor_dashboard"];
 
   await prisma.plan.upsert({
     where: { slug: "pro" },
     create: {
       slug: "pro",
-      name: "Pro",
-      description: "Orta seviye - uyumluluk ozeti ve kisa saklama",
+      name: "Compliance Pro",
+      description: "AI/compliance focused module package",
       priceCents: 4900,
       currency: "EUR",
       interval: "month",
       planType: "pro",
-      featureTags: proFeatures,
+      featureTags: complianceFeatures,
       limits: {},
     },
     update: {
       planType: "pro",
-      featureTags: proFeatures,
+      name: "Compliance Pro",
+      description: "AI/compliance focused module package",
+      featureTags: complianceFeatures,
       limits: {},
     },
   });
 
-  const growthFeatures = [
-    "loyalty_core",
+  const multiProductFeatures = [
+    "ai_act",
+    "ai_document_intelligence",
+    "loyalty",
+    "expense_capture",
+    "e_invoice",
+    "advisor_dashboard",
     "customer_pwa",
     "campaigns",
     "growth_automation",
@@ -107,25 +156,46 @@ export async function coreSeed(input: {
     "hq_dashboard",
     "hq_ai_insights",
     "hq_automation",
-    "compliance_full",
   ];
 
   const growth = await prisma.plan.upsert({
     where: { slug: "growth" },
     create: {
       slug: "growth",
-      name: "Buyume",
-      description: "Aylik faturalama",
+      name: "Multi-Product Business",
+      description: "Combined loyalty and AI/compliance package",
       priceCents: 8900,
       currency: "EUR",
       interval: "month",
       planType: "pro",
-      featureTags: growthFeatures,
+      featureTags: multiProductFeatures,
       limits: {},
     },
     update: {
       planType: "pro",
-      featureTags: growthFeatures,
+      name: "Multi-Product Business",
+      description: "Combined loyalty and AI/compliance package",
+      featureTags: multiProductFeatures,
+      limits: {},
+    },
+  });
+  const advisorPlan = await prisma.plan.upsert({
+    where: { slug: "advisor-firm" },
+    create: {
+      slug: "advisor-firm",
+      name: "Advisor Firm",
+      description: "Advisory tenant package with client workspace access",
+      priceCents: 6900,
+      currency: "EUR",
+      interval: "month",
+      planType: "pro",
+      featureTags: ["advisor_dashboard", "ai_act", "ai_document_intelligence", "expense_capture", "e_invoice"],
+      limits: {},
+    },
+    update: {
+      name: "Advisor Firm",
+      description: "Advisory tenant package with client workspace access",
+      featureTags: ["advisor_dashboard", "ai_act", "ai_document_intelligence", "expense_capture", "e_invoice"],
       limits: {},
     },
   });
@@ -148,19 +218,83 @@ export async function coreSeed(input: {
     },
   });
 
-  const demoOwner = await prisma.user.upsert({
-    where: { email: "owner@demo.pointmor.local" },
+  const aiOwnerUser = await prisma.user.upsert({
+    where: { email: "owner@acme.pointmor.local" },
     create: {
-      email: "owner@demo.pointmor.local",
-      name: "Demo Cafe - owner",
+      email: "owner@acme.pointmor.local",
+      name: "Acme Owner",
       passwordHash: operatorPasswordHash,
       platformAdmin: false,
-      tenantId: demoTenant.id,
+      tenantId: null,
       role: "tenant_operator",
     },
     update: {
       passwordHash: operatorPasswordHash,
-      tenantId: demoTenant.id,
+      tenantId: null,
+      role: "tenant_operator",
+    },
+  });
+  const loyaltyOwnerUser = await prisma.user.upsert({
+    where: { email: "owner@urban.pointmor.local" },
+    create: {
+      email: "owner@urban.pointmor.local",
+      name: "Urban Owner",
+      passwordHash: operatorPasswordHash,
+      platformAdmin: false,
+      tenantId: null,
+      role: "tenant_operator",
+    },
+    update: {
+      passwordHash: operatorPasswordHash,
+      tenantId: null,
+      role: "tenant_operator",
+    },
+  });
+  const mixedOwnerUser = await prisma.user.upsert({
+    where: { email: "owner@retailcorp.pointmor.local" },
+    create: {
+      email: "owner@retailcorp.pointmor.local",
+      name: "RetailCorp Owner",
+      passwordHash: operatorPasswordHash,
+      platformAdmin: false,
+      tenantId: null,
+      role: "tenant_operator",
+    },
+    update: {
+      passwordHash: operatorPasswordHash,
+      tenantId: null,
+      role: "tenant_operator",
+    },
+  });
+  const memberUser = await prisma.user.upsert({
+    where: { email: "member@pointmor.local" },
+    create: {
+      email: "member@pointmor.local",
+      name: "Platform Member",
+      passwordHash: operatorPasswordHash,
+      platformAdmin: false,
+      tenantId: null,
+      role: "tenant_operator",
+    },
+    update: {
+      passwordHash: operatorPasswordHash,
+      tenantId: null,
+      role: "tenant_operator",
+    },
+  });
+  const advisorUser = await prisma.user.upsert({
+    where: { email: "advisor@pointmor.local" },
+    create: {
+      email: "advisor@pointmor.local",
+      name: "Platform Advisor",
+      passwordHash: operatorPasswordHash,
+      platformAdmin: false,
+      tenantId: null,
+      role: "tenant_operator",
+    },
+    update: {
+      passwordHash: operatorPasswordHash,
+      tenantId: null,
       role: "tenant_operator",
     },
   });
@@ -169,49 +303,114 @@ export async function coreSeed(input: {
   await createMembership({
     prisma,
     userId: platformAdmin.id,
-    tenantId: demoTenant.id,
+    tenantId: loyaltyTenant.id,
     role: "ADMIN",
     isExternal: false,
   });
   await createMembership({
     prisma,
-    userId: demoOwner.id,
-    tenantId: demoTenant.id,
+    userId: platformAdmin.id,
+    tenantId: aiActTenant.id,
     role: "ADMIN",
     isExternal: false,
   });
+  await createMembership({
+    prisma,
+    userId: platformAdmin.id,
+    tenantId: mixedTenant.id,
+    role: "ADMIN",
+    isExternal: false,
+  });
+  await createMembership({
+    prisma,
+    userId: loyaltyOwnerUser.id,
+    tenantId: loyaltyTenant.id,
+    role: "ADMIN",
+    isExternal: false,
+  });
+  await createMembership({
+    prisma,
+    userId: aiOwnerUser.id,
+    tenantId: aiActTenant.id,
+    role: "ADMIN",
+    isExternal: false,
+  });
+  await createMembership({
+    prisma,
+    userId: mixedOwnerUser.id,
+    tenantId: mixedTenant.id,
+    role: "ADMIN",
+    isExternal: false,
+  });
+  await createMembership({
+    prisma,
+    userId: memberUser.id,
+    tenantId: loyaltyTenant.id,
+    role: "MEMBER",
+    isExternal: false,
+  });
+  await createMembership({
+    prisma,
+    userId: memberUser.id,
+    tenantId: mixedTenant.id,
+    role: "MEMBER",
+    isExternal: false,
+  });
+  await createMembership({
+    prisma,
+    userId: advisorUser.id,
+    tenantId: advisorTenant.id,
+    role: "ADMIN",
+    isExternal: false,
+  });
+  await createMembership({
+    prisma,
+    userId: advisorUser.id,
+    tenantId: aiActTenant.id,
+    role: "ADVISOR",
+    isExternal: true,
+  });
+  await createMembership({
+    prisma,
+    userId: advisorUser.id,
+    tenantId: mixedTenant.id,
+    role: "ADVISOR",
+    isExternal: true,
+  });
 
   return {
-    demoTenantId: demoTenant.id,
+    loyaltyTenantId: loyaltyTenant.id,
+    aiActTenantId: aiActTenant.id,
+    mixedTenantId: mixedTenant.id,
+    advisorTenantId: advisorTenant.id,
     growthPlanId: growth.id,
+    advisorPlanId: advisorPlan.id,
     adminUserId: platformAdmin.id,
-    demoOwnerUserId: demoOwner.id,
+    ownerUserId: aiOwnerUser.id,
+    memberUserId: memberUser.id,
+    advisorUserId: advisorUser.id,
   };
 }
 
 export async function moduleSeed(input: {
   prisma: PrismaClient;
-  demoTenantId: string;
+  loyaltyTenantId: string;
+  aiActTenantId: string;
+  mixedTenantId: string;
+  advisorTenantId: string;
 }): Promise<void> {
-  const { prisma, demoTenantId } = input;
+  const { prisma, loyaltyTenantId, aiActTenantId, mixedTenantId, advisorTenantId } = input;
+  const setModuleState = async (tenantId: string, moduleId: string, isActive: boolean) => {
+    await prisma.tenantModule.upsert({
+      where: { tenantId_moduleId: { tenantId, moduleId } },
+      create: { tenantId, moduleId, isActive },
+      update: { isActive },
+    });
+  };
   const cafeModule = await prisma.module.upsert({
     where: { name: "cafe" },
     create: { name: "cafe", description: "Cafe module" },
     update: {},
-  });
-  await prisma.tenantModule.upsert({
-    where: {
-      tenantId_moduleId: {
-        tenantId: demoTenantId,
-        moduleId: cafeModule.id,
-      },
-    },
-    create: {
-      tenantId: demoTenantId,
-      moduleId: cafeModule.id,
-      isActive: true,
-    },
-    update: { isActive: true },
   });
 
   const aiActModule = await prisma.module.upsert({
@@ -219,35 +418,49 @@ export async function moduleSeed(input: {
     create: { name: "ai_act", description: "AI Act compliance module" },
     update: {},
   });
-  await prisma.tenantModule.upsert({
-    where: {
-      tenantId_moduleId: {
-        tenantId: demoTenantId,
-        moduleId: aiActModule.id,
-      },
-    },
-    create: {
-      tenantId: demoTenantId,
-      moduleId: aiActModule.id,
-      isActive: true,
-    },
-    update: { isActive: true },
+  const aiDocumentModule = await prisma.module.findUnique({
+    where: { name: "ai_document_intelligence" },
+    select: { id: true },
   });
+  await setModuleState(loyaltyTenantId, cafeModule.id, true);
+  await setModuleState(loyaltyTenantId, aiActModule.id, false);
+  await setModuleState(aiActTenantId, cafeModule.id, false);
+  await setModuleState(aiActTenantId, aiActModule.id, true);
+  await setModuleState(mixedTenantId, cafeModule.id, true);
+  await setModuleState(mixedTenantId, aiActModule.id, true);
+  await setModuleState(advisorTenantId, cafeModule.id, false);
+  await setModuleState(advisorTenantId, aiActModule.id, true);
+  if (aiDocumentModule) {
+    await setModuleState(loyaltyTenantId, aiDocumentModule.id, false);
+    await setModuleState(aiActTenantId, aiDocumentModule.id, true);
+    await setModuleState(mixedTenantId, aiDocumentModule.id, true);
+    await setModuleState(advisorTenantId, aiDocumentModule.id, true);
+  }
 }
 
 export async function scenarioSeed(input: {
   prisma: PrismaClient;
-  demoTenantId: string;
+  loyaltyTenantId: string;
+  aiActTenantId: string;
+  mixedTenantId: string;
+  advisorTenantId: string;
   growthPlanId: string;
-  demoOwnerUserId: string;
+  advisorPlanId: string;
+  ownerUserId: string;
+  advisorUserId: string;
   adminEmailForAudit: string;
   includeDemoScenarios: boolean;
 }): Promise<void> {
   const {
     prisma,
-    demoTenantId,
+    loyaltyTenantId,
+    aiActTenantId,
+    mixedTenantId,
+    advisorTenantId,
     growthPlanId,
-    demoOwnerUserId,
+    advisorPlanId,
+    ownerUserId,
+    advisorUserId,
     adminEmailForAudit,
     includeDemoScenarios,
   } = input;
@@ -256,7 +469,40 @@ export async function scenarioSeed(input: {
     where: { id: "seed_sub_demo" },
     create: {
       id: "seed_sub_demo",
-      tenantId: demoTenantId,
+      tenantId: loyaltyTenantId,
+      planId: growthPlanId,
+      status: "active",
+      renewsAt: new Date("2026-05-01T00:00:00.000Z"),
+    },
+    update: {},
+  });
+  await prisma.subscription.upsert({
+    where: { id: "seed_sub_advisor" },
+    create: {
+      id: "seed_sub_advisor",
+      tenantId: advisorTenantId,
+      planId: advisorPlanId,
+      status: "active",
+      renewsAt: new Date("2026-05-01T00:00:00.000Z"),
+    },
+    update: {},
+  });
+  await prisma.subscription.upsert({
+    where: { id: "seed_sub_ai_act" },
+    create: {
+      id: "seed_sub_ai_act",
+      tenantId: aiActTenantId,
+      planId: growthPlanId,
+      status: "active",
+      renewsAt: new Date("2026-05-01T00:00:00.000Z"),
+    },
+    update: {},
+  });
+  await prisma.subscription.upsert({
+    where: { id: "seed_sub_mixed" },
+    create: {
+      id: "seed_sub_mixed",
+      tenantId: mixedTenantId,
       planId: growthPlanId,
       status: "active",
       renewsAt: new Date("2026-05-01T00:00:00.000Z"),
@@ -264,25 +510,25 @@ export async function scenarioSeed(input: {
     update: {},
   });
 
-  if ((await prisma.auditEvent.count({ where: { tenantId: demoTenantId } })) === 0) {
+  if ((await prisma.auditEvent.count({ where: { tenantId: loyaltyTenantId } })) === 0) {
     await prisma.auditEvent.createMany({
       data: [
         {
-          tenantId: demoTenantId,
-          actorUserId: demoOwnerUserId,
+          tenantId: loyaltyTenantId,
+          actorUserId: ownerUserId,
           actorType: "manager",
           eventType: "seed_audit_sample",
           entityType: "other",
-          entityId: demoTenantId,
+          entityId: loyaltyTenantId,
           payload: { message: "Demo denetim kaydi (seed)" },
         },
         {
-          tenantId: demoTenantId,
-          actorUserId: demoOwnerUserId,
+          tenantId: loyaltyTenantId,
+          actorUserId: ownerUserId,
           actorType: "manager",
           eventType: "RETENTION_UPDATED",
           entityType: "other",
-          entityId: demoTenantId,
+          entityId: loyaltyTenantId,
           payload: { note: "ornek uyumluluk olayi" },
         },
       ],
@@ -307,12 +553,123 @@ export async function scenarioSeed(input: {
     await seedDemoScenarios(prisma);
   }
 
-  await seedAiActMvpScenarios(prisma, {
-    tenantId: demoTenantId,
-    createdByUserId: demoOwnerUserId,
-    scopePrefix: "demo_cafe",
+  await seedMinimalLoyaltyData(prisma, {
+    tenantId: mixedTenantId,
+    ownerUserId,
+    scopePrefix: "mixed",
   });
-  await assertAiSeedConsistency(prisma, demoTenantId);
+
+  await seedAiActMvpScenarios(prisma, {
+    tenantId: aiActTenantId,
+    createdByUserId: ownerUserId,
+    scopePrefix: "ai_tenant",
+    profile: "full",
+  });
+  await seedAiActMvpScenarios(prisma, {
+    tenantId: mixedTenantId,
+    createdByUserId: ownerUserId,
+    scopePrefix: "mixed",
+    profile: "minimal",
+  });
+  await seedAiActMvpScenarios(prisma, {
+    tenantId: advisorTenantId,
+    createdByUserId: advisorUserId,
+    scopePrefix: "advisor",
+    profile: "minimal",
+  });
+  await assertAiSeedConsistency(prisma, aiActTenantId);
+  await assertAiSeedConsistency(prisma, mixedTenantId);
+  await assertAiSeedConsistency(prisma, advisorTenantId);
+}
+
+async function seedMinimalLoyaltyData(
+  prisma: PrismaClient,
+  input: { tenantId: string; ownerUserId: string; scopePrefix: string },
+) {
+  const { tenantId, ownerUserId, scopePrefix } = input;
+  const customer = await prisma.customer.upsert({
+    where: { tenantId_phone: { tenantId, phone: `+9000000${scopePrefix.slice(0, 4)}` } },
+    create: {
+      tenantId,
+      name: "Mixed Tenant Customer",
+      phone: `+9000000${scopePrefix.slice(0, 4)}`,
+      loyaltyAccount: { create: { tenantId, pointsBalance: 120 } },
+      visitCount: 1,
+      lastVisitAt: new Date("2026-04-10T10:00:00.000Z"),
+      lastActiveAt: new Date("2026-04-10T10:00:00.000Z"),
+    },
+    update: {
+      name: "Mixed Tenant Customer",
+      visitCount: 1,
+      lastVisitAt: new Date("2026-04-10T10:00:00.000Z"),
+      lastActiveAt: new Date("2026-04-10T10:00:00.000Z"),
+    },
+    select: { id: true },
+  });
+  await prisma.reward.upsert({
+    where: { id: `seed_${scopePrefix}_reward_free_coffee` },
+    create: {
+      id: `seed_${scopePrefix}_reward_free_coffee`,
+      tenantId,
+      name: "Free Coffee",
+      description: "Mixed tenant minimal loyalty reward",
+      pointsCost: 100,
+      rewardType: "FREE_ITEM",
+      valueType: "NONE",
+      value: 0,
+      isActive: true,
+    },
+    update: { tenantId, pointsCost: 100, isActive: true },
+  });
+  await prisma.visit.upsert({
+    where: { id: `seed_${scopePrefix}_visit_001` },
+    create: {
+      id: `seed_${scopePrefix}_visit_001`,
+      tenantId,
+      customerId: customer.id,
+      amount: 1200,
+      pointsEarned: 12,
+      basePointsEarned: 12,
+      bonusPointsEarned: 0,
+      createdAt: new Date("2026-04-10T10:00:00.000Z"),
+    },
+    update: {
+      tenantId,
+      customerId: customer.id,
+      amount: 1200,
+      pointsEarned: 12,
+      basePointsEarned: 12,
+      bonusPointsEarned: 0,
+    },
+  });
+  await prisma.pointsLedger.upsert({
+    where: { id: `seed_${scopePrefix}_ledger_visit_001` },
+    create: {
+      id: `seed_${scopePrefix}_ledger_visit_001`,
+      tenantId,
+      customerId: customer.id,
+      type: "earn",
+      source: "visit",
+      points: 12,
+      referenceId: `seed_${scopePrefix}_visit_001`,
+      visitId: `seed_${scopePrefix}_visit_001`,
+    },
+    update: { tenantId, customerId: customer.id, points: 12 },
+  });
+  await prisma.auditEvent.upsert({
+    where: { id: `seed_${scopePrefix}_audit_001` },
+    create: {
+      id: `seed_${scopePrefix}_audit_001`,
+      tenantId,
+      actorUserId: ownerUserId,
+      actorType: "manager",
+      eventType: "seed_minimal_loyalty",
+      entityType: "customer",
+      entityId: customer.id,
+      payload: { scope: scopePrefix },
+    },
+    update: { tenantId, actorUserId: ownerUserId, entityId: customer.id },
+  });
 }
 
 export function defaultDevPasswordHashes(): { admin: string; operator: string } {
@@ -324,9 +681,78 @@ export function defaultDevPasswordHashes(): { admin: string; operator: string } 
 
 export async function seedAiActMvpScenarios(
   prisma: PrismaClient,
-  input: { tenantId: string; createdByUserId: string; scopePrefix: string },
+  input: { tenantId: string; createdByUserId: string; scopePrefix: string; profile?: "full" | "minimal" },
 ): Promise<void> {
-  const { tenantId, createdByUserId, scopePrefix } = input;
+  const { tenantId, createdByUserId, scopePrefix, profile = "full" } = input;
+  if (profile === "minimal") {
+    const minimalSystem = await prisma.aiSystem.upsert({
+      where: { id: `seed_${scopePrefix}_ai_system_invoice_processing` },
+      create: {
+        id: `seed_${scopePrefix}_ai_system_invoice_processing`,
+        tenantId,
+        name: "Invoice Processing AI",
+        description: "Mixed tenant icin minimal AI Act senaryosu.",
+        purpose: "invoice processing",
+        providerType: "INTERNAL",
+        status: "ACTIVE",
+        createdByUserId,
+      },
+      update: {
+        tenantId,
+        description: "Mixed tenant icin minimal AI Act senaryosu.",
+        purpose: "invoice processing",
+        providerType: "INTERNAL",
+        status: "ACTIVE",
+        createdByUserId,
+      },
+    });
+    const minimalValues = {
+      q_ai_used: false,
+      q_ai_purpose: "other",
+      q_personal_data: false,
+      q_sensitive_data: false,
+      q_automated_decision: false,
+      q_human_oversight: true,
+      q_employment_context: false,
+      q_biometric_identification: false,
+      q_safety_critical: false,
+      q_provider_documentation: true,
+    } satisfies Record<(typeof AI_ACT_QUESTION_KEYS)[number], Prisma.InputJsonValue>;
+    const minimalAssessment = await prisma.aiAssessment.upsert({
+      where: { id: `seed_${scopePrefix}_ai_assessment_invoice_processing_v1` },
+      create: {
+        id: `seed_${scopePrefix}_ai_assessment_invoice_processing_v1`,
+        tenantId,
+        aiSystemId: minimalSystem.id,
+        version: 1,
+        status: "COMPLETED",
+        riskLevel: "MINIMAL",
+        classificationSource: "HYBRID",
+        confidence: 0.9,
+        createdByUserId,
+        questionnaire: minimalValues,
+      },
+      update: {
+        tenantId,
+        aiSystemId: minimalSystem.id,
+        version: 1,
+        status: "COMPLETED",
+        riskLevel: "MINIMAL",
+        classificationSource: "HYBRID",
+        confidence: 0.9,
+        createdByUserId,
+        questionnaire: minimalValues,
+      },
+    });
+    await seedAssessmentAnswers(prisma, {
+      tenantId,
+      assessmentId: minimalAssessment.id,
+      answerSource: "AI",
+      confidence: 0.9,
+      values: minimalValues,
+    });
+    return;
+  }
 
   const systemA = await prisma.aiSystem.upsert({
     where: { id: `seed_${scopePrefix}_ai_system_chatbot` },
@@ -398,21 +824,21 @@ export async function seedAiActMvpScenarios(
   });
 
   const systemB = await prisma.aiSystem.upsert({
-    where: { id: `seed_${scopePrefix}_ai_system_performance_scoring` },
+    where: { id: `seed_${scopePrefix}_ai_system_cv_screening_tool` },
     create: {
-      id: `seed_${scopePrefix}_ai_system_performance_scoring`,
+      id: `seed_${scopePrefix}_ai_system_cv_screening_tool`,
       tenantId,
-      name: "Employee Performance Scoring",
-      description: "Sentetik review odakli yuksek risk senaryosu.",
-      purpose: "employee performance analysis",
+      name: "CV Screening Tool",
+      description: "Sentetik yuksek riskli ise alim degerlendirme senaryosu.",
+      purpose: "cv screening",
       providerType: "HYBRID",
       status: "DRAFT",
       createdByUserId,
     },
     update: {
       tenantId,
-      description: "Sentetik review odakli yuksek risk senaryosu.",
-      purpose: "employee performance analysis",
+      description: "Sentetik yuksek riskli ise alim degerlendirme senaryosu.",
+      purpose: "cv screening",
       providerType: "HYBRID",
       status: "DRAFT",
       createdByUserId,
@@ -433,9 +859,9 @@ export async function seedAiActMvpScenarios(
   } satisfies Record<(typeof AI_ACT_QUESTION_KEYS)[number], Prisma.InputJsonValue>;
   const assessmentBQuestionnaire: Prisma.InputJsonValue = assessmentBValues;
   const assessmentB = await prisma.aiAssessment.upsert({
-    where: { id: `seed_${scopePrefix}_ai_assessment_performance_v1` },
+    where: { id: `seed_${scopePrefix}_ai_assessment_cv_screening_v1` },
     create: {
-      id: `seed_${scopePrefix}_ai_assessment_performance_v1`,
+      id: `seed_${scopePrefix}_ai_assessment_cv_screening_v1`,
       tenantId,
       aiSystemId: systemB.id,
       version: 1,
@@ -464,6 +890,73 @@ export async function seedAiActMvpScenarios(
     answerSource: "AI",
     confidence: 0.62,
     values: assessmentBValues,
+  });
+
+  const systemC = await prisma.aiSystem.upsert({
+    where: { id: `seed_${scopePrefix}_ai_system_fraud_detection` },
+    create: {
+      id: `seed_${scopePrefix}_ai_system_fraud_detection`,
+      tenantId,
+      name: "Fraud Detection AI",
+      description: "Sentetik fraud tespit senaryosu.",
+      purpose: "fraud detection",
+      providerType: "INTERNAL",
+      status: "ACTIVE",
+      createdByUserId,
+    },
+    update: {
+      tenantId,
+      description: "Sentetik fraud tespit senaryosu.",
+      purpose: "fraud detection",
+      providerType: "INTERNAL",
+      status: "ACTIVE",
+      createdByUserId,
+    },
+  });
+  const assessmentCValues = {
+    q_ai_used: false,
+    q_ai_purpose: "other",
+    q_personal_data: false,
+    q_sensitive_data: false,
+    q_automated_decision: false,
+    q_human_oversight: true,
+    q_employment_context: false,
+    q_biometric_identification: false,
+    q_safety_critical: false,
+    q_provider_documentation: true,
+  } satisfies Record<(typeof AI_ACT_QUESTION_KEYS)[number], Prisma.InputJsonValue>;
+  const assessmentC = await prisma.aiAssessment.upsert({
+    where: { id: `seed_${scopePrefix}_ai_assessment_fraud_detection_v1` },
+    create: {
+      id: `seed_${scopePrefix}_ai_assessment_fraud_detection_v1`,
+      tenantId,
+      aiSystemId: systemC.id,
+      version: 1,
+      status: "COMPLETED",
+      riskLevel: "MINIMAL",
+      classificationSource: "HYBRID",
+      confidence: 0.9,
+      createdByUserId,
+      questionnaire: assessmentCValues,
+    },
+    update: {
+      tenantId,
+      aiSystemId: systemC.id,
+      version: 1,
+      status: "COMPLETED",
+      riskLevel: "MINIMAL",
+      classificationSource: "HYBRID",
+      confidence: 0.9,
+      createdByUserId,
+      questionnaire: assessmentCValues,
+    },
+  });
+  await seedAssessmentAnswers(prisma, {
+    tenantId,
+    assessmentId: assessmentC.id,
+    answerSource: "AI",
+    confidence: 0.9,
+    values: assessmentCValues,
   });
 
   await prisma.aiObligation.upsert({
@@ -538,6 +1031,18 @@ export async function seedAiActMvpScenarios(
     },
     update: { tenantId, aiSystemId: systemB.id, status: "PENDING" },
   });
+  await prisma.aiObligation.upsert({
+    where: { id: `seed_${scopePrefix}_obl_provider_documentation_fraud` },
+    create: {
+      id: `seed_${scopePrefix}_obl_provider_documentation_fraud`,
+      tenantId,
+      aiSystemId: systemC.id,
+      obligationType: "provider_documentation",
+      status: "PENDING",
+      source: "MANUAL",
+    },
+    update: { tenantId, aiSystemId: systemC.id, status: "PENDING" },
+  });
 
   await prisma.aiTask.upsert({
     where: { id: `seed_${scopePrefix}_task_chatbot_notice` },
@@ -609,6 +1114,21 @@ export async function seedAiActMvpScenarios(
       obligationType: "provider_documentation",
       title: "Collect provider documentation",
       description: "Provider kaynakli synthetic sozlesme/policy dokumanlarini ekle.",
+      priority: "MEDIUM",
+      status: "OPEN",
+      assignedToUserId: createdByUserId,
+    },
+    update: { status: "OPEN", assignedToUserId: createdByUserId, obligationType: "provider_documentation" },
+  });
+  await prisma.aiTask.upsert({
+    where: { id: `seed_${scopePrefix}_task_fraud_provider_docs` },
+    create: {
+      id: `seed_${scopePrefix}_task_fraud_provider_docs`,
+      tenantId,
+      aiSystemId: systemC.id,
+      obligationType: "provider_documentation",
+      title: "Validate fraud model documentation",
+      description: "Fraud Detection AI icin model card ve governance notlarini guncelle.",
       priority: "MEDIUM",
       status: "OPEN",
       assignedToUserId: createdByUserId,

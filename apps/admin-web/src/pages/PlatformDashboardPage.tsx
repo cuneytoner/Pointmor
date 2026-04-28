@@ -7,9 +7,9 @@ import { formatCount } from "../lib/formatters";
 type ActivityStatus = "success" | "info" | "warning";
 
 type DemoRow = {
-  workspaceKey: string;
+  workspace: string;
   eventKey: string;
-  whenKey: string;
+  when: string;
   status: ActivityStatus;
 };
 
@@ -47,26 +47,47 @@ export function PlatformDashboardPage() {
     },
   ];
 
-  const demoRows: DemoRow[] = [
-    {
-      workspaceKey: "dashboard.activity.demo.row1.workspace",
-      eventKey: "dashboard.events.provision",
-      whenKey: "dashboard.activity.demo.row1.when",
-      status: "success",
-    },
-    {
-      workspaceKey: "dashboard.activity.demo.row2.workspace",
-      eventKey: "dashboard.events.invite_sent",
-      whenKey: "dashboard.activity.demo.row2.when",
-      status: "info",
-    },
-    {
-      workspaceKey: "dashboard.activity.demo.row3.workspace",
-      eventKey: "dashboard.events.subscription_hold",
-      whenKey: "dashboard.activity.demo.row3.when",
-      status: "warning",
-    },
-  ];
+  const moduleMap = new Map<string, Set<string>>();
+  for (const row of bootstrap?.tenantModules ?? []) {
+    if (!row.isActive) continue;
+    const existing = moduleMap.get(row.tenantId) ?? new Set<string>();
+    existing.add(row.module.name);
+    moduleMap.set(row.tenantId, existing);
+  }
+  const subscriptionMap = new Map((bootstrap?.subscriptions ?? []).map((s) => [s.tenant.id, s]));
+
+  const demoRows: DemoRow[] = (bootstrap?.tenants ?? [])
+    .map((tenant) => {
+      const activeModules = moduleMap.get(tenant.id) ?? new Set<string>();
+      const hasAiAct = activeModules.has("ai_act");
+      const hasLoyalty = activeModules.has("cafe");
+      const hasSubscription = Boolean(subscriptionMap.get(tenant.id));
+
+      let eventKey = "dashboard.events.workspace_synced";
+      let status: ActivityStatus = hasSubscription ? "success" : "warning";
+
+      if (tenant.slug === "acme-ai-solutions" || (hasAiAct && !hasLoyalty)) {
+        eventKey = "dashboard.events.ai_risk_assessment_completed";
+        status = "success";
+      } else if (tenant.slug === "urban-coffee-group" || (!hasAiAct && hasLoyalty)) {
+        eventKey = "dashboard.events.loyalty_campaign_activated";
+        status = "success";
+      } else if (tenant.slug === "retailcorp-eu" || (hasAiAct && hasLoyalty)) {
+        eventKey = "dashboard.events.multi_product_onboarding_completed";
+        status = "success";
+      } else if (tenant.slug === "kanzlei-mueller-advisory") {
+        eventKey = "dashboard.events.advisor_access_granted";
+        status = "info";
+      }
+
+      return {
+        workspace: tenant.name,
+        eventKey,
+        when: hasSubscription ? t("dashboard.activity.time.activeSubscription") : t("dashboard.activity.time.noSubscription"),
+        status,
+      };
+    })
+    .sort((a, b) => a.workspace.localeCompare(b.workspace, locale));
 
   const statusBadgeKey = (s: ActivityStatus) => {
     if (s === "success") return "dashboard.activity.statusBadge.success";
@@ -101,7 +122,7 @@ export function PlatformDashboardPage() {
       <div className="admin-app__card admin-app__card--wide">
         <div className="card-head">
           <p className="admin-app__card-title">{t("dashboard.activity.title")}</p>
-          <span className="card-head__meta">{t("dashboard.activity.badgeDemo")}</span>
+          <span className="card-head__meta">{t("dashboard.activity.badgeLive")}</span>
         </div>
         <div className="table-wrap">
           <table className="data-table">
@@ -115,10 +136,10 @@ export function PlatformDashboardPage() {
             </thead>
             <tbody>
               {demoRows.map((row) => (
-                <tr key={row.workspaceKey}>
-                  <td>{t(row.workspaceKey)}</td>
+                <tr key={row.workspace}>
+                  <td>{row.workspace}</td>
                   <td>{t(row.eventKey)}</td>
-                  <td className="data-table__muted">{t(row.whenKey)}</td>
+                  <td className="data-table__muted">{row.when}</td>
                   <td>
                     <Badge tone={row.status}>
                       {t(statusBadgeKey(row.status))}

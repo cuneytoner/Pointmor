@@ -1,13 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageShell } from "../components/PageShell";
 import { useAuth } from "../contexts/AuthContext";
+import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { useTranslation } from "../hooks/useTranslation";
+import { usePermissions } from "../hooks/usePermissions";
 import { createAiSystem } from "../lib/ai-act-api";
 
 export function AiActNewSystemPage() {
   const { t } = useTranslation();
   const { token } = useAuth();
+  const { auth } = useAdminDataContext();
+  const { hasPermission } = usePermissions();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [purpose, setPurpose] = useState("");
@@ -15,9 +19,19 @@ export function AiActNewSystemPage() {
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const errorLabel = errorKey ? t(`aiAct.errors.${errorKey}`) : null;
+  const canManageAiAct = Boolean(auth?.user.platformAdmin) || hasPermission("ai_act.manage");
+
+  useEffect(() => {
+    if (canManageAiAct) return;
+    navigate("/app/ai-act", {
+      replace: true,
+      state: { restrictedMessageKey: "aiAct.new.noPermission" },
+    });
+  }, [canManageAiAct, navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManageAiAct) return;
     if (!token?.trim() || submitting) return;
     setErrorKey(null);
     setSubmitting(true);
@@ -42,6 +56,9 @@ export function AiActNewSystemPage() {
       description={t("aiAct.new.description")}
     >
       <div className="admin-app__card">
+        <p className="admin-app__card-text" style={{ marginBottom: "1rem" }}>
+          {t("aiAct.new.helper")}
+        </p>
         <form className="loyalty-form-stack" onSubmit={onSubmit}>
           <label>
             <span>{t("aiAct.new.fields.name")}</span>

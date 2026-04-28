@@ -90,6 +90,12 @@ export type AuditLogDto = {
   createdAt: string;
 };
 
+export type TenantModuleDto = {
+  tenantId: string;
+  isActive: boolean;
+  module: { name: string };
+};
+
 export type AdminBootstrap = {
   user: AuthUser;
   tenant: AuthTenant;
@@ -98,6 +104,7 @@ export type AdminBootstrap = {
   users: UserListDto[];
   plans: PlanDto[];
   subscriptions: SubscriptionDto[];
+  tenantModules: TenantModuleDto[];
   auditLogs: AuditLogDto[];
   /** `/tenant/entitlements` — yalnızca tenant oturumunda doldurulur. */
   entitlements: EntitlementsPayload | null;

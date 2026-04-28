@@ -197,7 +197,7 @@
   "dashboardPlatform": {
     "eyebrow": "Operasyon",
     "title": "Platform özeti",
-    "description": "API bootstrap’tan kiracılar arası metrikler; aşağıdaki tablo örnek veridir.",
+    "description": "Canlı bootstrap verisinden kiracılar arası metrikler ve aktivite.",
     "hero": {
       "title": "SaaS operasyon özeti",
       "subtitle": "İşletmeler, faturalama ve denetim — operatör görünümü."
@@ -566,38 +566,30 @@
       "trialingHint": "durum = trialing"
     },
     "activity": {
-      "title": "Örnek işletme aktivitesi",
-      "badgeDemo": "Demo",
+      "title": "İşletme aktivitesi",
+      "badgeLive": "Canlı",
       "columns": {
         "workspace": "İşletme",
         "event": "Olay",
         "time": "Zaman",
         "status": "Durum"
       },
+      "time": {
+        "activeSubscription": "Abonelik aktif",
+        "noSubscription": "Abonelik yok"
+      },
       "statusBadge": {
         "success": "Tamam",
         "warning": "Dikkat",
         "info": "Bilgi"
-      },
-      "demo": {
-        "row1": {
-          "workspace": "Pointmor Demo Cafe",
-          "when": "12 dk önce"
-        },
-        "row2": {
-          "workspace": "Liman Sokak Bistro",
-          "when": "1 saat önce"
-        },
-        "row3": {
-          "workspace": "Kampüs Kahve",
-          "when": "Dün"
-        }
       }
     },
     "events": {
-      "provision": "Sağlandı",
-      "invite_sent": "Davet gönderildi",
-      "subscription_hold": "Beklemede"
+      "workspace_synced": "İşletme senkronlandı",
+      "ai_risk_assessment_completed": "AI risk değerlendirmesi tamamlandı",
+      "loyalty_campaign_activated": "Sadakat kampanyası etkinleştirildi",
+      "multi_product_onboarding_completed": "Çoklu ürün onboarding tamamlandı",
+      "advisor_access_granted": "Danışman erişimi verildi"
     }
   },
   "workspaces": {
@@ -699,8 +691,15 @@
     },
     "list": {
       "title": "AI sistemleri",
-      "description": "Sistem oluştur, assessment yap ve sonucu incele.",
+      "description": "Sistem oluştur, değerlendirme yap ve sonucu incele.",
       "newSystem": "Yeni AI Sistemi",
+      "startAssessment": "Değerlendirme başlat",
+      "viewResult": "Sonucu görüntüle",
+      "notAssessed": "Değerlendirme yok",
+      "assessmentRequired": "Değerlendirme gerekli",
+      "emptyTitle": "Henüz AI sistemi yok",
+      "emptyCta": "İlk AI sistemini ekle",
+      "createRestrictedHelper": "AI sistemi oluşturmak için yetkili bir kullanıcıdan destek alın.",
       "columns": {
         "name": "Ad",
         "riskLevel": "Risk seviyesi",
@@ -709,7 +708,9 @@
     },
     "new": {
       "title": "Yeni AI sistemi",
-      "description": "Sistemi oluşturup assessment adımına geçin.",
+      "description": "Sistemi oluşturup değerlendirme adımına geçin.",
+      "helper": "AI kullandığınız sistemi tanımlayın. Sonraki adımda kısa bir değerlendirme ile risk seviyesini çıkaracağız.",
+      "noPermission": "AI sistemi oluşturma yetkiniz bulunmuyor.",
       "submit": "Oluştur ve devam et",
       "fields": {
         "name": "Ad",
@@ -717,21 +718,83 @@
         "providerType": "Sağlayıcı tipi"
       }
     },
+    "riskLevel": {
+      "HIGH": "Yüksek risk",
+      "LIMITED": "Sınırlı risk",
+      "MINIMAL": "Düşük risk"
+    },
     "assessment": {
-      "title": "Assessment: {{name}}",
+      "title": "Değerlendirme: {{name}}",
       "description": "Tüm 10 soruyu yanıtlayın.",
-      "submit": "Assessment gönder"
+      "notice": "Bu değerlendirme hukuki karar değil, ilk risk yönlendirmesidir.",
+      "progress": "10 sorudan {{completed}} tanesi tamamlandı",
+      "submit": "Risk sonucunu oluştur"
     },
     "result": {
       "title": "Sonuç: {{name}}",
       "description": "Risk önerisi, yükümlülükler ve görevler.",
+      "riskBadgeLabel": "Risk",
+      "confidenceLabel": "Güven",
+      "suggestionNotice": "Bu sonuç AI destekli bir öneridir; nihai hukuki değerlendirme değildir.",
+      "guidanceHigh": "Bu sistem daha detaylı uyum incelemesi gerektirir.",
+      "guidanceLimited": "Bu sistem için şeffaflık ve kullanıcı bilgilendirmesi önceliklidir.",
+      "guidanceMinimal": "Bu sistem düşük riskli görünmektedir, yine de kayıt altında tutulmalıdır.",
+      "guidanceUnknown": "Risk değerlendirmesi için sistem kayıtlarını gözden geçirin.",
       "riskLevel": "Risk seviyesi",
       "confidence": "Güven",
       "suggested": "Öneri",
       "obligations": "Yükümlülükler",
-      "tasks": "Görevler",
-      "emptyObligations": "Yükümlülük üretilmedi.",
-      "emptyTasks": "Görev üretilmedi."
+      "tasks": "Görevler / Sonraki aksiyonlar",
+      "emptyObligations": "Bu değerlendirme için henüz yükümlülük oluşturulmadı.",
+      "emptyTasks": "Henüz görev yok. Gerekiyorsa değerlendirmeyi tekrar çalıştırın.",
+      "rerunAssessment": "Değerlendirmeyi tekrar çalıştır"
+    },
+    "obligationType": {
+      "transparency_notice": {
+        "label": "Şeffaflık bildirimi",
+        "description": "Kullanıcılara AI kullanımı hakkında açık bilgilendirme sağlayın."
+      },
+      "user_information": {
+        "label": "Kullanıcı bilgilendirmesi",
+        "description": "Sistemin kapsamı, etkisi ve temel kullanım kurallarını paylaşın."
+      },
+      "risk_management": {
+        "label": "Risk yönetimi",
+        "description": "Riskleri düzenli olarak ölçen ve azaltan bir süreç tanımlayın."
+      },
+      "human_oversight": {
+        "label": "İnsan gözetimi",
+        "description": "Kritik kararlarda insan onayı ve müdahale adımı ekleyin."
+      },
+      "logging": {
+        "label": "Kayıt ve izleme",
+        "description": "Karar akışını ve önemli olayları denetlenebilir şekilde kayıt altına alın."
+      },
+      "data_governance": {
+        "label": "Veri yönetişimi",
+        "description": "Veri kalitesi, saklama ve erişim kurallarını netleştirin."
+      },
+      "provider_documentation": {
+        "label": "Sağlayıcı dokümantasyonu",
+        "description": "Sağlayıcıdan model ve kullanım belgelerini toplayıp güncel tutun."
+      }
+    },
+    "status": {
+      "obligation": {
+        "PENDING": "Durum: Beklemede",
+        "IN_PROGRESS": "Durum: Devam ediyor",
+        "COMPLETED": "Durum: Tamamlandı",
+        "NOT_APPLICABLE": "Durum: Uygulanamaz"
+      },
+      "task": {
+        "OPEN": "Açık",
+        "IN_PROGRESS": "Devam ediyor",
+        "DONE": "Tamamlandı",
+        "CANCELLED": "İptal edildi",
+        "PENDING": "Beklemede",
+        "COMPLETED": "Tamamlandı",
+        "NOT_APPLICABLE": "Uygulanamaz"
+      }
     },
     "providerType": {
       "INTERNAL": "İç",

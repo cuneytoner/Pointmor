@@ -197,7 +197,7 @@
   "dashboardPlatform": {
     "eyebrow": "Operations",
     "title": "Platform overview",
-    "description": "Cross-tenant metrics from the API bootstrap; activity table is sample data.",
+    "description": "Cross-tenant metrics and activity from live bootstrap data.",
     "hero": {
       "title": "SaaS operations snapshot",
       "subtitle": "Workspaces, billing, and audit — operator scope."
@@ -567,38 +567,30 @@
       "trialingHint": "status = trialing"
     },
     "activity": {
-      "title": "Sample workspace activity",
-      "badgeDemo": "Demo",
+      "title": "Workspace activity",
+      "badgeLive": "Live",
       "columns": {
         "workspace": "Workspace",
         "event": "Event",
         "time": "Time",
         "status": "Status"
       },
+      "time": {
+        "activeSubscription": "Subscription active",
+        "noSubscription": "Subscription missing"
+      },
       "statusBadge": {
         "success": "OK",
         "warning": "Watch",
         "info": "Info"
-      },
-      "demo": {
-        "row1": {
-          "workspace": "Pointmor Demo Cafe",
-          "when": "12 min ago"
-        },
-        "row2": {
-          "workspace": "Harbor Street Bistro",
-          "when": "1 hour ago"
-        },
-        "row3": {
-          "workspace": "Campus Coffee Co.",
-          "when": "Yesterday"
-        }
       }
     },
     "events": {
-      "provision": "Provisioned",
-      "invite_sent": "Invite sent",
-      "subscription_hold": "On hold"
+      "workspace_synced": "Workspace synced",
+      "ai_risk_assessment_completed": "AI risk assessment completed",
+      "loyalty_campaign_activated": "Loyalty campaign activated",
+      "multi_product_onboarding_completed": "Multi-product onboarding completed",
+      "advisor_access_granted": "Advisor access granted"
     }
   },
   "workspaces": {
@@ -702,6 +694,13 @@
       "title": "AI systems",
       "description": "Create systems, run assessment, and review results.",
       "newSystem": "New AI System",
+      "startAssessment": "Start Assessment",
+      "viewResult": "View Result",
+      "notAssessed": "Not assessed",
+      "assessmentRequired": "Assessment required",
+      "emptyTitle": "No AI systems yet",
+      "emptyCta": "Create your first AI system",
+      "createRestrictedHelper": "Ask an authorized user to create an AI system.",
       "columns": {
         "name": "Name",
         "riskLevel": "Risk level",
@@ -711,6 +710,8 @@
     "new": {
       "title": "New AI system",
       "description": "Create a system and continue to assessment.",
+      "helper": "Define the AI-enabled system you use. In the next step, we will derive the risk level with a short assessment.",
+      "noPermission": "You do not have permission to create AI systems.",
       "submit": "Create and continue",
       "fields": {
         "name": "Name",
@@ -718,21 +719,83 @@
         "providerType": "Provider type"
       }
     },
+    "riskLevel": {
+      "HIGH": "High risk",
+      "LIMITED": "Limited risk",
+      "MINIMAL": "Minimal risk"
+    },
     "assessment": {
       "title": "Assessment: {{name}}",
       "description": "Answer all 10 questions.",
-      "submit": "Submit assessment"
+      "notice": "This assessment is not a legal decision; it is an initial risk guidance.",
+      "progress": "{{completed}} of 10 questions completed",
+      "submit": "Generate risk result"
     },
     "result": {
       "title": "Result: {{name}}",
       "description": "Risk suggestion, obligations, and tasks.",
+      "riskBadgeLabel": "Risk",
+      "confidenceLabel": "Confidence",
+      "suggestionNotice": "This result is an AI-assisted suggestion; it is not a final legal assessment.",
+      "guidanceHigh": "This system requires a more detailed compliance review.",
+      "guidanceLimited": "Transparency and user information are priorities for this system.",
+      "guidanceMinimal": "This system appears low-risk, but it should still be documented.",
+      "guidanceUnknown": "Review system records for a clearer risk assessment.",
       "riskLevel": "Risk level",
       "confidence": "Confidence",
       "suggested": "Suggested",
       "obligations": "Obligations",
-      "tasks": "Tasks",
-      "emptyObligations": "No obligations generated.",
-      "emptyTasks": "No tasks generated."
+      "tasks": "Tasks / Next actions",
+      "emptyObligations": "No obligations were generated for this assessment yet.",
+      "emptyTasks": "No tasks yet. Re-run assessment if needed.",
+      "rerunAssessment": "Run assessment again"
+    },
+    "obligationType": {
+      "transparency_notice": {
+        "label": "Transparency notice",
+        "description": "Provide clear disclosure to users about AI usage."
+      },
+      "user_information": {
+        "label": "User information",
+        "description": "Share scope, impact, and baseline usage rules with users."
+      },
+      "risk_management": {
+        "label": "Risk management",
+        "description": "Define an ongoing process to identify and mitigate risks."
+      },
+      "human_oversight": {
+        "label": "Human oversight",
+        "description": "Add human approval or intervention for critical decisions."
+      },
+      "logging": {
+        "label": "Logging and monitoring",
+        "description": "Keep auditable records of key decisions and events."
+      },
+      "data_governance": {
+        "label": "Data governance",
+        "description": "Clarify data quality, retention, and access controls."
+      },
+      "provider_documentation": {
+        "label": "Provider documentation",
+        "description": "Collect and keep provider model and usage documentation current."
+      }
+    },
+    "status": {
+      "obligation": {
+        "PENDING": "Status: Pending",
+        "IN_PROGRESS": "Status: In progress",
+        "COMPLETED": "Status: Completed",
+        "NOT_APPLICABLE": "Status: Not applicable"
+      },
+      "task": {
+        "OPEN": "Open",
+        "IN_PROGRESS": "In progress",
+        "DONE": "Done",
+        "CANCELLED": "Cancelled",
+        "PENDING": "Pending",
+        "COMPLETED": "Completed",
+        "NOT_APPLICABLE": "Not applicable"
+      }
     },
     "providerType": {
       "INTERNAL": "Internal",

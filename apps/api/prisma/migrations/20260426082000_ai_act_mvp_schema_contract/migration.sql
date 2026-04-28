@@ -50,6 +50,7 @@ ADD COLUMN "riskLevel" "AiRiskLevel",
 ADD COLUMN "classificationSource" "AiClassificationSource" NOT NULL DEFAULT 'MANUAL',
 ADD COLUMN "confidence" DOUBLE PRECISION,
 ADD COLUMN "createdByUserId" TEXT,
+ALTER COLUMN "status" DROP DEFAULT,
 ALTER COLUMN "status" TYPE "AiAssessmentStatus"
 USING (
   CASE
@@ -58,6 +59,8 @@ USING (
     ELSE 'DRAFT'::"AiAssessmentStatus"
   END
 );
+ALTER TABLE "AiAssessment"
+ALTER COLUMN "status" SET DEFAULT 'DRAFT';
 
 -- CreateTable
 CREATE TABLE "AiAssessmentAnswer" (

@@ -197,7 +197,7 @@
   "dashboardPlatform": {
     "eyebrow": "Betrieb",
     "title": "Plattform-Übersicht",
-    "description": "Mandantenübergreifende Kennzahlen aus dem API-Bootstrap; Aktivitätstabelle ist Demo.",
+    "description": "Mandantenübergreifende Kennzahlen und Aktivität aus Live-Bootstrap-Daten.",
     "hero": {
       "title": "SaaS-Betriebsübersicht",
       "subtitle": "Betriebe, Abrechnung und Audit: Operator-Sicht."
@@ -566,38 +566,30 @@
       "trialingHint": "Status = trialing"
     },
     "activity": {
-      "title": "Beispielaktivität eines Betriebs",
-      "badgeDemo": "Demo",
+      "title": "Betriebsaktivität",
+      "badgeLive": "Live",
       "columns": {
         "workspace": "Betrieb",
         "event": "Ereignis",
         "time": "Zeit",
         "status": "Status"
       },
+      "time": {
+        "activeSubscription": "Abonnement aktiv",
+        "noSubscription": "Kein Abonnement"
+      },
       "statusBadge": {
         "success": "OK",
         "warning": "Hinweis",
         "info": "Info"
-      },
-      "demo": {
-        "row1": {
-          "workspace": "Pointmor Demo Cafe",
-          "when": "vor 12 Min."
-        },
-        "row2": {
-          "workspace": "Hafenstraße Bistro",
-          "when": "vor 1 Std."
-        },
-        "row3": {
-          "workspace": "Campus Coffee",
-          "when": "Gestern"
-        }
       }
     },
     "events": {
-      "provision": "Bereitgestellt",
-      "invite_sent": "Einladung gesendet",
-      "subscription_hold": "Pausiert"
+      "workspace_synced": "Betrieb synchronisiert",
+      "ai_risk_assessment_completed": "KI-Risikobewertung abgeschlossen",
+      "loyalty_campaign_activated": "Treuekampagne aktiviert",
+      "multi_product_onboarding_completed": "Multi-Produkt-Onboarding abgeschlossen",
+      "advisor_access_granted": "Beraterzugriff gewährt"
     }
   },
   "workspaces": {
@@ -701,6 +693,13 @@
       "title": "AI-Systeme",
       "description": "System anlegen, Assessment abschließen, Ergebnis prüfen.",
       "newSystem": "Neues AI-System",
+      "startAssessment": "Assessment starten",
+      "viewResult": "Ergebnis anzeigen",
+      "notAssessed": "Nicht bewertet",
+      "assessmentRequired": "Assessment erforderlich",
+      "emptyTitle": "Noch keine AI-Systeme",
+      "emptyCta": "Erstes AI-System erstellen",
+      "createRestrictedHelper": "Bitte einen berechtigten Nutzer, ein AI-System zu erstellen.",
       "columns": {
         "name": "Name",
         "riskLevel": "Risikostufe",
@@ -710,6 +709,8 @@
     "new": {
       "title": "Neues AI-System",
       "description": "System erstellen und mit dem Assessment fortfahren.",
+      "helper": "Beschreibe das AI-System, das ihr nutzt. Im nächsten Schritt leiten wir mit einem kurzen Assessment das Risikoniveau ab.",
+      "noPermission": "Sie haben keine Berechtigung, AI-Systeme zu erstellen.",
       "submit": "Erstellen und fortfahren",
       "fields": {
         "name": "Name",
@@ -717,21 +718,83 @@
         "providerType": "Anbietertyp"
       }
     },
+    "riskLevel": {
+      "HIGH": "Hohes Risiko",
+      "LIMITED": "Begrenztes Risiko",
+      "MINIMAL": "Minimales Risiko"
+    },
     "assessment": {
       "title": "Assessment: {{name}}",
       "description": "Alle 10 Fragen beantworten.",
-      "submit": "Assessment senden"
+      "notice": "Dieses Assessment ist keine rechtliche Entscheidung; es ist eine erste Risikoorientierung.",
+      "progress": "{{completed}} von 10 Fragen beantwortet",
+      "submit": "Risikoergebnis erstellen"
     },
     "result": {
       "title": "Ergebnis: {{name}}",
       "description": "Risikovorschlag, Pflichten und Aufgaben.",
+      "riskBadgeLabel": "Risiko",
+      "confidenceLabel": "Konfidenz",
+      "suggestionNotice": "Dieses Ergebnis ist eine AI-gestützte Empfehlung; es ist keine abschließende rechtliche Bewertung.",
+      "guidanceHigh": "Dieses System erfordert eine detailliertere Compliance-Prüfung.",
+      "guidanceLimited": "Transparenz und Nutzerinformation sind bei diesem System vorrangig.",
+      "guidanceMinimal": "Dieses System wirkt risikoarm, sollte aber weiterhin dokumentiert werden.",
+      "guidanceUnknown": "Prüfe die Systemdaten für eine klarere Risikobewertung.",
       "riskLevel": "Risikostufe",
       "confidence": "Konfidenz",
       "suggested": "Vorgeschlagen",
       "obligations": "Pflichten",
-      "tasks": "Aufgaben",
-      "emptyObligations": "Keine Pflichten erzeugt.",
-      "emptyTasks": "Keine Aufgaben erzeugt."
+      "tasks": "Aufgaben / Nächste Schritte",
+      "emptyObligations": "Für dieses Assessment wurden noch keine Pflichten erzeugt.",
+      "emptyTasks": "Noch keine Aufgaben. Assessment bei Bedarf erneut ausführen.",
+      "rerunAssessment": "Assessment erneut ausführen"
+    },
+    "obligationType": {
+      "transparency_notice": {
+        "label": "Transparenzhinweis",
+        "description": "Nutzer klar über den Einsatz von AI informieren."
+      },
+      "user_information": {
+        "label": "Nutzerinformation",
+        "description": "Umfang, Wirkung und grundlegende Nutzungsregeln kommunizieren."
+      },
+      "risk_management": {
+        "label": "Risikomanagement",
+        "description": "Einen laufenden Prozess zur Risikoerkennung und Minderung definieren."
+      },
+      "human_oversight": {
+        "label": "Menschliche Aufsicht",
+        "description": "Menschliche Freigabe oder Intervention bei kritischen Entscheidungen ergänzen."
+      },
+      "logging": {
+        "label": "Protokollierung und Monitoring",
+        "description": "Wichtige Entscheidungen und Ereignisse revisionssicher protokollieren."
+      },
+      "data_governance": {
+        "label": "Data Governance",
+        "description": "Regeln für Datenqualität, Aufbewahrung und Zugriff klären."
+      },
+      "provider_documentation": {
+        "label": "Anbieterdokumentation",
+        "description": "Modelldokumentation und Nutzungsunterlagen des Anbieters aktuell halten."
+      }
+    },
+    "status": {
+      "obligation": {
+        "PENDING": "Status: Ausstehend",
+        "IN_PROGRESS": "Status: In Bearbeitung",
+        "COMPLETED": "Status: Abgeschlossen",
+        "NOT_APPLICABLE": "Status: Nicht anwendbar"
+      },
+      "task": {
+        "OPEN": "Offen",
+        "IN_PROGRESS": "In Bearbeitung",
+        "DONE": "Erledigt",
+        "CANCELLED": "Abgebrochen",
+        "PENDING": "Ausstehend",
+        "COMPLETED": "Abgeschlossen",
+        "NOT_APPLICABLE": "Nicht anwendbar"
+      }
     },
     "providerType": {
       "INTERNAL": "Intern",

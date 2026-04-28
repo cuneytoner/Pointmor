@@ -73,26 +73,86 @@ Beklenen etki:
 
 ## 3) Seed akışları
 
+### Seed mode yapısı (tek entrypoint)
+
+- Tüm seed akışları `apps/api/prisma/seed.ts` içindeki `runSeed({ mode })` girişinden çalışır.
+- `mode` kaynağı `SEED_MODE` ortam değişkenidir; varsayılan `dev` olarak çözülür.
+- Desteklenen modlar: `dev`, `demo`, `prod`.
+- `seed-demo.ts` ve `seed-full-demo.ts` yalnız wrapper’dır; çekirdek akış `seedCore()` üzerinden ilerler.
+
 ### Komutlar
 
 ```bash
 cd apps/api
 npm run db:seed
 npm run db:seed:demo
+npm run db:seed:prod
 npm run db:seed:full:demo
 ```
 
 ### Farklar
 
-- `db:seed`: local geliştirme için demo senaryo verisi de içeren geniş seed akışıdır.
-- `db:seed:demo`: demo ortamı için hafif senaryo verisi.
-- `db:seed:full:demo`: full demo senaryosu için daha zengin veri seti.
+- `db:seed`: `SEED_MODE=dev` ile çalışır.
+- `db:seed:demo`: `SEED_MODE=demo` ile çalışır.
+- `db:seed:prod`: `SEED_MODE=prod` ile çalışır (demo kullanıcıları seed etmez, opsiyonel bootstrap admin).
+- `db:seed:full:demo`: demo guard kontrollerinden sonra `runSeed({ mode: "demo", includeFullDemoScenarios: true })` çalıştırır.
+
+### Ortak kullanıcı seti
+
+Aşağıdaki hesaplar seed sözleşmesinin parçasıdır:
+
+- `admin@pointmor.local`
+- `owner@acme.pointmor.local`
+- `owner@urban.pointmor.local`
+- `owner@retailcorp.pointmor.local`
+- `advisor@pointmor.local`
+- `member@pointmor.local`
+
+Access kaynağı her zaman `TenantMembership` kayıtlarıdır; `User.tenantId` yalnız legacy uyumluluk alanıdır.
+
+### Tenant tipleri ve module aktivasyonu
+
+Seed, cok urunlu platform yapisi icin 3 tenant tipi kurar:
+
+| Tenant slug | Tip | Module aktivasyon |
+|-------------|-----|-------------------|
+| `acme-ai-solutions` | AI Act focused | `ai_act=true`, `cafe=false`, `ai_document_intelligence=true` (module varsa) |
+| `urban-coffee-group` | Loyalty focused | `cafe=true`, `ai_act=false`, `ai_document_intelligence=false` (module varsa) |
+| `retailcorp-eu` | Mixed | `cafe=true`, `ai_act=true`, `ai_document_intelligence=true` (module varsa) |
+| `kanzlei-mueller-advisory` | Advisor | advisor tenant; advisor/client membership akisi |
+
+Module aktivasyon kayitlari `tenant_modules` tablosunda idempotent olarak upsert edilir; veri seti ile aktivasyon her seed calismasinda yeniden hizalanir.
+
+### Şifre çözümleme kuralı (`resolvePassword`)
+
+- `DEV`: env varsa kullanılır, yoksa fallback kullanılır.
+  - `SEED_DEV_ADMIN_PASSWORD` (fallback: `PointmorDev!Admin`)
+  - `SEED_DEV_OPERATOR_PASSWORD` (fallback: `PointmorDev!Demo`)
+- `DEMO`: env zorunludur, eksikse seed hata vererek durur.
+  - `DEMO_ADMIN_PASSWORD` (zorunlu)
+  - `DEMO_OPERATOR_PASSWORD` (zorunlu)
+- `PROD`: demo kullanıcıları seed edilmez.
+  - `PROD_BOOTSTRAP_ADMIN_PASSWORD` verilirse yalnız bootstrap admin oluşturulur.
+  - verilmezse seed bu kısmı atlayarak çıkar.
+
+### Mode bazlı login bilgileri
+
+- `dev`:
+  - admin: `admin@pointmor.local` + `SEED_DEV_ADMIN_PASSWORD` (yoksa `PointmorDev!Admin`)
+  - owner/advisor/member: operator şifresi (`SEED_DEV_OPERATOR_PASSWORD`, yoksa `PointmorDev!Demo`)
+- `demo`:
+  - admin: `admin@pointmor.local` + `DEMO_ADMIN_PASSWORD`
+  - owner/advisor/member: `DEMO_OPERATOR_PASSWORD`
+- `prod`:
+  - yalnız bootstrap admin (opsiyonel): `PROD_BOOTSTRAP_ADMIN_EMAIL` (yoksa `admin@pointmor.local`) + `PROD_BOOTSTRAP_ADMIN_PASSWORD`
+  - demo kullanıcıları bu modda oluşturulmaz.
 
 ### Seed Reality
 
-- `seed.ts` yalnız minimal baseline değildir; demo senaryo verisi içerir.
-- `db:seed` birden fazla tenant ve kullanıcı oluşturur.
-- mevcut seed çıktısı production-benzeri minimal veri seti değildir.
+- `db:seed`, birincil multi-product platform modelini uretir (yalniz 4 tenant): `acme-ai-solutions`, `urban-coffee-group`, `retailcorp-eu`, `kanzlei-mueller-advisory`.
+- Legacy cafe agir demo tenant'lari varsayilan `db:seed` akisinda uretilmez.
+- Legacy genis demo senaryolari yalniz `db:seed:full:demo` ile uretilir.
+- Seed ciktilari production verisi degildir; sentetik gelistirme/demo amacli veridir.
 
 ### Seed doctrine
 
@@ -110,13 +170,21 @@ npm run db:seed:full:demo
 
 ## AI Act seed kapsamı
 
-- `db:seed` ve uygun demo akışlarında AI Act için sentetik demo verisi oluşturulur.
-- En az iki risk profili eklenir: `LIMITED` (daha düşük risk) ve `HIGH` (review odaklı).
+- `db:seed` ve uygun demo akışlarında AI Act focused tenant (`acme-ai-solutions`) için 3 sistem seed edilir.
+- Sistem seti: `Customer Support Chatbot`, `CV Screening Tool`, `Fraud Detection AI`.
+- Risk profilleri: `LIMITED`, `HIGH`, `MINIMAL`.
 - Assessment answer, obligation, task, evidence ve confidence alanları senaryo kapsamında bulunur.
 - Assessment key seti runtime ile birebir hizalıdır; tek kaynak `apps/api/src/lib/ai-act-assessment.ts` içindeki `AI_ACT_QUESTION_KEYS` tanımıdır.
 - Low-confidence extraction örnekleri human review kaydıyla birlikte üretilir.
 - Gerçek müşteri/veri kullanılmaz; seed yalnız sentetik içerik üretir.
-- AI Act verisi tenant-scoped olarak oluşturulur ve `ai_act` module activation bağlamında test edilir.
+- AI Act verisi tenant-scoped olarak oluşturulur ve `ai_act` module activation baglaminda test edilir.
+- Mixed tenant (`retailcorp-eu`) icin minimal AI Act seed uretilir.
+- Minimal AI Act sistem: `Invoice Processing AI`.
+
+## Loyalty seed kapsamı
+
+- Loyalty focused tenant (`urban-coffee-group`) mevcut cafe/demo veri setini korur.
+- Mixed tenant (`retailcorp-eu`) icin minimal loyalty seed uretilir (en az bir customer/reward/visit).
 
 ## 4) Safety uyarıları
 
@@ -129,10 +197,9 @@ npm run db:seed:full:demo
 
 ## 5) Seed vs Doctrine Mismatch
 
-- Mevcut seed akışında bazı senaryolar `User.tenantId` alanını kullanabilir.
-- Seed içerikleri her durumda `TenantMembership` doktrinini tam yansıtmayabilir.
-- Bu durum bilinen bir sınırlamadır.
-- Seed akışı ileriki fazda doktrinle tam hizalanacaktır.
+- Bilinen mismatch hedefi kapatılmıştır.
+- Seed erişim modeli membership-first olarak uygulanır.
+- `User.tenantId` erişim kaynağı değildir; yalnız legacy uyumluluk alanıdır.
 
 ## 6) Production migration safety özeti
 

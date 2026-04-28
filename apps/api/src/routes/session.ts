@@ -103,6 +103,19 @@ export async function registerSessionRoutes(app: FastifyInstance): Promise<void>
           })
         : Promise.resolve([]),
     ]);
+    const tenantIds = tenants.map((t) => t.id);
+    const tenantModules =
+      tenantIds.length === 0
+        ? []
+        : await prisma.tenantModule.findMany({
+            where: { tenantId: { in: tenantIds } },
+            select: {
+              tenantId: true,
+              isActive: true,
+              module: { select: { name: true } },
+            },
+            orderBy: [{ tenantId: "asc" }, { module: { name: "asc" } }],
+          });
 
     return {
       user: s.user,
@@ -112,6 +125,7 @@ export async function registerSessionRoutes(app: FastifyInstance): Promise<void>
       users,
       plans,
       subscriptions,
+      tenantModules,
       auditLogs,
     };
   });

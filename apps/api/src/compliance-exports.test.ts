@@ -7,6 +7,16 @@ import { TENANT_MEMBERSHIP_ROLES } from "./lib/tenant-app-role.js";
 
 /** Seed’de `compliance_full` ile growth aboneliği olan demo kiracı (yoksa null). */
 let complianceTenantId: string | null = null;
+const TEST_USER_IDS = [
+  "u-staff",
+  "u-mgr",
+  "u-staff2",
+  "u-own",
+  "u-free-own",
+  "u-mgr2",
+  "u-own3",
+] as const;
+const TEST_TENANT_IDS = ["t1", "t-starter-only"] as const;
 
 async function ensureSessionAccess(params: {
   userId: string;
@@ -75,6 +85,20 @@ describe("Compliance export permissions", () => {
   });
 
   afterAll(async () => {
+    await prisma.tenantMembership.deleteMany({
+      where: {
+        OR: [
+          { userId: { in: [...TEST_USER_IDS] } },
+          { tenantId: { in: [...TEST_TENANT_IDS] } },
+        ],
+      },
+    });
+    await prisma.user.deleteMany({
+      where: { id: { in: [...TEST_USER_IDS] } },
+    });
+    await prisma.tenant.deleteMany({
+      where: { id: { in: [...TEST_TENANT_IDS] } },
+    });
     await app.close();
   });
 

@@ -17,10 +17,11 @@
     "db:clean": "prisma db execute --file prisma/clean-public-schema.sql",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "db:reset": "prisma migrate reset --force",
+    "db:reset": "cross-env SEED_MODE=dev prisma migrate reset --force",
     "db:fresh": "npm run db:clean && prisma migrate dev --name init",
-    "db:seed": "prisma db seed",
-    "db:seed:demo": "tsx prisma/seed-demo.ts",
+    "db:seed": "cross-env SEED_MODE=dev prisma db seed",
+    "db:seed:demo": "cross-env SEED_MODE=demo prisma db seed",
+    "db:seed:prod": "cross-env SEED_MODE=prod prisma db seed",
     "db:seed:full:demo": "tsx prisma/seed-full-demo.ts"
   },
   "dependencies": {
@@ -45,6 +46,7 @@
   "devDependencies": {
     "@eslint/js": "^9.15.0",
     "@types/bcryptjs": "^2.4.6",
+    "cross-env": "^10.1.0",
     "@types/node": "^22.9.0",
     "@types/pdfkit": "^0.13.9",
     "eslint": "^9.15.0",

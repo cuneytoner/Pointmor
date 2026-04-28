@@ -278,11 +278,11 @@ export async function seedDemoScenarios(prisma: PrismaClient): Promise<void> {
         name: `${spec.storeName} — owner`,
         passwordHash: devPassword,
         platformAdmin: false,
-        tenantId: tenant.id,
+        tenantId: null,
         role: "tenant_operator",
       },
       update: {
-        tenantId: tenant.id,
+        tenantId: null,
         passwordHash: devPassword,
         role: "tenant_operator",
       },

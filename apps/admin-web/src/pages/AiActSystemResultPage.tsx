@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { PageShell } from "../components/PageShell";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "../hooks/useTranslation";
@@ -18,6 +18,7 @@ export function AiActSystemResultPage() {
   const { t, locale } = useTranslation();
   const { token } = useAuth();
   const { id = "" } = useParams();
+  const navigate = useNavigate();
   const [system, setSystem] = useState<AiSystem | null>(null);
   const [assessment, setAssessment] = useState<AiAssessmentPayload | null>(null);
   const [obligations, setObligations] = useState<AiObligation[]>([]);
@@ -31,29 +32,34 @@ export function AiActSystemResultPage() {
     let cancelled = false;
     setLoading(true);
     setErrorKey(null);
-    Promise.all([
-      getAiSystem(token, id),
-      getAiAssessment(token, id),
-      getAiObligations(token, id),
-      getAiTasks(token, id),
-    ])
-      .then(([systemRow, assessmentRow, obligationsRow, tasksRow]) => {
+    (async () => {
+      try {
+        const systemRow = await getAiSystem(token, id);
+        const assessmentRow = await getAiAssessment(token, id);
+        const [obligationsRow, tasksRow] = await Promise.all([
+          getAiObligations(token, id),
+          getAiTasks(token, id),
+        ]);
         if (cancelled) return;
         setSystem(systemRow);
         setAssessment(assessmentRow);
         setObligations(obligationsRow);
         setTasks(tasksRow);
-      })
-      .catch((err) => {
-        if (!cancelled) setErrorKey((err as { code?: string })?.code ?? "unknown");
-      })
-      .finally(() => {
+      } catch (err) {
+        const code = (err as { code?: string })?.code;
+        if (!cancelled && (code === "assessment_not_found" || code === "not_found")) {
+          navigate(`/app/ai-act/${id}/assessment`, { replace: true });
+          return;
+        }
+        if (!cancelled) setErrorKey(code ?? "unknown");
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };
-  }, [token, id]);
+  }, [token, id, navigate]);
 
   const riskLevel = assessment?.assessment.riskLevel ?? assessment?.risk?.riskLevel ?? "—";
   const confidence =
@@ -63,6 +69,25 @@ export function AiActSystemResultPage() {
           maximumFractionDigits: 0,
         }).format(assessment.assessment.confidence)
       : "—";
+  const riskLevelLabel =
+    riskLevel === "HIGH" || riskLevel === "LIMITED" || riskLevel === "MINIMAL"
+      ? t(`aiAct.riskLevel.${riskLevel}`)
+      : riskLevel;
+  const riskBadgeText = riskLevel === "—" ? t("aiAct.list.notAssessed") : riskLevelLabel;
+  const riskRationale = assessment?.risk?.rationale?.trim() ?? "";
+  const riskGuidanceKey =
+    riskLevel === "HIGH"
+      ? "guidanceHigh"
+      : riskLevel === "LIMITED"
+        ? "guidanceLimited"
+        : riskLevel === "MINIMAL"
+          ? "guidanceMinimal"
+          : "guidanceUnknown";
+
+  const obligationLabel = (type: string) => t(`aiAct.obligationType.${type}.label`);
+  const obligationDescription = (type: string) => t(`aiAct.obligationType.${type}.description`);
+  const obligationStatusLabel = (status: string) => t(`aiAct.status.obligation.${status}`);
+  const taskStatusLabel = (status: string) => t(`aiAct.status.task.${status}`);
 
   return (
     <PageShell
@@ -86,10 +111,43 @@ export function AiActSystemResultPage() {
       {!loading && !errorKey ? (
         <>
           <div className="admin-app__card admin-app__card--wide" style={{ marginBottom: "1rem" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "0.75rem",
+                flexWrap: "wrap",
+              }}
+            >
+              <span
+                style={{
+                  display: "inline-flex",
+                  padding: "0.35rem 0.7rem",
+                  borderRadius: "999px",
+                  fontWeight: 600,
+                  background: "#f3f4f6",
+                }}
+              >
+                {t("aiAct.result.riskBadgeLabel")}: {riskBadgeText}
+              </span>
+              <span className="admin-app__card-text">
+                {t("aiAct.result.confidenceLabel")}: <strong>{confidence}</strong>
+              </span>
+            </div>
+            <p className="admin-app__card-text" style={{ marginTop: "0.75rem" }}>
+              {t("aiAct.result.suggestionNotice")}
+            </p>
+            <p className="admin-app__card-text" style={{ marginTop: "0.5rem" }}>
+              {riskRationale || t(`aiAct.result.${riskGuidanceKey}`)}
+            </p>
+          </div>
+
+          <div className="admin-app__card admin-app__card--wide" style={{ marginBottom: "1rem" }}>
             <div className="metric-grid metric-grid--3">
               <div className="metric-card">
                 <div className="metric-card__label">{t("aiAct.result.riskLevel")}</div>
-                <div className="metric-card__value">{riskLevel}</div>
+                <div className="metric-card__value">{riskLevelLabel}</div>
               </div>
               <div className="metric-card">
                 <div className="metric-card__label">{t("aiAct.result.confidence")}</div>
@@ -110,7 +168,9 @@ export function AiActSystemResultPage() {
               <ul>
                 {obligations.map((obligation) => (
                   <li key={obligation.id}>
-                    <strong>{obligation.obligationType}</strong> - {obligation.status}
+                    <strong>{obligationLabel(obligation.obligationType)}</strong>
+                    <div className="admin-app__card-text">{obligationDescription(obligation.obligationType)}</div>
+                    <div className="admin-app__card-text">{obligationStatusLabel(obligation.status)}</div>
                   </li>
                 ))}
               </ul>
@@ -125,11 +185,16 @@ export function AiActSystemResultPage() {
               <ul>
                 {tasks.map((task) => (
                   <li key={task.id}>
-                    <strong>{task.title}</strong> - {task.status}
+                    <strong>{task.title}</strong> - {taskStatusLabel(task.status)}
                   </li>
                 ))}
               </ul>
             )}
+            <p style={{ marginTop: "1rem" }}>
+              <Link to={`/app/ai-act/${id}/assessment`} className="admin-secondary-btn">
+                {t("aiAct.result.rerunAssessment")}
+              </Link>
+            </p>
           </div>
         </>
       ) : null}

@@ -16,6 +16,19 @@ Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-ru
 - **Cashier operations (slice — cihaz / vardiya):** `Branch` (opsiyonel şube), `DeviceSession` (tablet/register oturumu), `CashierShift` (kullanıcı vardiyası). `Visit` / `Redemption` üzerinde isteğe bağlı `deviceSessionId` + `cashierShiftId` FK’lar. API: `GET /cashier/bootstrap`, `POST /cashier/device-sessions`, `POST /cashier/shifts`, `GET /cashier/shifts/:id/summary`; yazma uçlarına isteğe bağlı header’lar `X-Pointmor-Device-Session`, `X-Pointmor-Cashier-Shift`. Admin cashier ekranı açık vardiyayı bootstrap ile senkronlar ve header’ları gönderir.
 - **Schema:** Çekirdek + loyalty tabloları; genişletme (kampanya, ödeme, puan kuralları) sonraki migration'larla.
 
+### Completed Foundations (Locked)
+
+- **Invitation Security Hardening:** **COMPLETE** - invitation acceptance guvenlik kontrolleri ve membership olusumu production akisinda sabit.
+- **Membership-First Access Enforcement:** **COMPLETE** - erisim doctrine `membership + role + module activation` olarak enforce edilir.
+- **Module Activation Enforcement:** **COMPLETE** - module kapali oldugunda ilgili API/UI yuzeyi engellenir.
+- **AI Act MVP Backend:** **COMPLETE** - system inventory, assessment, risk suggestion, obligations/tasks akisi teslim edildi.
+- **AI Act MVP UI (end-to-end):** **COMPLETE** - list, create, assessment, result ve obligations/tasks yuzeyleri calisir durumda.
+
+### Current Priority
+
+- **Phase 7 - Pilot & Real-World Validation (GTM-aligned): ACTIVE**
+- AI Act MVP artik "in progress" degil; tamamlanmis temel olarak pilot fazina girdi saglar.
+
 ### Faz 3 — Müşteri Deneyimi (PWA + public API)
 
 **Durum:** Ürün akışı açısından kapatıldı (QR → gate/home → puan; telefon+token; ödül talebi; offline snapshot). **Canonical public müşteri API'si:** **`/public/tenants/:slug/*`** (bootstrap = `GET /public/tenants/:slug`, session, `customers/me`, `claims`, `analytics/events`). Legacy **`/public/loyalty/:slug/*`** — GET endpoint'leri 308 ile canonical'a yönlendirilir; POST endpoint'leri geçici uyumluluk için yerinde kalır. Global + public scope rate limit ve Bearer + tenant slug ile tenant izolasyonu uygulanır.
@@ -52,6 +65,13 @@ Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-ru
 ### Faz 7 — Gerçek dünya doğrulaması (pilot)
 
 **Durum:** **Aktif ürün önceliği (saha / PMF).** Amaç: gerçek işletmede uçtan uca kullanımı **ölçmek** ve **öğrenmek**; yeni büyük özelliklerden önce sürtünme ve metriklerle yön vermek. Kod zorunluluğu yok; süreç + ortam + veri ayrımı esastır.
+
+### AI Act Post-MVP backlog (pilot sonrasi onceliklendirme)
+
+- AI Act Wizard UX
+- Obligations & Tasks UX improvement (prioritization + clarity)
+- i18n polish (Turkish-first cleanup)
+- AI Act result explanation improvements
 
 **İşletme seçimi (1–3 lokasyon):**
 

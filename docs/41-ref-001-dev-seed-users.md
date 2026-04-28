@@ -16,7 +16,7 @@ npm run db:seed:full:demo
 
 | Komut | Amaç | Kısa not |
 |-------|------|----------|
-| `db:seed` | Yerel geliştirme seed | demo senaryo verisi dahil, çok tenant + çok kullanıcı üretir |
+| `db:seed` | Yerel geliştirme seed | yalniz birincil multi-product tenant modelini uretir |
 | `db:seed:demo` | Demo/izole ortam seed | daha hafif demo verisi |
 | `db:seed:full:demo` | Full demo seed | yalnızca açık demo guard koşullarında çalışır |
 
@@ -32,24 +32,27 @@ Gerekli temel ortam:
 
 | Kullanım | Örnek e-posta | Not |
 |----------|---------------|-----|
-| Platform admin (dev) | `admin@pointmor.local` / `admin-demo@pointmor.demo` | seed akışına göre değişir |
-| Tenant owner (dev/demo) | `owner@demo.pointmor.local` / `owner-demo@pointmor.demo` | tenant yönetim girişi |
-| Advisor admin (demo) | `advisor-admin@pointmor.demo` | advisor tenant + client tenant üyeliği |
-| Advisor staff (demo) | `advisor-staff@pointmor.demo` | advisor tenant üyesi |
-| Client owner (demo) | `client-owner@pointmor.demo` | client tenant admin üyesi |
+| Platform admin | `admin@pointmor.local` | platform admin, tenant erişimi membership ile |
+| AI Act owner | `owner@acme.pointmor.local` | `acme-ai-solutions` tenant admin membership |
+| Loyalty owner | `owner@urban.pointmor.local` | `urban-coffee-group` tenant admin membership |
+| Mixed owner | `owner@retailcorp.pointmor.local` | `retailcorp-eu` tenant admin membership |
+| Member | `member@pointmor.local` | loyalty + mixed tenant membership |
+| Advisor | `advisor@pointmor.local` | advisor tenant admin + ilgili client tenant'larda external advisor membership |
 
 Şifreler bu dokümanda sabitlenmez; ortam değişkenlerinden yönetilir.
 
 ---
 
-## Multi-tenant / Advisor test setup
+## Seed tenant tipleri ve module mapping
 
-Demo seed akışı aşağıdaki yapıyı test için oluşturur:
+Temel seed akışı üç tenant tipi üretir:
 
-- advisor tenant (`ADVISOR`)
-- client tenant (`BUSINESS`)
-- external advisor üyelik senaryosu (`isExternal=true`)
-- membership-based access doğrulama
+| Tenant slug | Tenant tipi | Aktif module'ler | Seed odağı |
+|-------------|-------------|------------------|------------|
+| `acme-ai-solutions` | AI Act focused | `ai_act` aktif, `cafe` pasif | 3 AI system + assessment/obligation/task |
+| `urban-coffee-group` | Loyalty focused | `cafe` aktif, `ai_act` pasif | mevcut cafe/demo loyalty verisi |
+| `retailcorp-eu` | Mixed | `cafe` + `ai_act` aktif | minimal loyalty + minimal AI Act |
+| `kanzlei-mueller-advisory` | Advisor | advisor odağı (tenant type `ADVISOR`) | advisor/client membership senaryosu |
 
 Tenant erişimi için source of truth: `TenantMembership`.
 
@@ -71,8 +74,11 @@ Tenant erişimi için source of truth: `TenantMembership`.
 
 ## AI Act synthetic demo scenarios
 
-- Seed akışı AI Act için sentetik senaryolar üretir (`Customer Support Chatbot`, `Employee Performance Scoring`).
-- Senaryolar `LIMITED` ve `HIGH` risk seviyelerini içerir.
+- AI Act focused tenant (`acme-ai-solutions`) için 3 sistem seed edilir:
+  - `Customer Support Chatbot`
+  - `CV Screening Tool`
+  - `Fraud Detection AI`
+- Senaryolar `LIMITED`, `HIGH`, `MINIMAL` risk seviyelerini kapsar.
 - AI assessment cevapları, obligation/task kayıtları, evidence linkleri ve confidence alanları seed edilir.
 - AI assessment key seti runtime ile birebir hizalıdır; tek kaynak `apps/api/src/lib/ai-act-assessment.ts` içindeki `AI_ACT_QUESTION_KEYS` tanımıdır.
 - Low-confidence + review-required örnekleri özellikle eklenir.
@@ -83,19 +89,18 @@ Tenant erişimi için source of truth: `TenantMembership`.
 
 ## Seed Reality
 
-- `seed.ts` demo senaryosu verilerini içerir.
-- `db:seed` yalnız base data değildir.
-- `db:seed` birden fazla tenant ve kullanıcı oluşturur.
-- seed çıktısı production-benzeri minimal veri modeli değildir.
+- `db:seed`, birincil platform modeli olan 4 tenant ile calisir: `acme-ai-solutions`, `urban-coffee-group`, `retailcorp-eu`, `kanzlei-mueller-advisory`.
+- Legacy cafe agir demo tenant'lari varsayilan `db:seed` cikisina dahil edilmez.
+- Legacy senaryolar yalniz `db:seed:full:demo` akisinda uretilir.
+- Seed ciktilari production datasi degildir; sentetik demo/gelistirme verisidir.
 
 ---
 
 ## Seed vs Doctrine Mismatch
 
-- Mevcut seed akışında bazı kayıtlar `User.tenantId` kullanımını içerebilir.
-- Bazı seed senaryoları `TenantMembership` doktrinini tam enforce etmeyebilir.
-- Bu bilinen bir sınırlamadır.
-- Seed akışı gelecek fazda doktrinle hizalanacaktır.
+- Bilinen legacy mismatch hedefi kapatılmıştır.
+- Seed akışı erişim için `TenantMembership` kaynağına dayanır.
+- `User.tenantId` alanı legacy uyumluluk alanı olarak tutulur; access kontrol mantığı bu alana dayanmaz.
 
 ---
 
