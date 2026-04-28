@@ -141,6 +141,7 @@
     "platformDashboard": "Dashboard",
     "tenantDashboard": "Dashboard",
     "workspaces": "Organisationen",
+    "products": "Produkte",
     "usersGlobal": "Benutzer (global)",
     "plans": "Pläne",
     "subscriptions": "Abonnements",
@@ -593,7 +594,12 @@
       "ai_risk_assessment_completed": "KI-Risikobewertung abgeschlossen",
       "loyalty_campaign_activated": "Treuekampagne aktiviert",
       "multi_product_onboarding_completed": "Multi-Produkt-Onboarding abgeschlossen",
-      "advisor_access_granted": "Beraterzugriff gewährt"
+      "advisor_access_granted": "Beraterzugriff gewährt",
+      "ai_assessment_submitted": "KI-Bewertung eingereicht",
+      "compliance_review_completed": "Compliance-Prüfung abgeschlossen",
+      "campaign_published": "Kampagne veröffentlicht",
+      "subscription_upgraded": "Abonnement hochgestuft",
+      "advisor_invited": "Berater eingeladen"
     }
   },
   "workspaces": {

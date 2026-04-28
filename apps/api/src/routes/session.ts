@@ -117,6 +117,7 @@ export async function registerSessionRoutes(app: FastifyInstance): Promise<void>
             orderBy: [{ tenantId: "asc" }, { module: { name: "asc" } }],
           });
     const platformMetrics = await loadPlatformMetricsForSession(s, tenantIds);
+    const moduleOperations = await loadModuleOperationsForSession(s, tenantIds);
 
     return {
       user: s.user,
@@ -128,6 +129,7 @@ export async function registerSessionRoutes(app: FastifyInstance): Promise<void>
       subscriptions,
       tenantModules,
       platformMetrics,
+      moduleOperations,
       auditLogs,
     };
   });
@@ -138,6 +140,290 @@ export async function registerSessionRoutes(app: FastifyInstance): Promise<void>
     reply.clearCookie(SESSION_COOKIE_NAME, { path: "/" });
     return { ok: true };
   });
+}
+
+async function loadModuleOperationsForSession(
+  s: SessionPayload,
+  scopedTenantIds: string[],
+): Promise<{
+  aiCompliance: {
+    activeOrganizations: number;
+    assessmentsCompleted: number;
+    pendingReviews: number;
+    openObligations: number;
+    systemsNeedingReview: number;
+    overdueObligations: number;
+    escalatedAssessments: number;
+    advisorWorkload: number;
+    evidenceBacklog: number;
+    systems: Array<{
+      id: string;
+      name: string;
+      purpose: string | null;
+      providerType: string;
+      status: string;
+      updatedAt: Date;
+      tenant: { id: string; name: string; slug: string; type: string | null };
+      createdBy: { id: string; name: string | null; email: string } | null;
+      currentAssessment: {
+        id: string;
+        status: string;
+        riskLevel: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        createdBy: { id: string; name: string | null; email: string } | null;
+      } | null;
+      obligations: Array<{
+        id: string;
+        obligationType: string;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+      }>;
+      tasks: Array<{
+        id: string;
+        title: string;
+        status: string;
+        priority: string;
+        createdAt: Date;
+        updatedAt: Date;
+        assignedTo: { id: string; name: string | null; email: string } | null;
+      }>;
+      evidencesCount: number;
+    }>;
+  };
+  loyalty: {
+    activeOrganizations: number;
+    activeCampaigns: number;
+    enrolledCustomers: number;
+    campaignActivity: number;
+  };
+  advisorPortal: {
+    advisorOrganizations: number;
+    linkedClientOrganizations: number;
+    pendingAdvisorActions: number;
+    sharedWorkspaceActivity: number;
+  };
+}> {
+  const tenantFilter = s.user.platformAdmin
+    ? {}
+    : scopedTenantIds.length > 0
+      ? { tenantId: { in: scopedTenantIds } }
+      : { tenantId: "__none__" };
+
+  const [
+    aiActiveOrganizations,
+    aiAssessmentsCompleted,
+    aiPendingReviews,
+    aiOpenObligations,
+    aiSystemsNeedingReview,
+    aiOverdueObligations,
+    aiEscalatedAssessments,
+    aiAdvisorWorkload,
+    aiEvidenceBacklog,
+    aiSystems,
+    loyaltyActiveOrganizations,
+    loyaltyActiveCampaigns,
+    loyaltyEnrolledCustomers,
+    loyaltyCampaignActivity,
+    advisorOrganizations,
+    linkedClientOrganizations,
+    pendingAdvisorActions,
+    sharedWorkspaceActivity,
+  ] = await Promise.all([
+    prisma.tenantModule.groupBy({
+      by: ["tenantId"],
+      where: { ...tenantFilter, isActive: true, module: { name: "ai_act" } },
+    }),
+    prisma.aiAssessment.count({
+      where: {
+        ...tenantFilter,
+        status: "COMPLETED",
+      },
+    }),
+    prisma.aiAssessment.count({
+      where: {
+        ...tenantFilter,
+        status: "DRAFT",
+      },
+    }),
+    prisma.aiObligation.count({
+      where: {
+        ...tenantFilter,
+        status: "PENDING",
+      },
+    }),
+    prisma.aiAssessment.count({
+      where: {
+        ...tenantFilter,
+        status: "DRAFT",
+      },
+    }),
+    prisma.aiObligation.count({
+      where: {
+        ...tenantFilter,
+        status: { in: ["PENDING", "IN_PROGRESS"] },
+        createdAt: {
+          lt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+        },
+      },
+    }),
+    prisma.aiAssessment.count({
+      where: {
+        ...tenantFilter,
+        status: "DRAFT",
+        updatedAt: {
+          lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        },
+      },
+    }),
+    prisma.aiTask.count({
+      where: {
+        ...tenantFilter,
+        status: { in: ["OPEN", "IN_PROGRESS"] },
+      },
+    }),
+    prisma.aiAssessment.count({
+      where: {
+        ...tenantFilter,
+        status: "COMPLETED",
+        riskLevel: { in: ["HIGH", "UNACCEPTABLE", "PROHIBITED"] },
+      },
+    }),
+    prisma.aiSystem.findMany({
+      where: tenantFilter,
+      orderBy: { updatedAt: "desc" },
+      take: 250,
+      include: {
+        tenant: { select: { id: true, name: true, slug: true, type: true } },
+        createdBy: { select: { id: true, name: true, email: true } },
+        assessments: {
+          where: { isCurrent: true },
+          take: 1,
+          orderBy: { updatedAt: "desc" },
+          select: {
+            id: true,
+            status: true,
+            riskLevel: true,
+            createdAt: true,
+            updatedAt: true,
+            createdBy: { select: { id: true, name: true, email: true } },
+          },
+        },
+        obligations: {
+          orderBy: { updatedAt: "desc" },
+          select: {
+            id: true,
+            obligationType: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+        tasks: {
+          orderBy: { updatedAt: "desc" },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            createdAt: true,
+            updatedAt: true,
+            assignedTo: { select: { id: true, name: true, email: true } },
+          },
+        },
+        _count: {
+          select: { evidences: true },
+        },
+      },
+    }),
+    prisma.tenantModule.groupBy({
+      by: ["tenantId"],
+      where: { ...tenantFilter, isActive: true, module: { name: "cafe" } },
+    }),
+    prisma.campaign.count({
+      where: { ...tenantFilter, isActive: true, status: "active" },
+    }),
+    prisma.customer.count({
+      where: tenantFilter,
+    }),
+    prisma.visitCampaignApplication.count({
+      where: tenantFilter,
+    }),
+    prisma.tenant.findMany({
+      where: s.user.platformAdmin
+        ? { type: "ADVISOR" }
+        : { id: { in: scopedTenantIds }, type: "ADVISOR" },
+      select: { id: true },
+    }),
+    prisma.tenantMembership.groupBy({
+      by: ["tenantId"],
+      where: {
+        ...tenantFilter,
+        role: "ADVISOR",
+      },
+    }),
+    prisma.aiTask.count({
+      where: {
+        ...tenantFilter,
+        status: "OPEN",
+      },
+    }),
+    prisma.auditLog.count({
+      where: s.user.platformAdmin
+        ? { action: { contains: "advisor" } }
+        : { action: { contains: "advisor" }, detail: { in: scopedTenantIds } },
+    }),
+  ]);
+
+  return {
+    aiCompliance: {
+      activeOrganizations: aiActiveOrganizations.length,
+      assessmentsCompleted: aiAssessmentsCompleted,
+      pendingReviews: aiPendingReviews,
+      openObligations: aiOpenObligations,
+      systemsNeedingReview: aiSystemsNeedingReview,
+      overdueObligations: aiOverdueObligations,
+      escalatedAssessments: aiEscalatedAssessments,
+      advisorWorkload: aiAdvisorWorkload,
+      evidenceBacklog: aiEvidenceBacklog,
+      systems: aiSystems.map((row) => ({
+        id: row.id,
+        name: row.name,
+        purpose: row.purpose,
+        providerType: row.providerType,
+        status: row.status,
+        updatedAt: row.updatedAt,
+        tenant: row.tenant,
+        createdBy: row.createdBy,
+        currentAssessment: row.assessments[0]
+          ? {
+              id: row.assessments[0].id,
+              status: row.assessments[0].status,
+              riskLevel: row.assessments[0].riskLevel,
+              createdAt: row.assessments[0].createdAt,
+              updatedAt: row.assessments[0].updatedAt,
+              createdBy: row.assessments[0].createdBy,
+            }
+          : null,
+        obligations: row.obligations,
+        tasks: row.tasks,
+        evidencesCount: row._count.evidences,
+      })),
+    },
+    loyalty: {
+      activeOrganizations: loyaltyActiveOrganizations.length,
+      activeCampaigns: loyaltyActiveCampaigns,
+      enrolledCustomers: loyaltyEnrolledCustomers,
+      campaignActivity: loyaltyCampaignActivity,
+    },
+    advisorPortal: {
+      advisorOrganizations: advisorOrganizations.length,
+      linkedClientOrganizations: linkedClientOrganizations.length,
+      pendingAdvisorActions,
+      sharedWorkspaceActivity,
+    },
+  };
 }
 
 const tenantBootstrapSelect = {
@@ -178,10 +464,10 @@ async function loadUsersForSession(s: SessionPayload) {
         tenant: { select: { slug: true, name: true } },
         memberships: {
           select: {
+            role: true,
             tenant: { select: { slug: true, name: true } },
           },
           orderBy: { createdAt: "asc" },
-          take: 1,
         },
       },
     });
@@ -206,10 +492,10 @@ async function loadUsersForSession(s: SessionPayload) {
       tenant: { select: { slug: true, name: true } },
       memberships: {
         select: {
+          role: true,
           tenant: { select: { slug: true, name: true } },
         },
         orderBy: { createdAt: "asc" },
-        take: 1,
       },
     },
   });

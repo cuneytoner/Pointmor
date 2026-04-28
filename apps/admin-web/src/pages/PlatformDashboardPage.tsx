@@ -1,6 +1,10 @@
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
+import {
+  PlatformActivityTimeline,
+  type PlatformActivityItem,
+} from "../components/PlatformActivityTimeline";
 import { useTranslation } from "../hooks/useTranslation";
 import { formatCount } from "../lib/formatters";
 
@@ -84,17 +88,19 @@ export function PlatformDashboardPage() {
       let status: ActivityStatus = hasSubscription ? "success" : "warning";
 
       if (tenant.slug === "acme-ai-solutions" || (hasAiAct && !hasLoyalty)) {
-        eventKey = "dashboard.events.ai_risk_assessment_completed";
+        eventKey = "dashboard.events.ai_assessment_submitted";
         status = "success";
       } else if (tenant.slug === "urban-coffee-group" || (!hasAiAct && hasLoyalty)) {
-        eventKey = "dashboard.events.loyalty_campaign_activated";
+        eventKey = "dashboard.events.campaign_published";
         status = "success";
       } else if (tenant.slug === "retailcorp-eu" || (hasAiAct && hasLoyalty)) {
-        eventKey = "dashboard.events.multi_product_onboarding_completed";
+        eventKey = "dashboard.events.compliance_review_completed";
         status = "success";
       } else if (tenant.slug === "kanzlei-mueller-advisory") {
-        eventKey = "dashboard.events.advisor_access_granted";
+        eventKey = "dashboard.events.advisor_invited";
         status = "info";
+      } else if (hasSubscription) {
+        eventKey = "dashboard.events.subscription_upgraded";
       }
 
       return {
@@ -106,11 +112,21 @@ export function PlatformDashboardPage() {
     })
     .sort((a, b) => a.organization.localeCompare(b.organization, locale));
 
-  const statusBadgeKey = (s: ActivityStatus) => {
-    if (s === "success") return "dashboard.activity.statusBadge.success";
-    if (s === "warning") return "dashboard.activity.statusBadge.warning";
-    return "dashboard.activity.statusBadge.info";
-  };
+  const timelineItems: PlatformActivityItem[] = demoRows.map((row) => ({
+    id: row.organization,
+    title: t(row.eventKey),
+    when: row.when,
+    type:
+      row.eventKey.includes("campaign")
+        ? "loyalty"
+        : row.eventKey.includes("advisor")
+          ? "advisor"
+          : row.eventKey.includes("subscription")
+            ? "subscription_lifecycle"
+            : "compliance",
+    severity: row.status,
+    organization: row.organization,
+  }));
 
   return (
     <PageShell
@@ -136,38 +152,11 @@ export function PlatformDashboardPage() {
         ))}
       </div>
 
-      <div className="admin-app__card admin-app__card--wide">
-        <div className="card-head">
-          <p className="admin-app__card-title">{t("dashboard.activity.title")}</p>
-          <span className="card-head__meta">{t("dashboard.activity.badgeLive")}</span>
-        </div>
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>{t("dashboard.activity.columns.organization")}</th>
-                <th>{t("dashboard.activity.columns.event")}</th>
-                <th>{t("dashboard.activity.columns.time")}</th>
-                <th>{t("dashboard.activity.columns.status")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {demoRows.map((row) => (
-                <tr key={row.organization}>
-                  <td>{row.organization}</td>
-                  <td>{t(row.eventKey)}</td>
-                  <td className="data-table__muted">{row.when}</td>
-                  <td>
-                    <Badge tone={row.status}>
-                      {t(statusBadgeKey(row.status))}
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <PlatformActivityTimeline
+        title={t("dashboard.activity.title")}
+        items={timelineItems}
+        emptyText="No operational activity yet."
+      />
     </PageShell>
   );
 }

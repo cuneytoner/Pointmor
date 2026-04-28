@@ -80,7 +80,7 @@ export type UserListDto = {
   role: string;
   tenantId: string | null;
   tenant: { slug: string; name: string } | null;
-  memberships?: Array<{ tenant: { slug: string; name: string } }>;
+  memberships?: Array<{ role: string; tenant: { slug: string; name: string } }>;
   createdAt?: string;
 };
 
@@ -105,6 +105,67 @@ export type PlatformMetricsDto = {
   activeLoyaltyCampaigns: number;
 };
 
+export type ModuleOperationsDto = {
+  aiCompliance: {
+    activeOrganizations: number;
+    assessmentsCompleted: number;
+    pendingReviews: number;
+    openObligations: number;
+    systemsNeedingReview: number;
+    overdueObligations: number;
+    escalatedAssessments: number;
+    advisorWorkload: number;
+    evidenceBacklog: number;
+    systems: Array<{
+      id: string;
+      name: string;
+      purpose: string | null;
+      providerType: string;
+      status: string;
+      updatedAt: string;
+      tenant: { id: string; name: string; slug: string; type: string | null };
+      createdBy: { id: string; name: string | null; email: string } | null;
+      currentAssessment: {
+        id: string;
+        status: string;
+        riskLevel: string | null;
+        createdAt: string;
+        updatedAt: string;
+        createdBy: { id: string; name: string | null; email: string } | null;
+      } | null;
+      obligations: Array<{
+        id: string;
+        obligationType: string;
+        status: string;
+        createdAt: string;
+        updatedAt: string;
+      }>;
+      tasks: Array<{
+        id: string;
+        title: string;
+        status: string;
+        priority: string;
+        createdAt: string;
+        updatedAt: string;
+        assignedTo: { id: string; name: string | null; email: string } | null;
+      }>;
+      evidencesCount: number;
+    }>;
+  };
+  loyalty: {
+    activeOrganizations: number;
+    activeCampaigns: number;
+    enrolledCustomers: number;
+    campaignActivity: number;
+  };
+  advisorPortal: {
+    advisorOrganizations: number;
+    linkedClientOrganizations: number;
+    pendingAdvisorActions: number;
+    sharedWorkspaceActivity: number;
+  };
+};
+
 export type AdminBootstrap = {
   user: AuthUser;
   tenant: AuthTenant;
@@ -115,6 +176,7 @@ export type AdminBootstrap = {
   subscriptions: SubscriptionDto[];
   tenantModules: TenantModuleDto[];
   platformMetrics: PlatformMetricsDto;
+  moduleOperations: ModuleOperationsDto;
   auditLogs: AuditLogDto[];
   /** `/tenant/entitlements` — yalnızca tenant oturumunda doldurulur. */
   entitlements: EntitlementsPayload | null;

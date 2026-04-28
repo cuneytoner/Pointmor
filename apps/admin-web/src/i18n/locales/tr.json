@@ -141,6 +141,7 @@
     "platformDashboard": "Özet",
     "tenantDashboard": "Özet",
     "workspaces": "Organizasyonlar",
+    "products": "Urunler",
     "usersGlobal": "Kullanıcılar (global)",
     "plans": "Planlar",
     "subscriptions": "Abonelikler",
@@ -593,7 +594,12 @@
       "ai_risk_assessment_completed": "AI risk değerlendirmesi tamamlandı",
       "loyalty_campaign_activated": "Sadakat kampanyası etkinleştirildi",
       "multi_product_onboarding_completed": "Çoklu ürün onboarding tamamlandı",
-      "advisor_access_granted": "Danışman erişimi verildi"
+      "advisor_access_granted": "Danışman erişimi verildi",
+      "ai_assessment_submitted": "AI değerlendirmesi gönderildi",
+      "compliance_review_completed": "Uyumluluk incelemesi tamamlandı",
+      "campaign_published": "Kampanya yayınlandı",
+      "subscription_upgraded": "Abonelik yükseltildi",
+      "advisor_invited": "Danışman davet edildi"
     }
   },
   "workspaces": {

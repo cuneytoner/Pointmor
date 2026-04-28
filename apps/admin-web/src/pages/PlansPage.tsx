@@ -4,6 +4,7 @@ import { Badge } from "../components/ui/Badge";
 import { useTranslation } from "../hooks/useTranslation";
 import { formatCurrencyFromMinor } from "../lib/currency-format";
 import { toIntlLocale } from "../lib/locale-intl";
+import { presentModuleLabel } from "../lib/platformPresentation";
 
 export function PlansPage() {
   const { t, locale } = useTranslation();
@@ -64,10 +65,13 @@ export function PlansPage() {
               </p>
             ) : null}
             <ul className="plan-card__features">
-              {p.featureTags.map((f) => (
+              {p.featureTags.slice(0, 6).map((f) => (
                 <li key={f}>{humanizeFeatureTag(f)}</li>
               ))}
             </ul>
+            {p.featureTags.length > 6 ? (
+              <p className="admin-app__card-text data-table__muted">{`+${p.featureTags.length - 6} more`}</p>
+            ) : null}
           </div>
         ))}
       </div>
@@ -76,10 +80,15 @@ export function PlansPage() {
 }
 
 function humanizeFeatureTag(featureTag: string): string {
+  if (
+    featureTag === "ai_act" ||
+    featureTag === "cafe" ||
+    featureTag === "advisor_dashboard" ||
+    featureTag === "ai_document_intelligence"
+  ) {
+    return presentModuleLabel(featureTag);
+  }
   const labels: Record<string, string> = {
-    ai_act: "AI Compliance",
-    ai_document_intelligence: "AI Document Intelligence",
-    advisor_dashboard: "Advisor Portal",
     customer_pwa: "Mobile App",
     loyalty: "Loyalty",
     expense_capture: "Expense Capture",

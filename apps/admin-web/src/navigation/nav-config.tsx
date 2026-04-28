@@ -35,9 +35,15 @@ export const PLATFORM_NAV: NavItemConfig[] = [
     end: true,
   },
   {
-    to: "/platform/workspaces",
+    to: "/platform/organizations",
     labelKey: "nav.workspaces",
     Icon: IconBuilding,
+    platform: true,
+  },
+  {
+    to: "/platform/products",
+    labelKey: "nav.products",
+    Icon: IconLayers,
     platform: true,
   },
   {
@@ -47,14 +53,8 @@ export const PLATFORM_NAV: NavItemConfig[] = [
     platform: true,
   },
   {
-    to: "/platform/plans",
-    labelKey: "nav.plans",
-    Icon: IconLayers,
-    platform: true,
-  },
-  {
     to: "/platform/subscriptions",
-    labelKey: "nav.subscriptions",
+    labelKey: "nav.billing",
     Icon: IconCredit,
     platform: true,
   },

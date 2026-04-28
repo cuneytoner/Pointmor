@@ -5,6 +5,13 @@ import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useTranslation } from "../hooks/useTranslation";
+import {
+  deriveOnboardingStage,
+  deriveOrganizationHealth,
+  deriveOrganizationSegmentation,
+  presentHealthTone,
+  presentOnboardingTone,
+} from "../lib/platformPresentation";
 
 export function TenantsPage() {
   const { t } = useTranslation();
@@ -30,6 +37,25 @@ export function TenantsPage() {
         r.name.toLowerCase().includes(qq) || r.slug.toLowerCase().includes(qq),
     );
   }, [bootstrap?.tenants, q]);
+  const subscriptionMap = useMemo(
+    () => new Map((bootstrap?.subscriptions ?? []).map((row) => [row.tenant.id, row])),
+    [bootstrap?.subscriptions],
+  );
+  const aiSystemByTenant = useMemo(() => {
+    const map = new Map<string, { systems: number; openObligations: number; pendingReview: number }>();
+    for (const system of bootstrap?.moduleOperations.aiCompliance.systems ?? []) {
+      const existing = map.get(system.tenant.id) ?? { systems: 0, openObligations: 0, pendingReview: 0 };
+      existing.systems += 1;
+      existing.openObligations += system.obligations.filter(
+        (o) => o.status === "PENDING" || o.status === "IN_PROGRESS",
+      ).length;
+      if (!system.currentAssessment || system.currentAssessment.status === "DRAFT") {
+        existing.pendingReview += 1;
+      }
+      map.set(system.tenant.id, existing);
+    }
+    return map;
+  }, [bootstrap?.moduleOperations.aiCompliance.systems]);
 
   if (!bootstrap) {
     return (
@@ -73,16 +99,42 @@ export function TenantsPage() {
                 <tr>
                   <th>{t("workspaces.columns.name")}</th>
                   <th>{t("workspaces.columns.products")}</th>
+                  <th>Segment</th>
+                  <th>Stage</th>
                   <th>{t("common.slug")}</th>
                   <th>{t("common.id")}</th>
                   <th>{t("workspaces.columns.status")}</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
+                {rows.map((r) => {
+                  const modules = moduleMap.get(r.id) ?? new Set<string>();
+                  const subscription = subscriptionMap.get(r.id) ?? null;
+                  const health = deriveOrganizationHealth({
+                    subscription,
+                    modules,
+                    hasRecentActivity: true,
+                    hasAdvisorLink: Boolean(
+                      (bootstrap?.users ?? []).some((u) =>
+                        u.memberships?.some((m) => m.tenant.slug === r.slug && m.role === "ADVISOR"),
+                      ),
+                    ),
+                  });
+                  const stage = deriveOnboardingStage({
+                    onboardingStep: r.onboardingStep,
+                    onboardingCompletedAt: r.onboardingCompletedAt,
+                    health,
+                    modules,
+                  });
+                  const segments = deriveOrganizationSegmentation({
+                    modules,
+                    planName: subscription?.plan.name ?? null,
+                    tenantType: r.type,
+                  });
+                  return (
                   <tr key={r.id}>
                     <td>
-                      <Link to={`/platform/workspaces/${encodeURIComponent(r.id)}`}>{r.name}</Link>
+                      <Link to={`/platform/organizations/${encodeURIComponent(r.id)}`}>{r.name}</Link>
                     </td>
                     <td>
                       <div className="chip-row">
@@ -91,17 +143,40 @@ export function TenantsPage() {
                             {label}
                           </Badge>
                         ))}
+                        {aiSystemByTenant.get(r.id)?.systems ? (
+                          <Badge tone="neutral">
+                            {`${aiSystemByTenant.get(r.id)?.systems} AI systems`}
+                          </Badge>
+                        ) : null}
+                        {aiSystemByTenant.get(r.id)?.openObligations ? (
+                          <Badge tone="warning">
+                            {`${aiSystemByTenant.get(r.id)?.openObligations} open obligations`}
+                          </Badge>
+                        ) : null}
                       </div>
+                    </td>
+                    <td>
+                      <div className="chip-row">
+                        {segments.map((segment) => (
+                          <Badge key={`${r.id}-${segment}`} tone="neutral">
+                            {segment}
+                          </Badge>
+                        ))}
+                      </div>
+                    </td>
+                    <td>
+                      <Badge tone={presentOnboardingTone(stage)}>{stage}</Badge>
                     </td>
                     <td className="data-table__mono">{r.slug}</td>
                     <td className="data-table__mono data-table__muted">
                       {r.id.slice(0, 12)}…
                     </td>
                     <td>
-                      <Badge tone="success">{t("workspaces.statusActive")}</Badge>
+                      <Badge tone={presentHealthTone(health)}>{health}</Badge>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           )}

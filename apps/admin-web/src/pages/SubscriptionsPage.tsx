@@ -7,6 +7,7 @@ import { useTranslation } from "../hooks/useTranslation";
 import { formatDateLabel } from "../lib/formatters";
 import { patchSubscription } from "../lib/platform-api";
 import type { PlanDto, SubscriptionDto } from "../hooks/useAdminData";
+import { presentSubscriptionHealth } from "../lib/platformPresentation";
 
 export function SubscriptionsPage() {
   const { t, locale } = useTranslation();
@@ -110,13 +111,28 @@ export function SubscriptionsPage() {
                 const selected = draftBySub[r.id] ?? r.plan.id;
                 const dirty = selected !== r.plan.id;
                 const busy = busyId === r.id;
+                const health = presentSubscriptionHealth(r);
                 return (
                   <tr key={r.id}>
                     <td className="data-table__mono">{r.id}</td>
                     <td>{r.tenant.name}</td>
-                    <td>{r.plan.name}</td>
                     <td>
-                      <Badge tone={statusTone(r.status)}>{statusLabel(r.status)}</Badge>
+                      <div className="chip-row">
+                        <span>{r.plan.name}</span>
+                        <Badge tone={r.plan.planType === "free" ? "neutral" : "info"}>
+                          {r.plan.planType === "free"
+                            ? "Starter"
+                            : r.plan.planType === "team"
+                              ? "Team"
+                              : "Business"}
+                        </Badge>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="chip-row">
+                        <Badge tone={statusTone(r.status)}>{statusLabel(r.status)}</Badge>
+                        <Badge tone={health.tone}>{health.label}</Badge>
+                      </div>
                     </td>
                     <td className="data-table__muted">
                       {r.renewsAt ? formatDateLabel(r.renewsAt, locale) : "—"}

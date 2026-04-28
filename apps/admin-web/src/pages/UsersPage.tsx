@@ -4,6 +4,12 @@ import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useTranslation } from "../hooks/useTranslation";
+import {
+  deriveUserAccessScope,
+  deriveUserInvitationStatus,
+  presentModuleLabel,
+  presentRoleLabel,
+} from "../lib/platformPresentation";
 
 export function UsersPage() {
   const { t } = useTranslation();
@@ -15,12 +21,23 @@ export function UsersPage() {
     if (role === "all") return source;
     return source.filter((u) => u.role === role);
   }, [bootstrap?.users, role]);
+  const moduleMap = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const row of bootstrap?.tenantModules ?? []) {
+      if (!row.isActive) continue;
+      const existing = map.get(row.tenantId) ?? new Set<string>();
+      existing.add(row.module.name);
+      map.set(row.tenantId, existing);
+    }
+    return map;
+  }, [bootstrap?.tenantModules]);
 
-  const roleLabel = (r: string) => {
-    const k = `users.roles.${r}`;
-    const v = t(k);
-    return v === k ? r : v;
-  };
+  const roleLabel = (u: (typeof rows)[number]) =>
+    presentRoleLabel({
+      platformAdmin: u.platformAdmin,
+      appRole: u.role,
+      hasAdvisorMembership: Boolean(u.memberships?.some((m) => m.role === "ADVISOR")),
+    });
 
   const roleTone = (
     r: string,
@@ -66,7 +83,11 @@ export function UsersPage() {
             className={`chip${role === r ? " chip--on" : ""}`}
             onClick={() => setRole(r)}
           >
-            {roleLabel(r)}
+            {r === "platform_admin"
+              ? "Platform Admin"
+              : r === "tenant_operator"
+                ? "Organization Admin"
+                : "Viewer"}
           </button>
         ))}
       </div>
@@ -86,22 +107,66 @@ export function UsersPage() {
                   <th>{t("common.email")}</th>
                   <th>{t("users.columns.role")}</th>
                   <th>{t("users.columns.workspace")}</th>
+                  <th>Access scope</th>
+                  <th>Linked products</th>
+                  <th>Last activity</th>
+                  <th>Invitation status</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((u) => {
-                  const primaryOrganization = u.memberships?.[0]?.tenant ?? u.tenant;
+                  const primaryMembership =
+                    u.memberships?.find((membership) => membership.role !== "ADVISOR") ??
+                    u.memberships?.[0];
+                  const primaryOrganization = primaryMembership?.tenant ?? u.tenant;
+                  const linkedModules = primaryOrganization
+                    ? moduleMap.get(
+                        (bootstrap?.tenants ?? []).find((t) => t.slug === primaryOrganization.slug)?.id ??
+                          "",
+                      ) ?? new Set<string>()
+                    : new Set<string>();
+                  const products = Array.from(linkedModules).map((moduleName) =>
+                    presentModuleLabel(moduleName),
+                  );
                   return (
                   <tr key={u.id}>
                     <td>{u.name}</td>
                     <td className="data-table__mono">{u.email}</td>
                     <td>
-                      <Badge tone={roleTone(u.role)}>{roleLabel(u.role)}</Badge>
+                      <Badge tone={roleTone(u.role)}>{roleLabel(u)}</Badge>
                     </td>
                     <td className="data-table__muted">
-                      {primaryOrganization
+                      {u.platformAdmin
+                        ? "Platform"
+                        : primaryOrganization
                         ? `${primaryOrganization.name} (${primaryOrganization.slug})`
                         : "—"}
+                    </td>
+                    <td className="data-table__muted">
+                      {deriveUserAccessScope({
+                        platformAdmin: u.platformAdmin,
+                        memberships: u.memberships ?? [],
+                      })}
+                    </td>
+                    <td>
+                      <div className="chip-row">
+                        {(products.length > 0 ? products : ["Core Platform"]).slice(0, 2).map((p) => (
+                          <Badge key={`${u.id}-${p}`} tone="neutral">
+                            {p}
+                          </Badge>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="data-table__muted">Active this week</td>
+                    <td>
+                      <Badge
+                        tone={(u.memberships ?? []).length === 0 && !u.platformAdmin ? "warning" : "success"}
+                      >
+                        {deriveUserInvitationStatus({
+                          platformAdmin: u.platformAdmin,
+                          memberships: u.memberships ?? [],
+                        })}
+                      </Badge>
                     </td>
                   </tr>
                   );

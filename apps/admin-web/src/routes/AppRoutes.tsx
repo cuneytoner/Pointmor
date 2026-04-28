@@ -21,6 +21,12 @@ import { LoginPage } from "../pages/LoginPage";
 import { PlansPage } from "../pages/PlansPage";
 import { PlatformAdminPage } from "../pages/PlatformAdminPage";
 import { PlatformDashboardPage } from "../pages/PlatformDashboardPage";
+import { PlatformProductsPage } from "../pages/PlatformProductsPage";
+import { AiComplianceOperationsPage } from "../pages/AiComplianceOperationsPage";
+import { LoyaltyOperationsPage } from "../pages/LoyaltyOperationsPage";
+import { AdvisorPortalOperationsPage } from "../pages/AdvisorPortalOperationsPage";
+import { AiComplianceSystemsPage } from "../pages/AiComplianceSystemsPage";
+import { AiComplianceSystemDetailPage } from "../pages/AiComplianceSystemDetailPage";
 import { PricingPage } from "../pages/PricingPage";
 import { SubscriptionsPage } from "../pages/SubscriptionsPage";
 import { TenantBillingPage } from "../pages/TenantBillingPage";
@@ -166,8 +172,19 @@ export function AppRoutes() {
           <Route path="/platform" element={<RequirePlatformLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<PlatformDashboardPage />} />
-            <Route path="workspaces" element={<TenantsPage />} />
+            <Route path="organizations" element={<TenantsPage />} />
+            <Route path="organizations/:organizationId" element={<OrganizationDetailPage />} />
+            <Route path="workspaces" element={<Navigate to="/platform/organizations" replace />} />
             <Route path="workspaces/:organizationId" element={<OrganizationDetailPage />} />
+            <Route path="products" element={<PlatformProductsPage />} />
+            <Route path="products/ai-compliance" element={<AiComplianceOperationsPage />} />
+            <Route path="products/ai-compliance/systems" element={<AiComplianceSystemsPage />} />
+            <Route
+              path="products/ai-compliance/systems/:systemId"
+              element={<AiComplianceSystemDetailPage />}
+            />
+            <Route path="products/loyalty" element={<LoyaltyOperationsPage />} />
+            <Route path="products/advisor-portal" element={<AdvisorPortalOperationsPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="plans" element={<PlansPage />} />
             <Route path="subscriptions" element={<SubscriptionsPage />} />
@@ -210,7 +227,7 @@ export function AppRoutes() {
           <Route path="/dashboard" element={<LegacyDashboardRedirect />} />
           <Route
             path="/tenants"
-            element={<Navigate to="/platform/workspaces" replace />}
+            element={<Navigate to="/platform/organizations" replace />}
           />
           <Route path="/users" element={<LegacyUsersRedirect />} />
           <Route

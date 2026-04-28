@@ -6,6 +6,7 @@ import { Badge } from "../components/ui/Badge";
 import { useTranslation } from "../hooks/useTranslation";
 import { toIntlLocale } from "../lib/locale-intl";
 import { defaultHomePath } from "../lib/access";
+import { presentAuditActionLabel } from "../lib/platformPresentation";
 
 export function PlatformAdminPage() {
   const locale = useLocale();
@@ -19,11 +20,6 @@ export function PlatformAdminPage() {
   }
 
   const logs = data.bootstrap?.auditLogs ?? [];
-  const actionLabel = (action: string) => {
-    const key = `platform.actions.${action}`;
-    const value = t(key);
-    return value === key ? action.replaceAll("_", " ") : value;
-  };
 
   return (
     <PageShell
@@ -55,7 +51,7 @@ export function PlatformAdminPage() {
                     {new Date(row.createdAt).toLocaleString(toIntlLocale(locale))}
                   </td>
                   <td className="data-table__mono">{row.actorEmail ?? "—"}</td>
-                  <td>{actionLabel(row.action)}</td>
+                  <td>{presentAuditActionLabel(row.action)}</td>
                   <td>{row.detail ?? "—"}</td>
                 </tr>
               ))}
