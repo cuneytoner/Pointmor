@@ -3,10 +3,13 @@ import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import {
+  deriveEvidenceFreshness,
   deriveOpenObligationCount,
+  derivePriorityScore,
   deriveReviewStatus,
   deriveSystemCategory,
   deriveSystemHealth,
+  presentEvidenceFreshnessTone,
   presentRiskLabel,
 } from "../lib/aiCompliancePresentation";
 import { presentHealthTone } from "../lib/platformPresentation";
@@ -34,6 +37,8 @@ export function AiComplianceSystemsPage() {
                 <th>Open obligations</th>
                 <th>Last assessment</th>
                 <th>Owner</th>
+                <th>Evidence freshness</th>
+                <th>Priority</th>
                 <th>Health</th>
               </tr>
             </thead>
@@ -58,6 +63,16 @@ export function AiComplianceSystemsPage() {
                         : "No assessment"}
                     </td>
                     <td>{system.createdBy?.name ?? system.createdBy?.email ?? "Unassigned"}</td>
+                    <td>
+                      <Badge tone={presentEvidenceFreshnessTone(deriveEvidenceFreshness(system))}>
+                        {deriveEvidenceFreshness(system)}
+                      </Badge>
+                    </td>
+                    <td>
+                      <Badge tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}>
+                        {derivePriorityScore(system)}
+                      </Badge>
+                    </td>
                     <td>
                       <Badge tone={presentHealthTone(health)}>{health}</Badge>
                     </td>

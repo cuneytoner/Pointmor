@@ -10,6 +10,12 @@ import {
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { useTranslation } from "../hooks/useTranslation";
 import {
+  deriveEvidenceFreshness,
+  deriveOrganizationRiskTrend,
+  derivePriorityScore,
+  presentTrendTone,
+} from "../lib/aiCompliancePresentation";
+import {
   deriveOnboardingStage,
   deriveOrganizationHealth,
   deriveOrganizationSegmentation,
@@ -135,6 +141,28 @@ export function OrganizationDetailPage() {
   const aiPendingReview = aiSystems.filter(
     (row) => !row.currentAssessment || row.currentAssessment.status === "DRAFT",
   ).length;
+  const riskTrend = deriveOrganizationRiskTrend(aiSystems);
+  const highPressureSystems = aiSystems.filter((row) => derivePriorityScore(row) >= 70).length;
+  const staleEvidenceSystems = aiSystems.filter((row) => {
+    const freshness = deriveEvidenceFreshness(row);
+    return freshness === "Stale" || freshness === "Critical";
+  }).length;
+  const reviewVelocity =
+    aiSystems.length === 0
+      ? "N/A"
+      : aiPendingReview === 0
+        ? "High"
+        : aiPendingReview <= Math.ceil(aiSystems.length / 2)
+          ? "Medium"
+          : "Low";
+  const complianceMaturity =
+    aiSystems.length === 0
+      ? "Foundational"
+      : highPressureSystems === 0 && staleEvidenceSystems === 0
+        ? "Operational"
+        : staleEvidenceSystems <= 1
+          ? "Advancing"
+          : "Needs Stabilization";
 
   return (
     <PageShell
@@ -187,6 +215,7 @@ export function OrganizationDetailPage() {
             <Badge tone="warning">{`${aiOpenObligations} open obligations`}</Badge>
           ) : null}
           {aiPendingReview > 0 ? <Badge tone="info">{`${aiPendingReview} pending review`}</Badge> : null}
+          <Badge tone={presentTrendTone(riskTrend)}>{`Risk trend: ${riskTrend}`}</Badge>
         </div>
         <div className="chip-row" style={{ marginTop: 10 }}>
           {segmentation.map((segment) => (
@@ -267,6 +296,18 @@ export function OrganizationDetailPage() {
             {productLabels.includes("Document Intelligence")
               ? "Document Intelligence connected"
               : "Document Intelligence not enabled"}
+          </Badge>
+          <Badge tone={highPressureSystems > 0 ? "danger" : "success"}>
+            {`Operational pressure: ${highPressureSystems > 0 ? `${highPressureSystems} high-priority systems` : "Balanced"}`}
+          </Badge>
+          <Badge tone={staleEvidenceSystems > 0 ? "warning" : "success"}>
+            {`Evidence freshness: ${staleEvidenceSystems > 0 ? `${staleEvidenceSystems} stale systems` : "Fresh"}`}
+          </Badge>
+          <Badge tone={reviewVelocity === "Low" ? "warning" : reviewVelocity === "Medium" ? "info" : "success"}>
+            {`Review velocity: ${reviewVelocity}`}
+          </Badge>
+          <Badge tone={complianceMaturity === "Needs Stabilization" ? "warning" : "info"}>
+            {`Compliance maturity: ${complianceMaturity}`}
           </Badge>
         </div>
       </div>

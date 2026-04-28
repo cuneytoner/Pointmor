@@ -159,14 +159,40 @@ source ~/.bashrc
 
 Fonksiyonlar:
 
-- `pmdeploy`: demo deploy (local)
-- `pmdeploycld`: demo deploy + cloudflared
+- `pmdeploy`: argümanlı demo deploy fonksiyonu (`--cloud`, `--db-mode`, `--full-seed`)
+- `pmdeploycld`: `pmdeploy --cloud` wrapper'ı (aynı argümanları destekler)
 - `pmstatus`: container + health + tunnel kontrolü
+
+`pmdeploy` kullanım örnekleri:
+
+```bash
+# cloud'suz, migrate + seed (default)
+pmdeploy
+
+# cloud'lu, migrate + seed
+pmdeploy --cloud
+
+# destruktif tam reset + generate + migrate + seed
+pmdeploy --db-mode reset-seed
+
+# cloud + yalnızca yapısal DB update (migrate)
+pmdeploy --cloud --db-mode update-only
+
+# migrate + full demo seed
+pmdeploy --db-mode update-seed --full-seed
+```
+
+`--db-mode` değerleri:
+
+- `reset-seed`: DB temizler (`db:reset`), `db:generate` çalıştırır, migrate + seed uygular.
+- `update-seed`: migrate + seed uygular.
+- `update-only`: yalnızca migrate uygular (seed yok).
 
 Guvenlik notu:
 
-- `pmdeploy` ve `pmdeploycld` içinde `git reset --hard HEAD` vardır.
+- `pmdeploy` ve `pmdeploycld` içinde `git reset --hard origin/main` + `git clean -fd` vardır.
 - Demo hostta local değişiklik tutulmamalıdır; tutuluyorsa bu komutlar değişiklikleri siler.
+- `--db-mode reset-seed` destruktiftir; demo DB verisini siler ve yeniden üretir.
 
 ---
 

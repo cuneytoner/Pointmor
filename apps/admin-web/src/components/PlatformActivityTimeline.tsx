@@ -14,6 +14,8 @@ export type PlatformActivityItem = {
   type: ActivityType;
   severity: ActivitySeverity;
   organization?: string;
+  chain?: string;
+  aging?: string;
 };
 
 export function PlatformActivityTimeline({
@@ -43,6 +45,8 @@ export function PlatformActivityTimeline({
                   <th>Event</th>
                   <th>Organization</th>
                   <th>When</th>
+                  <th>Aging</th>
+                  <th>Chain</th>
                   <th>Severity</th>
                 </tr>
               </thead>
@@ -52,6 +56,8 @@ export function PlatformActivityTimeline({
                     <td>{item.title}</td>
                     <td>{item.organization ?? "—"}</td>
                     <td className="data-table__muted">{item.when}</td>
+                    <td className="data-table__muted">{item.aging ?? "—"}</td>
+                    <td className="data-table__muted">{item.chain ?? "—"}</td>
                     <td>
                       <Badge tone={presentActivitySeverityTone(item.severity)}>
                         {`${presentActivitySeverityIcon(item.severity)} ${presentActivitySeverityLabel(

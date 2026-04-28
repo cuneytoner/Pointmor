@@ -1,55 +1,137 @@
 pmdeploy() {
-  cd /opt/pointmor-demo/Pointmor || return
+  set -euo pipefail
 
-  echo "📥 Pulling latest code..."
-  git reset --hard HEAD || return
-  git pull || return
+  cd /opt/pointmor-demo/Pointmor || return 1
+  local env_file="infra/docker/.env.demo"
+  [ -f "$env_file" ] || { echo "❌ Missing $env_file"; return 1; }
 
-  echo "🔧 Fixing permissions..."
+  local with_cloud=0
+  local db_mode="update-seed" # reset-seed | update-seed | update-only
+  local full_seed=0
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --cloud)
+        with_cloud=1
+        shift
+        ;;
+      --db-mode)
+        [ $# -ge 2 ] || { echo "❌ --db-mode requires a value"; return 1; }
+        db_mode="$2"
+        shift 2
+        ;;
+      --full-seed)
+        full_seed=1
+        shift
+        ;;
+      -h|--help)
+        cat <<'EOF'
+Usage: pmdeploy [--cloud] [--db-mode <mode>] [--full-seed]
+
+DB modes:
+  reset-seed   : destructive reset + prisma generate + migrate + seed
+  update-seed  : migrate + seed
+  update-only  : migrate only
+
+Examples:
+  pmdeploy
+  pmdeploy --cloud
+  pmdeploy --db-mode reset-seed
+  pmdeploy --cloud --db-mode update-only
+  pmdeploy --db-mode update-seed --full-seed
+EOF
+        return 0
+        ;;
+      *)
+        echo "❌ Unknown arg: $1"
+        echo "Use: pmdeploy --help"
+        return 1
+        ;;
+    esac
+  done
+
+  case "$db_mode" in
+    reset-seed|update-seed|update-only) ;;
+    *)
+      echo "❌ Invalid --db-mode: $db_mode (use: reset-seed|update-seed|update-only)"
+      return 1
+      ;;
+  esac
+
+  echo "📥 Syncing repository..."
+  git fetch origin --prune
+  git checkout main
+  git reset --hard origin/main
+  git clean -fd
+
+  echo "🔧 Fixing script permissions..."
   chmod +x infra/scripts/*.sh
-    
-  echo "🚀 Deploying..."
-  ./infra/scripts/deploy-demo.sh || {
-    echo "❌ Deploy failed"
-    return
-  }
 
-  echo "🔎 API health check..."
-  curl -fsS http://127.0.0.1:3000/health || echo "⚠️ API health check failed"
+  echo "🚀 Deploying containers..."
+  if [ "$with_cloud" -eq 1 ]; then
+    ./infra/scripts/deploy-demo.sh --cloud
+  else
+    ./infra/scripts/deploy-demo.sh
+  fi
+
+  case "$db_mode" in
+    reset-seed)
+      echo "🧨 DB reset + generate + migrate + seed..."
+      source "$env_file"
+      export DATABASE_URL="${DATABASE_URL_SEED:-}"
+      if [ -z "${DATABASE_URL:-}" ]; then
+        echo "❌ DATABASE_URL_SEED missing in $env_file"
+        return 1
+      fi
+      npm run db:generate -w apps/api
+      npm run db:reset -w apps/api
+      ./infra/scripts/migrate-demo.sh
+      if [ "$full_seed" -eq 1 ]; then
+        ./infra/scripts/seed-full-demo.sh
+      else
+        ./infra/scripts/seed-demo.sh
+      fi
+      ;;
+    update-seed)
+      echo "🗃️ DB migrate + seed..."
+      ./infra/scripts/migrate-demo.sh
+      if [ "$full_seed" -eq 1 ]; then
+        ./infra/scripts/seed-full-demo.sh
+      else
+        ./infra/scripts/seed-demo.sh
+      fi
+      ;;
+    update-only)
+      echo "🧱 DB structural update only (migrate)..."
+      ./infra/scripts/migrate-demo.sh
+      ;;
+  esac
+
+  echo "🧪 Running smoke/health checks..."
+  ./infra/scripts/smoke-demo.sh || echo "⚠️ smoke-demo failed"
+  source "$env_file"
+  curl -fsS "http://127.0.0.1:${API_HOST_PORT:-3000}/health"
+  ./infra/scripts/health-check-demo.sh || echo "⚠️ health-check-demo failed"
+
+  echo "✅ Done (cloud=$with_cloud, db-mode=$db_mode, full-seed=$full_seed)"
 }
 
-
 pmdeploycld() {
-  cd /opt/pointmor-demo/Pointmor || return
-
-  echo "📥 Pulling latest code..."
-  git reset --hard HEAD || return
-  git pull || return
-
-  echo "🔧 Fixing permissions..."
-  chmod +x infra/scripts/*.sh
-
-  echo "☁️ Deploying with Cloudflare..."
-  ./infra/scripts/deploy-demo.sh --cloud || {
-    echo "❌ Deploy (cloud) failed"
-    return
-  }
-
-  echo "🔎 API health check..."
-  curl -fsS http://127.0.0.1:3000/health || echo "⚠️ API health check failed"
+  pmdeploy --cloud "$@"
 }
 
 pmstatus() {
+  source /opt/pointmor-demo/Pointmor/infra/docker/.env.demo 2>/dev/null || true
   echo "📦 Containers:"
   docker ps
 
   echo
   echo "🔎 API health:"
-  curl -fsS http://127.0.0.1:3000/health || echo "❌ API down"
+  curl -fsS "http://127.0.0.1:${API_HOST_PORT:-3000}/health" || echo "❌ API down"
 
   echo
   echo "🌐 Admin HTTP check:"
-  curl -I http://127.0.0.1:8080 2>/dev/null | head -n 1 || echo "❌ Admin down"
+  curl -I "http://127.0.0.1:${ADMIN_HOST_PORT:-8080}" 2>/dev/null | head -n 1 || echo "❌ Admin down"
 
   echo
   echo "☁️ Cloudflare tunnel:"

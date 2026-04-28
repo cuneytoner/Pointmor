@@ -7,11 +7,14 @@ import {
 } from "../components/PlatformActivityTimeline";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import {
+  deriveEvidenceFreshness,
   deriveLifecycleStage,
   deriveOpenObligationCount,
+  derivePriorityScore,
   deriveReviewStatus,
   deriveSystemCategory,
   deriveSystemHealth,
+  presentEvidenceFreshnessTone,
   presentRiskLabel,
 } from "../lib/aiCompliancePresentation";
 import {
@@ -40,6 +43,8 @@ export function AiComplianceSystemDetailPage() {
   );
   const lastOperator = system.currentAssessment?.createdBy ?? system.createdBy;
   const health = deriveSystemHealth(system);
+  const evidenceFreshness = deriveEvidenceFreshness(system);
+  const priorityScore = derivePriorityScore(system);
   const reviewStatus = deriveReviewStatus(system);
   const openObligations = deriveOpenObligationCount(system);
   const now = Date.now();
@@ -52,6 +57,8 @@ export function AiComplianceSystemDetailPage() {
         ? new Date(system.currentAssessment.updatedAt).toLocaleDateString()
         : "Awaiting first assessment",
       type: "compliance",
+      aging: "Assessment SLA",
+      chain: "Review Chain",
       severity: system.currentAssessment ? "info" : "warning",
       organization: system.tenant.name,
     },
@@ -60,6 +67,8 @@ export function AiComplianceSystemDetailPage() {
       title: "Review completed",
       when: reviewStatus,
       type: "compliance",
+      aging: "Current",
+      chain: "Review Chain",
       severity: reviewStatus === "Escalated" ? "escalation" : "success",
       organization: system.tenant.name,
     },
@@ -68,6 +77,8 @@ export function AiComplianceSystemDetailPage() {
       title: "Obligations generated",
       when: `${openObligations} open obligations`,
       type: "compliance",
+      aging: "Obligation window",
+      chain: "Obligation Chain",
       severity: openObligations > 0 ? "warning" : "success",
       organization: system.tenant.name,
     },
@@ -76,6 +87,8 @@ export function AiComplianceSystemDetailPage() {
       title: "Evidence uploaded",
       when: `${system.evidencesCount} evidence items`,
       type: "compliance",
+      aging: "Evidence window",
+      chain: "Evidence Chain",
       severity: system.evidencesCount === 0 ? "overdue" : "info",
       organization: system.tenant.name,
     },
@@ -84,7 +97,39 @@ export function AiComplianceSystemDetailPage() {
       title: "Policy updated",
       when: new Date(system.updatedAt).toLocaleDateString(),
       type: "onboarding",
+      aging: "Policy cycle",
+      chain: "Policy Chain",
       severity: "info",
+      organization: system.tenant.name,
+    },
+    {
+      id: `${system.id}-review-reassigned`,
+      title: "Review reassigned",
+      when: advisorReviewer ? `Advisor: ${advisorReviewer.name}` : "Reviewer pending",
+      type: "advisor",
+      aging: "Current",
+      chain: "Advisor Chain",
+      severity: advisorReviewer ? "info" : "warning",
+      organization: system.tenant.name,
+    },
+    {
+      id: `${system.id}-evidence-expired`,
+      title: "Evidence expired",
+      when: evidenceFreshness,
+      type: "compliance",
+      aging: "Evidence freshness",
+      chain: "Evidence Chain",
+      severity: evidenceFreshness === "Critical" ? "overdue" : evidenceFreshness === "Stale" ? "risk" : "info",
+      organization: system.tenant.name,
+    },
+    {
+      id: `${system.id}-overdue-reminder`,
+      title: "Overdue reminder generated",
+      when: `${system.obligations.length} obligations tracked`,
+      type: "compliance",
+      aging: "14d+",
+      chain: "Obligation Chain",
+      severity: openObligations > 0 ? "warning" : "success",
       organization: system.tenant.name,
     },
   ];
@@ -102,6 +147,10 @@ export function AiComplianceSystemDetailPage() {
           <Badge tone="neutral">{`Risk: ${presentRiskLabel(system.currentAssessment?.riskLevel ?? null)}`}</Badge>
           <Badge tone="neutral">{`Lifecycle: ${deriveLifecycleStage(system)}`}</Badge>
           <Badge tone={presentHealthTone(health)}>{`Health: ${health}`}</Badge>
+          <Badge tone={presentEvidenceFreshnessTone(evidenceFreshness)}>
+            {`Evidence: ${evidenceFreshness}`}
+          </Badge>
+          <Badge tone={priorityScore >= 70 ? "danger" : "info"}>{`Priority: ${priorityScore}`}</Badge>
         </div>
         <p className="admin-app__card-text">{`Organization: ${system.tenant.name}`}</p>
         <p className="admin-app__card-text">{`Owner: ${complianceOwner?.name ?? system.createdBy?.name ?? "Unassigned"}`}</p>
