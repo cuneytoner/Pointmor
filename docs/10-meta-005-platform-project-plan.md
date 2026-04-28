@@ -49,6 +49,14 @@ Bu planın güncel odagi, teslim edilmis temel teknik kabiliyetler uzerinde gerc
   - AI system listesi, yeni sistem olusturma, assessment, risk sonucu, obligations/tasks yuzeyleri calisir durumda ve backend kontratiyla hizalidir.
 - **Multi-product seed structure (platform demo baseline) - DONE**
   - Seed tenant seti AI Act focused, Loyalty focused, Mixed ve Advisor senaryolarini module activation + membership-first doctrine ile temsil eder.
+- **Platform Console UX Refactor (Step 2) - DONE**
+  - Platform dashboard canli bootstrap verisiyle product-aware metrikler sunar ve hardcoded demo aktivite satirlari kaldirilmistir.
+  - User-facing dilde "Workspaces" yerine "Organizations" kullanimi standardize edilmistir.
+  - Organizations sayfasi, aktif urun/module gorunurlugunu badge/chip yapisiyla sunar.
+  - Plan feature tag'leri UI katmaninda insan okunur etiketlere donusturulmustur.
+  - Seed persona ve e-posta sunumu gercekci SaaS demo kimligine alinmistir.
+  - Canonical plan mapping (Compliance Pro / Starter Platform / Multi-Product Business / Advisor Firm) duzeltilmistir.
+  - `/admin/bootstrap` yanitina `platformMetrics` eklenerek dashboard metrikleri API kontratiyla hizalanmistir.
 
 ---
 
@@ -303,7 +311,27 @@ MVP kapsamı:
 
 ---
 
-## 9. Ürün Sıralaması
+## 9. Platform Console Post-Step-2 Backlog
+
+- Organization detail page (subscription, module state, advisor links, recent activity)
+- Products / Modules admin page (platform-level module governance)
+- Product activation matrix (organization x module operasyonel gorunum)
+- Advisor relationship visibility (advisor-client baglarinin platform konsolda net sunumu)
+- Full i18n polish pass (EN/TR/ES/DE terminoloji ve metin tutarliligi)
+
+---
+
+## 10. Known Technical Debt (Non-blocking, pre-existing)
+
+- `npm run lint` halen Step 2 kapsaminda degistirilmeyen API dosyalarindaki mevcut ihlaller nedeniyle fail durumundadir:
+  - `apps/api/src/lib/export-format.ts`
+  - `apps/api/src/lib/retention-config.ts`
+  - `apps/api/src/lib/session-branch-membership.ts`
+- Bu borc Step 2 teslimini bloklamaz; ayrik bir "lint debt cleanup" diliminde ele alinacaktir.
+
+---
+
+## 11. Ürün Sıralaması
 
 Önerilen sıra:
 
@@ -318,7 +346,7 @@ MVP kapsamı:
 
 ---
 
-## 10. Teknik Kilometre Taşları
+## 12. Teknik Kilometre Taşları
 
 - schema hardening
 - invitation security hardening (delivered)
@@ -333,10 +361,12 @@ MVP kapsamı:
 - AI Act UI (delivered)
 - report/export
 - advisor dashboard
+- platformMetrics bootstrap contract (delivered)
+- platform console terminology migration (workspaces -> organizations, delivered)
 
 ---
 
-## 11. Karar Günlüğü
+## 13. Karar Günlüğü
 
 - Pointmor platform kimliği korunur.
 - Cafe/loyalty alanı çekirdek değil, module olarak kalır.
@@ -348,7 +378,7 @@ MVP kapsamı:
 
 ---
 
-## 12. Riskler ve Koruyucu Kurallar
+## 14. Riskler ve Koruyucu Kurallar
 
 - Cross-tenant data leak riski (tenant scope ihlali).
 - Advisor privilege escalation riski (external kullanıcı yetki aşımı).
@@ -366,7 +396,7 @@ Koruyucu kurallar:
 
 ---
 
-## 13. Sonraki Adımlar (Current Phase)
+## 15. Sonraki Adımlar (Current Phase)
 
 1. Pilot onboarding playbook'unu standartlastirmak
 2. Demo script ve ilk satis anlatisini paketlemek

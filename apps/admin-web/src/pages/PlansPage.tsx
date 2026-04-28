@@ -65,7 +65,7 @@ export function PlansPage() {
             ) : null}
             <ul className="plan-card__features">
               {p.featureTags.map((f) => (
-                <li key={f}>{f}</li>
+                <li key={f}>{humanizeFeatureTag(f)}</li>
               ))}
             </ul>
           </div>
@@ -73,4 +73,26 @@ export function PlansPage() {
       </div>
     </PageShell>
   );
+}
+
+function humanizeFeatureTag(featureTag: string): string {
+  const labels: Record<string, string> = {
+    ai_act: "AI Compliance",
+    ai_document_intelligence: "AI Document Intelligence",
+    advisor_dashboard: "Advisor Workspace",
+    customer_pwa: "Customer Mobile App",
+    loyalty: "Loyalty",
+    expense_capture: "Expense Capture",
+    e_invoice: "E-Invoicing",
+    campaigns: "Campaign Automation",
+    growth_automation: "Growth Automation",
+    manager_closing: "Manager Closing",
+    multi_branch: "Multi-Branch Operations",
+    webhooks: "Webhooks",
+    product_analytics: "Product Analytics",
+    hq_dashboard: "HQ Dashboard",
+    hq_ai_insights: "HQ AI Insights",
+    hq_automation: "HQ Automation",
+  };
+  return labels[featureTag] ?? featureTag.replaceAll("_", " ").replace(/\b\w/g, (m) => m.toUpperCase());
 }

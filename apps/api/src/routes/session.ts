@@ -116,6 +116,7 @@ export async function registerSessionRoutes(app: FastifyInstance): Promise<void>
             },
             orderBy: [{ tenantId: "asc" }, { module: { name: "asc" } }],
           });
+    const platformMetrics = await loadPlatformMetricsForSession(s, tenantIds);
 
     return {
       user: s.user,
@@ -126,6 +127,7 @@ export async function registerSessionRoutes(app: FastifyInstance): Promise<void>
       plans,
       subscriptions,
       tenantModules,
+      platformMetrics,
       auditLogs,
     };
   });
@@ -218,4 +220,66 @@ async function loadSubscriptionsForSession(s: SessionPayload) {
     orderBy: { createdAt: "desc" },
     include: { plan: true, tenant: true },
   });
+}
+
+async function loadPlatformMetricsForSession(
+  s: SessionPayload,
+  scopedTenantIds: string[],
+): Promise<{
+  activeProducts: number;
+  aiSystemsMonitored: number;
+  advisorLinkedClients: number;
+  activeLoyaltyCampaigns: number;
+}> {
+  if (s.user.platformAdmin) {
+    const [activeProducts, aiSystemsMonitored, advisorLinkedClients, activeLoyaltyCampaigns] =
+      await Promise.all([
+        prisma.tenantModule.count({ where: { isActive: true } }),
+        prisma.aiSystem.count(),
+        prisma.tenantMembership.groupBy({
+          by: ["tenantId"],
+          where: { role: "ADVISOR" },
+          _count: { tenantId: true },
+        }),
+        prisma.campaign.count({ where: { status: "active", isActive: true } }),
+      ]);
+    return {
+      activeProducts,
+      aiSystemsMonitored,
+      advisorLinkedClients: advisorLinkedClients.length,
+      activeLoyaltyCampaigns,
+    };
+  }
+
+  if (scopedTenantIds.length === 0) {
+    return {
+      activeProducts: 0,
+      aiSystemsMonitored: 0,
+      advisorLinkedClients: 0,
+      activeLoyaltyCampaigns: 0,
+    };
+  }
+
+  const [activeProducts, aiSystemsMonitored, advisorLinkedClients, activeLoyaltyCampaigns] =
+    await Promise.all([
+      prisma.tenantModule.count({
+        where: { isActive: true, tenantId: { in: scopedTenantIds } },
+      }),
+      prisma.aiSystem.count({ where: { tenantId: { in: scopedTenantIds } } }),
+      prisma.tenantMembership.groupBy({
+        by: ["tenantId"],
+        where: { role: "ADVISOR", tenantId: { in: scopedTenantIds } },
+        _count: { tenantId: true },
+      }),
+      prisma.campaign.count({
+        where: { status: "active", isActive: true, tenantId: { in: scopedTenantIds } },
+      }),
+    ]);
+
+  return {
+    activeProducts,
+    aiSystemsMonitored,
+    advisorLinkedClients: advisorLinkedClients.length,
+    activeLoyaltyCampaigns,
+  };
 }

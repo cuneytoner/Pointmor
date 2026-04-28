@@ -140,7 +140,7 @@
   "nav": {
     "platformDashboard": "Panel",
     "tenantDashboard": "Panel",
-    "workspaces": "Negocios",
+    "workspaces": "Organizaciones",
     "usersGlobal": "Usuarios (global)",
     "plans": "Planes",
     "subscriptions": "Suscripciones",
@@ -197,7 +197,7 @@
   "dashboardPlatform": {
     "eyebrow": "Operaciones",
     "title": "Resumen de plataforma",
-    "description": "Métricas y actividad multi-inquilino desde datos bootstrap en vivo.",
+    "description": "Métricas y actividad entre organizaciones desde datos bootstrap en vivo.",
     "hero": {
       "title": "Instantánea de operaciones SaaS",
       "subtitle": "Negocios, facturación y auditoría: alcance del operador."
@@ -556,20 +556,26 @@
   "dashboard": {
     "badgeLive": "API en vivo",
     "metrics": {
-      "workspaces": "Negocios",
-      "workspacesHint": "Registros",
+      "organizations": "Organizaciones",
+      "organizationsHint": "Registros de organizaciones",
       "users": "Usuarios",
       "usersHint": "Lista visible",
       "subscriptions": "Suscripciones",
       "subscriptionsHint": "Todos los estados",
-      "trialing": "En prueba",
-      "trialingHint": "estado = trialing"
+      "activeProducts": "Productos activos",
+      "activeProductsHint": "Módulos habilitados entre organizaciones",
+      "aiSystemsMonitored": "Sistemas de IA monitoreados",
+      "aiSystemsMonitoredHint": "Sistemas de IA por inquilino",
+      "advisorLinkedClients": "Clientes vinculados a asesores",
+      "advisorLinkedClientsHint": "Organizaciones con membresías de asesor",
+      "activeLoyaltyCampaigns": "Campañas de fidelidad activas",
+      "activeLoyaltyCampaignsHint": "Campañas con estado activo"
     },
     "activity": {
-      "title": "Actividad de negocios",
+      "title": "Actividad de organizaciones",
       "badgeLive": "En vivo",
       "columns": {
-        "workspace": "Negocio",
+        "organization": "Organización",
         "event": "Evento",
         "time": "Hora",
         "status": "Estado"
@@ -594,14 +600,15 @@
   },
   "workspaces": {
     "eyebrow": "Directorio",
-    "title": "Negocios",
+    "title": "Organizaciones",
     "description": "Desde `GET /tenants` y el bootstrap.",
     "searchPlaceholder": "Buscar por nombre o slug…",
-    "searchAria": "Buscar negocios",
-    "emptyTitle": "No hay negocios",
+    "searchAria": "Buscar organizaciones",
+    "emptyTitle": "No hay organizaciones",
     "emptyDescription": "Sin datos o sin coincidencias.",
     "columns": {
       "name": "Nombre",
+      "products": "Productos",
       "status": "Estado"
     },
     "statusActive": "Activo"
@@ -617,7 +624,7 @@
     "columns": {
       "name": "Nombre",
       "role": "Rol",
-      "workspace": "Negocio"
+      "workspace": "Organización"
     },
     "roles": {
       "platform_admin": "Plataforma",

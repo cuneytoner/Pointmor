@@ -7,7 +7,7 @@ import { formatCount } from "../lib/formatters";
 type ActivityStatus = "success" | "info" | "warning";
 
 type DemoRow = {
-  workspace: string;
+  organization: string;
   eventKey: string;
   when: string;
   status: ActivityStatus;
@@ -21,14 +21,16 @@ export function PlatformDashboardPage() {
   const tc = bootstrap?.tenants.length ?? 0;
   const uc = bootstrap?.users.length ?? 0;
   const sc = bootstrap?.subscriptions.length ?? 0;
-  const trialing =
-    bootstrap?.subscriptions.filter((s) => s.status === "trialing").length ?? 0;
+  const activeProducts = bootstrap?.platformMetrics.activeProducts ?? 0;
+  const aiSystemsMonitored = bootstrap?.platformMetrics.aiSystemsMonitored ?? 0;
+  const advisorLinkedClients = bootstrap?.platformMetrics.advisorLinkedClients ?? 0;
+  const activeLoyaltyCampaigns = bootstrap?.platformMetrics.activeLoyaltyCampaigns ?? 0;
 
   const metrics = [
     {
-      k: t("dashboard.metrics.workspaces"),
+      k: t("dashboard.metrics.organizations"),
       v: formatCount(tc, locale),
-      hint: t("dashboard.metrics.workspacesHint"),
+      hint: t("dashboard.metrics.organizationsHint"),
     },
     {
       k: t("dashboard.metrics.users"),
@@ -41,9 +43,24 @@ export function PlatformDashboardPage() {
       hint: t("dashboard.metrics.subscriptionsHint"),
     },
     {
-      k: t("dashboard.metrics.trialing"),
-      v: formatCount(trialing, locale),
-      hint: t("dashboard.metrics.trialingHint"),
+      k: t("dashboard.metrics.activeProducts"),
+      v: formatCount(activeProducts, locale),
+      hint: t("dashboard.metrics.activeProductsHint"),
+    },
+    {
+      k: t("dashboard.metrics.aiSystemsMonitored"),
+      v: formatCount(aiSystemsMonitored, locale),
+      hint: t("dashboard.metrics.aiSystemsMonitoredHint"),
+    },
+    {
+      k: t("dashboard.metrics.advisorLinkedClients"),
+      v: formatCount(advisorLinkedClients, locale),
+      hint: t("dashboard.metrics.advisorLinkedClientsHint"),
+    },
+    {
+      k: t("dashboard.metrics.activeLoyaltyCampaigns"),
+      v: formatCount(activeLoyaltyCampaigns, locale),
+      hint: t("dashboard.metrics.activeLoyaltyCampaignsHint"),
     },
   ];
 
@@ -81,13 +98,13 @@ export function PlatformDashboardPage() {
       }
 
       return {
-        workspace: tenant.name,
+        organization: tenant.name,
         eventKey,
         when: hasSubscription ? t("dashboard.activity.time.activeSubscription") : t("dashboard.activity.time.noSubscription"),
         status,
       };
     })
-    .sort((a, b) => a.workspace.localeCompare(b.workspace, locale));
+    .sort((a, b) => a.organization.localeCompare(b.organization, locale));
 
   const statusBadgeKey = (s: ActivityStatus) => {
     if (s === "success") return "dashboard.activity.statusBadge.success";
@@ -128,7 +145,7 @@ export function PlatformDashboardPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>{t("dashboard.activity.columns.workspace")}</th>
+                <th>{t("dashboard.activity.columns.organization")}</th>
                 <th>{t("dashboard.activity.columns.event")}</th>
                 <th>{t("dashboard.activity.columns.time")}</th>
                 <th>{t("dashboard.activity.columns.status")}</th>
@@ -136,8 +153,8 @@ export function PlatformDashboardPage() {
             </thead>
             <tbody>
               {demoRows.map((row) => (
-                <tr key={row.workspace}>
-                  <td>{row.workspace}</td>
+                <tr key={row.organization}>
+                  <td>{row.organization}</td>
                   <td>{t(row.eventKey)}</td>
                   <td className="data-table__muted">{row.when}</td>
                   <td>

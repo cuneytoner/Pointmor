@@ -140,7 +140,7 @@
   "nav": {
     "platformDashboard": "Dashboard",
     "tenantDashboard": "Dashboard",
-    "workspaces": "Workspaces",
+    "workspaces": "Organizations",
     "usersGlobal": "Users (global)",
     "plans": "Plans",
     "subscriptions": "Subscriptions",
@@ -197,7 +197,7 @@
   "dashboardPlatform": {
     "eyebrow": "Operations",
     "title": "Platform overview",
-    "description": "Cross-tenant metrics and activity from live bootstrap data.",
+    "description": "Cross-organization metrics and activity from live bootstrap data.",
     "hero": {
       "title": "SaaS operations snapshot",
       "subtitle": "Workspaces, billing, and audit — operator scope."
@@ -557,20 +557,26 @@
   "dashboard": {
     "badgeLive": "Live API",
     "metrics": {
-      "workspaces": "Workspaces",
-      "workspacesHint": "Workspace records",
+      "organizations": "Organizations",
+      "organizationsHint": "Organization records",
       "users": "Users",
       "usersHint": "Visible list",
       "subscriptions": "Subscriptions",
       "subscriptionsHint": "All statuses",
-      "trialing": "Trialing",
-      "trialingHint": "status = trialing"
+      "activeProducts": "Active products",
+      "activeProductsHint": "Enabled modules across organizations",
+      "aiSystemsMonitored": "AI systems monitored",
+      "aiSystemsMonitoredHint": "Tenant-scoped AI systems",
+      "advisorLinkedClients": "Advisor-linked clients",
+      "advisorLinkedClientsHint": "Organizations with advisor memberships",
+      "activeLoyaltyCampaigns": "Active loyalty campaigns",
+      "activeLoyaltyCampaignsHint": "Campaigns with active status"
     },
     "activity": {
       "title": "Workspace activity",
       "badgeLive": "Live",
       "columns": {
-        "workspace": "Workspace",
+        "organization": "Organization",
         "event": "Event",
         "time": "Time",
         "status": "Status"
@@ -595,14 +601,15 @@
   },
   "workspaces": {
     "eyebrow": "Directory",
-    "title": "Workspaces",
+    "title": "Organizations",
     "description": "From `GET /tenants` and bootstrap.",
-    "searchPlaceholder": "Search name or slug…",
-    "searchAria": "Search workspaces",
-    "emptyTitle": "No workspaces",
+    "searchPlaceholder": "Search organization name or slug…",
+    "searchAria": "Search organizations",
+    "emptyTitle": "No organizations",
     "emptyDescription": "No data or no filter match.",
     "columns": {
       "name": "Name",
+      "products": "Products",
       "status": "Status"
     },
     "statusActive": "Active"
@@ -618,7 +625,7 @@
     "columns": {
       "name": "Name",
       "role": "Role",
-      "workspace": "Workspace"
+      "workspace": "Organization"
     },
     "roles": {
       "platform_admin": "Platform",

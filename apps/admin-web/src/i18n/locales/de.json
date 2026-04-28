@@ -140,7 +140,7 @@
   "nav": {
     "platformDashboard": "Dashboard",
     "tenantDashboard": "Dashboard",
-    "workspaces": "Betriebe",
+    "workspaces": "Organisationen",
     "usersGlobal": "Benutzer (global)",
     "plans": "Pläne",
     "subscriptions": "Abonnements",
@@ -197,7 +197,7 @@
   "dashboardPlatform": {
     "eyebrow": "Betrieb",
     "title": "Plattform-Übersicht",
-    "description": "Mandantenübergreifende Kennzahlen und Aktivität aus Live-Bootstrap-Daten.",
+    "description": "Organisationsübergreifende Kennzahlen und Aktivität aus Live-Bootstrap-Daten.",
     "hero": {
       "title": "SaaS-Betriebsübersicht",
       "subtitle": "Betriebe, Abrechnung und Audit: Operator-Sicht."
@@ -556,20 +556,26 @@
   "dashboard": {
     "badgeLive": "Live-API",
     "metrics": {
-      "workspaces": "Betriebe",
-      "workspacesHint": "Datensätze",
+      "organizations": "Organisationen",
+      "organizationsHint": "Organisationsdatensätze",
       "users": "Benutzer",
       "usersHint": "Sichtbare Liste",
       "subscriptions": "Abonnements",
       "subscriptionsHint": "Alle Status",
-      "trialing": "Testphase",
-      "trialingHint": "Status = trialing"
+      "activeProducts": "Aktive Produkte",
+      "activeProductsHint": "Aktive Module in Organisationen",
+      "aiSystemsMonitored": "Überwachte KI-Systeme",
+      "aiSystemsMonitoredHint": "Mandantenbezogene KI-Systeme",
+      "advisorLinkedClients": "Berater-gebundene Kunden",
+      "advisorLinkedClientsHint": "Organisationen mit Berater-Mitgliedschaften",
+      "activeLoyaltyCampaigns": "Aktive Treuekampagnen",
+      "activeLoyaltyCampaignsHint": "Kampagnen mit aktivem Status"
     },
     "activity": {
-      "title": "Betriebsaktivität",
+      "title": "Organisationsaktivität",
       "badgeLive": "Live",
       "columns": {
-        "workspace": "Betrieb",
+        "organization": "Organisation",
         "event": "Ereignis",
         "time": "Zeit",
         "status": "Status"
@@ -594,14 +600,15 @@
   },
   "workspaces": {
     "eyebrow": "Verzeichnis",
-    "title": "Betriebe",
+    "title": "Organisationen",
     "description": "Aus `GET /tenants` und Bootstrap.",
     "searchPlaceholder": "Name oder Kurzname suchen…",
-    "searchAria": "Betriebe durchsuchen",
-    "emptyTitle": "Keine Betriebe",
+    "searchAria": "Organisationen durchsuchen",
+    "emptyTitle": "Keine Organisationen",
     "emptyDescription": "Keine Daten oder keine Treffer.",
     "columns": {
       "name": "Name",
+      "products": "Produkte",
       "status": "Status"
     },
     "statusActive": "Aktiv"
@@ -617,7 +624,7 @@
     "columns": {
       "name": "Name",
       "role": "Rolle",
-      "workspace": "Betrieb"
+      "workspace": "Organisation"
     },
     "roles": {
       "platform_admin": "Plattform",

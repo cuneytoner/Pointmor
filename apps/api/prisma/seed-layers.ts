@@ -10,6 +10,8 @@ export type CoreSeedContext = {
   aiActTenantId: string;
   mixedTenantId: string;
   advisorTenantId: string;
+  starterPlanId: string;
+  compliancePlanId: string;
   growthPlanId: string;
   advisorPlanId: string;
   adminUserId: string;
@@ -201,17 +203,17 @@ export async function coreSeed(input: {
   });
 
   const platformAdmin = await prisma.user.upsert({
-    where: { email: "admin@pointmor.local" },
+    where: { email: "admin@pointmor.io" },
     create: {
-      email: "admin@pointmor.local",
-      name: "Platform Yoneticisi",
+      email: "admin@pointmor.io",
+      name: "Cüneyt Öner",
       passwordHash: adminPasswordHash,
       platformAdmin: true,
       role: "platform_admin",
     },
     update: {
       passwordHash: adminPasswordHash,
-      name: "Platform Yoneticisi",
+      name: "Cüneyt Öner",
       platformAdmin: true,
       role: "platform_admin",
       tenantId: null,
@@ -219,10 +221,10 @@ export async function coreSeed(input: {
   });
 
   const aiOwnerUser = await prisma.user.upsert({
-    where: { email: "owner@acme.pointmor.local" },
+    where: { email: "david@acme-ai.eu" },
     create: {
-      email: "owner@acme.pointmor.local",
-      name: "Acme Owner",
+      email: "david@acme-ai.eu",
+      name: "David Chen",
       passwordHash: operatorPasswordHash,
       platformAdmin: false,
       tenantId: null,
@@ -235,10 +237,10 @@ export async function coreSeed(input: {
     },
   });
   const loyaltyOwnerUser = await prisma.user.upsert({
-    where: { email: "owner@urban.pointmor.local" },
+    where: { email: "sofia@urbancoffee.eu" },
     create: {
-      email: "owner@urban.pointmor.local",
-      name: "Urban Owner",
+      email: "sofia@urbancoffee.eu",
+      name: "Sofia Rossi",
       passwordHash: operatorPasswordHash,
       platformAdmin: false,
       tenantId: null,
@@ -251,10 +253,10 @@ export async function coreSeed(input: {
     },
   });
   const mixedOwnerUser = await prisma.user.upsert({
-    where: { email: "owner@retailcorp.pointmor.local" },
+    where: { email: "michael@retailcorp.eu" },
     create: {
-      email: "owner@retailcorp.pointmor.local",
-      name: "RetailCorp Owner",
+      email: "michael@retailcorp.eu",
+      name: "Michael Weber",
       passwordHash: operatorPasswordHash,
       platformAdmin: false,
       tenantId: null,
@@ -267,10 +269,10 @@ export async function coreSeed(input: {
     },
   });
   const memberUser = await prisma.user.upsert({
-    where: { email: "member@pointmor.local" },
+    where: { email: "emma@pointmor.io" },
     create: {
-      email: "member@pointmor.local",
-      name: "Platform Member",
+      email: "emma@pointmor.io",
+      name: "Emma Clarke",
       passwordHash: operatorPasswordHash,
       platformAdmin: false,
       tenantId: null,
@@ -283,10 +285,10 @@ export async function coreSeed(input: {
     },
   });
   const advisorUser = await prisma.user.upsert({
-    where: { email: "advisor@pointmor.local" },
+    where: { email: "anna@kanzlei-mueller.eu" },
     create: {
-      email: "advisor@pointmor.local",
-      name: "Platform Advisor",
+      email: "anna@kanzlei-mueller.eu",
+      name: "Anna Müller",
       passwordHash: operatorPasswordHash,
       platformAdmin: false,
       tenantId: null,
@@ -383,6 +385,8 @@ export async function coreSeed(input: {
     aiActTenantId: aiActTenant.id,
     mixedTenantId: mixedTenant.id,
     advisorTenantId: advisorTenant.id,
+    starterPlanId: (await prisma.plan.findUniqueOrThrow({ where: { slug: "starter" }, select: { id: true } })).id,
+    compliancePlanId: (await prisma.plan.findUniqueOrThrow({ where: { slug: "pro" }, select: { id: true } })).id,
     growthPlanId: growth.id,
     advisorPlanId: advisorPlan.id,
     adminUserId: platformAdmin.id,
@@ -444,6 +448,8 @@ export async function scenarioSeed(input: {
   aiActTenantId: string;
   mixedTenantId: string;
   advisorTenantId: string;
+  starterPlanId: string;
+  compliancePlanId: string;
   growthPlanId: string;
   advisorPlanId: string;
   ownerUserId: string;
@@ -457,6 +463,8 @@ export async function scenarioSeed(input: {
     aiActTenantId,
     mixedTenantId,
     advisorTenantId,
+    starterPlanId,
+    compliancePlanId,
     growthPlanId,
     advisorPlanId,
     ownerUserId,
@@ -470,11 +478,16 @@ export async function scenarioSeed(input: {
     create: {
       id: "seed_sub_demo",
       tenantId: loyaltyTenantId,
-      planId: growthPlanId,
+      planId: starterPlanId,
       status: "active",
       renewsAt: new Date("2026-05-01T00:00:00.000Z"),
     },
-    update: {},
+    update: {
+      tenantId: loyaltyTenantId,
+      planId: starterPlanId,
+      status: "active",
+      renewsAt: new Date("2026-05-01T00:00:00.000Z"),
+    },
   });
   await prisma.subscription.upsert({
     where: { id: "seed_sub_advisor" },
@@ -485,18 +498,28 @@ export async function scenarioSeed(input: {
       status: "active",
       renewsAt: new Date("2026-05-01T00:00:00.000Z"),
     },
-    update: {},
+    update: {
+      tenantId: advisorTenantId,
+      planId: advisorPlanId,
+      status: "active",
+      renewsAt: new Date("2026-05-01T00:00:00.000Z"),
+    },
   });
   await prisma.subscription.upsert({
     where: { id: "seed_sub_ai_act" },
     create: {
       id: "seed_sub_ai_act",
       tenantId: aiActTenantId,
-      planId: growthPlanId,
+      planId: compliancePlanId,
       status: "active",
       renewsAt: new Date("2026-05-01T00:00:00.000Z"),
     },
-    update: {},
+    update: {
+      tenantId: aiActTenantId,
+      planId: compliancePlanId,
+      status: "active",
+      renewsAt: new Date("2026-05-01T00:00:00.000Z"),
+    },
   });
   await prisma.subscription.upsert({
     where: { id: "seed_sub_mixed" },
@@ -507,7 +530,12 @@ export async function scenarioSeed(input: {
       status: "active",
       renewsAt: new Date("2026-05-01T00:00:00.000Z"),
     },
-    update: {},
+    update: {
+      tenantId: mixedTenantId,
+      planId: growthPlanId,
+      status: "active",
+      renewsAt: new Date("2026-05-01T00:00:00.000Z"),
+    },
   });
 
   if ((await prisma.auditEvent.count({ where: { tenantId: loyaltyTenantId } })) === 0) {

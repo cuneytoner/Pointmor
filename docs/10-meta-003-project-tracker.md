@@ -23,6 +23,7 @@ Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-ru
 - **Module Activation Enforcement:** **COMPLETE** - module kapali oldugunda ilgili API/UI yuzeyi engellenir.
 - **AI Act MVP Backend:** **COMPLETE** - system inventory, assessment, risk suggestion, obligations/tasks akisi teslim edildi.
 - **AI Act MVP UI (end-to-end):** **COMPLETE** - list, create, assessment, result ve obligations/tasks yuzeyleri calisir durumda.
+- **Platform Console UX Refactor (Step 2):** **COMPLETE** - dashboard canli product-aware metriklere gecti, organizations terminolojisi standardize edildi, organizations sayfasina module/urun badge gorunurlugu eklendi, plan feature etiketleri insan okunur hale getirildi, canonical seed persona + email ve plan mapping duzeltildi, bootstrap API `platformMetrics` ile genisletildi.
 
 ### Current Priority
 
@@ -72,6 +73,21 @@ Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-ru
 - Obligations & Tasks UX improvement (prioritization + clarity)
 - i18n polish (Turkish-first cleanup)
 - AI Act result explanation improvements
+
+### Platform Console backlog (post Step 2)
+
+- Organization detail page
+- Products / Modules admin page
+- Product activation matrix
+- Advisor relationship visibility
+- Full i18n polish pass (platform language consistency)
+
+### Known technical debt (pre-existing, non-blocking)
+
+- Lint fail nedeni Step 2 disi mevcut API dosyalari:
+  - `apps/api/src/lib/export-format.ts`
+  - `apps/api/src/lib/retention-config.ts`
+  - `apps/api/src/lib/session-branch-membership.ts`
 
 **İşletme seçimi (1–3 lokasyon):**
 

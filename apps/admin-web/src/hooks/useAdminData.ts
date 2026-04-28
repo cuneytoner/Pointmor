@@ -96,6 +96,13 @@ export type TenantModuleDto = {
   module: { name: string };
 };
 
+export type PlatformMetricsDto = {
+  activeProducts: number;
+  aiSystemsMonitored: number;
+  advisorLinkedClients: number;
+  activeLoyaltyCampaigns: number;
+};
+
 export type AdminBootstrap = {
   user: AuthUser;
   tenant: AuthTenant;
@@ -105,6 +112,7 @@ export type AdminBootstrap = {
   plans: PlanDto[];
   subscriptions: SubscriptionDto[];
   tenantModules: TenantModuleDto[];
+  platformMetrics: PlatformMetricsDto;
   auditLogs: AuditLogDto[];
   /** `/tenant/entitlements` — yalnızca tenant oturumunda doldurulur. */
   entitlements: EntitlementsPayload | null;

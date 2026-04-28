@@ -30,23 +30,14 @@ const LEGACY_SUBSCRIPTION_IDS = [
   "seed_sub_demo_chain",
 ] as const;
 
-const LEGACY_USER_EMAILS = [
-  "owner@small.pointmor.local",
-  "owner@busy.pointmor.local",
-  "owner@chain.pointmor.local",
+const LEGACY_IDENTITY_MIGRATIONS = [
+  { from: "owner@acme.pointmor.local", to: "david@acme-ai.eu" },
+  { from: "owner@urban.pointmor.local", to: "sofia@urbancoffee.eu" },
+  { from: "owner@retailcorp.pointmor.local", to: "michael@retailcorp.eu" },
+  { from: "advisor@pointmor.local", to: "anna@kanzlei-mueller.eu" },
+  { from: "member@pointmor.local", to: "emma@pointmor.io" },
+  { from: "admin@pointmor.local", to: "admin@pointmor.io" },
 ] as const;
-
-const TEST_USER_IDS = [
-  "u-staff",
-  "u-mgr",
-  "u-staff2",
-  "u-own",
-  "u-free-own",
-  "u-mgr2",
-  "u-own3",
-] as const;
-
-const TEST_TENANT_IDS = ["t1", "t-starter-only"] as const;
 
 const PRIMARY_TENANT_SLUGS = [
   "acme-ai-solutions",
@@ -130,31 +121,33 @@ async function pruneLegacyDemoData(options: { keepLegacyScenarios: boolean }) {
     });
   }
 
-  await prisma.tenantMembership.deleteMany({
-    where: {
-      OR: [
-        { userId: { in: [...TEST_USER_IDS] } },
-        { tenantId: { in: [...TEST_TENANT_IDS] } },
-      ],
-    },
-  });
-  await prisma.user.deleteMany({
-    where: { id: { in: [...TEST_USER_IDS] } },
-  });
-  await prisma.tenant.deleteMany({
-    where: { id: { in: [...TEST_TENANT_IDS] } },
-  });
+  for (const migration of LEGACY_IDENTITY_MIGRATIONS) {
+    const [legacyUser, canonicalUser] = await Promise.all([
+      prisma.user.findUnique({ where: { email: migration.from }, select: { id: true } }),
+      prisma.user.findUnique({ where: { email: migration.to }, select: { id: true } }),
+    ]);
+    if (!legacyUser || !canonicalUser) continue;
+    await prisma.aiReview.updateMany({
+      where: { reviewedByUserId: legacyUser.id },
+      data: { reviewedByUserId: canonicalUser.id },
+    });
+    await prisma.aiTask.updateMany({
+      where: { assignedToUserId: legacyUser.id },
+      data: { assignedToUserId: canonicalUser.id },
+    });
+    await prisma.aiAssessment.updateMany({
+      where: { createdByUserId: legacyUser.id },
+      data: { createdByUserId: canonicalUser.id },
+    });
+    await prisma.aiSystem.updateMany({
+      where: { createdByUserId: legacyUser.id },
+      data: { createdByUserId: canonicalUser.id },
+    });
+  }
 
   await prisma.user.deleteMany({
     where: {
-      email: { in: [...LEGACY_USER_EMAILS] },
-      memberships: { none: {} },
-    },
-  });
-
-  await prisma.user.deleteMany({
-    where: {
-      platformAdmin: false,
+      email: { in: LEGACY_IDENTITY_MIGRATIONS.map((m) => m.from) },
       memberships: { none: {} },
     },
   });
@@ -199,6 +192,8 @@ async function seedCore(input: {
     aiActTenantId: core.aiActTenantId,
     mixedTenantId: core.mixedTenantId,
     advisorTenantId: core.advisorTenantId,
+    starterPlanId: core.starterPlanId,
+    compliancePlanId: core.compliancePlanId,
     growthPlanId: core.growthPlanId,
     advisorPlanId: core.advisorPlanId,
     ownerUserId: core.ownerUserId,
@@ -358,7 +353,7 @@ export async function runSeed(input?: { mode?: SeedMode; includeFullDemoScenario
   const includeFullDemoScenarios = Boolean(input?.includeFullDemoScenarios);
 
   if (mode === "prod") {
-    const bootstrapEmail = process.env.PROD_BOOTSTRAP_ADMIN_EMAIL?.trim() || "admin@pointmor.local";
+    const bootstrapEmail = process.env.PROD_BOOTSTRAP_ADMIN_EMAIL?.trim() || "admin@pointmor.io";
     const bootstrapPassword = process.env.PROD_BOOTSTRAP_ADMIN_PASSWORD?.trim();
     if (!bootstrapPassword) {
       console.info("Seed(prod): skipped demo users. PROD_BOOTSTRAP_ADMIN_PASSWORD not provided.");
@@ -414,7 +409,7 @@ export async function runSeed(input?: { mode?: SeedMode; includeFullDemoScenario
     adminPasswordHash: hashSync(mode === "demo" ? demoAdminPassword : adminPassword, hashRounds),
     operatorPasswordHash: hashSync(mode === "demo" ? demoOperatorPassword : operatorPassword, hashRounds),
     includeDemoScenarios: includeFullDemoScenarios,
-    adminEmailForAudit: mode === "demo" ? "admin-demo@pointmor.demo" : "admin@pointmor.local",
+    adminEmailForAudit: mode === "demo" ? "admin-demo@pointmor.demo" : "admin@pointmor.io",
   });
   if (mode === "demo") {
     await seedDemoExtensions({
@@ -427,7 +422,7 @@ export async function runSeed(input?: { mode?: SeedMode; includeFullDemoScenario
 
   console.info(`Seed(${mode}) OK: unified membership-first seed flow completed.`);
   console.info(
-    "  Kullanicilar: admin@pointmor.local, owner@acme.pointmor.local, owner@urban.pointmor.local, owner@retailcorp.pointmor.local, advisor@pointmor.local, member@pointmor.local",
+    "  Kullanicilar: admin@pointmor.io, david@acme-ai.eu, sofia@urbancoffee.eu, michael@retailcorp.eu, anna@kanzlei-mueller.eu, emma@pointmor.io",
   );
   console.info(
     "  Tenant tipleri: acme-ai-solutions (ai_act), urban-coffee-group (cafe), retailcorp-eu (ai_act+cafe), kanzlei-mueller-advisory (advisor)",

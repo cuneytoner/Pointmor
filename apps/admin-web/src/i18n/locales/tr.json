@@ -140,7 +140,7 @@
   "nav": {
     "platformDashboard": "Özet",
     "tenantDashboard": "Özet",
-    "workspaces": "İşletmeler",
+    "workspaces": "Organizasyonlar",
     "usersGlobal": "Kullanıcılar (global)",
     "plans": "Planlar",
     "subscriptions": "Abonelikler",
@@ -197,7 +197,7 @@
   "dashboardPlatform": {
     "eyebrow": "Operasyon",
     "title": "Platform özeti",
-    "description": "Canlı bootstrap verisinden kiracılar arası metrikler ve aktivite.",
+    "description": "Canlı bootstrap verisinden organizasyonlar arası metrikler ve aktivite.",
     "hero": {
       "title": "SaaS operasyon özeti",
       "subtitle": "İşletmeler, faturalama ve denetim — operatör görünümü."
@@ -556,20 +556,26 @@
   "dashboard": {
     "badgeLive": "Canlı API",
     "metrics": {
-      "workspaces": "İşletmeler",
-      "workspacesHint": "Kayıtlar",
+      "organizations": "Organizasyonlar",
+      "organizationsHint": "Organizasyon kayıtları",
       "users": "Kullanıcılar",
       "usersHint": "Görünür liste",
       "subscriptions": "Abonelikler",
       "subscriptionsHint": "Tüm durumlar",
-      "trialing": "Deneme",
-      "trialingHint": "durum = trialing"
+      "activeProducts": "Aktif ürünler",
+      "activeProductsHint": "Organizasyonlarda etkin modüller",
+      "aiSystemsMonitored": "İzlenen AI sistemleri",
+      "aiSystemsMonitoredHint": "Tenant kapsamlı AI sistemleri",
+      "advisorLinkedClients": "Danışman bağlı müşteriler",
+      "advisorLinkedClientsHint": "Danışman üyeliği olan organizasyonlar",
+      "activeLoyaltyCampaigns": "Aktif sadakat kampanyaları",
+      "activeLoyaltyCampaignsHint": "Aktif durumdaki kampanyalar"
     },
     "activity": {
-      "title": "İşletme aktivitesi",
+      "title": "Organizasyon aktivitesi",
       "badgeLive": "Canlı",
       "columns": {
-        "workspace": "İşletme",
+        "organization": "Organizasyon",
         "event": "Olay",
         "time": "Zaman",
         "status": "Durum"
@@ -594,14 +600,15 @@
   },
   "workspaces": {
     "eyebrow": "Dizin",
-    "title": "İşletmeler",
+    "title": "Organizasyonlar",
     "description": "`GET /tenants` ve bootstrap verisinden.",
     "searchPlaceholder": "Ad veya kısa ad ara…",
-    "searchAria": "İşletme ara",
-    "emptyTitle": "İşletme yok",
+    "searchAria": "Organizasyon ara",
+    "emptyTitle": "Organizasyon yok",
     "emptyDescription": "Veri yok veya filtreye uymadı.",
     "columns": {
       "name": "Ad",
+      "products": "Ürünler",
       "status": "Durum"
     },
     "statusActive": "Aktif"
@@ -617,7 +624,7 @@
     "columns": {
       "name": "Ad",
       "role": "Rol",
-      "workspace": "İşletme"
+      "workspace": "Organizasyon"
     },
     "roles": {
       "platform_admin": "Platform yöneticisi",
