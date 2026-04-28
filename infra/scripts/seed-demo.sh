@@ -37,7 +37,7 @@ if ! docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" ps -q "$SERVICE_NA
   exit 1
 fi
 
-echo "seed-demo: docker compose exec → npm run db:seed:demo -w api"
+echo "seed-demo: docker compose exec → SEED_MODE=demo npx prisma db seed"
 
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" exec -T \
   -e DATABASE_URL="$DATABASE_URL_DEMO" \
@@ -46,4 +46,4 @@ docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" exec -T \
   -e "DEMO_ADMIN_EMAIL=${DEMO_ADMIN_EMAIL:-admin-demo@pointmor.demo}" \
   -e "DEMO_OPERATOR_EMAIL=${DEMO_OPERATOR_EMAIL:-owner-demo@pointmor.demo}" \
   "$SERVICE_NAME" \
-  sh -c 'cd /app && npm run db:seed:demo -w api'
+  sh -c 'cd /app/apps/api && SEED_MODE=demo npx prisma db seed'
