@@ -225,6 +225,7 @@ pmdeploy --db-mode update-seed --full-seed
 Not:
 
 - `pmdeploy` icindeki `db:generate` / `db:reset` adimlari `api-demo` konteyneri icinde calistirilir; hostta `npm` kurulu olmasi gerekmez.
+- `reset-seed` akisi konteynerde `npx prisma migrate reset --force --skip-seed` kullanir; seed adimi ayrica `seed-demo.sh` / `seed-full-demo.sh` ile explicit calisir.
 
 Guvenlik notu:
 
