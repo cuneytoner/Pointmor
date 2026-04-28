@@ -100,14 +100,8 @@ EOF
   case "$db_mode" in
     reset-seed)
       echo "🧨 DB reset + generate + migrate + seed..."
-      source "$env_file"
-      export DATABASE_URL="${DATABASE_URL_SEED:-}"
-      if [ -z "${DATABASE_URL:-}" ]; then
-        echo "❌ DATABASE_URL_SEED missing in $env_file"
-        return 1
-      fi
-      npm run db:generate -w apps/api
-      npm run db:reset -w apps/api
+      run_compose exec -T api-demo sh -c 'cd /app/apps/api && npm run db:generate'
+      run_compose exec -T api-demo sh -c 'cd /app/apps/api && npm run db:reset'
       ./infra/scripts/migrate-demo.sh
       if [ "$full_seed" -eq 1 ]; then
         ./infra/scripts/seed-full-demo.sh

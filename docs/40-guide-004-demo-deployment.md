@@ -222,6 +222,10 @@ pmdeploy --db-mode update-seed --full-seed
 - `update-seed`: migrate + seed uygular.
 - `update-only`: yalnızca migrate uygular (seed yok).
 
+Not:
+
+- `pmdeploy` icindeki `db:generate` / `db:reset` adimlari `api-demo` konteyneri icinde calistirilir; hostta `npm` kurulu olmasi gerekmez.
+
 Guvenlik notu:
 
 - `pmdeploy` ve `pmdeploycld` içinde `git reset --hard origin/main` + `git clean -fd` vardır.
