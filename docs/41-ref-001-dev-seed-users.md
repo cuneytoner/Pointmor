@@ -28,6 +28,33 @@ Gerekli temel ortam:
 
 ---
 
+## Tek satır login kartları
+
+Dev (`npm run db:seed`) hizli giris:
+
+- `admin@pointmor.io` / `${SEED_DEV_ADMIN_PASSWORD:-PointmorDev!Admin}` (platform admin)
+- `anna@kanzlei-mueller.eu` / `${SEED_DEV_OPERATOR_PASSWORD:-PointmorDev!Demo}` (advisor)
+- `david@acme-ai.eu` / `${SEED_DEV_OPERATOR_PASSWORD:-PointmorDev!Demo}` (AI Act owner)
+- `sofia@urbancoffee.eu` / `${SEED_DEV_OPERATOR_PASSWORD:-PointmorDev!Demo}` (Loyalty owner)
+- `michael@retailcorp.eu` / `${SEED_DEV_OPERATOR_PASSWORD:-PointmorDev!Demo}` (Mixed owner)
+- `emma@pointmor.io` / `${SEED_DEV_OPERATOR_PASSWORD:-PointmorDev!Demo}` (member)
+
+Demo (`npm run db:seed:demo` / `npm run db:seed:full:demo`) hizli giris:
+
+- `admin-demo@pointmor.demo` / `${DEMO_ADMIN_PASSWORD}` (demo platform admin)
+- `owner-demo@pointmor.demo` / `${DEMO_OPERATOR_PASSWORD}` (demo operator)
+- `advisor-admin@pointmor.demo` / `${DEMO_OPERATOR_PASSWORD}` (demo advisor admin)
+- `advisor-staff@pointmor.demo` / `${DEMO_OPERATOR_PASSWORD}` (demo advisor staff)
+- `client-owner@pointmor.demo` / `${DEMO_OPERATOR_PASSWORD}` (demo client owner)
+
+Notlar:
+
+- Bu satirlardaki `${...}` ifadeleri shell env degiskenlerini temsil eder.
+- Degisken tanimli degilse dev modunda fallback sifreler kullanilir; demo modunda `DEMO_*` sifreleri zorunludur.
+- E-posta degiskenle override edilebilir (`DEMO_ADMIN_EMAIL`, `DEMO_OPERATOR_EMAIL`, `DEMO_ADVISOR_*`, `DEMO_CLIENT_OWNER_EMAIL`).
+
+---
+
 ## Kısa kullanıcı tablosu
 
 | Kullanım | Örnek e-posta | Not |

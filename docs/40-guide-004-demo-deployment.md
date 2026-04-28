@@ -148,6 +148,40 @@ curl -sfS "http://127.0.0.1:${API_HOST_PORT:-3000}/health"
 
 ---
 
+## 7.1) Sik hata: `api-demo is unhealthy`
+
+Belirti:
+
+- `dependency failed to start: container pointmor-demo-api-demo-1 is unhealthy`
+- `pmdeploy` komutu hata ile kesilir
+
+Hizli teshis:
+
+```bash
+docker compose -f infra/docker/docker-compose.demo.yml --env-file infra/docker/.env.demo ps
+docker compose -f infra/docker/docker-compose.demo.yml --env-file infra/docker/.env.demo logs --tail 200 api-demo
+```
+
+En yaygin neden (demo strict preflight):
+
+- `.env.demo` icinde guvenlik fallback/preflight degiskenleri eksik veya gecersiz.
+
+Demo icin guvenli minimumlar:
+
+```bash
+SECURITY_STATE_ALLOW_MEMORY_FALLBACK=true
+SECURITY_STATE_ACK_IN_PROCESS_MEMORY=true
+SECURITY_STATE_MEMORY_FALLBACK_JUSTIFICATION=demo-single-node-stack
+SECURITY_STATE_MEMORY_FALLBACK_EXPIRES_AT=2026-11-15T00:00:00.000Z
+POINTMOR_PREFLIGHT_SECRET=<uzun-rastgele-secret>
+```
+
+Not:
+
+- `pmdeploy` artik deploy hatasinda otomatik olarak `compose ps` ve `api-demo` log ozetini basar.
+
+---
+
 ## 8) Operasyonel shell kısayolları (`.bashrc.demo`)
 
 `docs/.bashrc.demo` dosyasını demo sunucudaki kullanıcı `.bashrc` dosyasına ekleyebilirsin:

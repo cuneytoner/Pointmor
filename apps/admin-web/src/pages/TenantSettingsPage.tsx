@@ -22,6 +22,7 @@ import {
   type TenantRetentionPutBody,
   type TenantRetentionSettingsDto,
 } from "../lib/tenant-retention-api";
+import { canAccessLoyaltySurface } from "../lib/tenant-module-access";
 
 function RetentionDaysControl(props: {
   limit: RetentionFieldLimit;
@@ -90,6 +91,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
   const { token } = useAuth();
   const { hasPermission } = usePermissions();
   const canSaveSettings = hasPermission("settings.manage");
+  const loyaltyActive = canAccessLoyaltySurface(auth, bootstrap);
   const slug = auth?.tenant?.slug ?? "";
   const [copiedPortal, setCopiedPortal] = useState(false);
   const [copiedMenu, setCopiedMenu] = useState(false);
@@ -491,7 +493,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
             ) : null}
           </div>
 
-          {!loadError && form ? (
+          {!loadError && form && loyaltyActive ? (
           <div className="admin-app__card admin-app__card--wide">
             <h2 className="admin-app__card-title">{t("tenantSettings.section.publicAccess")}</h2>
             <p className="admin-app__card-text">{t("tenantSettings.publicAccessLead")}</p>
@@ -574,6 +576,14 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
               </div>
             </div>
           </div>
+          ) : null}
+          {!loadError && form && !loyaltyActive ? (
+            <div className="admin-app__card admin-app__card--wide">
+              <h2 className="admin-app__card-title">{t("tenantSettings.section.publicAccess")}</h2>
+              <p className="admin-app__card-text">
+                This organization does not have the Loyalty module enabled.
+              </p>
+            </div>
           ) : null}
         </>
       )}

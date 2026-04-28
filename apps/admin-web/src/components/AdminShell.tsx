@@ -9,6 +9,10 @@ import { useTranslation } from "../hooks/useTranslation";
 import type { NavItemConfig } from "../navigation/nav-config";
 import { PLATFORM_NAV, TENANT_NAV } from "../navigation/nav-config";
 import { canAccessTenantNavTarget, getAppSurface } from "../lib/access";
+import {
+  canAccessAiActSurface,
+  canAccessLoyaltySurface,
+} from "../lib/tenant-module-access";
 import { PlanTypeBadge, planBadgeFromEntitlements } from "./PlanTypeBadge";
 import { EntitlementAlerts } from "./EntitlementAlerts";
 import { LocationBranchSwitcher } from "./LocationBranchSwitcher";
@@ -20,8 +24,11 @@ type AdminShellProps = {
 function filterTenantNav(
   items: NavItemConfig[],
   featureList: string[] | undefined,
+  bootstrap: ReturnType<typeof useAdminDataContext>["bootstrap"],
   auth: AdminShellProps["auth"],
 ): NavItemConfig[] {
+  const loyaltyActive = canAccessLoyaltySurface(auth, bootstrap);
+  const aiActActive = canAccessAiActSurface(auth, bootstrap);
   return items.filter((item) => {
     if (featureList && featureList.length > 0) {
       const f = new Set(featureList);
@@ -29,6 +36,19 @@ function filterTenantNav(
       if (item.to === "/app/growth" && !f.has("product_analytics")) return false;
       if (item.to === "/app/campaigns" && !f.has("campaigns")) return false;
       if (item.to === "/app/audit" && !f.has("manager_closing")) return false;
+    }
+    if (
+      item.to.startsWith("/app/customers") ||
+      item.to.startsWith("/app/visits") ||
+      item.to.startsWith("/app/rewards") ||
+      item.to.startsWith("/app/campaigns") ||
+      item.to.startsWith("/app/menu") ||
+      item.to.startsWith("/app/redemptions")
+    ) {
+      return loyaltyActive;
+    }
+    if (item.to.startsWith("/app/ai-act")) {
+      return aiActActive;
     }
     return canAccessTenantNavTarget(item.to, auth);
   });
@@ -45,7 +65,7 @@ export function AdminShell({ auth }: AdminShellProps) {
   const nav =
     surface === "platform"
       ? PLATFORM_NAV
-      : filterTenantNav(TENANT_NAV, bootstrap?.entitlements?.features, auth);
+      : filterTenantNav(TENANT_NAV, bootstrap?.entitlements?.features, bootstrap, auth);
   const planType = planBadgeFromEntitlements(bootstrap?.entitlements ?? null);
 
   const topbarKey =

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { getApiBaseUrl } from "../lib/api-base";
 import { useTranslation } from "../hooks/useTranslation";
+import { usePermissions } from "../hooks/usePermissions";
 
 const STORAGE_KEY = "pointmor.activeBranchId";
 
@@ -11,11 +12,16 @@ const STORAGE_KEY = "pointmor.activeBranchId";
 export function LocationBranchSwitcher() {
   const { t } = useTranslation();
   const { token } = useAuth();
+  const { hasPermission } = usePermissions();
   const [branches, setBranches] = useState<Array<{ id: string; name: string }>>([]);
   const [value, setValue] = useState("");
+  const canViewCustomers = hasPermission("customers.view");
 
   useEffect(() => {
-    if (!token?.trim()) return;
+    if (!token?.trim() || !canViewCustomers) {
+      setBranches([]);
+      return;
+    }
     let cancelled = false;
     const base = getApiBaseUrl();
     void fetch(`${base}/cashier/branches`, {
@@ -53,7 +59,7 @@ export function LocationBranchSwitcher() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, canViewCustomers]);
 
   if (branches.length < 2) return null;
 

@@ -6,15 +6,22 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { useTranslation } from "../hooks/useTranslation";
 import { formatPoints } from "../lib/formatters";
 import { getCustomers, type CustomerWithBalance } from "../lib/tenant-loyalty-api";
+import { usePermissions } from "../hooks/usePermissions";
 
 export function TenantCustomersPage() {
   const { t, locale } = useTranslation();
   const { token } = useAuth();
+  const { hasPermission } = usePermissions();
   const [rows, setRows] = useState<CustomerWithBalance[] | null>(null);
   const [error, setError] = useState(false);
+  const canViewCustomers = hasPermission("customers.view");
 
   useEffect(() => {
-    if (!token?.trim()) return;
+    if (!token?.trim() || !canViewCustomers) {
+      setRows([]);
+      setError(false);
+      return;
+    }
     let c = false;
     setError(false);
     getCustomers(token)
@@ -27,7 +34,7 @@ export function TenantCustomersPage() {
     return () => {
       c = true;
     };
-  }, [token]);
+  }, [token, canViewCustomers]);
 
   const loading = rows === null && !error;
 
@@ -37,7 +44,9 @@ export function TenantCustomersPage() {
       title={t("tenantLoyalty.customers.title")}
       description={t("tenantLoyalty.customers.description")}
     >
-      {loading ? (
+      {!canViewCustomers ? (
+        <p className="admin-app__card-text">{t("tenantAudit.forbidden")}</p>
+      ) : loading ? (
         <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
       ) : error ? (
         <p className="admin-app__card-text">{t("tenantLoyalty.customers.loadError")}</p>

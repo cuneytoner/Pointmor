@@ -9,6 +9,7 @@ import { usePermissions } from "../hooks/usePermissions";
 import { downloadComplianceExport } from "../lib/compliance-api";
 import { formatCount, formatPoints } from "../lib/formatters";
 import { getLoyaltySummary, type LoyaltySummary } from "../lib/tenant-loyalty-api";
+import { canAccessLoyaltySurface, isAdvisorTenant } from "../lib/tenant-module-access";
 
 /** Kiracı — sadakat özeti (Phase 2). */
 export function TenantDashboardPage() {
@@ -22,6 +23,8 @@ export function TenantDashboardPage() {
 
   const tenantId = auth?.tenant?.id;
   const tenantName = auth?.tenant?.name ?? "";
+  const loyaltyActive = canAccessLoyaltySurface(auth, bootstrap);
+  const advisorTenant = isAdvisorTenant(auth, bootstrap);
 
   const sub = useMemo(() => {
     if (!bootstrap?.subscriptions || !tenantId) return null;
@@ -31,10 +34,22 @@ export function TenantDashboardPage() {
   const complianceLevel = bootstrap?.entitlements?.compliance?.level ?? "none";
   const canComplianceSummary = complianceLevel !== "none";
   const canComplianceFull = complianceLevel === "full";
+  const canViewLoyaltySummary = loyaltyActive && hasPermission("customers.view");
+  const pageEyebrow = loyaltyActive ? t("tenantLoyalty.dash.eyebrow") : "Organization";
+  const pageTitle = loyaltyActive
+    ? t("tenantLoyalty.dash.title", { name: tenantName })
+    : `${tenantName} — overview`;
+  const pageDescription = advisorTenant
+    ? "Advisor operations and client access overview."
+    : loyaltyActive
+      ? t("tenantLoyalty.dash.description")
+      : "Organization operational overview.";
 
   useEffect(() => {
-    if (!token?.trim()) {
+    if (!token?.trim() || !canViewLoyaltySummary) {
       setLoading(false);
+      setLoadError(false);
+      setSummary(null);
       return;
     }
     let cancelled = false;
@@ -53,7 +68,7 @@ export function TenantDashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, canViewLoyaltySummary]);
 
   const metrics = summary
     ? [
@@ -82,9 +97,9 @@ export function TenantDashboardPage() {
 
   return (
     <PageShell
-      eyebrow={t("tenantLoyalty.dash.eyebrow")}
-      title={t("tenantLoyalty.dash.title", { name: tenantName })}
-      description={t("tenantLoyalty.dash.description")}
+      eyebrow={pageEyebrow}
+      title={pageTitle}
+      description={pageDescription}
     >
       <p className="admin-app__card-text data-table__muted" style={{ marginBottom: "1rem" }}>
         {t("tenantLoyalty.common.utcNote")}
@@ -100,7 +115,11 @@ export function TenantDashboardPage() {
         )}
       </div>
 
-      {loading ? (
+      {!canViewLoyaltySummary ? (
+        <p className="admin-app__card-text">
+          {loyaltyActive ? t("tenantAudit.forbidden") : "Loyalty module is not enabled for this organization."}
+        </p>
+      ) : loading ? (
         <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
       ) : loadError ? (
         <p className="admin-app__card-text">{t("tenantLoyalty.dash.loadError")}</p>

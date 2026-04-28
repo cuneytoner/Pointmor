@@ -8,6 +8,12 @@ import {
 } from "../lib/access";
 import { resolveTenantAppRole } from "../lib/tenant-app-role";
 import { defaultTenantHomePath } from "../lib/tenant-route-access";
+import {
+  canAccessAiActSurface,
+  canAccessLoyaltySurface,
+  isAiActPath,
+  isLoyaltyPath,
+} from "../lib/tenant-module-access";
 
 export function RequirePlatformLayout(): ReactNode {
   const { auth } = useAdminDataContext();
@@ -31,9 +37,15 @@ export function RequireTenantLayout(): ReactNode {
 
 /** Kiracı rotalarında RBAC — yetkisiz URL sessizce güvenli sayfaya yönlenir. */
 export function RequireTenantRouteAccess(): ReactNode {
-  const { auth } = useAdminDataContext();
+  const { auth, bootstrap } = useAdminDataContext();
   const location = useLocation();
   if (!auth?.tenant) return <Outlet />;
+  if (isLoyaltyPath(location.pathname) && !canAccessLoyaltySurface(auth, bootstrap)) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
+  if (isAiActPath(location.pathname) && !canAccessAiActSurface(auth, bootstrap)) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
   if (!canAccessTenantPath(location.pathname, auth)) {
     return <Navigate to={redirectPathForDeniedTenantRoute(location.pathname, auth)} replace />;
   }
