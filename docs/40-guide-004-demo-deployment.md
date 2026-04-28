@@ -184,10 +184,32 @@ Not:
 
 ## 8) Operasyonel shell kısayolları (`.bashrc.demo`)
 
-`docs/.bashrc.demo` dosyasını demo sunucudaki kullanıcı `.bashrc` dosyasına ekleyebilirsin:
+`docs/.bashrc.demo` dosyasını demo sunucuda external helper dosyası olarak kullanman önerilir:
 
 ```bash
-cat /opt/pointmor-demo/Pointmor/docs/.bashrc.demo >> ~/.bashrc
+mkdir -p ~/.bashrc.d
+cp /opt/pointmor-demo/Pointmor/docs/.bashrc.demo ~/.bashrc.d/pointmor-demo.sh
+if ! grep -q "pointmor-demo.sh" ~/.bashrc; then
+  cat <<'EOF' >> ~/.bashrc
+# Pointmor demo helpers
+if [ -f "$HOME/.bashrc.d/pointmor-demo.sh" ]; then
+  . "$HOME/.bashrc.d/pointmor-demo.sh"
+fi
+EOF
+fi
+source ~/.bashrc
+```
+
+Neden bu yöntem:
+
+- `>> ~/.bashrc` ile fonksiyonları her seferinde biriktirmez.
+- Güncelleme tek dosya overwrite (`~/.bashrc.d/pointmor-demo.sh`) ile yapılır.
+- `.bashrc` temiz kalır, rollback kolaylaşır.
+
+Hızlı güncelleme:
+
+```bash
+cp /opt/pointmor-demo/Pointmor/docs/.bashrc.demo ~/.bashrc.d/pointmor-demo.sh
 source ~/.bashrc
 ```
 
@@ -225,7 +247,7 @@ pmdeploy --db-mode update-seed --full-seed
 Not:
 
 - `pmdeploy` icindeki `db:generate` / `db:reset` adimlari `api-demo` konteyneri icinde calistirilir; hostta `npm` kurulu olmasi gerekmez.
-- `reset-seed` akisi konteynerde `npx prisma migrate reset --force --skip-seed` kullanir; seed adimi ayrica `seed-demo.sh` / `seed-full-demo.sh` ile explicit calisir.
+- `reset-seed` akisi konteynerde `npx prisma migrate reset --force` kullanir; ardindan seed adimi `seed-demo.sh` / `seed-full-demo.sh` ile explicit calisir.
 
 Guvenlik notu:
 
