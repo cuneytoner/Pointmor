@@ -3,7 +3,7 @@ import type { Prisma, PrismaClient } from "../src/generated/prisma/client.js";
 import { createMembership } from "./seed-membership-helper.js";
 import { MESSAGE_TEMPLATE_SEED } from "./seed-message-templates.js";
 import { seedDemoScenarios } from "./seed-demo-scenarios.js";
-import { AI_ACT_QUESTION_KEYS, type AiActQuestionKey } from "../src/lib/ai-act-assessment.js";
+import { AI_ACT_QUESTION_KEYS, type AiActQuestionKey } from "../src/lib/ai-act-assessment.ts";
 
 export type CoreSeedContext = {
   loyaltyTenantId: string;
