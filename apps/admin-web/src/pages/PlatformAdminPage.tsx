@@ -19,6 +19,11 @@ export function PlatformAdminPage() {
   }
 
   const logs = data.bootstrap?.auditLogs ?? [];
+  const actionLabel = (action: string) => {
+    const key = `platform.actions.${action}`;
+    const value = t(key);
+    return value === key ? action.replaceAll("_", " ") : value;
+  };
 
   return (
     <PageShell
@@ -50,7 +55,7 @@ export function PlatformAdminPage() {
                     {new Date(row.createdAt).toLocaleString(toIntlLocale(locale))}
                   </td>
                   <td className="data-table__mono">{row.actorEmail ?? "—"}</td>
-                  <td>{row.action}</td>
+                  <td>{actionLabel(row.action)}</td>
                   <td>{row.detail ?? "—"}</td>
                 </tr>
               ))}

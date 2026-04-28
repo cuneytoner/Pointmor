@@ -127,13 +127,13 @@
   "shell": {
     "brandAria": "Navegación principal",
     "platformConsole": "Consola de plataforma",
-    "tenantApp": "App del negocio",
+    "tenantApp": "App de la organización",
     "statusOnline": "En línea",
     "language": "Idioma",
     "signOut": "Cerrar sesión",
     "envBanner": "Desarrollo: los datos pueden ser de ejemplo o estar vacíos.",
     "sessionAria": "Sesión",
-    "workspaceLine": "Negocio: {{name}} ({{slug}})",
+    "workspaceLine": "Organización: {{name}} ({{slug}})",
     "platformSession": "Sesión de administrador de plataforma",
     "activeLocation": "Sucursal"
   },
@@ -200,7 +200,7 @@
     "description": "Métricas y actividad entre organizaciones desde datos bootstrap en vivo.",
     "hero": {
       "title": "Instantánea de operaciones SaaS",
-      "subtitle": "Negocios, facturación y auditoría: alcance del operador."
+      "subtitle": "Organizaciones, suscripciones y operaciones de auditoría."
     }
   },
   "tenantDashboard": {
@@ -558,18 +558,16 @@
     "metrics": {
       "organizations": "Organizaciones",
       "organizationsHint": "Registros de organizaciones",
-      "users": "Usuarios",
-      "usersHint": "Lista visible",
-      "subscriptions": "Suscripciones",
-      "subscriptionsHint": "Todos los estados",
+      "activeSubscriptions": "Suscripciones activas",
+      "activeSubscriptionsHint": "Suscripciones en estado activo",
       "activeProducts": "Productos activos",
       "activeProductsHint": "Módulos habilitados entre organizaciones",
-      "aiSystemsMonitored": "Sistemas de IA monitoreados",
-      "aiSystemsMonitoredHint": "Sistemas de IA por inquilino",
-      "advisorLinkedClients": "Clientes vinculados a asesores",
-      "advisorLinkedClientsHint": "Organizaciones con membresías de asesor",
-      "activeLoyaltyCampaigns": "Campañas de fidelidad activas",
-      "activeLoyaltyCampaignsHint": "Campañas con estado activo"
+      "aiComplianceOrganizations": "Organizaciones de AI Compliance",
+      "aiComplianceOrganizationsHint": "Organizaciones con AI Compliance activo",
+      "loyaltyOrganizations": "Organizaciones de Loyalty",
+      "loyaltyOrganizationsHint": "Organizaciones con Loyalty activo",
+      "advisorOrganizations": "Organizaciones de Advisor",
+      "advisorOrganizationsHint": "Organizaciones en modo advisor"
     },
     "activity": {
       "title": "Actividad de organizaciones",
@@ -591,7 +589,7 @@
       }
     },
     "events": {
-      "workspace_synced": "Negocio sincronizado",
+      "organization_synced": "Organización sincronizada",
       "ai_risk_assessment_completed": "Evaluación de riesgo de IA completada",
       "loyalty_campaign_activated": "Campaña de fidelidad activada",
       "multi_product_onboarding_completed": "Onboarding multiproducto completado",
@@ -601,7 +599,7 @@
   "workspaces": {
     "eyebrow": "Directorio",
     "title": "Organizaciones",
-    "description": "Desde `GET /tenants` y el bootstrap.",
+    "description": "Gestiona organizaciones, productos y estado operativo.",
     "searchPlaceholder": "Buscar por nombre o slug…",
     "searchAria": "Buscar organizaciones",
     "emptyTitle": "No hay organizaciones",
@@ -616,7 +614,7 @@
   "users": {
     "eyebrow": "Acceso",
     "title": "Usuarios",
-    "description": "Desde `GET /users`.",
+    "description": "Directorio de acceso en plataforma y organizaciones.",
     "filterAria": "Filtrar por rol",
     "filterAll": "Todos",
     "emptyTitle": "Sin usuarios",
@@ -635,7 +633,7 @@
   "plans": {
     "eyebrow": "Catálogo",
     "title": "Planes",
-    "description": "Desde `GET /plans`. Cuota semanal frente a facturación mensual.",
+    "description": "Catálogo de productos y empaquetado de planes.",
     "featured": "Destacado",
     "planType": {
       "free": "Gratis",
@@ -650,9 +648,9 @@
   "subscriptions": {
     "eyebrow": "Ciclo de vida",
     "title": "Suscripciones",
-    "description": "De `GET /subscriptions`: negocio y plan.",
+    "description": "Ciclo de vida de suscripciones por organización y plan.",
     "columns": {
-      "workspace": "Negocio",
+      "workspace": "Organización",
       "plan": "Plan",
       "status": "Estado",
       "renews": "Renueva",
@@ -672,7 +670,7 @@
   "platform": {
     "eyebrow": "Seguridad",
     "title": "Administración de plataforma",
-    "description": "Registro de auditoría: bootstrap y `GET /admin/audit-logs`.",
+    "description": "Eventos de auditoría de plataforma e historial operativo.",
     "cardTitle": "Registro de auditoría",
     "badgeSource": "Base de datos",
     "columns": {
@@ -680,7 +678,27 @@
       "actor": "Responsable",
       "action": "Acción",
       "detail": "Detalle"
+    },
+    "actions": {
+      "seed": "Seed inicial de plataforma",
+      "subscription_update": "Suscripción actualizada"
     }
+  },
+  "organizationDetail": {
+    "eyebrow": "Organización",
+    "title": "Detalle de organización",
+    "description": "Base de resumen, productos, contactos y actividad.",
+    "overviewTitle": "Resumen",
+    "activePlan": "Plan activo",
+    "noPlan": "Sin plan activo",
+    "status": "Estado",
+    "enabledProducts": "Productos habilitados",
+    "primaryContacts": "Contactos principales",
+    "noContactsTitle": "Sin contactos principales",
+    "noContactsDescription": "No hay usuarios asignados como miembros principales de esta organización.",
+    "recentActivity": "Actividad reciente",
+    "recentActivityPlaceholder": "La línea de actividad llegará en la próxima iteración.",
+    "backToOrganizations": "Volver a organizaciones"
   },
   "pricing": {
     "title": "Precios",

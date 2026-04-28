@@ -89,7 +89,9 @@ export function UsersPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((u) => (
+                {rows.map((u) => {
+                  const primaryOrganization = u.memberships?.[0]?.tenant ?? u.tenant;
+                  return (
                   <tr key={u.id}>
                     <td>{u.name}</td>
                     <td className="data-table__mono">{u.email}</td>
@@ -97,10 +99,13 @@ export function UsersPage() {
                       <Badge tone={roleTone(u.role)}>{roleLabel(u.role)}</Badge>
                     </td>
                     <td className="data-table__muted">
-                      {u.tenant ? `${u.tenant.name} (${u.tenant.slug})` : "—"}
+                      {primaryOrganization
+                        ? `${primaryOrganization.name} (${primaryOrganization.slug})`
+                        : "—"}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           )}

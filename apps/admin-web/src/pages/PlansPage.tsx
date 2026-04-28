@@ -79,20 +79,20 @@ function humanizeFeatureTag(featureTag: string): string {
   const labels: Record<string, string> = {
     ai_act: "AI Compliance",
     ai_document_intelligence: "AI Document Intelligence",
-    advisor_dashboard: "Advisor Workspace",
-    customer_pwa: "Customer Mobile App",
+    advisor_dashboard: "Advisor Portal",
+    customer_pwa: "Mobile App",
     loyalty: "Loyalty",
     expense_capture: "Expense Capture",
-    e_invoice: "E-Invoicing",
+    e_invoice: "E-Invoice",
     campaigns: "Campaign Automation",
     growth_automation: "Growth Automation",
     manager_closing: "Manager Closing",
-    multi_branch: "Multi-Branch Operations",
+    multi_branch: "Multi-Branch",
     webhooks: "Webhooks",
     product_analytics: "Product Analytics",
     hq_dashboard: "HQ Dashboard",
-    hq_ai_insights: "HQ AI Insights",
-    hq_automation: "HQ Automation",
+    hq_ai_insights: "AI Insights",
+    hq_automation: "Automation Hub",
   };
   return labels[featureTag] ?? featureTag.replaceAll("_", " ").replace(/\b\w/g, (m) => m.toUpperCase());
 }

@@ -127,13 +127,13 @@
   "shell": {
     "brandAria": "Ana gezinme",
     "platformConsole": "Platform konsolu",
-    "tenantApp": "İşletme paneli",
+    "tenantApp": "Organizasyon paneli",
     "statusOnline": "Çevrimiçi",
     "language": "Dil",
     "signOut": "Çıkış",
     "envBanner": "Geliştirme — örnek veriler.",
     "sessionAria": "Oturum",
-    "workspaceLine": "İşletme: {{name}} ({{slug}})",
+    "workspaceLine": "Organizasyon: {{name}} ({{slug}})",
     "platformSession": "Platform yöneticisi oturumu",
     "activeLocation": "Şube"
   },
@@ -200,7 +200,7 @@
     "description": "Canlı bootstrap verisinden organizasyonlar arası metrikler ve aktivite.",
     "hero": {
       "title": "SaaS operasyon özeti",
-      "subtitle": "İşletmeler, faturalama ve denetim — operatör görünümü."
+      "subtitle": "Organizasyonlar, abonelikler ve denetim operasyonları."
     }
   },
   "tenantDashboard": {
@@ -558,18 +558,16 @@
     "metrics": {
       "organizations": "Organizasyonlar",
       "organizationsHint": "Organizasyon kayıtları",
-      "users": "Kullanıcılar",
-      "usersHint": "Görünür liste",
-      "subscriptions": "Abonelikler",
-      "subscriptionsHint": "Tüm durumlar",
+      "activeSubscriptions": "Aktif abonelikler",
+      "activeSubscriptionsHint": "Aktif durumdaki abonelikler",
       "activeProducts": "Aktif ürünler",
       "activeProductsHint": "Organizasyonlarda etkin modüller",
-      "aiSystemsMonitored": "İzlenen AI sistemleri",
-      "aiSystemsMonitoredHint": "Tenant kapsamlı AI sistemleri",
-      "advisorLinkedClients": "Danışman bağlı müşteriler",
-      "advisorLinkedClientsHint": "Danışman üyeliği olan organizasyonlar",
-      "activeLoyaltyCampaigns": "Aktif sadakat kampanyaları",
-      "activeLoyaltyCampaignsHint": "Aktif durumdaki kampanyalar"
+      "aiComplianceOrganizations": "AI Compliance organizasyonları",
+      "aiComplianceOrganizationsHint": "AI Compliance aktif organizasyonlar",
+      "loyaltyOrganizations": "Loyalty organizasyonları",
+      "loyaltyOrganizationsHint": "Loyalty aktif organizasyonlar",
+      "advisorOrganizations": "Advisor organizasyonları",
+      "advisorOrganizationsHint": "Advisor modundaki organizasyonlar"
     },
     "activity": {
       "title": "Organizasyon aktivitesi",
@@ -591,7 +589,7 @@
       }
     },
     "events": {
-      "workspace_synced": "İşletme senkronlandı",
+      "organization_synced": "Organizasyon senkronlandı",
       "ai_risk_assessment_completed": "AI risk değerlendirmesi tamamlandı",
       "loyalty_campaign_activated": "Sadakat kampanyası etkinleştirildi",
       "multi_product_onboarding_completed": "Çoklu ürün onboarding tamamlandı",
@@ -601,7 +599,7 @@
   "workspaces": {
     "eyebrow": "Dizin",
     "title": "Organizasyonlar",
-    "description": "`GET /tenants` ve bootstrap verisinden.",
+    "description": "Organizasyon, ürün ve operasyon durumunu yönetin.",
     "searchPlaceholder": "Ad veya kısa ad ara…",
     "searchAria": "Organizasyon ara",
     "emptyTitle": "Organizasyon yok",
@@ -616,7 +614,7 @@
   "users": {
     "eyebrow": "Erişim",
     "title": "Kullanıcılar",
-    "description": "`GET /users` üzerinden.",
+    "description": "Platform ve organizasyon erişim dizini.",
     "filterAria": "Role göre filtre",
     "filterAll": "Tümü",
     "emptyTitle": "Kullanıcı yok",
@@ -635,7 +633,7 @@
   "plans": {
     "eyebrow": "Katalog",
     "title": "Planlar",
-    "description": "`GET /plans`. Haftalık kota ve aylık ücret.",
+    "description": "Ürün kataloğu ve plan paketleri.",
     "featured": "Öne çıkan",
     "planType": {
       "free": "Ücretsiz",
@@ -650,9 +648,9 @@
   "subscriptions": {
     "eyebrow": "Yaşam döngüsü",
     "title": "Abonelikler",
-    "description": "`GET /subscriptions` çıktısından — işletme ve plan.",
+    "description": "Organizasyon ve plan bazında abonelik yaşam döngüsü.",
     "columns": {
-      "workspace": "İşletme",
+      "workspace": "Organizasyon",
       "plan": "Plan",
       "status": "Durum",
       "renews": "Yenileme",
@@ -672,7 +670,7 @@
   "platform": {
     "eyebrow": "Güvenlik",
     "title": "Platform yönetimi",
-    "description": "Denetim izi: bootstrap ve `GET /admin/audit-logs`.",
+    "description": "Platform düzeyi denetim olayları ve operasyon geçmişi.",
     "cardTitle": "Denetim günlüğü",
     "badgeSource": "Veritabanı",
     "columns": {
@@ -680,7 +678,27 @@
       "actor": "Aktör",
       "action": "Eylem",
       "detail": "Ayrıntı"
+    },
+    "actions": {
+      "seed": "İlk platform seed işlemi",
+      "subscription_update": "Abonelik güncellendi"
     }
+  },
+  "organizationDetail": {
+    "eyebrow": "Organizasyon",
+    "title": "Organizasyon detayı",
+    "description": "Genel görünüm, ürünler, kontaklar ve aktivite temeli.",
+    "overviewTitle": "Genel görünüm",
+    "activePlan": "Aktif plan",
+    "noPlan": "Aktif plan yok",
+    "status": "Durum",
+    "enabledProducts": "Etkin ürünler",
+    "primaryContacts": "Birincil kontaklar",
+    "noContactsTitle": "Birincil kontak yok",
+    "noContactsDescription": "Bu organizasyon için birincil üyelik eşleşmesi bulunan kullanıcı yok.",
+    "recentActivity": "Son aktivite",
+    "recentActivityPlaceholder": "Aktivite zaman çizelgesi bir sonraki iterasyonda eklenecek.",
+    "backToOrganizations": "Organizasyonlara dön"
   },
   "pricing": {
     "title": "Fiyatlandırma",

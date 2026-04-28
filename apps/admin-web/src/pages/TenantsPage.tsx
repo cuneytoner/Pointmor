@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
@@ -80,7 +81,9 @@ export function TenantsPage() {
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.id}>
-                    <td>{r.name}</td>
+                    <td>
+                      <Link to={`/platform/workspaces/${encodeURIComponent(r.id)}`}>{r.name}</Link>
+                    </td>
                     <td>
                       <div className="chip-row">
                         {toProductLabels(moduleMap.get(r.id)).map((label) => (

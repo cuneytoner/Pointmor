@@ -44,6 +44,7 @@ export type TenantDto = {
   id: string;
   slug: string;
   name: string;
+  type?: string;
   createdAt?: string;
   /** 1–5 = adım, 6 = tamamlandı */
   onboardingStep?: number;
@@ -79,6 +80,7 @@ export type UserListDto = {
   role: string;
   tenantId: string | null;
   tenant: { slug: string; name: string } | null;
+  memberships?: Array<{ tenant: { slug: string; name: string } }>;
   createdAt?: string;
 };
 

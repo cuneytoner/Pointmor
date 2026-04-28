@@ -19,12 +19,25 @@ export function PlatformDashboardPage() {
   const { bootstrap } = useAdminDataContext();
 
   const tc = bootstrap?.tenants.length ?? 0;
-  const uc = bootstrap?.users.length ?? 0;
-  const sc = bootstrap?.subscriptions.length ?? 0;
+  const activeSubscriptions =
+    bootstrap?.subscriptions.filter((s) => s.status === "active").length ?? 0;
   const activeProducts = bootstrap?.platformMetrics.activeProducts ?? 0;
-  const aiSystemsMonitored = bootstrap?.platformMetrics.aiSystemsMonitored ?? 0;
-  const advisorLinkedClients = bootstrap?.platformMetrics.advisorLinkedClients ?? 0;
-  const activeLoyaltyCampaigns = bootstrap?.platformMetrics.activeLoyaltyCampaigns ?? 0;
+  const moduleMap = new Map<string, Set<string>>();
+  for (const row of bootstrap?.tenantModules ?? []) {
+    if (!row.isActive) continue;
+    const existing = moduleMap.get(row.tenantId) ?? new Set<string>();
+    existing.add(row.module.name);
+    moduleMap.set(row.tenantId, existing);
+  }
+  const aiComplianceOrganizations = (bootstrap?.tenants ?? []).filter((tenant) =>
+    (moduleMap.get(tenant.id) ?? new Set<string>()).has("ai_act"),
+  ).length;
+  const loyaltyOrganizations = (bootstrap?.tenants ?? []).filter((tenant) =>
+    (moduleMap.get(tenant.id) ?? new Set<string>()).has("cafe"),
+  ).length;
+  const advisorOrganizations = (bootstrap?.tenants ?? []).filter(
+    (tenant) => tenant.type === "ADVISOR",
+  ).length;
 
   const metrics = [
     {
@@ -33,14 +46,9 @@ export function PlatformDashboardPage() {
       hint: t("dashboard.metrics.organizationsHint"),
     },
     {
-      k: t("dashboard.metrics.users"),
-      v: formatCount(uc, locale),
-      hint: t("dashboard.metrics.usersHint"),
-    },
-    {
-      k: t("dashboard.metrics.subscriptions"),
-      v: formatCount(sc, locale),
-      hint: t("dashboard.metrics.subscriptionsHint"),
+      k: t("dashboard.metrics.activeSubscriptions"),
+      v: formatCount(activeSubscriptions, locale),
+      hint: t("dashboard.metrics.activeSubscriptionsHint"),
     },
     {
       k: t("dashboard.metrics.activeProducts"),
@@ -48,29 +56,21 @@ export function PlatformDashboardPage() {
       hint: t("dashboard.metrics.activeProductsHint"),
     },
     {
-      k: t("dashboard.metrics.aiSystemsMonitored"),
-      v: formatCount(aiSystemsMonitored, locale),
-      hint: t("dashboard.metrics.aiSystemsMonitoredHint"),
+      k: t("dashboard.metrics.aiComplianceOrganizations"),
+      v: formatCount(aiComplianceOrganizations, locale),
+      hint: t("dashboard.metrics.aiComplianceOrganizationsHint"),
     },
     {
-      k: t("dashboard.metrics.advisorLinkedClients"),
-      v: formatCount(advisorLinkedClients, locale),
-      hint: t("dashboard.metrics.advisorLinkedClientsHint"),
+      k: t("dashboard.metrics.loyaltyOrganizations"),
+      v: formatCount(loyaltyOrganizations, locale),
+      hint: t("dashboard.metrics.loyaltyOrganizationsHint"),
     },
     {
-      k: t("dashboard.metrics.activeLoyaltyCampaigns"),
-      v: formatCount(activeLoyaltyCampaigns, locale),
-      hint: t("dashboard.metrics.activeLoyaltyCampaignsHint"),
+      k: t("dashboard.metrics.advisorOrganizations"),
+      v: formatCount(advisorOrganizations, locale),
+      hint: t("dashboard.metrics.advisorOrganizationsHint"),
     },
   ];
-
-  const moduleMap = new Map<string, Set<string>>();
-  for (const row of bootstrap?.tenantModules ?? []) {
-    if (!row.isActive) continue;
-    const existing = moduleMap.get(row.tenantId) ?? new Set<string>();
-    existing.add(row.module.name);
-    moduleMap.set(row.tenantId, existing);
-  }
   const subscriptionMap = new Map((bootstrap?.subscriptions ?? []).map((s) => [s.tenant.id, s]));
 
   const demoRows: DemoRow[] = (bootstrap?.tenants ?? [])
@@ -80,7 +80,7 @@ export function PlatformDashboardPage() {
       const hasLoyalty = activeModules.has("cafe");
       const hasSubscription = Boolean(subscriptionMap.get(tenant.id));
 
-      let eventKey = "dashboard.events.workspace_synced";
+      let eventKey = "dashboard.events.organization_synced";
       let status: ActivityStatus = hasSubscription ? "success" : "warning";
 
       if (tenant.slug === "acme-ai-solutions" || (hasAiAct && !hasLoyalty)) {

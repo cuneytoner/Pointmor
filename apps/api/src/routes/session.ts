@@ -176,6 +176,13 @@ async function loadUsersForSession(s: SessionPayload) {
         role: true,
         tenantId: true,
         tenant: { select: { slug: true, name: true } },
+        memberships: {
+          select: {
+            tenant: { select: { slug: true, name: true } },
+          },
+          orderBy: { createdAt: "asc" },
+          take: 1,
+        },
       },
     });
   }
@@ -197,6 +204,13 @@ async function loadUsersForSession(s: SessionPayload) {
       role: true,
       tenantId: true,
       tenant: { select: { slug: true, name: true } },
+      memberships: {
+        select: {
+          tenant: { select: { slug: true, name: true } },
+        },
+        orderBy: { createdAt: "asc" },
+        take: 1,
+      },
     },
   });
 }

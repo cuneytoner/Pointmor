@@ -39,6 +39,7 @@ import { TenantLocationsPage } from "../pages/TenantLocationsPage";
 import { TenantVisitsPage } from "../pages/TenantVisitsPage";
 import { TenantsPage } from "../pages/TenantsPage";
 import { UsersPage } from "../pages/UsersPage";
+import { OrganizationDetailPage } from "../pages/OrganizationDetailPage";
 import { CustomerPwaLayout } from "../customer-pwa/CustomerPwaLayout";
 import { CustomerActivityPage } from "../pages/customer/CustomerActivityPage";
 import { CustomerClaimPage } from "../pages/customer/CustomerClaimPage";
@@ -166,6 +167,7 @@ export function AppRoutes() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<PlatformDashboardPage />} />
             <Route path="workspaces" element={<TenantsPage />} />
+            <Route path="workspaces/:organizationId" element={<OrganizationDetailPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="plans" element={<PlansPage />} />
             <Route path="subscriptions" element={<SubscriptionsPage />} />

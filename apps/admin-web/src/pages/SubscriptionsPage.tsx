@@ -62,7 +62,7 @@ export function SubscriptionsPage() {
     }
   };
 
-  const planLabel = (p: PlanDto) => `${p.name} (${p.slug})`;
+  const planLabel = (p: PlanDto) => p.name;
 
   if (!bootstrap) {
     return (

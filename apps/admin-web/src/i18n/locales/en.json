@@ -127,13 +127,13 @@
   "shell": {
     "brandAria": "Main navigation",
     "platformConsole": "Platform console",
-    "tenantApp": "Workspace app",
+    "tenantApp": "Organization app",
     "statusOnline": "Online",
     "language": "Language",
     "signOut": "Sign out",
     "envBanner": "Development — sample data.",
     "sessionAria": "Session",
-    "workspaceLine": "Workspace: {{name}} ({{slug}})",
+    "workspaceLine": "Organization: {{name}} ({{slug}})",
     "platformSession": "Platform administrator session",
     "activeLocation": "Location"
   },
@@ -200,7 +200,7 @@
     "description": "Cross-organization metrics and activity from live bootstrap data.",
     "hero": {
       "title": "SaaS operations snapshot",
-      "subtitle": "Workspaces, billing, and audit — operator scope."
+      "subtitle": "Organizations, subscriptions, and audit operations."
     }
   },
   "tenantDashboard": {
@@ -559,21 +559,19 @@
     "metrics": {
       "organizations": "Organizations",
       "organizationsHint": "Organization records",
-      "users": "Users",
-      "usersHint": "Visible list",
-      "subscriptions": "Subscriptions",
-      "subscriptionsHint": "All statuses",
+      "activeSubscriptions": "Active subscriptions",
+      "activeSubscriptionsHint": "Subscriptions in active status",
       "activeProducts": "Active products",
       "activeProductsHint": "Enabled modules across organizations",
-      "aiSystemsMonitored": "AI systems monitored",
-      "aiSystemsMonitoredHint": "Tenant-scoped AI systems",
-      "advisorLinkedClients": "Advisor-linked clients",
-      "advisorLinkedClientsHint": "Organizations with advisor memberships",
-      "activeLoyaltyCampaigns": "Active loyalty campaigns",
-      "activeLoyaltyCampaignsHint": "Campaigns with active status"
+      "aiComplianceOrganizations": "AI Compliance organizations",
+      "aiComplianceOrganizationsHint": "Organizations with AI Compliance active",
+      "loyaltyOrganizations": "Loyalty organizations",
+      "loyaltyOrganizationsHint": "Organizations with Loyalty active",
+      "advisorOrganizations": "Advisor organizations",
+      "advisorOrganizationsHint": "Organizations in advisor mode"
     },
     "activity": {
-      "title": "Workspace activity",
+      "title": "Organization activity",
       "badgeLive": "Live",
       "columns": {
         "organization": "Organization",
@@ -592,7 +590,7 @@
       }
     },
     "events": {
-      "workspace_synced": "Workspace synced",
+      "organization_synced": "Organization synced",
       "ai_risk_assessment_completed": "AI risk assessment completed",
       "loyalty_campaign_activated": "Loyalty campaign activated",
       "multi_product_onboarding_completed": "Multi-product onboarding completed",
@@ -602,7 +600,7 @@
   "workspaces": {
     "eyebrow": "Directory",
     "title": "Organizations",
-    "description": "From `GET /tenants` and bootstrap.",
+    "description": "Manage organizations, products, and operating status.",
     "searchPlaceholder": "Search organization name or slug…",
     "searchAria": "Search organizations",
     "emptyTitle": "No organizations",
@@ -617,7 +615,7 @@
   "users": {
     "eyebrow": "Access",
     "title": "Users",
-    "description": "From `GET /users`.",
+    "description": "Access directory across platform and organizations.",
     "filterAria": "Filter by role",
     "filterAll": "All",
     "emptyTitle": "No users",
@@ -636,7 +634,7 @@
   "plans": {
     "eyebrow": "Catalog",
     "title": "Plans",
-    "description": "From `GET /plans`. Weekly quota vs monthly billing.",
+    "description": "Product catalog and plan packaging.",
     "featured": "Featured",
     "planType": {
       "free": "Free",
@@ -651,9 +649,9 @@
   "subscriptions": {
     "eyebrow": "Lifecycle",
     "title": "Subscriptions",
-    "description": "From `GET /subscriptions` — workspace and plan.",
+    "description": "Subscription lifecycle by organization and plan.",
     "columns": {
-      "workspace": "Workspace",
+      "workspace": "Organization",
       "plan": "Plan",
       "status": "Status",
       "renews": "Renews",
@@ -673,7 +671,7 @@
   "platform": {
     "eyebrow": "Security",
     "title": "Platform administration",
-    "description": "Audit trail from bootstrap and `GET /admin/audit-logs`.",
+    "description": "Platform-level audit events and operational history.",
     "cardTitle": "Audit log",
     "badgeSource": "Database",
     "columns": {
@@ -681,7 +679,27 @@
       "actor": "Actor",
       "action": "Action",
       "detail": "Detail"
+    },
+    "actions": {
+      "seed": "Initial platform seed",
+      "subscription_update": "Subscription updated"
     }
+  },
+  "organizationDetail": {
+    "eyebrow": "Organization",
+    "title": "Organization detail",
+    "description": "Overview, products, contacts, and activity foundation.",
+    "overviewTitle": "Overview",
+    "activePlan": "Active plan",
+    "noPlan": "No active plan",
+    "status": "Status",
+    "enabledProducts": "Enabled products",
+    "primaryContacts": "Primary contacts",
+    "noContactsTitle": "No primary contacts",
+    "noContactsDescription": "No users are currently mapped to this organization as primary members.",
+    "recentActivity": "Recent activity",
+    "recentActivityPlaceholder": "Activity timeline will appear in the next iteration.",
+    "backToOrganizations": "Back to organizations"
   },
   "pricing": {
     "title": "Pricing",
