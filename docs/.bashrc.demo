@@ -1,0 +1,57 @@
+pmdeploy() {
+  cd /opt/pointmor-demo/Pointmor || return
+
+  echo "📥 Pulling latest code..."
+  git reset --hard HEAD || return
+  git pull || return
+
+  echo "🔧 Fixing permissions..."
+  chmod +x infra/scripts/*.sh
+    
+  echo "🚀 Deploying..."
+  ./infra/scripts/deploy-demo.sh || {
+    echo "❌ Deploy failed"
+    return
+  }
+
+  echo "🔎 API health check..."
+  curl -fsS http://127.0.0.1:3000/health || echo "⚠️ API health check failed"
+}
+
+
+pmdeploycld() {
+  cd /opt/pointmor-demo/Pointmor || return
+
+  echo "📥 Pulling latest code..."
+  git reset --hard HEAD || return
+  git pull || return
+
+  echo "🔧 Fixing permissions..."
+  chmod +x infra/scripts/*.sh
+
+  echo "☁️ Deploying with Cloudflare..."
+  ./infra/scripts/deploy-demo.sh --cloud || {
+    echo "❌ Deploy (cloud) failed"
+    return
+  }
+
+  echo "🔎 API health check..."
+  curl -fsS http://127.0.0.1:3000/health || echo "⚠️ API health check failed"
+}
+
+pmstatus() {
+  echo "📦 Containers:"
+  docker ps
+
+  echo
+  echo "🔎 API health:"
+  curl -fsS http://127.0.0.1:3000/health || echo "❌ API down"
+
+  echo
+  echo "🌐 Admin HTTP check:"
+  curl -I http://127.0.0.1:8080 2>/dev/null | head -n 1 || echo "❌ Admin down"
+
+  echo
+  echo "☁️ Cloudflare tunnel:"
+  docker ps | grep cloudflared || echo "⚠️ Cloudflared not running"
+}

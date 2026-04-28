@@ -1,0 +1,11 @@
+[Unit]
+Description=Dev Postgresql Db
+After=network.target
+
+[Service]
+ExecStart=/bin/bash /docker/postgresql/postgres.sh
+Type=simple
+User=cc
+
+[Install]
+WantedBy=multi-user.target

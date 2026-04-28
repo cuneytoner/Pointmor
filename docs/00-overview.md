@@ -23,6 +23,7 @@ Kullanıcılar tenant'lara membership üzerinden erişir.
 3. Kanonik proje planı / yol haritası: [`10-meta-005-platform-project-plan.md`](./10-meta-005-platform-project-plan.md)
 4. Ürün kapsamı: [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md)
 5. Veritabanı reset/seed operasyonları: [`40-guide-009-database-reset-and-seed.md`](./40-guide-009-database-reset-and-seed.md)
+6. Dev Debian VM PostgreSQL service runbook: [`40-guide-010-dev-vm-postgresql-service.md`](./40-guide-010-dev-vm-postgresql-service.md)
 
 ## Dokümantasyon yapısı
 

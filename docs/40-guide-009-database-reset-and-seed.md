@@ -2,6 +2,10 @@
 
 Bu rehber local, demo ve production ortamlarında `migration` ve `seed` operasyonlarını güvenli şekilde yönetmek için kanonik akıştır.
 
+Demo ortaminda kurulumdan deployment/seed/smoke adimlarina kadar uctan uca tek runbook icin:
+
+- `docs/40-guide-004-demo-deployment.md`
+
 ## 1) Komut kapsamı (`apps/api`)
 
 ```bash

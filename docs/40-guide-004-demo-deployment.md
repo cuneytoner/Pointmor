@@ -1,8 +1,8 @@
-# Demo dağıtımı (Docker Compose + Cloudflare Tüneli)
+# Demo ortamı runbook'u (kurulum -> deployment -> migrate -> seed -> smoke)
 
-> Bu doküman yalnızca demo ortamı içindir.
+> Bu doküman yalnızca demo ortamı içindir ve demo operasyonu için **tek kanonik akış**tır.
 
-Demo akışı: `.env.demo` hazırla → deploy et → migrate çalıştır → seed çalıştır → smoke/health doğrula.
+Demo akışı: host hazırlığı -> `.env.demo` -> deploy -> migrate -> seed -> smoke/health -> operasyonel kısayollar.
 
 ---
 
@@ -16,10 +16,41 @@ Demo akışı: `.env.demo` hazırla → deploy et → migrate çalıştır → s
 - `infra/scripts/seed-full-demo.sh` (opsiyonel)
 - `infra/scripts/smoke-demo.sh`
 - `infra/scripts/health-check-demo.sh`
+- `docs/.bashrc.demo` (opsiyonel shell alias/fonksiyonları)
 
 ---
 
-## 1) Ortam hazırlığı
+## 0) Kapsam ve ilkeler
+
+- Bu akış **demo** içindir; production'da kullanılmaz.
+- Demo DB ile local dev/prod DB ayrılmalıdır.
+- Seed ve erişim modeli `TenantMembership` doctrine ile hizalı olmalıdır.
+- Deploy sonrası migrate/seed adımları operasyonel olarak explicit çalıştırılır.
+
+---
+
+## 1) Demo host önkoşulları
+
+Hedef hostta:
+
+- Docker + Docker Compose plugin
+- `git`, `curl`
+- Repo klasörü (örnek): `/opt/pointmor-demo/Pointmor`
+- Demo env dosyası: `infra/docker/.env.demo`
+
+İlk kurulum örneği:
+
+```bash
+sudo mkdir -p /opt/pointmor-demo
+cd /opt/pointmor-demo
+git clone <POINTMOR_REPO_URL> Pointmor
+cd Pointmor
+chmod +x infra/scripts/*.sh
+```
+
+---
+
+## 2) Ortam hazırlığı (`.env.demo`)
 
 ```bash
 cp infra/docker/.env.demo.example infra/docker/.env.demo
@@ -38,7 +69,7 @@ Demo DB, local dev DB ile paylaşılmamalıdır.
 
 ---
 
-## 2) Önerilen kısa akış
+## 3) Önerilen kısa akış
 
 1. `.env.demo` hazırla.
 2. Demo deploy çalıştır.
@@ -49,7 +80,7 @@ Demo DB, local dev DB ile paylaşılmamalıdır.
 
 ---
 
-## 3) Deploy
+## 4) Deploy
 
 ```bash
 chmod +x infra/scripts/*.sh
@@ -70,7 +101,7 @@ Not:
 
 ---
 
-## 4) Migration
+## 5) Migration
 
 ```bash
 ./infra/scripts/migrate-demo.sh
@@ -80,7 +111,7 @@ Production farkı: demo ortamında migration tekrar koşulabilir; production’d
 
 ---
 
-## 5) Seed (demo vs full demo)
+## 6) Seed (demo vs full demo)
 
 İlk kurulum / manuel veri yükleme:
 
@@ -107,7 +138,7 @@ Uyarılar:
 
 ---
 
-## 6) Smoke ve health
+## 7) Smoke ve health
 
 ```bash
 ./infra/scripts/smoke-demo.sh
@@ -117,14 +148,36 @@ curl -sfS "http://127.0.0.1:${API_HOST_PORT:-3000}/health"
 
 ---
 
-## 7) CI / workflow notu
+## 8) Operasyonel shell kısayolları (`.bashrc.demo`)
+
+`docs/.bashrc.demo` dosyasını demo sunucudaki kullanıcı `.bashrc` dosyasına ekleyebilirsin:
+
+```bash
+cat /opt/pointmor-demo/Pointmor/docs/.bashrc.demo >> ~/.bashrc
+source ~/.bashrc
+```
+
+Fonksiyonlar:
+
+- `pmdeploy`: demo deploy (local)
+- `pmdeploycld`: demo deploy + cloudflared
+- `pmstatus`: container + health + tunnel kontrolü
+
+Guvenlik notu:
+
+- `pmdeploy` ve `pmdeploycld` içinde `git reset --hard HEAD` vardır.
+- Demo hostta local değişiklik tutulmamalıdır; tutuluyorsa bu komutlar değişiklikleri siler.
+
+---
+
+## 9) CI / workflow notu
 
 - Demo deploy, CI başarı sonrası veya manuel workflow ile tetiklenir.
 - Workflow seed çalıştırmaz; seed adımı operasyonel olarak manuel yönetilir.
 
 ---
 
-## 8) Hızlı refresh akışı
+## 10) Hızlı refresh akışı
 
 ```bash
 git fetch origin --prune
@@ -144,7 +197,21 @@ Destructive uyarı:
 
 ---
 
-## 9) Dokümanı Güncel Tutma Kuralı
+## 11) Canonical demo login kontrolü
+
+Demo seed sonrası doğrulama için:
+
+- `admin-demo@pointmor.demo`
+- `owner-demo@pointmor.demo`
+
+Not:
+
+- Şifreler dokümana hardcode edilmez; `infra/docker/.env.demo` içindeki `DEMO_*` değişkenlerinden alınır.
+- Seed kullanıcılarının güncel referansı için ayrıca `docs/41-ref-001-dev-seed-users.md` izlenmelidir.
+
+---
+
+## 12) Dokümanı Güncel Tutma Kuralı
 
 Aşağıdaki değişikliklerde aynı PR/task içinde bu dokümanı güncelle:
 

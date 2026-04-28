@@ -12,6 +12,10 @@ Gerekli temel env:
 - `apps/api/.env` (`DATABASE_URL` zorunlu)
 - `apps/admin-web/.env.local` (`VITE_API_BASE_URL` önerilir)
 
+Harici Debian VM uzerinde Docker PostgreSQL service (systemd) kullaniyorsan:
+
+- `docs/40-guide-010-dev-vm-postgresql-service.md`
+
 ---
 
 ## 2) Uygulamayı çalıştırma
