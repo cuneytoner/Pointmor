@@ -72,11 +72,51 @@ Demo DB, local dev DB ile paylaşılmamalıdır.
 ## 3) Önerilen kısa akış
 
 1. `.env.demo` hazırla.
-2. Demo deploy çalıştır.
+2. Repo sync/pull yap (özellikle script değişikliklerini al).
 3. Demo `migration` adımını çalıştır.
 4. `seed` adımını çalıştır.
 5. Smoke test çalıştır.
 6. Health kontrolü yap.
+
+---
+
+## 3.1) Deploy öncesi repo sync/pull (script değişiklikleri için kritik)
+
+`deploy-demo.sh`, `migrate-demo.sh`, `seed-demo.sh` ve diğer `infra/scripts/*.sh` dosyaları
+host üzerindeki mevcut çalışma kopyasından çalışır. Bu yüzden scriptlerde değişiklik varsa
+deploy’dan önce mutlaka güncel branch’i çekmelisin.
+
+Standart (non-destructive) akış:
+
+```bash
+cd /opt/pointmor-demo/Pointmor
+git fetch origin --prune
+git checkout main
+git pull --ff-only
+chmod +x infra/scripts/*.sh
+```
+
+Neden gerekli:
+
+- Script fix’leri (ör. db reset/seed akışı, container içi komut çağrıları) deploy davranışını doğrudan değiştirir.
+- Pull yapılmadan deploy çalıştırılırsa eski script ile deploy edilir ve geçmiş hatalar tekrar görülebilir.
+- `chmod +x` yeni gelen script dosyalarında çalıştırılabilirlik izinlerini garanti eder.
+
+Eğer hostta local değişiklik varsa:
+
+- Merge/rebase ile koru, veya
+- Demo host için önerilen yıkıcı senkronu uygula:
+
+```bash
+cd /opt/pointmor-demo/Pointmor
+git fetch origin --prune
+git checkout main
+git reset --hard origin/main
+git clean -fd
+chmod +x infra/scripts/*.sh
+```
+
+Uyarı: `reset --hard` ve `clean -fd` local değişiklikleri siler.
 
 ---
 
@@ -129,6 +169,7 @@ Seed farkı:
 
 - `seed-demo.sh`: temel demo verisi.
 - `seed-full-demo.sh`: daha geniş demo senaryosu, çok tenant/ek veri.
+- `seed-demo.sh`, konteyner içinde `SEED_MODE=demo npx prisma db seed` çalıştırır (cross-env gerektirmez).
 
 Uyarılar:
 
