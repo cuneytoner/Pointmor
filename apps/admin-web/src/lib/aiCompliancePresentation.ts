@@ -37,7 +37,13 @@ export type AiComplianceActionItem = {
   system: string;
   severity: ActivitySeverity;
   reason: string;
+  primaryAction: string;
+  secondaryContext: string;
+  actionCategory: string;
+  actionLabel: "Open" | "Review";
   suggestedNextAction: string;
+  priorityScore: number;
+  priorityReasons: string[];
   targetRoute: string;
   slaState: AiComplianceSlaState;
 };
@@ -129,6 +135,40 @@ export function presentSlaReason(row: AiComplianceSystemDto): string {
   return "No overdue obligations or stale evidence detected.";
 }
 
+export function formatOperationalTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Unknown time";
+  const now = new Date();
+  const sameUtcDay =
+    date.getUTCFullYear() === now.getUTCFullYear() &&
+    date.getUTCMonth() === now.getUTCMonth() &&
+    date.getUTCDate() === now.getUTCDate();
+  const hh = String(date.getUTCHours()).padStart(2, "0");
+  const mm = String(date.getUTCMinutes()).padStart(2, "0");
+  if (sameUtcDay) return `Today ${hh}:${mm} UTC`;
+  const month = date.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+  const day = date.getUTCDate();
+  const year = date.getUTCFullYear() !== now.getUTCFullYear() ? ` ${date.getUTCFullYear()}` : "";
+  return `${month} ${day}${year}, ${hh}:${mm} UTC`;
+}
+
+export function formatOperationalAge(value: string, noun = "update"): string {
+  const days = ageInDays(value);
+  return `${days} ${days === 1 ? "day" : "days"} since ${noun}`;
+}
+
+export function formatObligationDueDate(value: string): string {
+  const createdAt = new Date(value).getTime();
+  if (Number.isNaN(createdAt)) return "Unknown due date";
+  return formatOperationalTime(new Date(createdAt + 14 * 24 * 60 * 60 * 1000).toISOString());
+}
+
+export function formatObligationSlaAge(value: string): string {
+  const overdueDays = Math.max(0, ageInDays(value) - 14);
+  if (overdueDays === 0) return "Due within 14-day SLA";
+  return `${overdueDays} ${overdueDays === 1 ? "day" : "days"} overdue`;
+}
+
 export function deriveSystemHealth(row: AiComplianceSystemDto): OperationalHealth {
   const now = Date.now();
   const overdue = row.obligations.some((o) => {
@@ -208,6 +248,68 @@ export function derivePriorityScore(row: AiComplianceSystemDto): number {
   return Math.min(100, riskWeight + overdue * 8 + staleWeight + reviewWeight + openObligationsWeight);
 }
 
+export function derivePriorityReasons(row: AiComplianceSystemDto): string[] {
+  const reasons: string[] = [];
+  const riskLabel = presentRiskLabel(row.currentAssessment?.riskLevel ?? null);
+  if (riskLabel === "High") reasons.push("High risk assessment");
+  else if (riskLabel === "Limited") reasons.push("Limited risk assessment");
+  else if (riskLabel === "Minimal") reasons.push("Minimal risk assessment");
+  else reasons.push("No current risk result");
+
+  const openObligations = deriveOpenObligationCount(row);
+  reasons.push(
+    openObligations === 0
+      ? "No open obligations"
+      : `${openObligations} open obligation${openObligations === 1 ? "" : "s"}`,
+  );
+
+  const reviewStatus = deriveReviewStatus(row);
+  if (reviewStatus === "Escalated") reasons.push("Escalated review");
+  else if (reviewStatus === "Under Review" || reviewStatus === "Submitted") {
+    reasons.push("Advisor review waiting");
+  } else if (reviewStatus === "Draft") {
+    reasons.push("Assessment in draft");
+  } else if (reviewStatus === "Approved") {
+    reasons.push("Review approved");
+  }
+
+  const freshness = deriveEvidenceFreshness(row);
+  if (freshness === "Critical") reasons.push(row.evidencesCount === 0 ? "Evidence missing" : "Critical evidence age");
+  else if (freshness === "Stale") reasons.push("Stale evidence");
+  else if (freshness === "Aging") reasons.push("Evidence aging");
+  else reasons.push("Evidence current");
+
+  return reasons;
+}
+
+export function formatPriorityReasons(row: AiComplianceSystemDto): string {
+  return derivePriorityReasons(row).join("; ");
+}
+
+export function deriveOperationalFriction(
+  row: AiComplianceSystemDto,
+  users: UserDto[] = [],
+): string[] {
+  const people = deriveSystemPeople(row, users);
+  const friction: string[] = [];
+  const reviewStatus = deriveReviewStatus(row);
+  const assessmentAge = row.currentAssessment ? ageInDays(row.currentAssessment.updatedAt) : ageInDays(row.updatedAt);
+  const openObligations = deriveOpenObligationCount(row);
+
+  if (!people.complianceOwner && !row.createdBy) friction.push("Unassigned owner");
+  if (reviewStatus !== "Approved" && people.advisorReviewer) friction.push("Awaiting advisor");
+  if (row.evidencesCount === 0) friction.push("Evidence missing");
+  if (reviewStatus !== "Approved" && assessmentAge > 7) friction.push("Review overdue");
+  if (row.providerType === "EXTERNAL" && row.evidencesCount === 0) {
+    friction.push("Vendor documentation missing");
+  }
+  if (openObligations > 0 && !people.complianceOwner) {
+    friction.push("Open obligations require owner");
+  }
+
+  return friction;
+}
+
 export function buildTodayActionQueue(
   systems: AiComplianceSystemDto[],
   users: UserDto[],
@@ -238,7 +340,13 @@ export function buildTodayActionQueue(
           system: system.name,
           severity: "overdue",
           reason: `${obligation.obligationType} has been open for ${obligationAge} days.`,
+          primaryAction: "Open obligation list",
+          secondaryContext: formatObligationSlaAge(obligation.createdAt),
+          actionCategory: "Obligation follow-up",
+          actionLabel: "Review",
           suggestedNextAction: "Assign an owner and request updated evidence.",
+          priorityScore,
+          priorityReasons: derivePriorityReasons(system),
           targetRoute,
           slaState,
         });
@@ -254,7 +362,13 @@ export function buildTodayActionQueue(
         system: system.name,
         severity: "escalation",
         reason: `${presentRiskLabel(system.currentAssessment?.riskLevel ?? null)} risk assessment has open obligations.`,
+        primaryAction: "Triage escalation",
+        secondaryContext: deriveOperationalFriction(system, users).join("; ") || "Escalated from current records",
+        actionCategory: "Assessment review",
+        actionLabel: "Review",
         suggestedNextAction: "Review the assessment outcome and confirm mitigation ownership.",
+        priorityScore,
+        priorityReasons: derivePriorityReasons(system),
         targetRoute,
         slaState,
       });
@@ -272,7 +386,13 @@ export function buildTodayActionQueue(
           system.evidencesCount === 0
             ? "No evidence is linked to the current assessment."
             : presentSlaReason(system),
+        primaryAction: "Request evidence",
+        secondaryContext: system.evidencesCount === 0 ? "Evidence missing" : formatOperationalAge(system.currentAssessment?.updatedAt ?? system.updatedAt),
+        actionCategory: "Evidence follow-up",
+        actionLabel: "Open",
         suggestedNextAction: "Request current policy, vendor, or control evidence from the owner.",
+        priorityScore,
+        priorityReasons: derivePriorityReasons(system),
         targetRoute,
         slaState,
       });
@@ -289,7 +409,13 @@ export function buildTodayActionQueue(
         reason: system.currentAssessment
           ? "Assessment is still in draft."
           : "System has no current assessment.",
+        primaryAction: "Review assessment",
+        secondaryContext: deriveOperationalFriction(system, users).join("; ") || "Client input required",
+        actionCategory: "Client follow-up",
+        actionLabel: "Review",
         suggestedNextAction: "Ask the client owner to complete the assessment.",
+        priorityScore,
+        priorityReasons: derivePriorityReasons(system),
         targetRoute,
         slaState,
       });
@@ -304,7 +430,13 @@ export function buildTodayActionQueue(
         system: system.name,
         severity: "warning",
         reason: `${people.advisorReviewer} is linked as advisor and review status is ${reviewStatus}.`,
+        primaryAction: "Confirm advisor owner",
+        secondaryContext: "Awaiting advisor",
+        actionCategory: "Advisor review",
+        actionLabel: "Review",
         suggestedNextAction: "Confirm the advisor review owner and next response date.",
+        priorityScore,
+        priorityReasons: derivePriorityReasons(system),
         targetRoute,
         slaState,
       });
@@ -318,8 +450,14 @@ export function buildTodayActionQueue(
         organization: system.tenant.name,
         system: system.name,
         severity: "risk",
-        reason: `Priority score ${priorityScore} from risk, evidence age, review state, and open obligations.`,
+        reason: derivePriorityReasons(system).join("; "),
+        primaryAction: "Review system",
+        secondaryContext: deriveOperationalFriction(system, users).join("; ") || "High operational priority",
+        actionCategory: "Priority triage",
+        actionLabel: "Open",
         suggestedNextAction: "Triage this system before lower-priority registry work.",
+        priorityScore,
+        priorityReasons: derivePriorityReasons(system),
         targetRoute,
         slaState,
       });
@@ -336,28 +474,30 @@ export function buildSystemTimeline(
   users: UserDto[],
 ): AiComplianceTimelineItem[] {
   const people = deriveSystemPeople(system, users);
-  const items: AiComplianceTimelineItem[] = [];
+  const items: Array<AiComplianceTimelineItem & { sortAt: number }> = [];
   const assessment = system.currentAssessment;
 
   if (assessment) {
+    const actor = displayActor(assessment.createdBy) ?? people.complianceOwner ?? "Unknown operator";
     items.push({
       id: `${system.id}-assessment-${assessment.id}`,
-      title: "Assessment submitted",
-      when: formatDateTime(assessment.updatedAt),
+      title: `Assessment submitted by ${actor}`,
+      when: formatOperationalTime(assessment.updatedAt),
       type: "compliance",
       severity: deriveReviewStatus(system) === "Escalated" ? "escalation" : "info",
       organization: system.tenant.name,
-      actor: displayActor(assessment.createdBy) ?? people.complianceOwner ?? "Unknown operator",
+      actor,
       source: "Assessment record",
       relatedObject: `Assessment ${assessment.id.slice(0, 8)}`,
       reason: `${presentRiskLabel(assessment.riskLevel)} risk assessment is ${deriveReviewStatus(system).toLowerCase()}.`,
-      aging: `${ageInDays(assessment.updatedAt)} days since update`,
+      aging: formatOperationalAge(assessment.updatedAt),
+      sortAt: new Date(assessment.updatedAt).getTime(),
     });
   } else {
     items.push({
       id: `${system.id}-assessment-missing`,
       title: "Assessment not started",
-      when: formatDateTime(system.updatedAt),
+      when: formatOperationalTime(system.updatedAt),
       type: "compliance",
       severity: "warning",
       organization: system.tenant.name,
@@ -365,7 +505,8 @@ export function buildSystemTimeline(
       source: "Derived signal",
       relatedObject: system.name,
       reason: "No current assessment exists for this AI system.",
-      aging: `${ageInDays(system.updatedAt)} days since system update`,
+      aging: formatOperationalAge(system.updatedAt, "system update"),
+      sortAt: new Date(system.updatedAt).getTime(),
     });
   }
 
@@ -375,10 +516,11 @@ export function buildSystemTimeline(
       ageDays: ageInDays(obligation.createdAt),
       hasEvidence: system.evidencesCount > 0,
     });
+    const riskLabel = presentRiskLabel(assessment?.riskLevel ?? null).toLowerCase();
     items.push({
       id: `${system.id}-obligation-${obligation.id}`,
-      title: state === "Overdue" ? "Obligation overdue" : "Obligation created",
-      when: formatDateTime(obligation.createdAt),
+      title: state === "Overdue" ? "Obligation overdue" : `Obligation created from ${riskLabel} risk result`,
+      when: formatOperationalTime(obligation.createdAt),
       type: "compliance",
       severity: state === "Overdue" ? "overdue" : state === "Awaiting Evidence" ? "warning" : "info",
       organization: system.tenant.name,
@@ -387,21 +529,28 @@ export function buildSystemTimeline(
       relatedObject: obligation.obligationType,
       reason:
         state === "Overdue"
-          ? `${obligation.obligationType} is open after ${ageInDays(obligation.createdAt)} days.`
+          ? `${obligation.obligationType} is ${formatObligationSlaAge(obligation.createdAt)}.`
           : `Created from ${presentRiskLabel(assessment?.riskLevel ?? null)} risk assessment.`,
       aging: state,
+      sortAt: new Date(obligation.createdAt).getTime(),
     });
   }
 
+  const evidenceFreshness = deriveEvidenceFreshness(system);
   items.push({
     id: `${system.id}-evidence-freshness`,
-    title: deriveEvidenceFreshness(system) === "Fresh" ? "Evidence current" : "Evidence needs attention",
-    when: assessment ? formatDateTime(assessment.updatedAt) : formatDateTime(system.updatedAt),
+    title:
+      evidenceFreshness === "Fresh"
+        ? "Evidence current for current assessment"
+        : system.evidencesCount === 0
+          ? "Evidence missing for current assessment"
+          : "Evidence stale for current assessment",
+    when: assessment ? formatOperationalTime(assessment.updatedAt) : formatOperationalTime(system.updatedAt),
     type: "compliance",
     severity:
-      deriveEvidenceFreshness(system) === "Critical"
+      evidenceFreshness === "Critical"
         ? "overdue"
-        : deriveEvidenceFreshness(system) === "Stale"
+        : evidenceFreshness === "Stale"
           ? "risk"
           : "info",
     organization: system.tenant.name,
@@ -409,29 +558,34 @@ export function buildSystemTimeline(
     source: "Derived signal",
     relatedObject: `${system.evidencesCount} evidence item${system.evidencesCount === 1 ? "" : "s"}`,
     reason: presentSlaReason(system),
-    aging: deriveEvidenceFreshness(system),
+    aging: evidenceFreshness,
+    sortAt: assessment ? new Date(assessment.updatedAt).getTime() : new Date(system.updatedAt).getTime(),
   });
 
   if (people.advisorReviewer) {
+    const reviewStatus = deriveReviewStatus(system);
     items.push({
       id: `${system.id}-advisor-review`,
-      title: "Needs advisor review",
-      when: assessment ? formatDateTime(assessment.updatedAt) : formatDateTime(system.updatedAt),
+      title: reviewStatus === "Approved" ? "Advisor review approved" : "Advisor review still open",
+      when: assessment ? formatOperationalTime(assessment.updatedAt) : formatOperationalTime(system.updatedAt),
       type: "advisor",
-      severity: deriveReviewStatus(system) === "Approved" ? "success" : "warning",
+      severity: reviewStatus === "Approved" ? "success" : "warning",
       organization: system.tenant.name,
       actor: people.advisorReviewer,
       source: "Membership context",
       relatedObject: system.name,
       reason:
-        deriveReviewStatus(system) === "Approved"
+        reviewStatus === "Approved"
           ? "Advisor membership exists and current review is approved."
           : "Advisor membership exists and review is still open.",
-      aging: deriveReviewStatus(system),
+      aging: reviewStatus,
+      sortAt: assessment ? new Date(assessment.updatedAt).getTime() : new Date(system.updatedAt).getTime(),
     });
   }
 
-  return items.sort((a, b) => Date.parse(b.when) - Date.parse(a.when));
+  return items
+    .sort((a, b) => b.sortAt - a.sortAt)
+    .map(({ sortAt: _sortAt, ...item }) => item);
 }
 
 export function buildOperationsTimeline(
@@ -622,7 +776,7 @@ function oldestWaitingFromSystems(systems: AiComplianceSystemDto[]): string {
       at: row.currentAssessment?.updatedAt ?? row.updatedAt,
     }))
     .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime())[0];
-  return `${oldest.name} (${new Date(oldest.at).toLocaleDateString()})`;
+  return `${oldest.name} (${formatOperationalAge(oldest.at)})`;
 }
 
 function deriveSystemPeople(system: AiComplianceSystemDto, users: UserDto[]): {
@@ -682,12 +836,6 @@ function ageInDays(value: string): number {
   const time = new Date(value).getTime();
   if (Number.isNaN(time)) return 0;
   return Math.max(0, Math.floor((Date.now() - time) / (24 * 60 * 60 * 1000)));
-}
-
-function formatDateTime(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Unknown time";
-  return date.toISOString();
 }
 
 function severityRank(severity: ActivitySeverity): number {

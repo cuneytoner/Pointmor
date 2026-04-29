@@ -5,11 +5,13 @@ import { useAdminDataContext } from "../contexts/AdminDataContext";
 import {
   deriveEvidenceFreshness,
   deriveOpenObligationCount,
+  derivePriorityReasons,
   derivePriorityScore,
   deriveReviewStatus,
   deriveSlaState,
   deriveSystemCategory,
   deriveSystemHealth,
+  formatOperationalAge,
   presentEvidenceFreshnessTone,
   presentRiskLabel,
   presentSlaReason,
@@ -43,6 +45,7 @@ export function AiComplianceSystemsPage() {
                 <th>Evidence freshness</th>
                 <th>SLA state</th>
                 <th>Priority</th>
+                <th>Priority drivers</th>
                 <th>Health</th>
               </tr>
             </thead>
@@ -63,7 +66,7 @@ export function AiComplianceSystemsPage() {
                     <td>{deriveOpenObligationCount(system)}</td>
                     <td className="data-table__muted">
                       {system.currentAssessment
-                        ? new Date(system.currentAssessment.updatedAt).toLocaleDateString()
+                        ? formatOperationalAge(system.currentAssessment.updatedAt)
                         : "No assessment"}
                     </td>
                     <td>{system.createdBy?.name ?? system.createdBy?.email ?? "Unassigned"}</td>
@@ -81,6 +84,9 @@ export function AiComplianceSystemsPage() {
                       <Badge tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}>
                         {derivePriorityScore(system)}
                       </Badge>
+                    </td>
+                    <td className="data-table__muted">
+                      {derivePriorityReasons(system).join("; ")}
                     </td>
                     <td>
                       <Badge tone={presentHealthTone(health)}>{health}</Badge>

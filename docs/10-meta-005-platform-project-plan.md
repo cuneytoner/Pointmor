@@ -52,16 +52,23 @@ Bu planın güncel odağı, teslim edilmiş temel teknik kabiliyetler üzerinde 
   - Timeline satırları actor, source, timestamp, related object, severity ve event reason gösterir.
   - SLA/aging durumları AI Compliance command center, systems registry, system detail ve Organization Detail AI Compliance özetinde görünür.
   - Persisted audit kaydı olmayan satırlar derived signal olarak etiketlenir; gerçek audit provenance ima edilmez.
+- **AI Act Workflow Realism & Actionability Layer (Step 9) - DONE**
+  - AI Compliance operasyon yüzeylerinde ham ISO timestamp yerine readable operational time kullanılır.
+  - Priority score değerleri risk, obligation, review ve evidence sinyallerinden gelen açıklama satırlarıyla birlikte gösterilir.
+  - Today's Action Queue satırları category, primary action, secondary context ve navigational `Open` / `Review` aksiyonlarıyla daha uygulanabilir hale getirildi.
+  - Unassigned owner, Awaiting advisor, Evidence missing, Review overdue, Vendor documentation missing ve Open obligations require owner sinyalleri mevcut kayıtlardan türetilir.
+  - Backend workflow persistence, notification ve audit event üretimi bu adımda eklenmedi; derived signal honesty korunur.
 - **Multi-product seed structure (platform demo baseline) - DONE**
   - Seed tenant seti AI Act focused, Loyalty focused, Mixed ve Advisor senaryolarini module activation + membership-first doctrine ile temsil eder.
 - **Platform Console UX Refactor (Step 2) - DONE**
   - Platform dashboard canlı bootstrap verisiyle product-aware metrikler sunar ve hardcoded demo aktivite satırları kaldırılmıştır.
   - User-facing dilde "Workspaces" yerine "Organizations" kullanımı standardize edilmiştir.
-  - Organizations sayfasi, aktif urun/module gorunurlugunu badge/chip yapisiyla sunar.
-  - Plan feature tag'leri UI katmaninda insan okunur etiketlere donusturulmustur.
-  - Seed persona ve e-posta sunumu gercekci SaaS demo kimligine alinmistir.
-  - Canonical plan mapping (Compliance Pro / Starter Platform / Multi-Product Business / Advisor Firm) duzeltilmistir.
-  - `/admin/bootstrap` yanitina `platformMetrics` eklenerek dashboard metrikleri API kontratıyla hizalanmistir.
+  - Organization App genel ayarlarında ham JSON adres editörü kaldırıldı; adres verisi backend object kontratı korunarak normal form alanlarıyla yönetilir.
+  - Organizations sayfası, aktif ürün/module görünürlüğünü badge/chip yapısıyla sunar.
+  - Plan feature tag'leri UI katmanında insan okunur etiketlere dönüştürülmüştür.
+  - Seed persona ve e-posta sunumu gerçekçi SaaS demo kimliğine alınmıştır.
+  - Canonical plan mapping (Compliance Pro / Starter Platform / Multi-Product Business / Advisor Firm) düzeltilmiştir.
+  - `/admin/bootstrap` yanıtına `platformMetrics` eklenerek dashboard metrikleri API kontratıyla hizalanmıştır.
 
 ---
 
@@ -381,6 +388,7 @@ MVP kapsamı:
 - `User.tenantId`, legacy fallback olarak kalır (erişim kararı için kullanılmaz).
 - Access doctrine: **membership + role + module activation**.
 - Mobil istemci, yalnızca expense odaklı bir uygulama değil; platform istemcisidir.
+- Kullanıcıya dönük formlarda ham JSON düzenleme alanı gösterilmez; yapılandırılmış backend verisi ürün dilindeki form alanlarıyla temsil edilir.
 
 ---
 

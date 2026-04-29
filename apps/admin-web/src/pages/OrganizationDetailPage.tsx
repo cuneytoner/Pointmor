@@ -12,6 +12,7 @@ import { useTranslation } from "../hooks/useTranslation";
 import {
   deriveEvidenceFreshness,
   deriveOrganizationRiskTrend,
+  derivePriorityReasons,
   derivePriorityScore,
   deriveSlaState,
   presentTrendTone,
@@ -122,7 +123,7 @@ export function OrganizationDetailPage() {
             severity: "success" as const,
             organization: organization.name,
             source: "Module activation",
-            relatedObject: "ai_act",
+            relatedObject: "AI Compliance module",
             reason: "AI Compliance module is active for this organization.",
           },
         ]
@@ -327,6 +328,7 @@ export function OrganizationDetailPage() {
                     <th>AI system</th>
                     <th>SLA state</th>
                     <th>Priority</th>
+                    <th>Why</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -338,7 +340,12 @@ export function OrganizationDetailPage() {
                           {deriveSlaState(system)}
                         </Badge>
                       </td>
-                      <td>{derivePriorityScore(system)}</td>
+                      <td>
+                        <Badge tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}>
+                          {derivePriorityScore(system)}
+                        </Badge>
+                      </td>
+                      <td className="data-table__muted">{derivePriorityReasons(system).join("; ")}</td>
                     </tr>
                   ))}
                 </tbody>

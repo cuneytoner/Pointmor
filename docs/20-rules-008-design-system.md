@@ -26,6 +26,7 @@
 - **Sınıf:** `loyalty-form-control loyalty-form-control--textarea` (+ `loyalty-form-input`).
 - **Varsayılan:** kısa/orta içerik; `min-height` ~`5rem`, `resize: vertical`.
 - **Uzun içerik:** `loyalty-form-control--textarea-lg` veya `TextAreaField` `sizeVariant="large"`.
+- **Structured data:** Kullanıcıya ham JSON textarea gösterilmez. Backend alanı JSON/object olarak kalsa bile UI, adres gibi yapılandırılmış verileri alanlara böler; dönüşüm client/service katmanında yapılır.
 
 ## Etiket / yardım / hata
 

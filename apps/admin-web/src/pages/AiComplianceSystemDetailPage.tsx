@@ -7,11 +7,14 @@ import {
   buildSystemTimeline,
   deriveEvidenceFreshness,
   deriveLifecycleStage,
+  deriveOperationalFriction,
+  derivePriorityReasons,
   derivePriorityScore,
   deriveReviewStatus,
   deriveSlaState,
   deriveSystemCategory,
   deriveSystemHealth,
+  formatObligationDueDate,
   presentEvidenceFreshnessTone,
   presentRiskLabel,
   presentSlaReason,
@@ -45,6 +48,8 @@ export function AiComplianceSystemDetailPage() {
   const health = deriveSystemHealth(system);
   const evidenceFreshness = deriveEvidenceFreshness(system);
   const priorityScore = derivePriorityScore(system);
+  const priorityReasons = derivePriorityReasons(system);
+  const frictionSignals = deriveOperationalFriction(system, bootstrap?.users ?? []);
   const reviewStatus = deriveReviewStatus(system);
   const slaState = deriveSlaState(system);
   const now = Date.now();
@@ -66,7 +71,9 @@ export function AiComplianceSystemDetailPage() {
           <Badge tone={presentEvidenceFreshnessTone(evidenceFreshness)}>
             {`Evidence: ${evidenceFreshness}`}
           </Badge>
-          <Badge tone={priorityScore >= 70 ? "danger" : "info"}>{`Priority: ${priorityScore}`}</Badge>
+          <Badge tone={priorityScore >= 70 ? "danger" : "info"}>
+            {`Priority: ${priorityScore}`}
+          </Badge>
           <Badge tone={presentSlaTone(slaState)}>{`SLA: ${slaState}`}</Badge>
         </div>
         <p className="admin-app__card-text">{`Organization: ${system.tenant.name}`}</p>
@@ -74,6 +81,10 @@ export function AiComplianceSystemDetailPage() {
         <p className="admin-app__card-text">{`Advisor reviewer: ${advisorReviewer?.name ?? "Not assigned"}`}</p>
         <p className="admin-app__card-text">{`Last operator: ${lastOperator?.name ?? lastOperator?.email ?? "Unknown"}`}</p>
         <p className="admin-app__card-text">{`Review summary: ${reviewStatus}`}</p>
+        <p className="admin-app__card-text">{`Priority drivers: ${priorityReasons.join("; ")}`}</p>
+        <p className="admin-app__card-text">
+          {`Operational friction: ${frictionSignals.length > 0 ? frictionSignals.join("; ") : "No derived friction signals"}`}
+        </p>
         <p className="admin-app__card-text">{`SLA reason: ${presentSlaReason(system)}`}</p>
       </div>
 
@@ -104,12 +115,11 @@ export function AiComplianceSystemDetailPage() {
                   ageDays,
                   hasEvidence: system.evidencesCount > 0,
                 });
-                const due = new Date(new Date(obligation.createdAt).getTime() + 14 * 24 * 60 * 60 * 1000);
                 return (
                   <tr key={obligation.id}>
                     <td>{obligation.obligationType}</td>
                     <td>{complianceOwner?.name ?? "Compliance owner"}</td>
-                    <td className="data-table__muted">{due.toLocaleDateString()}</td>
+                    <td className="data-table__muted">{formatObligationDueDate(obligation.createdAt)}</td>
                     <td>{state}</td>
                     <td>
                       <Badge

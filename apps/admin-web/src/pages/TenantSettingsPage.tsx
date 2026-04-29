@@ -10,7 +10,6 @@ import {
   FormFieldGrid,
   FormSection,
   SelectField,
-  TextAreaField,
   TextField,
 } from "../components/form";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
@@ -34,6 +33,24 @@ const LANGUAGE_OPTIONS = [
 ] as const;
 
 const CURRENCY_OPTIONS = ["EUR", "USD", "GBP", "TRY"] as const;
+
+type AddressDraft = {
+  line1: string;
+  line2: string;
+  city: string;
+  region: string;
+  postalCode: string;
+  country: string;
+};
+
+const EMPTY_ADDRESS_DRAFT: AddressDraft = {
+  line1: "",
+  line2: "",
+  city: "",
+  region: "",
+  postalCode: "",
+  country: "",
+};
 
 function RetentionDaysControl(props: {
   limit: RetentionFieldLimit;
@@ -91,14 +108,47 @@ function orderSupportedLanguages(values: string[]): string[] {
   return [...ordered, ...custom];
 }
 
-function addressToText(a: unknown): string {
-  if (a === null || a === undefined) return "";
-  if (typeof a === "string") return a;
-  try {
-    return JSON.stringify(a, null, 2);
-  } catch {
-    return "";
+function readAddressString(record: Record<string, unknown>, keys: string[]): string {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string") return value;
+    if (typeof value === "number") return String(value);
   }
+  return "";
+}
+
+function addressToDraft(address: unknown): AddressDraft {
+  if (!address) return { ...EMPTY_ADDRESS_DRAFT };
+  if (typeof address === "string") return { ...EMPTY_ADDRESS_DRAFT, line1: address };
+  if (typeof address !== "object" || Array.isArray(address)) return { ...EMPTY_ADDRESS_DRAFT };
+
+  const record = address as Record<string, unknown>;
+  const lines = Array.isArray(record.lines)
+    ? record.lines.filter((value): value is string => typeof value === "string")
+    : [];
+
+  return {
+    line1: readAddressString(record, ["line1", "addressLine1", "street"]) || lines[0] || "",
+    line2: readAddressString(record, ["line2", "addressLine2"]) || lines[1] || "",
+    city: readAddressString(record, ["city", "locality"]),
+    region: readAddressString(record, ["region", "state", "province"]),
+    postalCode: readAddressString(record, ["postalCode", "postal_code", "zip"]),
+    country: readAddressString(record, ["country", "countryCode"]),
+  };
+}
+
+function addressDraftToPayload(draft: AddressDraft): Record<string, string> | null {
+  const out = {
+    line1: draft.line1.trim(),
+    line2: draft.line2.trim(),
+    city: draft.city.trim(),
+    region: draft.region.trim(),
+    postalCode: draft.postalCode.trim(),
+    country: draft.country.trim(),
+  };
+  const entries = Object.entries(out).filter(([, value]) => value.length > 0);
+  if (entries.length === 0) return null;
+  return Object.fromEntries(entries);
 }
 
 export type TenantSettingsPageProps = {
@@ -121,7 +171,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [form, setForm] = useState<StoreSettingsDto | null>(null);
-  const [addressText, setAddressText] = useState("");
+  const [addressDraft, setAddressDraft] = useState<AddressDraft>(EMPTY_ADDRESS_DRAFT);
   const [retention, setRetention] = useState<TenantRetentionSettingsDto | null>(null);
   const [retentionDraft, setRetentionDraft] = useState<TenantRetentionPutBody | null>(null);
   const [retentionLoadError, setRetentionLoadError] = useState(false);
@@ -155,7 +205,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
     void Promise.allSettled([
       getStoreSettings(token).then((row) => {
         setForm(row);
-        setAddressText(addressToText(row.address));
+        setAddressDraft(addressToDraft(row.address));
       }),
       getTenantRetentionSettings(token).then((r) => {
         setRetention(r);
@@ -203,19 +253,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
     if (!token?.trim() || !form || !canSaveSettings) return;
     setSaving(true);
     try {
-      let addressPayload: unknown = null;
-      const raw = addressText.trim();
-      if (raw === "") {
-        addressPayload = null;
-      } else {
-        try {
-          addressPayload = JSON.parse(raw);
-        } catch {
-          window.alert(t("tenantSettings.store.addressInvalidJson"));
-          setSaving(false);
-          return;
-        }
-      }
+      const addressPayload = addressDraftToPayload(addressDraft);
       const body = {
         storeName: form.storeName,
         logoUrl: form.logoUrl,
@@ -232,7 +270,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
       };
       const next = await putStoreSettings(token, body);
       setForm(next);
-      setAddressText(addressToText(next.address));
+      setAddressDraft(addressToDraft(next.address));
     } catch {
       /* ignore */
     } finally {
@@ -441,16 +479,68 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                   </div>
                 </FormField>
                 <FormField
-                  id="ts-address"
+                  id="ts-address-line1"
                   className={FORM_FIELD_GRID_FULL_CLASS}
-                  label={t("tenantSettings.store.addressStructured")}
-                  hint={t("tenantSettings.store.addressStructuredHint")}
+                  label={t("tenantSettings.store.addressLine1")}
+                  hint={t("tenantSettings.store.addressHint")}
                 >
-                  <TextAreaField
-                    id="ts-address"
-                    rows={4}
-                    value={addressText}
-                    onChange={(e) => setAddressText(e.target.value)}
+                  <TextField
+                    id="ts-address-line1"
+                    value={addressDraft.line1}
+                    onChange={(e) =>
+                      setAddressDraft((draft) => ({ ...draft, line1: e.target.value }))
+                    }
+                    autoComplete="address-line1"
+                  />
+                </FormField>
+                <FormField id="ts-address-line2" label={t("tenantSettings.store.addressLine2")}>
+                  <TextField
+                    id="ts-address-line2"
+                    value={addressDraft.line2}
+                    onChange={(e) =>
+                      setAddressDraft((draft) => ({ ...draft, line2: e.target.value }))
+                    }
+                    autoComplete="address-line2"
+                  />
+                </FormField>
+                <FormField id="ts-address-city" label={t("tenantSettings.store.addressCity")}>
+                  <TextField
+                    id="ts-address-city"
+                    value={addressDraft.city}
+                    onChange={(e) =>
+                      setAddressDraft((draft) => ({ ...draft, city: e.target.value }))
+                    }
+                    autoComplete="address-level2"
+                  />
+                </FormField>
+                <FormField id="ts-address-region" label={t("tenantSettings.store.addressRegion")}>
+                  <TextField
+                    id="ts-address-region"
+                    value={addressDraft.region}
+                    onChange={(e) =>
+                      setAddressDraft((draft) => ({ ...draft, region: e.target.value }))
+                    }
+                    autoComplete="address-level1"
+                  />
+                </FormField>
+                <FormField id="ts-address-postal" label={t("tenantSettings.store.addressPostalCode")}>
+                  <TextField
+                    id="ts-address-postal"
+                    value={addressDraft.postalCode}
+                    onChange={(e) =>
+                      setAddressDraft((draft) => ({ ...draft, postalCode: e.target.value }))
+                    }
+                    autoComplete="postal-code"
+                  />
+                </FormField>
+                <FormField id="ts-address-country" label={t("tenantSettings.store.addressCountry")}>
+                  <TextField
+                    id="ts-address-country"
+                    value={addressDraft.country}
+                    onChange={(e) =>
+                      setAddressDraft((draft) => ({ ...draft, country: e.target.value }))
+                    }
+                    autoComplete="country-name"
                   />
                 </FormField>
               </FormFieldGrid>

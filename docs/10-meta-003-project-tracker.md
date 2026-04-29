@@ -24,6 +24,7 @@ Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-ru
 - **AI Act MVP Backend:** **COMPLETE** - system inventory, assessment, risk suggestion, obligations/tasks akışı teslim edildi.
 - **AI Act MVP UI (end-to-end):** **COMPLETE** - list, create, assessment, result ve obligations/tasks yüzeyleri çalışır durumda.
 - **AI Act Operational Realism Layer (Step 8):** **COMPLETE** - command center için Today's Action Queue, provenance-aware timeline, SLA/aging durumları ve daha gerçekçi operasyon metinleri eklendi.
+- **AI Act Workflow Realism & Actionability Layer (Step 9):** **COMPLETE** - AI Compliance operasyon yüzeylerinde readable operational time, priority explainability, daha aksiyon alınabilir Today's Action Queue, controlled friction signals ve derived signal honesty güçlendirildi; backend workflow persistence hâlâ ayrı fazdır.
 - **Platform Console UX Refactor (Step 2):** **COMPLETE** - dashboard canlı product-aware metriklere geçti, organizations terminolojisi standardize edildi, organizations sayfasına module/urun badge görünürlüğü eklendi, plan feature etiketleri insan okunur hale getirildi, canonical seed persona + email ve plan mapping düzeltildi, bootstrap API `platformMetrics` ile genişletildi.
 
 ### Current Priority

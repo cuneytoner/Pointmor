@@ -12,6 +12,7 @@ import {
   buildTodayActionQueue,
   deriveAdvisorWorkload,
   deriveEvidenceFreshness,
+  derivePriorityReasons,
   derivePriorityScore,
   deriveReviewStatus,
   deriveSlaState,
@@ -76,26 +77,32 @@ export function AiComplianceOperationsPage() {
             <thead>
               <tr>
                 <th>Action</th>
+                <th>Category</th>
                 <th>Organization</th>
                 <th>AI system</th>
                 <th>Severity</th>
                 <th>SLA</th>
                 <th>Reason</th>
-                <th>Suggested next action</th>
+                <th>Context</th>
+                <th>Priority drivers</th>
                 <th>Target</th>
               </tr>
             </thead>
             <tbody>
               {todayActionQueue.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="data-table__muted">
+                  <td colSpan={10} className="data-table__muted">
                     No overdue obligations, blocked reviews, stale evidence, or high-priority systems.
                   </td>
                 </tr>
               ) : (
                 todayActionQueue.map((item) => (
                   <tr key={item.id}>
-                    <td>{item.title}</td>
+                    <td>
+                      <strong>{item.primaryAction}</strong>
+                      <div className="data-table__muted">{item.title}</div>
+                    </td>
+                    <td>{item.actionCategory}</td>
                     <td>{item.organization}</td>
                     <td>{item.system}</td>
                     <td>
@@ -107,10 +114,17 @@ export function AiComplianceOperationsPage() {
                       <Badge tone={presentSlaTone(item.slaState)}>{item.slaState}</Badge>
                     </td>
                     <td className="data-table__muted">{item.reason}</td>
-                    <td className="data-table__muted">{item.suggestedNextAction}</td>
+                    <td className="data-table__muted">
+                      {item.secondaryContext}
+                      <div>{item.suggestedNextAction}</div>
+                    </td>
+                    <td className="data-table__muted">
+                      <strong>{`Priority ${item.priorityScore}`}</strong>
+                      <div>{item.priorityReasons.join("; ")}</div>
+                    </td>
                     <td>
                       <Link to={item.targetRoute} className="admin-secondary-btn">
-                        Open
+                        {item.actionLabel}
                       </Link>
                     </td>
                   </tr>
@@ -248,7 +262,7 @@ export function AiComplianceOperationsPage() {
               key={system.id}
               tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}
             >
-              {`${system.name} (${system.tenant.slug}) • P${derivePriorityScore(system)}`}
+              {`${system.name} (${system.tenant.name}) • Priority ${derivePriorityScore(system)}`}
             </Badge>
           ))}
         </div>
@@ -263,6 +277,7 @@ export function AiComplianceOperationsPage() {
                 <th>System</th>
                 <th>Organization</th>
                 <th>Priority score</th>
+                <th>Why</th>
                 <th>Review status</th>
                 <th>Evidence freshness</th>
                 <th>SLA state</th>
@@ -273,7 +288,12 @@ export function AiComplianceOperationsPage() {
                 <tr key={system.id}>
                   <td>{system.name}</td>
                   <td>{system.tenant.name}</td>
-                  <td>{derivePriorityScore(system)}</td>
+                  <td>
+                    <Badge tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}>
+                      {derivePriorityScore(system)}
+                    </Badge>
+                  </td>
+                  <td className="data-table__muted">{derivePriorityReasons(system).join("; ")}</td>
                   <td>{deriveReviewStatus(system)}</td>
                   <td>{deriveEvidenceFreshness(system)}</td>
                   <td>

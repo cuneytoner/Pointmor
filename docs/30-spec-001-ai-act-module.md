@@ -85,6 +85,17 @@ AI Compliance platform yüzeyleri, geniş backend rewrite veya workflow engine e
 - **SLA/aging presentation:** On track, Due soon, Overdue, Blocked ve Stale evidence durumları command center, systems registry, system detail ve Organization Detail AI Compliance özetinde gösterilir.
 - **Boundary:** Bu yüzeyler yalnızca `ai_act` module aktivasyonu ve mevcut platform/admin erişim bağlamı içinde görünür; loyalty-only organizasyonlara AI Compliance widget'ı sızdırılmaz.
 
+## Workflow realism layer (Step 9)
+
+AI Compliance operasyon yüzeyleri, backend workflow persistence eklemeden daha aksiyon alınabilir ve açıklanabilir hale getirilir:
+
+- **Readable operational time:** Timeline, registry, system detail ve Organization Detail AI Compliance özetlerinde ham ISO timestamp yerine `Today 05:21 UTC`, `Apr 29, 05:21 UTC`, `0 days since update` veya `14 days overdue` gibi okunabilir zaman ifadeleri kullanılır.
+- **Priority explainability:** Priority score tek başına gösterilmez; risk sonucu, açık obligation sayısı, review durumu ve evidence yaşı gibi mevcut kayıtlardan gelen nedenlerle birlikte sunulur.
+- **Action queue actionability:** Today's Action Queue satırları category, primary action, secondary context, target route ve yalnızca navigational `Open` / `Review` aksiyonu gösterir; fake mutation veya resolve davranışı ima edilmez.
+- **Controlled operational friction:** Unassigned owner, Awaiting advisor, Evidence missing, Review overdue, Vendor documentation missing ve Open obligations require owner sinyalleri yalnızca mevcut kayıtlardan türetilir.
+- **Timeline clarity:** Timeline satırları actor, source, related object, reason, readable timestamp ve `Derived signal` / record-backed ayrımını korur.
+- **Persistence boundary:** Bu adım gerçek audit event, workflow engine, notification veya persisted state eklemez; kalıcı provenance gereksinimi ayrı backend fazı olarak kalır.
+
 Questionnaire keys (v1, 10 soru):
 
 Bu key seti için tek kaynak `apps/api/src/lib/ai-act-assessment.ts` dosyasındaki `AI_ACT_QUESTION_KEYS` tanımıdır; legacy key setleri kullanılmaz.
