@@ -3,7 +3,22 @@ import type { Prisma, PrismaClient } from "../src/generated/prisma/client.js";
 import { createMembership } from "./seed-membership-helper.js";
 import { MESSAGE_TEMPLATE_SEED } from "./seed-message-templates.js";
 import { seedDemoScenarios } from "./seed-demo-scenarios.js";
-import { AI_ACT_QUESTION_KEYS, type AiActQuestionKey } from "../src/lib/ai-act-assessment.ts";
+
+// Keep this list aligned with src/lib/ai-act-assessment.ts.
+const AI_ACT_QUESTION_KEYS = [
+  "q_ai_used",
+  "q_ai_purpose",
+  "q_personal_data",
+  "q_sensitive_data",
+  "q_automated_decision",
+  "q_human_oversight",
+  "q_employment_context",
+  "q_biometric_identification",
+  "q_safety_critical",
+  "q_provider_documentation",
+] as const;
+
+type AiActQuestionKey = (typeof AI_ACT_QUESTION_KEYS)[number];
 
 export type CoreSeedContext = {
   loyaltyTenantId: string;
