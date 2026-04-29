@@ -2,7 +2,7 @@
 
 Bu rehber local, demo ve production ortamlarında `migration` ve `seed` operasyonlarını güvenli şekilde yönetmek için kanonik akıştır.
 
-Demo ortaminda kurulumdan deployment/seed/smoke adimlarina kadar uctan uca tek runbook icin:
+Demo ortamında kurulumdan deployment/seed/smoke adımlarına kadar uçtan uca tek runbook için:
 
 - `docs/40-guide-004-demo-deployment.md`
 
@@ -105,27 +105,27 @@ npm run db:seed:full:demo
 
 Aşağıdaki hesaplar seed sözleşmesinin parçasıdır:
 
-- `admin@pointmor.local`
-- `owner@acme.pointmor.local`
-- `owner@urban.pointmor.local`
-- `owner@retailcorp.pointmor.local`
-- `advisor@pointmor.local`
-- `member@pointmor.local`
+- `admin@pointmor.io`
+- `anna@kanzlei-mueller.eu`
+- `david@acme-ai.eu`
+- `sofia@urbancoffee.eu`
+- `michael@retailcorp.eu`
+- `emma@pointmor.io`
 
 Access kaynağı her zaman `TenantMembership` kayıtlarıdır; `User.tenantId` yalnız legacy uyumluluk alanıdır.
 
 ### Tenant tipleri ve module aktivasyonu
 
-Seed, cok urunlu platform yapisi icin 3 tenant tipi kurar:
+Seed, çok ürünlü platform yapısı için 3 tenant tipi kurar:
 
 | Tenant slug | Tip | Module aktivasyon |
 |-------------|-----|-------------------|
 | `acme-ai-solutions` | AI Act focused | `ai_act=true`, `cafe=false`, `ai_document_intelligence=true` (module varsa) |
 | `urban-coffee-group` | Loyalty focused | `cafe=true`, `ai_act=false`, `ai_document_intelligence=false` (module varsa) |
 | `retailcorp-eu` | Mixed | `cafe=true`, `ai_act=true`, `ai_document_intelligence=true` (module varsa) |
-| `kanzlei-mueller-advisory` | Advisor | advisor tenant; advisor/client membership akisi |
+| `kanzlei-mueller-advisory` | Advisor | advisor tenant; advisor/client membership akışı |
 
-Module aktivasyon kayitlari `tenant_modules` tablosunda idempotent olarak upsert edilir; veri seti ile aktivasyon her seed calismasinda yeniden hizalanir.
+Module aktivasyon kayıtları `tenant_modules` tablosunda idempotent olarak upsert edilir; veri seti ile aktivasyon her seed çalışmasında yeniden hizalanır.
 
 ### Şifre çözümleme kuralı (`resolvePassword`)
 
@@ -133,8 +133,8 @@ Module aktivasyon kayitlari `tenant_modules` tablosunda idempotent olarak upsert
   - `SEED_DEV_ADMIN_PASSWORD` (fallback: `PointmorDev!Admin`)
   - `SEED_DEV_OPERATOR_PASSWORD` (fallback: `PointmorDev!Demo`)
 - `DEMO`: env zorunludur, eksikse seed hata vererek durur.
-  - `DEMO_ADMIN_PASSWORD` (zorunlu)
-  - `DEMO_OPERATOR_PASSWORD` (zorunlu)
+  - `SEED_DEMO_ADMIN_PASSWORD` (zorunlu, alias: `DEMO_ADMIN_PASSWORD`)
+  - `SEED_DEMO_OPERATOR_PASSWORD` (zorunlu, alias: `DEMO_OPERATOR_PASSWORD`)
 - `PROD`: demo kullanıcıları seed edilmez.
   - `PROD_BOOTSTRAP_ADMIN_PASSWORD` verilirse yalnız bootstrap admin oluşturulur.
   - verilmezse seed bu kısmı atlayarak çıkar.
@@ -142,21 +142,22 @@ Module aktivasyon kayitlari `tenant_modules` tablosunda idempotent olarak upsert
 ### Mode bazlı login bilgileri
 
 - `dev`:
-  - admin: `admin@pointmor.local` + `SEED_DEV_ADMIN_PASSWORD` (yoksa `PointmorDev!Admin`)
+  - admin: `admin@pointmor.io` + `SEED_DEV_ADMIN_PASSWORD` (yoksa `PointmorDev!Admin`)
   - owner/advisor/member: operator şifresi (`SEED_DEV_OPERATOR_PASSWORD`, yoksa `PointmorDev!Demo`)
 - `demo`:
-  - admin: `admin@pointmor.local` + `DEMO_ADMIN_PASSWORD`
-  - owner/advisor/member: `DEMO_OPERATOR_PASSWORD`
+  - admin: `admin@pointmor.io` + `SEED_DEMO_ADMIN_PASSWORD` (alias: `DEMO_ADMIN_PASSWORD`)
+  - owner/advisor/member: `SEED_DEMO_OPERATOR_PASSWORD` (alias: `DEMO_OPERATOR_PASSWORD`)
 - `prod`:
   - yalnız bootstrap admin (opsiyonel): `PROD_BOOTSTRAP_ADMIN_EMAIL` (yoksa `admin@pointmor.local`) + `PROD_BOOTSTRAP_ADMIN_PASSWORD`
   - demo kullanıcıları bu modda oluşturulmaz.
 
 ### Seed Reality
 
-- `db:seed`, birincil multi-product platform modelini uretir (yalniz 4 tenant): `acme-ai-solutions`, `urban-coffee-group`, `retailcorp-eu`, `kanzlei-mueller-advisory`.
-- Legacy cafe agir demo tenant'lari varsayilan `db:seed` akisinda uretilmez.
-- Legacy genis demo senaryolari yalniz `db:seed:full:demo` ile uretilir.
-- Seed ciktilari production verisi degildir; sentetik gelistirme/demo amacli veridir.
+- `db:seed`, birincil multi-product platform modelini üretir (yalnız 4 tenant): `acme-ai-solutions`, `urban-coffee-group`, `retailcorp-eu`, `kanzlei-mueller-advisory`.
+- Legacy cafe ağır demo tenant'lari varsayılan `db:seed` akışında üretilmez.
+- Varsayılan `db:seed` ve `db:seed:demo` akışlarında demo-only kullanıcılar temizlenir (`admin-demo@pointmor.demo`, `owner-demo@pointmor.demo`, `advisor-admin@pointmor.demo`, `advisor-staff@pointmor.demo`, `client-owner@pointmor.demo`).
+- Legacy geniş demo senaryoları yalnız `db:seed:full:demo` ile üretilir.
+- Seed çıktıları production verisi değildir; sentetik geliştirme/demo amaçlı veridir.
 
 ### Seed doctrine
 
@@ -181,14 +182,14 @@ Module aktivasyon kayitlari `tenant_modules` tablosunda idempotent olarak upsert
 - Assessment key seti runtime ile birebir hizalıdır; tek kaynak `apps/api/src/lib/ai-act-assessment.ts` içindeki `AI_ACT_QUESTION_KEYS` tanımıdır.
 - Low-confidence extraction örnekleri human review kaydıyla birlikte üretilir.
 - Gerçek müşteri/veri kullanılmaz; seed yalnız sentetik içerik üretir.
-- AI Act verisi tenant-scoped olarak oluşturulur ve `ai_act` module activation baglaminda test edilir.
-- Mixed tenant (`retailcorp-eu`) icin minimal AI Act seed uretilir.
+- AI Act verisi tenant-scoped olarak oluşturulur ve `ai_act` module activation bağlamında test edilir.
+- Mixed tenant (`retailcorp-eu`) için minimal AI Act seed üretilir.
 - Minimal AI Act sistem: `Invoice Processing AI`.
 
 ## Loyalty seed kapsamı
 
 - Loyalty focused tenant (`urban-coffee-group`) mevcut cafe/demo veri setini korur.
-- Mixed tenant (`retailcorp-eu`) icin minimal loyalty seed uretilir (en az bir customer/reward/visit).
+- Mixed tenant (`retailcorp-eu`) için minimal loyalty seed üretilir (en az bir customer/reward/visit).
 
 ## 4) Safety uyarıları
 

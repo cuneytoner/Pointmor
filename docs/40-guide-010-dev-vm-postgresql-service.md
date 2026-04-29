@@ -1,12 +1,12 @@
 # Dev Debian VM PostgreSQL service runbook
 
-Bu rehber, dev icin ayrilmis Debian VM uzerinde Docker tabanli PostgreSQL container'ini
-`systemd` ile otomatik baslatmak/kapatmak icin kanonik akistir.
+Bu rehber, dev için ayrılmış Debian VM üzerinde Docker tabanlı PostgreSQL container'ını
+`systemd` ile otomatik başlatmak/kapatmak için kanonik akıştır.
 
-Bu akisin amaci:
+Bu akışın amacı:
 
 - VM reboot sonrasi DB'yi otomatik ayaga kaldirmak
-- local Pointmor gelistirme ortamina stabil bir uzak dev DB saglamak
+- local Pointmor geliştirme ortamına stabil bir uzak dev DB sağlamak
 - script/service dosyalarini repoda versiyonlu tutmak
 
 Ilgili dosyalar:
@@ -18,10 +18,10 @@ Ilgili dosyalar:
 
 ---
 
-## 1) Debian VM onkosullari
+## 1) Debian VM önkoşulları
 
-- Docker kurulu ve calisir durumda
-- `cc` kullanicisi docker komutlarini calistirabiliyor
+- Docker kurulu ve çalışır durumda
+- `cc` kullanıcısı docker komutlarını çalıştırabiliyor
 - Script hedef klasoru mevcut: `/docker/postgresql`
 - Data klasoru mevcut: `/docker/postgresql/data`
 
@@ -56,7 +56,7 @@ Repodaki service template'i kopyala:
 sudo cp infra/systemd/postredev.service /etc/systemd/system/postredev.service
 ```
 
-Ardindan:
+Ardından:
 
 ```bash
 sudo systemctl daemon-reload
@@ -95,7 +95,7 @@ journalctl -u postredev.service -n 100 --no-pager
 
 ---
 
-## 5) Pointmor local `.env` baglantisi
+## 5) Pointmor local `.env` bağlantısı
 
 `apps/api/.env` icindeki `DATABASE_URL` VM PostgreSQL'e isaret etmelidir.
 
@@ -113,21 +113,21 @@ npm run dev:api
 
 ---
 
-## 6) Guvenlik notlari
+## 6) Güvenlik notları
 
-- Bu kurulum dev amaclidir; production kullanimi icin uygun degildir.
-- Scriptte hardcoded `POSTGRES_PASSWORD` bulunur; mumkunse VM'de dosya izinleri kisitlanmali
-  ve daha sonra env/secret tabanli modele gecilmelidir.
-- 5432 portu sadece guvenilir ag kaynaklarina acik olmalidir.
+- Bu kurulum dev amaçlıdır; production kullanımı için uygun değildir.
+- Scriptte hardcoded `POSTGRES_PASSWORD` bulunur; mümkünse VM'de dosya izinleri kısıtlanmalı
+  ve daha sonra env/secret tabanlı modele geçilmelidir.
+- 5432 portu sadece güvenilir ağ kaynaklarına açık olmalidir.
 
 ---
 
-## 7) Dokumani guncel tutma kurali
+## 7) Dokümanı güncel tutma kuralı
 
-Asagidaki degisikliklerde ayni PR/task icinde bu dokumani guncelle:
+Aşağıdaki değişikliklerde aynı PR/task içinde bu dokümanı güncelle:
 
 - `infra/systemd/postredev.service`
 - `infra/scripts/postgres-dev-vm.sh`
 - hedef path (`/docker/postgresql/*`)
 - service user / systemd unit davranisi
-- dev DB baglanti politikalari
+- dev DB bağlantı politikaları

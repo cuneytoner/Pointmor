@@ -6,6 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { getApiBaseUrl } from "../lib/api-base";
 import { useTranslation } from "../hooks/useTranslation";
+import { usePermissions } from "../hooks/usePermissions";
 import type { NavItemConfig } from "../navigation/nav-config";
 import { PLATFORM_NAV, TENANT_NAV } from "../navigation/nav-config";
 import { canAccessTenantNavTarget, getAppSurface } from "../lib/access";
@@ -13,6 +14,7 @@ import {
   canAccessAiActSurface,
   canAccessLoyaltySurface,
 } from "../lib/tenant-module-access";
+import { isProductNavTarget } from "../lib/productRegistry";
 import { PlanTypeBadge, planBadgeFromEntitlements } from "./PlanTypeBadge";
 import { EntitlementAlerts } from "./EntitlementAlerts";
 import { LocationBranchSwitcher } from "./LocationBranchSwitcher";
@@ -37,17 +39,10 @@ function filterTenantNav(
       if (item.to === "/app/campaigns" && !f.has("campaigns")) return false;
       if (item.to === "/app/audit" && !f.has("manager_closing")) return false;
     }
-    if (
-      item.to.startsWith("/app/customers") ||
-      item.to.startsWith("/app/visits") ||
-      item.to.startsWith("/app/rewards") ||
-      item.to.startsWith("/app/campaigns") ||
-      item.to.startsWith("/app/menu") ||
-      item.to.startsWith("/app/redemptions")
-    ) {
+    if (isProductNavTarget(item.to, "loyalty")) {
       return loyaltyActive;
     }
-    if (item.to.startsWith("/app/ai-act")) {
+    if (isProductNavTarget(item.to, "ai_act")) {
       return aiActActive;
     }
     return canAccessTenantNavTarget(item.to, auth);
@@ -58,6 +53,7 @@ export function AdminShell({ auth }: AdminShellProps) {
   const { t } = useTranslation();
   const { token, setToken, bumpRefresh } = useAuth();
   const { bootstrap } = useAdminDataContext();
+  const { hasPermission } = usePermissions();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -70,6 +66,10 @@ export function AdminShell({ auth }: AdminShellProps) {
 
   const topbarKey =
     surface === "platform" ? "shell.platformConsole" : "shell.tenantApp";
+  const showLocationBranchSwitcher =
+    surface === "tenant" &&
+    canAccessLoyaltySurface(auth, bootstrap) &&
+    (hasPermission("customers.view") || hasPermission("visits.create"));
 
   const logout = async () => {
     const base = getApiBaseUrl();
@@ -133,7 +133,7 @@ export function AdminShell({ auth }: AdminShellProps) {
       <div className="admin-app__main">
         <header className="admin-app__topbar">
           <span className="admin-app__topbar-title">{t(topbarKey)}</span>
-          {surface === "tenant" ? <LocationBranchSwitcher /> : null}
+          {showLocationBranchSwitcher ? <LocationBranchSwitcher /> : null}
           {surface === "tenant" && planType ? (
             <span className="admin-app__topbar-plan-wrap">
               <PlanTypeBadge planType={planType} />

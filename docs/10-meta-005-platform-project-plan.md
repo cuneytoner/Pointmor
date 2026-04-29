@@ -28,35 +28,35 @@ Platform çekirdeği tenant, membership, auth/session, güvenlik ve module activ
 
 ## 3. Current Phase: Phase 7 - Pilot & Real-World Validation
 
-Bu planın güncel odagi, teslim edilmis temel teknik kabiliyetler uzerinde gercek dunya dogrulamasidir.
+Bu planın güncel odağı, teslim edilmiş temel teknik kabiliyetler üzerinde gerçek dünya doğrulamasıdır.
 
-**Aktif odak:** pilot onboarding, canli kullanim olcumu, geri bildirim dongusu ve GTM hazirligi.
+**Aktif odak:** pilot onboarding, canlı kullanım ölçümü, geri bildirim döngüsü ve GTM hazırlığı.
 
 ---
 
 ## 4. Completed Foundations (Locked)
 
 - **Invitation Security Hardening - DONE**
-  - Invitation acceptance akisi token + email eslesmesi ve guvenli membership olusumu ile sertlestirildi.
+  - Invitation acceptance akışı token + email eşleşmesi ve güvenli membership oluşumu ile sertleştirildi.
 - **Membership-First Access Enforcement - DONE**
-  - Erisim kararlari `TenantMembership` uzerinden zorunlu kilindi; legacy tenant baglantilari access source-of-truth olarak kullanilmiyor.
+  - Erişim kararları `TenantMembership` üzerinden zorunlu kılındı; legacy tenant bağlantıları access source-of-truth olarak kullanılmıyor.
 - **Module Activation Enforcement - DONE**
-  - Module kapali oldugunda ilgili API/UI yuzeylerine erisim engellenir; deny-by-default ve tenant scope enforce edilir.
+  - Module kapalı olduğunda ilgili API/UI yüzeylerine erişim engellenir; deny-by-default ve tenant scope enforce edilir.
 - **AI Act MVP Backend - DONE**
-  - `system inventory -> assessment -> risk suggestion -> obligations/tasks` akisi tenant-scoped, membership-based ve module-gated olarak teslim edildi.
-  - Versioned assessment ve sistem basina tek `current` kurali uygulanir.
+  - `system inventory -> assessment -> risk suggestion -> obligations/tasks` akışı tenant-scoped, membership-based ve module-gated olarak teslim edildi.
+  - Versioned assessment ve sistem başına tek `current` kuralı uygulanır.
 - **AI Act MVP UI (end-to-end flow) - DONE**
-  - AI system listesi, yeni sistem olusturma, assessment, risk sonucu, obligations/tasks yuzeyleri calisir durumda ve backend kontratiyla hizalidir.
+  - AI system listesi, yeni sistem oluşturma, assessment, risk sonucu, obligations/tasks yüzeyleri çalışır durumda ve backend kontratıyla hizalıdır.
 - **Multi-product seed structure (platform demo baseline) - DONE**
   - Seed tenant seti AI Act focused, Loyalty focused, Mixed ve Advisor senaryolarini module activation + membership-first doctrine ile temsil eder.
 - **Platform Console UX Refactor (Step 2) - DONE**
-  - Platform dashboard canli bootstrap verisiyle product-aware metrikler sunar ve hardcoded demo aktivite satirlari kaldirilmistir.
-  - User-facing dilde "Workspaces" yerine "Organizations" kullanimi standardize edilmistir.
+  - Platform dashboard canlı bootstrap verisiyle product-aware metrikler sunar ve hardcoded demo aktivite satırları kaldırılmıştır.
+  - User-facing dilde "Workspaces" yerine "Organizations" kullanımı standardize edilmiştir.
   - Organizations sayfasi, aktif urun/module gorunurlugunu badge/chip yapisiyla sunar.
   - Plan feature tag'leri UI katmaninda insan okunur etiketlere donusturulmustur.
   - Seed persona ve e-posta sunumu gercekci SaaS demo kimligine alinmistir.
   - Canonical plan mapping (Compliance Pro / Starter Platform / Multi-Product Business / Advisor Firm) duzeltilmistir.
-  - `/admin/bootstrap` yanitina `platformMetrics` eklenerek dashboard metrikleri API kontratiyla hizalanmistir.
+  - `/admin/bootstrap` yanitina `platformMetrics` eklenerek dashboard metrikleri API kontratıyla hizalanmistir.
 
 ---
 
@@ -145,7 +145,7 @@ upload
 
 ## Phase 4 - AI Act MVP (Delivered)
 
-- **Durum:** Ilk loyalty disi module MVP'i teslim edildi.
+- **Durum:** İlk loyalty dışı module MVP'i teslim edildi.
 - **Kod değişiklikleri:** `AiSystem`, `AiAssessment`, `AiAssessmentAnswer`, `AiObligation`, `AiTask`, `AiEvidence`, `AiDocumentLink` tenant-scoped veri modeli; değerlendirme/risk akışı için derived-data kurgusu.
 - **Enforcement gereksinimleri:** Tenant izolasyonu, membership tabanlı erişim, module activation gate.
 - **Dokümantasyon güncellemeleri:** AI Act spec dosyasını endpoint/model ve akış detaylarıyla güncellemek; paylaşılan AI infrastructure spec ve AI risk guardrail dokümanlarıyla birlikte tutmak.
@@ -249,7 +249,7 @@ upload
 
 - Invitation security, membership-first access ve module activation enforcement katmanlari tamamlandi ve kilitlendi.
 - AI Act MVP backend + UI teslim edildi; sonraki AI Act yatirimlari Post-MVP iyilestirme backlog'unda ele alinacaktir.
-- Pilot/GTM fazi (Current Phase) mevcut teknik temel uzerinde gercek kullanim dogrulamasi ile ilerler.
+- Pilot/GTM fazı (Current Phase) mevcut teknik temel üzerinde gerçek kullanım doğrulaması ile ilerler.
 - Advisor, billing ve future module genislemeleri pilot geri bildirimleri ve saha ogrenimleriyle onceliklendirilir.
 
 ---
@@ -315,7 +315,7 @@ MVP kapsamı:
 
 - Organization detail page (subscription, module state, advisor links, recent activity)
 - Products / Modules admin page (platform-level module governance)
-- Product activation matrix (organization x module operasyonel gorunum)
+- Product activation matrix (organization x module operasyonel görünüm)
 - Advisor relationship visibility (advisor-client baglarinin platform konsolda net sunumu)
 - Full i18n polish pass (EN/TR/ES/DE terminoloji ve metin tutarliligi)
 
@@ -323,7 +323,7 @@ MVP kapsamı:
 
 ## 10. Known Technical Debt (Non-blocking, pre-existing)
 
-- `npm run lint` halen Step 2 kapsaminda degistirilmeyen API dosyalarindaki mevcut ihlaller nedeniyle fail durumundadir:
+- `npm run lint` halen Step 2 kapsamında değiştirilmeyen API dosyalarındaki mevcut ihlaller nedeniyle fail durumundadır:
   - `apps/api/src/lib/export-format.ts`
   - `apps/api/src/lib/retention-config.ts`
   - `apps/api/src/lib/session-branch-membership.ts`

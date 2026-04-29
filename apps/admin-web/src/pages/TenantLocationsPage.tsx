@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
 import {
@@ -11,6 +12,7 @@ import {
 import { fetchTenantBranchMetrics } from "../lib/tenant-branch-metrics-api";
 import { formatCount } from "../lib/formatters";
 import { FORM_CONTROL_CLASS } from "../components/form";
+import { canAccessLoyaltySurface } from "../lib/tenant-module-access";
 
 function addressToText(a: unknown): string {
   if (a === null || a === undefined) return "";
@@ -25,9 +27,11 @@ function addressToText(a: unknown): string {
 export function TenantLocationsPage() {
   const { t, locale } = useTranslation();
   const { token } = useAuth();
+  const { auth, bootstrap } = useAdminDataContext();
   const { hasPermission } = usePermissions();
   const canManage = hasPermission("settings.manage");
   const canAnalytics = hasPermission("analytics.view");
+  const loyaltyActive = canAccessLoyaltySurface(auth, bootstrap);
 
   const [branches, setBranches] = useState<TenantBranchDto[] | null>(null);
   const [metrics, setMetrics] = useState<Awaited<
@@ -42,7 +46,7 @@ export function TenantLocationsPage() {
   const [editAddress, setEditAddress] = useState("");
 
   const refresh = useCallback(async () => {
-    if (!token?.trim()) return;
+    if (!token?.trim() || !loyaltyActive) return;
     setLoading(true);
     setLoadError(false);
     try {
@@ -58,7 +62,7 @@ export function TenantLocationsPage() {
     } finally {
       setLoading(false);
     }
-  }, [token, canAnalytics]);
+  }, [token, canAnalytics, loyaltyActive]);
 
   useEffect(() => {
     void refresh();
@@ -124,6 +128,10 @@ export function TenantLocationsPage() {
       setSaving(false);
     }
   };
+
+  if (!loyaltyActive) {
+    return <p className="admin-app__card-text">{t("tenantAudit.forbidden")}</p>;
+  }
 
   if (loading && !branches) {
     return <p className="admin-app__card-text">{t("tenantLocations.loading")}</p>;

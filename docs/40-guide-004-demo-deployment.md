@@ -189,7 +189,7 @@ curl -sfS "http://127.0.0.1:${API_HOST_PORT:-3000}/health"
 
 ---
 
-## 7.1) Sik hata: `api-demo is unhealthy`
+## 7.1) Sık hata: `api-demo is unhealthy`
 
 Belirti:
 
@@ -203,11 +203,11 @@ docker compose -f infra/docker/docker-compose.demo.yml --env-file infra/docker/.
 docker compose -f infra/docker/docker-compose.demo.yml --env-file infra/docker/.env.demo logs --tail 200 api-demo
 ```
 
-En yaygin neden (demo strict preflight):
+En yaygın neden (demo strict preflight):
 
-- `.env.demo` icinde guvenlik fallback/preflight degiskenleri eksik veya gecersiz.
+- `.env.demo` içinde güvenlik fallback/preflight değişkenleri eksik veya geçersiz.
 
-Demo icin guvenli minimumlar:
+Demo için güvenli minimumlar:
 
 ```bash
 SECURITY_STATE_ALLOW_MEMORY_FALLBACK=true
@@ -219,7 +219,7 @@ POINTMOR_PREFLIGHT_SECRET=<uzun-rastgele-secret>
 
 Not:
 
-- `pmdeploy` artik deploy hatasinda otomatik olarak `compose ps` ve `api-demo` log ozetini basar.
+- `pmdeploy` artık deploy hatasında otomatik olarak `compose ps` ve `api-demo` log özetini basar.
 
 ---
 
@@ -287,10 +287,10 @@ pmdeploy --db-mode update-seed --full-seed
 
 Not:
 
-- `pmdeploy` icindeki `db:generate` / `db:reset` adimlari `api-demo` konteyneri icinde calistirilir; hostta `npm` kurulu olmasi gerekmez.
-- `reset-seed` akisi konteynerde `npx prisma migrate reset --force` kullanir; ardindan seed adimi `seed-demo.sh` / `seed-full-demo.sh` ile explicit calisir.
+- `pmdeploy` içindeki `db:generate` / `db:reset` adımları `api-demo` konteyneri içinde çalıştırılır; hostta `npm` kurulu olması gerekmez.
+- `reset-seed` akışı konteynerde `npx prisma migrate reset --force` kullanır; ardından seed adımı `seed-demo.sh` / `seed-full-demo.sh` ile explicit çalışır.
 
-Guvenlik notu:
+Güvenlik notu:
 
 - `pmdeploy` ve `pmdeploycld` içinde `git reset --hard origin/main` + `git clean -fd` vardır.
 - Demo hostta local değişiklik tutulmamalıdır; tutuluyorsa bu komutlar değişiklikleri siler.

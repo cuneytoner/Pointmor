@@ -18,17 +18,17 @@ Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-ru
 
 ### Completed Foundations (Locked)
 
-- **Invitation Security Hardening:** **COMPLETE** - invitation acceptance guvenlik kontrolleri ve membership olusumu production akisinda sabit.
-- **Membership-First Access Enforcement:** **COMPLETE** - erisim doctrine `membership + role + module activation` olarak enforce edilir.
-- **Module Activation Enforcement:** **COMPLETE** - module kapali oldugunda ilgili API/UI yuzeyi engellenir.
-- **AI Act MVP Backend:** **COMPLETE** - system inventory, assessment, risk suggestion, obligations/tasks akisi teslim edildi.
-- **AI Act MVP UI (end-to-end):** **COMPLETE** - list, create, assessment, result ve obligations/tasks yuzeyleri calisir durumda.
-- **Platform Console UX Refactor (Step 2):** **COMPLETE** - dashboard canli product-aware metriklere gecti, organizations terminolojisi standardize edildi, organizations sayfasina module/urun badge gorunurlugu eklendi, plan feature etiketleri insan okunur hale getirildi, canonical seed persona + email ve plan mapping duzeltildi, bootstrap API `platformMetrics` ile genisletildi.
+- **Invitation Security Hardening:** **COMPLETE** - invitation acceptance güvenlik kontrolleri ve membership oluşumu production akışında sabit.
+- **Membership-First Access Enforcement:** **COMPLETE** - erişim doctrine `membership + role + module activation` olarak enforce edilir.
+- **Module Activation Enforcement:** **COMPLETE** - module kapalı olduğunda ilgili API/UI yüzeyi engellenir.
+- **AI Act MVP Backend:** **COMPLETE** - system inventory, assessment, risk suggestion, obligations/tasks akışı teslim edildi.
+- **AI Act MVP UI (end-to-end):** **COMPLETE** - list, create, assessment, result ve obligations/tasks yüzeyleri çalışır durumda.
+- **Platform Console UX Refactor (Step 2):** **COMPLETE** - dashboard canlı product-aware metriklere geçti, organizations terminolojisi standardize edildi, organizations sayfasına module/urun badge görünürlüğü eklendi, plan feature etiketleri insan okunur hale getirildi, canonical seed persona + email ve plan mapping düzeltildi, bootstrap API `platformMetrics` ile genişletildi.
 
 ### Current Priority
 
 - **Phase 7 - Pilot & Real-World Validation (GTM-aligned): ACTIVE**
-- AI Act MVP artik "in progress" degil; tamamlanmis temel olarak pilot fazina girdi saglar.
+- AI Act MVP artık "in progress" değil; tamamlanmış temel olarak pilot fazına girdi sağlar.
 
 ### Faz 3 — Müşteri Deneyimi (PWA + public API)
 
@@ -84,7 +84,7 @@ Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-ru
 
 ### Known technical debt (pre-existing, non-blocking)
 
-- Lint fail nedeni Step 2 disi mevcut API dosyalari:
+- Lint fail nedeni Step 2 dışı mevcut API dosyaları:
   - `apps/api/src/lib/export-format.ts`
   - `apps/api/src/lib/retention-config.ts`
   - `apps/api/src/lib/session-branch-membership.ts`

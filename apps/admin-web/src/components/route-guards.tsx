@@ -14,6 +14,8 @@ import {
   isAiActPath,
   isLoyaltyPath,
 } from "../lib/tenant-module-access";
+import { hasPermissionForRole } from "../lib/tenant-permissions";
+import { permissionForProductPath } from "../lib/productRegistry";
 
 export function RequirePlatformLayout(): ReactNode {
   const { auth } = useAdminDataContext();
@@ -43,8 +45,21 @@ export function RequireTenantRouteAccess(): ReactNode {
   if (isLoyaltyPath(location.pathname) && !canAccessLoyaltySurface(auth, bootstrap)) {
     return <Navigate to="/app/dashboard" replace />;
   }
+  if (
+    location.pathname.startsWith("/app/admin/locations") &&
+    !canAccessLoyaltySurface(auth, bootstrap)
+  ) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
   if (isAiActPath(location.pathname) && !canAccessAiActSurface(auth, bootstrap)) {
     return <Navigate to="/app/dashboard" replace />;
+  }
+  if (isAiActPath(location.pathname)) {
+    const role = resolveTenantAppRole(auth);
+    const permission = permissionForProductPath(location.pathname, "ai_act");
+    if (permission && !hasPermissionForRole(role, permission)) {
+      return <Navigate to="/app/dashboard" replace />;
+    }
   }
   if (!canAccessTenantPath(location.pathname, auth)) {
     return <Navigate to={redirectPathForDeniedTenantRoute(location.pathname, auth)} replace />;

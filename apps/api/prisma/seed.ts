@@ -38,6 +38,13 @@ const LEGACY_IDENTITY_MIGRATIONS = [
   { from: "member@pointmor.local", to: "emma@pointmor.io" },
   { from: "admin@pointmor.local", to: "admin@pointmor.io" },
 ] as const;
+const LEGACY_DEMO_ONLY_EMAILS = [
+  "admin-demo@pointmor.demo",
+  "owner-demo@pointmor.demo",
+  "advisor-admin@pointmor.demo",
+  "advisor-staff@pointmor.demo",
+  "client-owner@pointmor.demo",
+] as const;
 
 const PRIMARY_TENANT_SLUGS = [
   "acme-ai-solutions",
@@ -75,6 +82,22 @@ function resolvePassword(key: string, fallback: string, opts: { mode: SeedMode; 
   }
   if (opts.mode === "dev") return fallback;
   throw new Error(`missing_required_password:${key}`);
+}
+
+function resolvePasswordWithAliases(
+  keys: string[],
+  fallback: string,
+  opts: { mode: SeedMode; required: boolean },
+): string {
+  for (const key of keys) {
+    const value = process.env[key]?.trim();
+    if (value) return value;
+  }
+  if (opts.required) {
+    throw new Error(`missing_required_password:${keys.join("|")}`);
+  }
+  if (opts.mode === "dev") return fallback;
+  throw new Error(`missing_required_password:${keys.join("|")}`);
 }
 
 async function ensureAiActActiveForTenant(tenantId: string) {
@@ -151,6 +174,20 @@ async function pruneLegacyDemoData(options: { keepLegacyScenarios: boolean }) {
       memberships: { none: {} },
     },
   });
+
+  const legacyDemoUsers = await prisma.user.findMany({
+    where: { email: { in: [...LEGACY_DEMO_ONLY_EMAILS] } },
+    select: { id: true },
+  });
+  const legacyDemoUserIds = legacyDemoUsers.map((u) => u.id);
+  if (legacyDemoUserIds.length > 0) {
+    await prisma.tenantMembership.deleteMany({
+      where: { userId: { in: legacyDemoUserIds } },
+    });
+    await prisma.user.deleteMany({
+      where: { id: { in: legacyDemoUserIds } },
+    });
+  }
 
   const nonPrimaryTenantsWithoutMembers = await prisma.tenant.findMany({
     where: {
@@ -389,14 +426,22 @@ export async function runSeed(input?: { mode?: SeedMode; includeFullDemoScenario
     mode,
     required: false,
   });
-  const demoAdminPassword = resolvePassword("DEMO_ADMIN_PASSWORD", adminPassword, {
-    mode,
-    required: mode === "demo",
-  });
-  const demoOperatorPassword = resolvePassword("DEMO_OPERATOR_PASSWORD", operatorPassword, {
-    mode,
-    required: mode === "demo",
-  });
+  const demoAdminPassword = resolvePasswordWithAliases(
+    ["SEED_DEMO_ADMIN_PASSWORD", "DEMO_ADMIN_PASSWORD"],
+    adminPassword,
+    {
+      mode,
+      required: mode === "demo",
+    },
+  );
+  const demoOperatorPassword = resolvePasswordWithAliases(
+    ["SEED_DEMO_OPERATOR_PASSWORD", "DEMO_OPERATOR_PASSWORD"],
+    operatorPassword,
+    {
+      mode,
+      required: mode === "demo",
+    },
+  );
 
   if (mode === "demo" && (demoAdminPassword.length < 12 || demoOperatorPassword.length < 12)) {
     throw new Error("seed_demo_password_too_short");
@@ -409,9 +454,9 @@ export async function runSeed(input?: { mode?: SeedMode; includeFullDemoScenario
     adminPasswordHash: hashSync(mode === "demo" ? demoAdminPassword : adminPassword, hashRounds),
     operatorPasswordHash: hashSync(mode === "demo" ? demoOperatorPassword : operatorPassword, hashRounds),
     includeDemoScenarios: includeFullDemoScenarios,
-    adminEmailForAudit: mode === "demo" ? "admin-demo@pointmor.demo" : "admin@pointmor.io",
+    adminEmailForAudit: "admin@pointmor.io",
   });
-  if (mode === "demo") {
+  if (mode === "demo" && includeFullDemoScenarios) {
     await seedDemoExtensions({
       growthPlanId: core.growthPlanId,
       operatorPasswordHash: hashSync(demoOperatorPassword, hashRounds),

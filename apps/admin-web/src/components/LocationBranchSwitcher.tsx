@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { getApiBaseUrl } from "../lib/api-base";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
+import { canAccessLoyaltySurface } from "../lib/tenant-module-access";
 
 const STORAGE_KEY = "pointmor.activeBranchId";
 
@@ -12,14 +14,17 @@ const STORAGE_KEY = "pointmor.activeBranchId";
 export function LocationBranchSwitcher() {
   const { t } = useTranslation();
   const { token } = useAuth();
+  const { auth, bootstrap } = useAdminDataContext();
   const { hasPermission } = usePermissions();
   const [branches, setBranches] = useState<Array<{ id: string; name: string }>>([]);
   const [value, setValue] = useState("");
-  const canViewCustomers = hasPermission("customers.view");
+  const loyaltyActive = canAccessLoyaltySurface(auth, bootstrap);
+  const canUseBranchSwitcher = hasPermission("customers.view") || hasPermission("visits.create");
 
   useEffect(() => {
-    if (!token?.trim() || !canViewCustomers) {
+    if (!token?.trim() || !loyaltyActive || !canUseBranchSwitcher) {
       setBranches([]);
+      setValue("");
       return;
     }
     let cancelled = false;
@@ -59,9 +64,9 @@ export function LocationBranchSwitcher() {
     return () => {
       cancelled = true;
     };
-  }, [token, canViewCustomers]);
+  }, [token, canUseBranchSwitcher, loyaltyActive]);
 
-  if (branches.length < 2) return null;
+  if (!loyaltyActive || branches.length < 2) return null;
 
   return (
     <label className="admin-app__location-switcher">

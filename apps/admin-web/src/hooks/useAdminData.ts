@@ -176,6 +176,8 @@ export type AdminBootstrap = {
   subscriptions: SubscriptionDto[];
   tenantModules: TenantModuleDto[];
   platformMetrics: PlatformMetricsDto;
+  // TODO(platform-api): /admin/bootstrap payload is growing too broad.
+  // Split session bootstrap and product operational endpoints in a follow-up step.
   moduleOperations: ModuleOperationsDto;
   auditLogs: AuditLogDto[];
   /** `/tenant/entitlements` — yalnızca tenant oturumunda doldurulur. */

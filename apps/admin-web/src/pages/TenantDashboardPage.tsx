@@ -9,7 +9,12 @@ import { usePermissions } from "../hooks/usePermissions";
 import { downloadComplianceExport } from "../lib/compliance-api";
 import { formatCount, formatPoints } from "../lib/formatters";
 import { getLoyaltySummary, type LoyaltySummary } from "../lib/tenant-loyalty-api";
-import { canAccessLoyaltySurface, isAdvisorTenant } from "../lib/tenant-module-access";
+import {
+  activeTenantModules,
+  canAccessAiActSurface,
+  canAccessLoyaltySurface,
+  isAdvisorTenant,
+} from "../lib/tenant-module-access";
 
 /** Kiracı — sadakat özeti (Phase 2). */
 export function TenantDashboardPage() {
@@ -23,8 +28,15 @@ export function TenantDashboardPage() {
 
   const tenantId = auth?.tenant?.id;
   const tenantName = auth?.tenant?.name ?? "";
+  const modules = activeTenantModules(bootstrap, tenantId);
   const loyaltyActive = canAccessLoyaltySurface(auth, bootstrap);
+  const aiActActive = canAccessAiActSurface(auth, bootstrap);
   const advisorTenant = isAdvisorTenant(auth, bootstrap);
+  const aiOps = bootstrap?.moduleOperations?.aiCompliance;
+  const tenantAiSystems = (aiOps?.systems ?? []).filter((system) => system.tenant.id === tenantId);
+  const tenantOpenObligations = tenantAiSystems.reduce((sum, system) => {
+    return sum + system.obligations.filter((obligation) => obligation.status !== "COMPLETED").length;
+  }, 0);
 
   const sub = useMemo(() => {
     if (!bootstrap?.subscriptions || !tenantId) return null;
@@ -35,15 +47,48 @@ export function TenantDashboardPage() {
   const canComplianceSummary = complianceLevel !== "none";
   const canComplianceFull = complianceLevel === "full";
   const canViewLoyaltySummary = loyaltyActive && hasPermission("customers.view");
-  const pageEyebrow = loyaltyActive ? t("tenantLoyalty.dash.eyebrow") : "Organization";
-  const pageTitle = loyaltyActive
-    ? t("tenantLoyalty.dash.title", { name: tenantName })
-    : `${tenantName} — overview`;
+  const dashboardVariant = loyaltyActive
+    ? "loyalty"
+    : advisorTenant
+        ? "advisor"
+        : aiActActive
+          ? "ai_act"
+          : "organization";
+  const pageEyebrow = advisorTenant
+    ? "Advisor"
+    : loyaltyActive
+      ? t("tenantLoyalty.dash.eyebrow")
+      : aiActActive
+        ? "AI Compliance"
+        : "Organization";
+  const pageTitle = advisorTenant
+    ? `${tenantName} — advisor overview`
+    : loyaltyActive
+      ? t("tenantLoyalty.dash.title", { name: tenantName })
+      : aiActActive
+        ? `${tenantName} — AI compliance overview`
+        : `${tenantName} — overview`;
   const pageDescription = advisorTenant
-    ? "Advisor operations and client access overview."
+    ? "Advisor operations and client workload overview."
     : loyaltyActive
       ? t("tenantLoyalty.dash.description")
-      : "Organization operational overview.";
+      : aiActActive
+        ? "AI systems, assessments, and obligations status."
+        : "Organization operational overview.";
+  const heroTitle = advisorTenant
+    ? "Advisor command center"
+    : loyaltyActive
+      ? t("tenantDashboard.hero.title")
+      : aiActActive
+        ? "AI compliance command center"
+        : "Organization command center";
+  const heroSubtitle = advisorTenant
+    ? "Track client workload, pending reviews, and advisor actions."
+    : loyaltyActive
+      ? t("tenantDashboard.hero.subtitle")
+      : aiActActive
+        ? "Monitor AI systems, assessments, and open obligations."
+        : "Review active modules and operational status.";
 
   useEffect(() => {
     if (!token?.trim() || !canViewLoyaltySummary) {
@@ -101,36 +146,112 @@ export function TenantDashboardPage() {
       title={pageTitle}
       description={pageDescription}
     >
-      <p className="admin-app__card-text data-table__muted" style={{ marginBottom: "1rem" }}>
-        {t("tenantLoyalty.common.utcNote")}
-      </p>
+      {dashboardVariant === "loyalty" ? (
+        <p className="admin-app__card-text data-table__muted" style={{ marginBottom: "1rem" }}>
+          {t("tenantLoyalty.common.utcNote")}
+        </p>
+      ) : null}
 
       <div className="dashboard-hero">
         <div className="dashboard-hero__text">
-          <h2 className="dashboard-hero__title">{t("tenantDashboard.hero.title")}</h2>
-          <p className="dashboard-hero__sub">{t("tenantDashboard.hero.subtitle")}</p>
+          <h2 className="dashboard-hero__title">{heroTitle}</h2>
+          <p className="dashboard-hero__sub">{heroSubtitle}</p>
         </div>
         {sub?.status === "trialing" && (
           <Badge tone="warning">{t("tenantDashboard.badgeTrialing")}</Badge>
         )}
       </div>
 
-      {!canViewLoyaltySummary ? (
-        <p className="admin-app__card-text">
-          {loyaltyActive ? t("tenantAudit.forbidden") : "Loyalty module is not enabled for this organization."}
-        </p>
-      ) : loading ? (
-        <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
-      ) : loadError ? (
-        <p className="admin-app__card-text">{t("tenantLoyalty.dash.loadError")}</p>
-      ) : (
+      {dashboardVariant === "loyalty" ? (
+        !canViewLoyaltySummary ? (
+          <p className="admin-app__card-text">{t("tenantAudit.forbidden")}</p>
+        ) : loading ? (
+          <p className="admin-app__card-text">{t("tenantLoyalty.common.loading")}</p>
+        ) : loadError ? (
+          <p className="admin-app__card-text">{t("tenantLoyalty.dash.loadError")}</p>
+        ) : (
+          <div className="metric-grid metric-grid--4">
+            {metrics.map((m) => (
+              <div key={m.k} className="metric-card">
+                <div className="metric-card__label">{m.k}</div>
+                <div className="metric-card__value metric-card__value--num">{m.v}</div>
+              </div>
+            ))}
+          </div>
+        )
+      ) : dashboardVariant === "advisor" ? (
         <div className="metric-grid metric-grid--4">
-          {metrics.map((m) => (
-            <div key={m.k} className="metric-card">
-              <div className="metric-card__label">{m.k}</div>
-              <div className="metric-card__value metric-card__value--num">{m.v}</div>
+          <div className="metric-card">
+            <div className="metric-card__label">Client organizations</div>
+            <div className="metric-card__value metric-card__value--num">
+              {formatCount(bootstrap?.moduleOperations.advisorPortal.linkedClientOrganizations ?? 0, locale)}
             </div>
-          ))}
+          </div>
+          <div className="metric-card">
+            <div className="metric-card__label">Pending advisor actions</div>
+            <div className="metric-card__value metric-card__value--num">
+              {formatCount(bootstrap?.moduleOperations.advisorPortal.pendingAdvisorActions ?? 0, locale)}
+            </div>
+          </div>
+          <div className="metric-card">
+            <div className="metric-card__label">AI review workload</div>
+            <div className="metric-card__value metric-card__value--num">
+              {formatCount(aiOps?.advisorWorkload ?? 0, locale)}
+            </div>
+          </div>
+          <div className="metric-card">
+            <div className="metric-card__label">AI systems monitored</div>
+            <div className="metric-card__value metric-card__value--num">
+              {formatCount(aiOps?.systems.length ?? 0, locale)}
+            </div>
+          </div>
+        </div>
+      ) : dashboardVariant === "ai_act" ? (
+        <div className="metric-grid metric-grid--4">
+          <div className="metric-card">
+            <div className="metric-card__label">AI systems</div>
+            <div className="metric-card__value metric-card__value--num">
+              {formatCount(tenantAiSystems.length, locale)}
+            </div>
+          </div>
+          <div className="metric-card">
+            <div className="metric-card__label">Pending reviews</div>
+            <div className="metric-card__value metric-card__value--num">
+              {formatCount(
+                tenantAiSystems.filter(
+                  (system) =>
+                    system.currentAssessment?.status === "SUBMITTED" ||
+                    system.currentAssessment?.status === "UNDER_REVIEW",
+                ).length,
+                locale,
+              )}
+            </div>
+          </div>
+          <div className="metric-card">
+            <div className="metric-card__label">Open obligations</div>
+            <div className="metric-card__value metric-card__value--num">
+              {formatCount(tenantOpenObligations, locale)}
+            </div>
+          </div>
+          <div className="metric-card">
+            <div className="metric-card__label">AI compliance</div>
+            <div className="metric-card__value">
+              <Link to="/app/ai-act" className="admin-secondary-btn">
+                Open AI Act workspace
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="admin-app__card admin-app__card--wide">
+          <p className="admin-app__card-title">No active product modules</p>
+          <p className="admin-app__card-text">
+            This organization currently has no enabled product modules. Enable a module to unlock
+            product-specific workflows.
+          </p>
+          <p className="admin-app__card-text data-table__muted">
+            Detected modules: {Array.from(modules).join(", ") || "none"}
+          </p>
         </div>
       )}
 
@@ -140,7 +261,9 @@ export function TenantDashboardPage() {
             <div className="metric-card">
               <div className="metric-card__label">{t("tenantDashboard.metrics.plan")}</div>
               <div className="metric-card__value">{sub.plan.name}</div>
-              <div className="metric-card__hint">{t("tenantLoyalty.dash.subscriptionHint")}</div>
+              <div className="metric-card__hint">
+                Subscription and billing details for this workspace.
+              </div>
             </div>
             <div className="metric-card">
               <div className="metric-card__label">{t("tenantDashboard.metrics.subscription")}</div>

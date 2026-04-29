@@ -1,6 +1,7 @@
 import type { AdminAuth } from "../hooks/useAdminData";
 import { resolveTenantAppRole, type TenantAppRole } from "./tenant-app-role";
 import { hasPermissionForRole, type TenantPermission } from "./tenant-permissions";
+import { permissionForProductPath } from "./productRegistry";
 
 export type WorkspaceAdminSection = "general" | "team" | "messaging" | "billing" | "locations";
 
@@ -99,6 +100,10 @@ export function canAccessTenantNavTarget(to: string, auth: AdminAuth): boolean {
   if (t.startsWith("/app/menu")) {
     return can("menu.manage");
   }
+  const aiActNavPermission = permissionForProductPath(t, "ai_act");
+  if (aiActNavPermission) {
+    return can(aiActNavPermission);
+  }
   if (t.startsWith("/app/redemptions")) {
     return can("redemptions.view");
   }
@@ -152,6 +157,8 @@ export function canAccessTenantPath(pathname: string, auth: AdminAuth): boolean 
   if (p.startsWith("/app/rewards")) return can("rewards.manage");
   if (p.startsWith("/app/campaigns")) return can("campaigns.manage");
   if (p.startsWith("/app/menu")) return can("menu.manage");
+  const aiActPathPermission = permissionForProductPath(p, "ai_act");
+  if (aiActPathPermission) return can(aiActPathPermission);
   if (p.startsWith("/app/growth")) return can("analytics.view") && role !== "staff";
   if (p.startsWith("/app/audit")) return can("summary.export") || can("audit.export");
   if (p === "/app/dashboard" || p.startsWith("/app/dashboard")) return can("analytics.view");

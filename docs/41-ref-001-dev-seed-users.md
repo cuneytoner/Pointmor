@@ -16,21 +16,21 @@ npm run db:seed:full:demo
 
 | Komut | Amaç | Kısa not |
 |-------|------|----------|
-| `db:seed` | Yerel geliştirme seed | yalniz birincil multi-product tenant modelini uretir |
+| `db:seed` | Yerel geliştirme seed | yalnız birincil multi-product tenant modelini üretir |
 | `db:seed:demo` | Demo/izole ortam seed | daha hafif demo verisi |
 | `db:seed:full:demo` | Full demo seed | yalnızca açık demo guard koşullarında çalışır |
 
 Gerekli temel ortam:
 
 - `DATABASE_URL`
-- demo akışları için ilgili `DEMO_*` değişkenleri
+- demo akışları için ilgili `SEED_DEMO_*` değişkenleri
 - full demo için guard değişkenleri (`APP_ENV=demo`, `ALLOW_FULL_DEMO_SEED=true`, vb.)
 
 ---
 
 ## Tek satır login kartları
 
-Dev (`npm run db:seed`) hizli giris:
+Dev (`npm run db:seed`) hızlı giriş:
 
 - `admin@pointmor.io` / `${SEED_DEV_ADMIN_PASSWORD:-PointmorDev!Admin}` (platform admin)
 - `anna@kanzlei-mueller.eu` / `${SEED_DEV_OPERATOR_PASSWORD:-PointmorDev!Demo}` (advisor)
@@ -39,32 +39,34 @@ Dev (`npm run db:seed`) hizli giris:
 - `michael@retailcorp.eu` / `${SEED_DEV_OPERATOR_PASSWORD:-PointmorDev!Demo}` (Mixed owner)
 - `emma@pointmor.io` / `${SEED_DEV_OPERATOR_PASSWORD:-PointmorDev!Demo}` (member)
 
-Demo (`npm run db:seed:demo` / `npm run db:seed:full:demo`) hizli giris:
+Demo (`npm run db:seed:demo` / `npm run db:seed:full:demo`) hızlı giriş:
 
-- `admin-demo@pointmor.demo` / `${DEMO_ADMIN_PASSWORD}` (demo platform admin)
-- `owner-demo@pointmor.demo` / `${DEMO_OPERATOR_PASSWORD}` (demo operator)
-- `advisor-admin@pointmor.demo` / `${DEMO_OPERATOR_PASSWORD}` (demo advisor admin)
-- `advisor-staff@pointmor.demo` / `${DEMO_OPERATOR_PASSWORD}` (demo advisor staff)
-- `client-owner@pointmor.demo` / `${DEMO_OPERATOR_PASSWORD}` (demo client owner)
+- `admin@pointmor.io` / `${SEED_DEMO_ADMIN_PASSWORD}` (platform admin)
+- `anna@kanzlei-mueller.eu` / `${SEED_DEMO_OPERATOR_PASSWORD}` (advisor)
+- `david@acme-ai.eu` / `${SEED_DEMO_OPERATOR_PASSWORD}` (AI Act owner)
+- `sofia@urbancoffee.eu` / `${SEED_DEMO_OPERATOR_PASSWORD}` (Loyalty owner)
+- `michael@retailcorp.eu` / `${SEED_DEMO_OPERATOR_PASSWORD}` (Mixed owner)
+- `emma@pointmor.io` / `${SEED_DEMO_OPERATOR_PASSWORD}` (member)
 
 Notlar:
 
-- Bu satirlardaki `${...}` ifadeleri shell env degiskenlerini temsil eder.
-- Degisken tanimli degilse dev modunda fallback sifreler kullanilir; demo modunda `DEMO_*` sifreleri zorunludur.
-- E-posta degiskenle override edilebilir (`DEMO_ADMIN_EMAIL`, `DEMO_OPERATOR_EMAIL`, `DEMO_ADVISOR_*`, `DEMO_CLIENT_OWNER_EMAIL`).
+- Bu satırlardaki `${...}` ifadeleri shell env değişkenlerini temsil eder.
+- Değişken tanımlı değilse dev modunda fallback şifreler kullanılır; demo modunda `SEED_DEMO_*` şifreleri zorunludur.
+- Demo şifre değişkenlerinde yeni tercih edilen adlar: `SEED_DEMO_ADMIN_PASSWORD`, `SEED_DEMO_OPERATOR_PASSWORD`.
+- Geriye uyumluluk için alias adlar desteklenir: `DEMO_ADMIN_PASSWORD`, `DEMO_OPERATOR_PASSWORD`.
 
 ---
 
 ## Kısa kullanıcı tablosu
 
-| Kullanım | Örnek e-posta | Not |
-|----------|---------------|-----|
-| Platform admin | `admin@pointmor.local` | platform admin, tenant erişimi membership ile |
-| AI Act owner | `owner@acme.pointmor.local` | `acme-ai-solutions` tenant admin membership |
-| Loyalty owner | `owner@urban.pointmor.local` | `urban-coffee-group` tenant admin membership |
-| Mixed owner | `owner@retailcorp.pointmor.local` | `retailcorp-eu` tenant admin membership |
-| Member | `member@pointmor.local` | loyalty + mixed tenant membership |
-| Advisor | `advisor@pointmor.local` | advisor tenant admin + ilgili client tenant'larda external advisor membership |
+| Kullanım | E-posta | Dev şifresi | Demo şifresi |
+|----------|---------|-------------|--------------|
+| Platform admin | `admin@pointmor.io` | `${SEED_DEV_ADMIN_PASSWORD:-PointmorDev!Admin}` | `${SEED_DEMO_ADMIN_PASSWORD}` (alias: `${DEMO_ADMIN_PASSWORD}`) |
+| Advisor | `anna@kanzlei-mueller.eu` | `${SEED_DEV_OPERATOR_PASSWORD:-PointmorDev!Demo}` | `${SEED_DEMO_OPERATOR_PASSWORD}` (alias: `${DEMO_OPERATOR_PASSWORD}`) |
+| AI Act owner | `david@acme-ai.eu` | `${SEED_DEV_OPERATOR_PASSWORD:-PointmorDev!Demo}` | `${SEED_DEMO_OPERATOR_PASSWORD}` (alias: `${DEMO_OPERATOR_PASSWORD}`) |
+| Loyalty owner | `sofia@urbancoffee.eu` | `${SEED_DEV_OPERATOR_PASSWORD:-PointmorDev!Demo}` | `${SEED_DEMO_OPERATOR_PASSWORD}` (alias: `${DEMO_OPERATOR_PASSWORD}`) |
+| Mixed owner | `michael@retailcorp.eu` | `${SEED_DEV_OPERATOR_PASSWORD:-PointmorDev!Demo}` | `${SEED_DEMO_OPERATOR_PASSWORD}` (alias: `${DEMO_OPERATOR_PASSWORD}`) |
+| Member | `emma@pointmor.io` | `${SEED_DEV_OPERATOR_PASSWORD:-PointmorDev!Demo}` | `${SEED_DEMO_OPERATOR_PASSWORD}` (alias: `${DEMO_OPERATOR_PASSWORD}`) |
 
 Şifreler bu dokümanda sabitlenmez; ortam değişkenlerinden yönetilir.
 
@@ -116,10 +118,11 @@ Tenant erişimi için source of truth: `TenantMembership`.
 
 ## Seed Reality
 
-- `db:seed`, birincil platform modeli olan 4 tenant ile calisir: `acme-ai-solutions`, `urban-coffee-group`, `retailcorp-eu`, `kanzlei-mueller-advisory`.
-- Legacy cafe agir demo tenant'lari varsayilan `db:seed` cikisina dahil edilmez.
-- Legacy senaryolar yalniz `db:seed:full:demo` akisinda uretilir.
-- Seed ciktilari production datasi degildir; sentetik demo/gelistirme verisidir.
+- `db:seed`, birincil platform modeli olan 4 tenant ile çalışır: `acme-ai-solutions`, `urban-coffee-group`, `retailcorp-eu`, `kanzlei-mueller-advisory`.
+- Legacy cafe ağır demo tenant'ları varsayılan `db:seed` çıkışına dahil edilmez.
+- Legacy senaryolar yalnız `db:seed:full:demo` akışında üretilir.
+- `db:seed` ve `db:seed:demo` varsayılan akışlarında demo-only kullanıcılar görünür bırakılmaz (`admin-demo@pointmor.demo`, `owner-demo@pointmor.demo`, `advisor-admin@pointmor.demo`, `advisor-staff@pointmor.demo`, `client-owner@pointmor.demo`).
+- Seed çıktıları production datası değildir; sentetik demo/geliştirme verisidir.
 
 ---
 

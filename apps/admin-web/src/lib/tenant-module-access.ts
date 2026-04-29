@@ -1,6 +1,7 @@
 import { hasPermissionForRole } from "@pointmor/rbac";
 import type { AdminAuth, AdminBootstrap } from "../hooks/useAdminData";
 import { resolveTenantAppRole } from "./tenant-app-role";
+import { matchesProductRoute, PRODUCT_REGISTRY } from "./productRegistry";
 
 type BootstrapLike = Pick<AdminBootstrap, "tenantModules" | "tenants"> | null | undefined;
 
@@ -11,7 +12,9 @@ export function activeTenantModules(
   if (!tenantId) return new Set<string>();
   const set = new Set<string>();
   for (const row of bootstrap?.tenantModules ?? []) {
-    if (row.tenantId === tenantId && row.isActive) set.add(row.module.name);
+    const moduleName = (row.module?.name ?? "").trim().toLowerCase();
+    if (!moduleName) continue;
+    if (row.tenantId === tenantId && row.isActive === true) set.add(moduleName);
   }
   return set;
 }
@@ -31,7 +34,7 @@ export function canAccessLoyaltySurface(
   bootstrap: BootstrapLike,
 ): boolean {
   if (!auth?.tenant || auth.user.platformAdmin) return false;
-  return activeTenantModules(bootstrap, auth.tenant.id).has("cafe");
+  return activeTenantModules(bootstrap, auth.tenant.id).has(PRODUCT_REGISTRY.loyalty.moduleName);
 }
 
 export function canAccessAiActSurface(
@@ -40,7 +43,7 @@ export function canAccessAiActSurface(
 ): boolean {
   if (!auth?.tenant || auth.user.platformAdmin) return false;
   const modules = activeTenantModules(bootstrap, auth.tenant.id);
-  if (!modules.has("ai_act")) return false;
+  if (!modules.has(PRODUCT_REGISTRY.ai_act.moduleName)) return false;
   const role = resolveTenantAppRole(auth);
   return (
     hasPermissionForRole(role, "ai_act.view") ||
@@ -50,17 +53,10 @@ export function canAccessAiActSurface(
 }
 
 export function isLoyaltyPath(pathname: string): boolean {
-  return (
-    pathname.startsWith("/app/customers") ||
-    pathname.startsWith("/app/visits") ||
-    pathname.startsWith("/app/rewards") ||
-    pathname.startsWith("/app/campaigns") ||
-    pathname.startsWith("/app/menu") ||
-    pathname.startsWith("/app/redemptions")
-  );
+  return matchesProductRoute(pathname, "loyalty");
 }
 
 export function isAiActPath(pathname: string): boolean {
-  return pathname.startsWith("/app/ai-act");
+  return matchesProductRoute(pathname, "ai_act");
 }
 

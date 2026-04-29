@@ -2,6 +2,7 @@ import { NavLink, Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { useTranslation } from "../hooks/useTranslation";
 import { canAccessWorkspaceAdmin, canAccessWorkspaceAdminSection } from "../lib/access";
+import { canAccessLoyaltySurface } from "../lib/tenant-module-access";
 
 const TAB_GENERAL = "general";
 const TAB_LOCATIONS = "locations";
@@ -11,8 +12,9 @@ const TAB_BILLING = "billing";
 
 export function WorkspaceAdminLayout() {
   const { t } = useTranslation();
-  const { auth } = useAdminDataContext();
+  const { auth, bootstrap } = useAdminDataContext();
   const location = useLocation();
+  const loyaltyActive = canAccessLoyaltySurface(auth, bootstrap);
 
   if (!auth || !canAccessWorkspaceAdmin(auth)) {
     return <Navigate to="/app/dashboard" replace />;
@@ -22,7 +24,7 @@ export function WorkspaceAdminLayout() {
     ...(canAccessWorkspaceAdminSection("general", auth)
       ? [{ path: TAB_GENERAL, labelKey: "workspaceAdmin.tab.general" as const }]
       : []),
-    ...(canAccessWorkspaceAdminSection("locations", auth)
+    ...(loyaltyActive && canAccessWorkspaceAdminSection("locations", auth)
       ? [{ path: TAB_LOCATIONS, labelKey: "workspaceAdmin.tab.locations" as const }]
       : []),
     ...(canAccessWorkspaceAdminSection("team", auth)
