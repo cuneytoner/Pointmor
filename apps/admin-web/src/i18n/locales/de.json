@@ -151,9 +151,9 @@
     "workspaceAdmin": "Verwaltung"
   },
   "workspaceAdmin": {
-    "eyebrow": "Betrieb",
+    "eyebrow": "Organisation",
     "title": "Verwaltung",
-    "description": "Geschäftsprofil, Team, Nachrichtenkanäle und Abrechnung: alles an einem Ort für die Verwaltung Ihres Betriebs.",
+    "description": "Organisationsprofil, Team, Nachrichtenkanäle und Abrechnung in einer Verwaltungsoberfläche.",
     "subnavAria": "Verwaltungsbereiche",
     "tab": {
       "general": "Allgemein",
@@ -455,16 +455,27 @@
     "colActor": "Akteur"
   },
   "tenantSettings": {
-    "eyebrow": "Betrieb",
+    "eyebrow": "Organisation",
     "title": "Einstellungen",
-    "description": "Geschäftsprofil, Sprachen & Region, Kontakt und öffentliche Kundenlinks.",
+    "description": "Organisationsprofil, regionale Einstellungen, Data Governance und öffentliche Sichtbarkeit.",
     "section": {
       "storeBranding": "Geschäft & Auftritt",
       "localization": "Sprachen, Region & Kontakt",
+      "organizationProfile": "Organisationsprofil",
+      "organizationProfileLead": "Zentrale Einstellungen für Organisationsnutzer und öffentliche Oberflächen.",
+      "organizationIdentity": "Organisationsidentität",
+      "organizationIdentityLead": "Name und Markensignale, die in der Organization App erscheinen.",
+      "regionalSettings": "Regionale Einstellungen",
+      "regionalSettingsLead": "Sprache, Währung, Zeitzone und verfügbare unterstützte Sprachen.",
+      "contactAddress": "Kontakt & Adresse",
+      "contactAddressLead": "Operative Kontaktdaten und öffentlich sichtbare Adressfelder.",
+      "dataGovernance": "Data Governance",
+      "publicVisibility": "Öffentliche Sichtbarkeit",
       "dataRetention": "Datenaufbewahrung",
       "publicAccess": "Öffentliche Links & Sichtbarkeit"
     },
-    "publicAccessLead": "Legen Sie fest, was Gäste öffnen dürfen, und teilen Sie dann QR-Codes und Links.",
+    "publicAccessLead": "Steuern Sie, welche öffentlichen Oberflächen sichtbar sind, und teilen Sie dann die passenden QR-Codes und Links.",
+    "publicVisibilityUnavailable": "Für diese Organisation ist das Loyalty module nicht aktiv, daher sind öffentliche Kundenlinks ausgeblendet.",
     "portal": {
       "title": "Kundeneinstieg (QR)",
       "description": "Link oder QR teilen; Kunden sehen Punkte und können Prämien zur Freigabe durch Personal anfragen.",
@@ -473,10 +484,16 @@
     },
     "store": {
       "save": "Speichern",
+      "saveGeneral": "Organisationsprofil speichern",
+      "savePublicVisibility": "Öffentliche Sichtbarkeit speichern",
       "saving": "Speichern…",
-      "loadError": "Laden der Geschäftseinstellungen fehlgeschlagen.",
+      "generalSettings": "Allgemeine Einstellungen",
+      "generalSaved": "Organisationsprofil gespeichert.",
+      "generalSaveError": "Organisationsprofil konnte nicht gespeichert werden.",
+      "unsavedGeneral": "Sie haben ungespeicherte Änderungen am Organisationsprofil.",
+      "loadError": "Laden der Organisationseinstellungen fehlgeschlagen.",
       "addressInvalidJson": "Das Adressfeld muss gültiges JSON sein oder leer bleiben.",
-      "storeName": "Anzeigename des Geschäfts",
+      "storeName": "Anzeigename der Organisation",
       "logoUrl": "Logo-Bild-URL",
       "primaryColor": "Primärfarbe",
       "defaultLanguage": "Standardsprache",
@@ -517,7 +534,7 @@
       "messaging": "Nachrichten-Zustellprotokolle",
       "anomaly": "Anomaliesignale",
       "daysHint": "Dauer in Tagen.",
-      "save": "Aufbewahrung speichern",
+      "save": "Governance-Richtlinie speichern",
       "saving": "Speichern…",
       "complianceHintShort": "Längere Aufbewahrung und volle Exporte gehören zum vollen Compliance Pack auf Growth."
     }

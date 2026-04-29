@@ -41,6 +41,7 @@ type AddressDraft = {
   region: string;
   postalCode: string;
   country: string;
+  passthrough: Record<string, unknown>;
 };
 
 const EMPTY_ADDRESS_DRAFT: AddressDraft = {
@@ -50,6 +51,12 @@ const EMPTY_ADDRESS_DRAFT: AddressDraft = {
   region: "",
   postalCode: "",
   country: "",
+  passthrough: {},
+};
+
+type GeneralSettingsDraft = {
+  form: StoreSettingsDto;
+  addressDraft: AddressDraft;
 };
 
 function RetentionDaysControl(props: {
@@ -123,6 +130,27 @@ function addressToDraft(address: unknown): AddressDraft {
   if (typeof address !== "object" || Array.isArray(address)) return { ...EMPTY_ADDRESS_DRAFT };
 
   const record = address as Record<string, unknown>;
+  const passthrough = { ...record };
+  for (const key of [
+    "line1",
+    "addressLine1",
+    "street",
+    "line2",
+    "addressLine2",
+    "lines",
+    "city",
+    "locality",
+    "region",
+    "state",
+    "province",
+    "postalCode",
+    "postal_code",
+    "zip",
+    "country",
+    "countryCode",
+  ]) {
+    delete passthrough[key];
+  }
   const lines = Array.isArray(record.lines)
     ? record.lines.filter((value): value is string => typeof value === "string")
     : [];
@@ -134,11 +162,13 @@ function addressToDraft(address: unknown): AddressDraft {
     region: readAddressString(record, ["region", "state", "province"]),
     postalCode: readAddressString(record, ["postalCode", "postal_code", "zip"]),
     country: readAddressString(record, ["country", "countryCode"]),
+    passthrough,
   };
 }
 
-function addressDraftToPayload(draft: AddressDraft): Record<string, string> | null {
-  const out = {
+function addressDraftToPayload(draft: AddressDraft): Record<string, unknown> | null {
+  const out: Record<string, unknown> = {
+    ...draft.passthrough,
     line1: draft.line1.trim(),
     line2: draft.line2.trim(),
     city: draft.city.trim(),
@@ -146,9 +176,72 @@ function addressDraftToPayload(draft: AddressDraft): Record<string, string> | nu
     postalCode: draft.postalCode.trim(),
     country: draft.country.trim(),
   };
-  const entries = Object.entries(out).filter(([, value]) => value.length > 0);
+  const entries = Object.entries(out).filter(([, value]) => value !== "");
   if (entries.length === 0) return null;
   return Object.fromEntries(entries);
+}
+
+function buildStoreSettingsPayload(form: StoreSettingsDto, addressDraft: AddressDraft) {
+  return {
+    storeName: form.storeName,
+    logoUrl: form.logoUrl,
+    primaryColor: form.primaryColor,
+    defaultLanguage: form.defaultLanguage,
+    supportedLanguages: form.supportedLanguages,
+    currency: form.currency,
+    timezone: form.timezone,
+    address: addressDraftToPayload(addressDraft),
+    contactPhone: form.contactPhone,
+    contactEmail: form.contactEmail,
+    loyaltyPublicEnabled: form.loyaltyPublicEnabled,
+    menuPublicEnabled: form.menuPublicEnabled,
+  };
+}
+
+function stableJson(value: unknown): string {
+  if (value === undefined) return "undefined";
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map((item) => stableJson(item)).join(",")}]`;
+  const record = value as Record<string, unknown>;
+  return `{${Object.keys(record)
+    .sort()
+    .map((key) => `${JSON.stringify(key)}:${stableJson(record[key])}`)
+    .join(",")}}`;
+}
+
+function generalDraftStorageKey(slug: string): string {
+  return `pointmor:tenant-general-settings-draft:${slug}`;
+}
+
+function readGeneralDraft(slug: string): GeneralSettingsDraft | null {
+  if (typeof window === "undefined" || !slug) return null;
+  try {
+    const raw = window.sessionStorage.getItem(generalDraftStorageKey(slug));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as GeneralSettingsDraft;
+    if (!parsed.form || !parsed.addressDraft) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeGeneralDraft(slug: string, draft: GeneralSettingsDraft): void {
+  if (typeof window === "undefined" || !slug) return;
+  try {
+    window.sessionStorage.setItem(generalDraftStorageKey(slug), JSON.stringify(draft));
+  } catch {
+    /* ignore */
+  }
+}
+
+function clearGeneralDraft(slug: string): void {
+  if (typeof window === "undefined" || !slug) return;
+  try {
+    window.sessionStorage.removeItem(generalDraftStorageKey(slug));
+  } catch {
+    /* ignore */
+  }
 }
 
 export type TenantSettingsPageProps = {
@@ -172,6 +265,8 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
   const [loadError, setLoadError] = useState(false);
   const [form, setForm] = useState<StoreSettingsDto | null>(null);
   const [addressDraft, setAddressDraft] = useState<AddressDraft>(EMPTY_ADDRESS_DRAFT);
+  const [savedGeneralSnapshot, setSavedGeneralSnapshot] = useState("");
+  const [generalSaveMessage, setGeneralSaveMessage] = useState<"saved" | "error" | null>(null);
   const [retention, setRetention] = useState<TenantRetentionSettingsDto | null>(null);
   const [retentionDraft, setRetentionDraft] = useState<TenantRetentionPutBody | null>(null);
   const [retentionLoadError, setRetentionLoadError] = useState(false);
@@ -204,8 +299,13 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
     setRetentionLoadError(false);
     void Promise.allSettled([
       getStoreSettings(token).then((row) => {
-        setForm(row);
-        setAddressDraft(addressToDraft(row.address));
+        const serverAddressDraft = addressToDraft(row.address);
+        const serverSnapshot = stableJson(buildStoreSettingsPayload(row, serverAddressDraft));
+        const storedDraft = readGeneralDraft(slug);
+        setForm(storedDraft?.form ?? row);
+        setAddressDraft(storedDraft?.addressDraft ?? serverAddressDraft);
+        setSavedGeneralSnapshot(serverSnapshot);
+        setGeneralSaveMessage(null);
       }),
       getTenantRetentionSettings(token).then((r) => {
         setRetention(r);
@@ -221,7 +321,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
       if (results[1].status === "rejected") setRetentionLoadError(true);
       setLoading(false);
     });
-  }, [token]);
+  }, [slug, token]);
 
   useEffect(() => {
     load();
@@ -252,31 +352,42 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
   const save = async () => {
     if (!token?.trim() || !form || !canSaveSettings) return;
     setSaving(true);
+    setGeneralSaveMessage(null);
     try {
-      const addressPayload = addressDraftToPayload(addressDraft);
-      const body = {
-        storeName: form.storeName,
-        logoUrl: form.logoUrl,
-        primaryColor: form.primaryColor,
-        defaultLanguage: form.defaultLanguage,
-        supportedLanguages: form.supportedLanguages,
-        currency: form.currency,
-        timezone: form.timezone,
-        address: addressPayload,
-        contactPhone: form.contactPhone,
-        contactEmail: form.contactEmail,
-        loyaltyPublicEnabled: form.loyaltyPublicEnabled,
-        menuPublicEnabled: form.menuPublicEnabled,
-      };
+      const body = buildStoreSettingsPayload(form, addressDraft);
       const next = await putStoreSettings(token, body);
+      const nextAddressDraft = addressToDraft(next.address);
       setForm(next);
-      setAddressDraft(addressToDraft(next.address));
+      setAddressDraft(nextAddressDraft);
+      setSavedGeneralSnapshot(stableJson(buildStoreSettingsPayload(next, nextAddressDraft)));
+      clearGeneralDraft(slug);
+      setGeneralSaveMessage("saved");
     } catch {
-      /* ignore */
+      setGeneralSaveMessage("error");
     } finally {
       setSaving(false);
     }
   };
+
+  const currentGeneralSnapshot =
+    form ? stableJson(buildStoreSettingsPayload(form, addressDraft)) : "";
+  const hasUnsavedGeneralSettings =
+    Boolean(form && savedGeneralSnapshot && currentGeneralSnapshot !== savedGeneralSnapshot);
+
+  useEffect(() => {
+    if (hasUnsavedGeneralSettings && generalSaveMessage) {
+      setGeneralSaveMessage(null);
+    }
+  }, [generalSaveMessage, hasUnsavedGeneralSettings]);
+
+  useEffect(() => {
+    if (!form || !savedGeneralSnapshot) return;
+    if (hasUnsavedGeneralSettings) {
+      writeGeneralDraft(slug, { form, addressDraft });
+    } else {
+      clearGeneralDraft(slug);
+    }
+  }, [addressDraft, form, hasUnsavedGeneralSettings, savedGeneralSnapshot, slug]);
 
   const canEditRetention =
     Boolean(retention?.canCustomize && canSaveSettings && retentionDraft);
@@ -316,7 +427,17 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
           ) : (
             <>
           <div className="admin-app__card admin-app__card--wide">
-            <h2 className="admin-app__card-title">{t("tenantSettings.section.storeBranding")}</h2>
+            <div className="card-head">
+              <div>
+                <h2 className="admin-app__card-title">{t("tenantSettings.section.organizationIdentity")}</h2>
+                <p className="admin-app__card-text data-table__muted">
+                  {t("tenantSettings.section.organizationIdentityLead")}
+                </p>
+              </div>
+              {hasUnsavedGeneralSettings ? (
+                <Badge tone="warning">{t("tenantSettings.store.unsavedGeneral")}</Badge>
+              ) : null}
+            </div>
             <fieldset
               disabled={!canSaveSettings}
               className="min-w-0 border-0 p-0 [&:disabled]:opacity-60"
@@ -351,10 +472,23 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
               </FormFieldGrid>
             </div>
             </fieldset>
+            <div className="tenant-store-form__actions mt-4 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+              <button
+                type="button"
+                className="admin-primary-btn"
+                disabled={saving || !canSaveSettings || !hasUnsavedGeneralSettings}
+                onClick={() => void save()}
+              >
+                {saving ? t("tenantSettings.store.saving") : t("tenantSettings.store.saveGeneral")}
+              </button>
+            </div>
           </div>
 
           <div className="admin-app__card admin-app__card--wide">
-            <h2 className="admin-app__card-title">{t("tenantSettings.section.localization")}</h2>
+            <h2 className="admin-app__card-title">{t("tenantSettings.section.regionalSettings")}</h2>
+            <p className="admin-app__card-text data-table__muted">
+              {t("tenantSettings.section.regionalSettingsLead")}
+            </p>
             <fieldset
               disabled={!canSaveSettings}
               className="min-w-0 border-0 p-0 [&:disabled]:opacity-60"
@@ -378,7 +512,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                     )}
                     {LANGUAGE_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
-                        {`${option.value} — ${option.label}`}
+                        {`${option.value} - ${option.label}`}
                       </option>
                     ))}
                   </SelectField>
@@ -411,23 +545,6 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                     value={form.timezone}
                     onChange={(e) => setForm((f) => (f ? { ...f, timezone: e.target.value } : f))}
                     autoComplete="off"
-                  />
-                </FormField>
-                <FormField id="ts-phone" label={t("tenantSettings.store.contactPhone")}>
-                  <TextField
-                    id="ts-phone"
-                    value={form.contactPhone ?? ""}
-                    onChange={(e) => setForm((f) => (f ? { ...f, contactPhone: e.target.value || null } : f))}
-                    autoComplete="tel"
-                  />
-                </FormField>
-                <FormField id="ts-email" label={t("tenantSettings.store.contactEmail")}>
-                  <TextField
-                    id="ts-email"
-                    type="email"
-                    value={form.contactEmail ?? ""}
-                    onChange={(e) => setForm((f) => (f ? { ...f, contactEmail: e.target.value || null } : f))}
-                    autoComplete="email"
                   />
                 </FormField>
                 <FormField
@@ -463,7 +580,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                             })
                           }
                         >
-                          {`${option.value} — ${option.label}`}
+                          {`${option.value} - ${option.label}`}
                         </button>
                       );
                     })}
@@ -477,6 +594,31 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                         </Badge>
                       ))}
                   </div>
+                </FormField>
+                <div className={`${FORM_FIELD_GRID_FULL_CLASS} mt-2 border-t border-neutral-200 pt-5 dark:border-neutral-800`}>
+                  <h3 className="loyalty-form-section__title">
+                    {t("tenantSettings.section.contactAddress")}
+                  </h3>
+                  <p className="admin-app__card-text data-table__muted">
+                    {t("tenantSettings.section.contactAddressLead")}
+                  </p>
+                </div>
+                <FormField id="ts-phone" label={t("tenantSettings.store.contactPhone")}>
+                  <TextField
+                    id="ts-phone"
+                    value={form.contactPhone ?? ""}
+                    onChange={(e) => setForm((f) => (f ? { ...f, contactPhone: e.target.value || null } : f))}
+                    autoComplete="tel"
+                  />
+                </FormField>
+                <FormField id="ts-email" label={t("tenantSettings.store.contactEmail")}>
+                  <TextField
+                    id="ts-email"
+                    type="email"
+                    value={form.contactEmail ?? ""}
+                    onChange={(e) => setForm((f) => (f ? { ...f, contactEmail: e.target.value || null } : f))}
+                    autoComplete="email"
+                  />
                 </FormField>
                 <FormField
                   id="ts-address-line1"
@@ -546,13 +688,38 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
               </FormFieldGrid>
             </div>
             </fieldset>
+            {generalSaveMessage ? (
+              <p
+                className="admin-app__card-text mt-4"
+                role={generalSaveMessage === "error" ? "alert" : "status"}
+              >
+                {generalSaveMessage === "saved"
+                  ? t("tenantSettings.store.generalSaved")
+                  : t("tenantSettings.store.generalSaveError")}
+              </p>
+            ) : null}
+            {hasUnsavedGeneralSettings ? (
+              <p className="admin-app__card-text data-table__muted mt-4">
+                {t("tenantSettings.store.unsavedGeneral")}
+              </p>
+            ) : null}
+            <div className="tenant-store-form__actions mt-4 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+              <button
+                type="button"
+                className="admin-primary-btn"
+                disabled={saving || !canSaveSettings || !hasUnsavedGeneralSettings}
+                onClick={() => void save()}
+              >
+                {saving ? t("tenantSettings.store.saving") : t("tenantSettings.store.saveGeneral")}
+              </button>
+            </div>
           </div>
 
             </>
           )}
 
           <div className="admin-app__card admin-app__card--wide">
-            <h2 className="admin-app__card-title">{t("tenantSettings.section.dataRetention")}</h2>
+            <h2 className="admin-app__card-title">{t("tenantSettings.section.dataGovernance")}</h2>
             <p className="admin-app__card-text">{t("tenantSettings.retention.lead")}</p>
             {complianceLevel !== "full" ? (
               <p className="admin-app__card-text data-table__muted">
@@ -641,7 +808,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                   </FormFieldGrid>
                 </fieldset>
                 {canEditRetention ? (
-                  <div className="tenant-store-form__actions mt-4">
+                  <div className="tenant-store-form__actions mt-4 border-t border-neutral-200 pt-4 dark:border-neutral-800">
                     <button
                       type="button"
                       className="admin-primary-btn"
@@ -658,7 +825,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
 
           {!loadError && form && loyaltyActive ? (
           <div className="admin-app__card admin-app__card--wide">
-            <h2 className="admin-app__card-title">{t("tenantSettings.section.publicAccess")}</h2>
+            <h2 className="admin-app__card-title">{t("tenantSettings.section.publicVisibility")}</h2>
             <p className="admin-app__card-text">{t("tenantSettings.publicAccessLead")}</p>
             <div className="loyalty-form-stack loyalty-form-stack--relaxed tenant-store-form">
               <fieldset
@@ -727,14 +894,14 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                 )}
               </FormSection>
 
-              <div className="tenant-store-form__actions">
+              <div className="tenant-store-form__actions border-t border-neutral-200 pt-4 dark:border-neutral-800">
                 <button
                   type="button"
                   className="admin-primary-btn"
-                  disabled={saving || !canSaveSettings}
+                  disabled={saving || !canSaveSettings || !hasUnsavedGeneralSettings}
                   onClick={() => void save()}
                 >
-                  {saving ? t("tenantSettings.store.saving") : t("tenantSettings.store.save")}
+                  {saving ? t("tenantSettings.store.saving") : t("tenantSettings.store.savePublicVisibility")}
                 </button>
               </div>
             </div>
@@ -742,9 +909,9 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
           ) : null}
           {!loadError && form && !loyaltyActive ? (
             <div className="admin-app__card admin-app__card--wide">
-              <h2 className="admin-app__card-title">{t("tenantSettings.section.publicAccess")}</h2>
+              <h2 className="admin-app__card-title">{t("tenantSettings.section.publicVisibility")}</h2>
               <p className="admin-app__card-text">
-                This organization does not have the Loyalty module enabled.
+                {t("tenantSettings.publicVisibilityUnavailable")}
               </p>
             </div>
           ) : null}

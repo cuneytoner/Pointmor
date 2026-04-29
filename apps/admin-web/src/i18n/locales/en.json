@@ -151,9 +151,9 @@
     "workspaceAdmin": "Administration"
   },
   "workspaceAdmin": {
-    "eyebrow": "Workspace",
+    "eyebrow": "Organization",
     "title": "Administration",
-    "description": "Store profile, team, messaging channels, and billing — one place for workspace management.",
+    "description": "Organization profile, team, messaging channels, and billing — one place for administration.",
     "subnavAria": "Administration sections",
     "tab": {
       "general": "General",
@@ -455,16 +455,27 @@
     "colActor": "Actor"
   },
   "tenantSettings": {
-    "eyebrow": "Workspace",
+    "eyebrow": "Organization",
     "title": "Settings",
-    "description": "Store profile, languages & region, contact details, and public customer links.",
+    "description": "Organization profile, regional settings, governance policy, and public visibility.",
     "section": {
       "storeBranding": "Store & branding",
       "localization": "Languages, region & contact",
+      "organizationProfile": "Organization profile",
+      "organizationProfileLead": "Core settings shared by organization users and public surfaces.",
+      "organizationIdentity": "Organization identity",
+      "organizationIdentityLead": "Name and brand signals shown across the Organization App.",
+      "regionalSettings": "Regional settings",
+      "regionalSettingsLead": "Locale, currency, timezone, and supported language availability.",
+      "contactAddress": "Contact & address",
+      "contactAddressLead": "Operational contact details and public-facing address fields.",
+      "dataGovernance": "Data governance",
+      "publicVisibility": "Public visibility",
       "dataRetention": "Data retention",
       "publicAccess": "Public links & visibility"
     },
-    "publicAccessLead": "Choose what guests can open, then share QR codes and links.",
+    "publicAccessLead": "Control which public surfaces are visible, then share the relevant QR codes and links.",
+    "publicVisibilityUnavailable": "This organization does not have the Loyalty module enabled, so public customer links are hidden.",
     "portal": {
       "title": "Customer entry (QR)",
       "description": "Share this link or QR code; customers see points and can request rewards for staff approval.",
@@ -473,10 +484,16 @@
     },
     "store": {
       "save": "Save",
+      "saveGeneral": "Save organization profile",
+      "savePublicVisibility": "Save public visibility",
       "saving": "Saving…",
-      "loadError": "Could not load store settings.",
+      "generalSettings": "General settings",
+      "generalSaved": "Organization profile saved.",
+      "generalSaveError": "Could not save organization profile.",
+      "unsavedGeneral": "You have unsaved organization profile changes.",
+      "loadError": "Could not load organization settings.",
       "addressInvalidJson": "The address field must be valid JSON, or left empty.",
-      "storeName": "Store display name",
+      "storeName": "Organization display name",
       "logoUrl": "Logo image URL",
       "primaryColor": "Primary color",
       "defaultLanguage": "Default language",
@@ -517,7 +534,7 @@
       "messaging": "Messaging delivery logs",
       "anomaly": "Anomaly signals",
       "daysHint": "Duration in days.",
-      "save": "Save retention",
+      "save": "Save governance policy",
       "saving": "Saving…",
       "complianceHintShort": "Longer retention and full export options are part of the full Compliance Pack on Growth."
     }

@@ -151,9 +151,9 @@
     "workspaceAdmin": "Yönetim"
   },
   "workspaceAdmin": {
-    "eyebrow": "İşletme",
+    "eyebrow": "Organizasyon",
     "title": "Yönetim",
-    "description": "İşletme profili, ekip, mesajlaşma kanalları ve faturalama — işletme yönetimi için tek merkez.",
+    "description": "Organizasyon profili, ekip, mesajlaşma kanalları ve faturalama yönetimi için tek merkez.",
     "subnavAria": "Yönetim bölümleri",
     "tab": {
       "general": "Genel",
@@ -455,16 +455,27 @@
     "colActor": "Aktör"
   },
   "tenantSettings": {
-    "eyebrow": "İşletme",
+    "eyebrow": "Organizasyon",
     "title": "Ayarlar",
-    "description": "İşletme profili, dil ve bölge, iletişim ve müşteriye açık bağlantılar.",
+    "description": "Organizasyon profili, bölgesel ayarlar, veri yönetişimi ve herkese açık görünürlük.",
     "section": {
       "storeBranding": "İşletme ve görünüm",
       "localization": "Diller, bölge ve iletişim",
-      "dataRetention": "Veri saklama süreleri",
+      "organizationProfile": "Organizasyon profili",
+      "organizationProfileLead": "Organizasyon kullanıcıları ve herkese açık yüzeylerde kullanılan temel ayarlar.",
+      "organizationIdentity": "Organizasyon kimliği",
+      "organizationIdentityLead": "Organization App genelinde görünen ad ve marka bilgileri.",
+      "regionalSettings": "Bölgesel ayarlar",
+      "regionalSettingsLead": "Dil, para birimi, saat dilimi ve desteklenen dil kullanılabilirliği.",
+      "contactAddress": "İletişim ve adres",
+      "contactAddressLead": "Operasyonel iletişim bilgileri ve herkese açık adres alanları.",
+      "dataGovernance": "Veri yönetişimi",
+      "publicVisibility": "Herkese açık görünürlük",
+      "dataRetention": "Veri saklama politikası",
       "publicAccess": "Herkese açık bağlantılar ve görünürlük"
     },
-    "publicAccessLead": "Misafirlere neyin açık olacağını seçin, ardından QR ve bağlantıları paylaşın.",
+    "publicAccessLead": "Hangi herkese açık yüzeylerin görüneceğini seçin, ardından ilgili QR kodları ve bağlantıları paylaşın.",
+    "publicVisibilityUnavailable": "Bu organizasyonda Loyalty module etkin değil, bu nedenle herkese açık müşteri bağlantıları gizlidir.",
     "portal": {
       "title": "Müşteri girişi (QR)",
       "description": "Bu bağlantıyı veya QR kodunu paylaşın; müşteriler puanlarını görür ve personel onayı için ödül talep edebilir.",
@@ -473,10 +484,16 @@
     },
     "store": {
       "save": "Kaydet",
+      "saveGeneral": "Organizasyon profilini kaydet",
+      "savePublicVisibility": "Herkese açık görünürlüğü kaydet",
       "saving": "Kaydediliyor…",
-      "loadError": "Mağaza ayarları yüklenemedi.",
+      "generalSettings": "Genel ayarlar",
+      "generalSaved": "Organizasyon profili kaydedildi.",
+      "generalSaveError": "Organizasyon profili kaydedilemedi.",
+      "unsavedGeneral": "Kaydedilmemiş organizasyon profili değişiklikleriniz var.",
+      "loadError": "Organizasyon ayarları yüklenemedi.",
       "addressInvalidJson": "Adres alanı geçerli JSON olmalı veya boş bırakılmalıdır.",
-      "storeName": "Görünen işletme adı",
+      "storeName": "Görünen organizasyon adı",
       "logoUrl": "Logo görseli URL’si",
       "primaryColor": "Ana renk",
       "defaultLanguage": "Varsayılan dil",
@@ -517,7 +534,7 @@
       "messaging": "Mesaj iletim günlükleri",
       "anomaly": "Anomali sinyalleri",
       "daysHint": "Süre (gün).",
-      "save": "Saklamayı kaydet",
+      "save": "Saklama politikasını kaydet",
       "saving": "Kaydediliyor…",
       "complianceHintShort": "Daha uzun saklama ve tam dışa aktarım seçenekleri Growth planındaki tam Compliance Pack ile gelir."
     }
