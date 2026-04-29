@@ -58,6 +58,11 @@ Bu planın güncel odağı, teslim edilmiş temel teknik kabiliyetler üzerinde 
   - Today's Action Queue satırları category, primary action, secondary context ve navigational `Open` / `Review` aksiyonlarıyla daha uygulanabilir hale getirildi.
   - Unassigned owner, Awaiting advisor, Evidence missing, Review overdue, Vendor documentation missing ve Open obligations require owner sinyalleri mevcut kayıtlardan türetilir.
   - Backend workflow persistence, notification ve audit event üretimi bu adımda eklenmedi; derived signal honesty korunur.
+- **Organization Settings Form Governance (Step 11) - DONE**
+  - Organization App genel ayarlarında timezone, ülke, para birimi ve desteklenen dil alanları kontrollü inputlarla yönetilir.
+  - Governed settings için ham serbest metin ve teknik payload gösterimi kullanılmaz; mevcut özel değerler güvenli `Custom` seçeneğiyle korunur.
+  - Telefon ve e-posta alanları semantik input tipleri kullanır; kayıt sırasında telefon, e-posta ve posta kodu değerleri trimlenir.
+  - Backend schema ve store settings payload kontratı değiştirilmedi.
 - **Multi-product seed structure (platform demo baseline) - DONE**
   - Seed tenant seti AI Act focused, Loyalty focused, Mixed ve Advisor senaryolarini module activation + membership-first doctrine ile temsil eder.
 - **Platform Console UX Refactor (Step 2) - DONE**

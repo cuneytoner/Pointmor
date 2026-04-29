@@ -34,6 +34,27 @@ const LANGUAGE_OPTIONS = [
 
 const CURRENCY_OPTIONS = ["EUR", "USD", "GBP", "TRY"] as const;
 
+const TIMEZONE_OPTIONS = [
+  { value: "UTC", label: "UTC" },
+  { value: "Europe/Istanbul", label: "Istanbul (Europe/Istanbul)" },
+  { value: "Europe/Berlin", label: "Berlin (Europe/Berlin)" },
+  { value: "Europe/London", label: "London (Europe/London)" },
+  { value: "Europe/Paris", label: "Paris (Europe/Paris)" },
+  { value: "America/New_York", label: "New York (America/New_York)" },
+  { value: "America/Los_Angeles", label: "Los Angeles (America/Los_Angeles)" },
+] as const;
+
+const COUNTRY_OPTIONS = [
+  { value: "Türkiye", label: "Türkiye" },
+  { value: "Germany", label: "Germany" },
+  { value: "United Kingdom", label: "United Kingdom" },
+  { value: "United States", label: "United States" },
+  { value: "France", label: "France" },
+  { value: "Spain", label: "Spain" },
+  { value: "Italy", label: "Italy" },
+  { value: "Netherlands", label: "Netherlands" },
+] as const;
+
 type AddressDraft = {
   line1: string;
   line2: string;
@@ -191,8 +212,8 @@ function buildStoreSettingsPayload(form: StoreSettingsDto, addressDraft: Address
     currency: form.currency,
     timezone: form.timezone,
     address: addressDraftToPayload(addressDraft),
-    contactPhone: form.contactPhone,
-    contactEmail: form.contactEmail,
+    contactPhone: form.contactPhone?.trim() || null,
+    contactEmail: form.contactEmail?.trim() || null,
     loyaltyPublicEnabled: form.loyaltyPublicEnabled,
     menuPublicEnabled: form.menuPublicEnabled,
   };
@@ -242,6 +263,12 @@ function clearGeneralDraft(slug: string): void {
   } catch {
     /* ignore */
   }
+}
+
+function isValidEmail(value: string | null | undefined): boolean {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed) return true;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
 }
 
 export type TenantSettingsPageProps = {
@@ -373,6 +400,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
     form ? stableJson(buildStoreSettingsPayload(form, addressDraft)) : "";
   const hasUnsavedGeneralSettings =
     Boolean(form && savedGeneralSnapshot && currentGeneralSnapshot !== savedGeneralSnapshot);
+  const contactEmailInvalid = Boolean(form && !isValidEmail(form.contactEmail));
 
   useEffect(() => {
     if (hasUnsavedGeneralSettings && generalSaveMessage) {
@@ -540,12 +568,23 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                   </SelectField>
                 </FormField>
                 <FormField id="ts-tz" label={t("tenantSettings.store.timezone")}>
-                  <TextField
+                  <SelectField
                     id="ts-tz"
                     value={form.timezone}
                     onChange={(e) => setForm((f) => (f ? { ...f, timezone: e.target.value } : f))}
-                    autoComplete="off"
-                  />
+                  >
+                    {form.timezone &&
+                    !TIMEZONE_OPTIONS.some((option) => option.value === form.timezone) ? (
+                      <option value={form.timezone}>
+                        {`${t("tenantSettings.store.customOption")}: ${form.timezone}`}
+                      </option>
+                    ) : null}
+                    {TIMEZONE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </SelectField>
                 </FormField>
                 <FormField
                   id="ts-supported"
@@ -606,17 +645,25 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                 <FormField id="ts-phone" label={t("tenantSettings.store.contactPhone")}>
                   <TextField
                     id="ts-phone"
+                    type="tel"
                     value={form.contactPhone ?? ""}
                     onChange={(e) => setForm((f) => (f ? { ...f, contactPhone: e.target.value || null } : f))}
+                    placeholder={t("tenantSettings.store.phonePlaceholder")}
                     autoComplete="tel"
                   />
                 </FormField>
-                <FormField id="ts-email" label={t("tenantSettings.store.contactEmail")}>
+                <FormField
+                  id="ts-email"
+                  label={t("tenantSettings.store.contactEmail")}
+                  error={contactEmailInvalid ? t("tenantSettings.store.emailInvalid") : undefined}
+                >
                   <TextField
                     id="ts-email"
                     type="email"
                     value={form.contactEmail ?? ""}
                     onChange={(e) => setForm((f) => (f ? { ...f, contactEmail: e.target.value || null } : f))}
+                    placeholder={t("tenantSettings.store.emailPlaceholder")}
+                    aria-invalid={contactEmailInvalid}
                     autoComplete="email"
                   />
                 </FormField>
@@ -676,14 +723,26 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                   />
                 </FormField>
                 <FormField id="ts-address-country" label={t("tenantSettings.store.addressCountry")}>
-                  <TextField
+                  <SelectField
                     id="ts-address-country"
                     value={addressDraft.country}
                     onChange={(e) =>
                       setAddressDraft((draft) => ({ ...draft, country: e.target.value }))
                     }
-                    autoComplete="country-name"
-                  />
+                  >
+                    {addressDraft.country &&
+                    !COUNTRY_OPTIONS.some((option) => option.value === addressDraft.country) ? (
+                      <option value={addressDraft.country}>
+                        {`${t("tenantSettings.store.customOption")}: ${addressDraft.country}`}
+                      </option>
+                    ) : null}
+                    <option value="">{t("tenantSettings.store.countryEmptyOption")}</option>
+                    {COUNTRY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </SelectField>
                 </FormField>
               </FormFieldGrid>
             </div>
