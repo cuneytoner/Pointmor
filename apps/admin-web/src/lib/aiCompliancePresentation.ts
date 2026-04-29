@@ -248,7 +248,7 @@ export function derivePriorityScore(row: AiComplianceSystemDto): number {
   return Math.min(100, riskWeight + overdue * 8 + staleWeight + reviewWeight + openObligationsWeight);
 }
 
-export function derivePriorityReasons(row: AiComplianceSystemDto): string[] {
+export function derivePriorityReasons(row: AiComplianceSystemDto, users: UserDto[] = []): string[] {
   const reasons: string[] = [];
   const riskLabel = presentRiskLabel(row.currentAssessment?.riskLevel ?? null);
   if (riskLabel === "High") reasons.push("High risk assessment");
@@ -266,7 +266,7 @@ export function derivePriorityReasons(row: AiComplianceSystemDto): string[] {
   const reviewStatus = deriveReviewStatus(row);
   if (reviewStatus === "Escalated") reasons.push("Escalated review");
   else if (reviewStatus === "Under Review" || reviewStatus === "Submitted") {
-    reasons.push("Advisor review waiting");
+    reasons.push(hasAdvisorOrReviewer(row, users) ? "Advisor review waiting" : "Review waiting");
   } else if (reviewStatus === "Draft") {
     reasons.push("Assessment in draft");
   } else if (reviewStatus === "Approved") {
@@ -282,8 +282,8 @@ export function derivePriorityReasons(row: AiComplianceSystemDto): string[] {
   return reasons;
 }
 
-export function formatPriorityReasons(row: AiComplianceSystemDto): string {
-  return derivePriorityReasons(row).join("; ");
+export function formatPriorityReasons(row: AiComplianceSystemDto, users: UserDto[] = []): string {
+  return derivePriorityReasons(row, users).join("; ");
 }
 
 export function deriveOperationalFriction(
@@ -346,7 +346,7 @@ export function buildTodayActionQueue(
           actionLabel: "Review",
           suggestedNextAction: "Assign an owner and request updated evidence.",
           priorityScore,
-          priorityReasons: derivePriorityReasons(system),
+          priorityReasons: derivePriorityReasons(system, users),
           targetRoute,
           slaState,
         });
@@ -368,7 +368,7 @@ export function buildTodayActionQueue(
         actionLabel: "Review",
         suggestedNextAction: "Review the assessment outcome and confirm mitigation ownership.",
         priorityScore,
-        priorityReasons: derivePriorityReasons(system),
+        priorityReasons: derivePriorityReasons(system, users),
         targetRoute,
         slaState,
       });
@@ -392,7 +392,7 @@ export function buildTodayActionQueue(
         actionLabel: "Open",
         suggestedNextAction: "Request current policy, vendor, or control evidence from the owner.",
         priorityScore,
-        priorityReasons: derivePriorityReasons(system),
+        priorityReasons: derivePriorityReasons(system, users),
         targetRoute,
         slaState,
       });
@@ -415,7 +415,7 @@ export function buildTodayActionQueue(
         actionLabel: "Review",
         suggestedNextAction: "Ask the client owner to complete the assessment.",
         priorityScore,
-        priorityReasons: derivePriorityReasons(system),
+        priorityReasons: derivePriorityReasons(system, users),
         targetRoute,
         slaState,
       });
@@ -436,7 +436,7 @@ export function buildTodayActionQueue(
         actionLabel: "Review",
         suggestedNextAction: "Confirm the advisor review owner and next response date.",
         priorityScore,
-        priorityReasons: derivePriorityReasons(system),
+        priorityReasons: derivePriorityReasons(system, users),
         targetRoute,
         slaState,
       });
@@ -450,14 +450,14 @@ export function buildTodayActionQueue(
         organization: system.tenant.name,
         system: system.name,
         severity: "risk",
-        reason: derivePriorityReasons(system).join("; "),
+        reason: derivePriorityReasons(system, users).join("; "),
         primaryAction: "Review system",
         secondaryContext: deriveOperationalFriction(system, users).join("; ") || "High operational priority",
         actionCategory: "Priority triage",
         actionLabel: "Open",
         suggestedNextAction: "Triage this system before lower-priority registry work.",
         priorityScore,
-        priorityReasons: derivePriorityReasons(system),
+        priorityReasons: derivePriorityReasons(system, users),
         targetRoute,
         slaState,
       });
@@ -800,6 +800,11 @@ function deriveSystemPeople(system: AiComplianceSystemDto, users: UserDto[]): {
     complianceOwner: owner ? owner.name || owner.email : null,
     advisorReviewer: advisor ? advisor.name || advisor.email : null,
   };
+}
+
+function hasAdvisorOrReviewer(system: AiComplianceSystemDto, users: UserDto[]): boolean {
+  if (system.tasks.some((task) => Boolean(task.assignedTo))) return true;
+  return Boolean(deriveSystemPeople(system, users).advisorReviewer);
 }
 
 function displayActor(actor: { name: string | null; email: string } | null | undefined): string | null {
