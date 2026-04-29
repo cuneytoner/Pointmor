@@ -1,21 +1,21 @@
 import { Link, Navigate, useParams } from "react-router-dom";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
-import {
-  PlatformActivityTimeline,
-  type PlatformActivityItem,
-} from "../components/PlatformActivityTimeline";
+import { PlatformActivityTimeline } from "../components/PlatformActivityTimeline";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import {
+  buildSystemTimeline,
   deriveEvidenceFreshness,
   deriveLifecycleStage,
-  deriveOpenObligationCount,
   derivePriorityScore,
   deriveReviewStatus,
+  deriveSlaState,
   deriveSystemCategory,
   deriveSystemHealth,
   presentEvidenceFreshnessTone,
   presentRiskLabel,
+  presentSlaReason,
+  presentSlaTone,
 } from "../lib/aiCompliancePresentation";
 import {
   deriveObligationWorkflowState,
@@ -46,93 +46,9 @@ export function AiComplianceSystemDetailPage() {
   const evidenceFreshness = deriveEvidenceFreshness(system);
   const priorityScore = derivePriorityScore(system);
   const reviewStatus = deriveReviewStatus(system);
-  const openObligations = deriveOpenObligationCount(system);
+  const slaState = deriveSlaState(system);
   const now = Date.now();
-
-  const timelineItems: PlatformActivityItem[] = [
-    {
-      id: `${system.id}-assessment-submitted`,
-      title: "Assessment submitted",
-      when: system.currentAssessment
-        ? new Date(system.currentAssessment.updatedAt).toLocaleDateString()
-        : "Awaiting first assessment",
-      type: "compliance",
-      aging: "Assessment SLA",
-      chain: "Review Chain",
-      severity: system.currentAssessment ? "info" : "warning",
-      organization: system.tenant.name,
-    },
-    {
-      id: `${system.id}-review`,
-      title: "Review completed",
-      when: reviewStatus,
-      type: "compliance",
-      aging: "Current",
-      chain: "Review Chain",
-      severity: reviewStatus === "Escalated" ? "escalation" : "success",
-      organization: system.tenant.name,
-    },
-    {
-      id: `${system.id}-obligations`,
-      title: "Obligations generated",
-      when: `${openObligations} open obligations`,
-      type: "compliance",
-      aging: "Obligation window",
-      chain: "Obligation Chain",
-      severity: openObligations > 0 ? "warning" : "success",
-      organization: system.tenant.name,
-    },
-    {
-      id: `${system.id}-evidence`,
-      title: "Evidence uploaded",
-      when: `${system.evidencesCount} evidence items`,
-      type: "compliance",
-      aging: "Evidence window",
-      chain: "Evidence Chain",
-      severity: system.evidencesCount === 0 ? "overdue" : "info",
-      organization: system.tenant.name,
-    },
-    {
-      id: `${system.id}-policy`,
-      title: "Policy updated",
-      when: new Date(system.updatedAt).toLocaleDateString(),
-      type: "onboarding",
-      aging: "Policy cycle",
-      chain: "Policy Chain",
-      severity: "info",
-      organization: system.tenant.name,
-    },
-    {
-      id: `${system.id}-review-reassigned`,
-      title: "Review reassigned",
-      when: advisorReviewer ? `Advisor: ${advisorReviewer.name}` : "Reviewer pending",
-      type: "advisor",
-      aging: "Current",
-      chain: "Advisor Chain",
-      severity: advisorReviewer ? "info" : "warning",
-      organization: system.tenant.name,
-    },
-    {
-      id: `${system.id}-evidence-expired`,
-      title: "Evidence expired",
-      when: evidenceFreshness,
-      type: "compliance",
-      aging: "Evidence freshness",
-      chain: "Evidence Chain",
-      severity: evidenceFreshness === "Critical" ? "overdue" : evidenceFreshness === "Stale" ? "risk" : "info",
-      organization: system.tenant.name,
-    },
-    {
-      id: `${system.id}-overdue-reminder`,
-      title: "Overdue reminder generated",
-      when: `${system.obligations.length} obligations tracked`,
-      type: "compliance",
-      aging: "14d+",
-      chain: "Obligation Chain",
-      severity: openObligations > 0 ? "warning" : "success",
-      organization: system.tenant.name,
-    },
-  ];
+  const timelineItems = buildSystemTimeline(system, bootstrap?.users ?? []);
 
   return (
     <PageShell
@@ -151,18 +67,20 @@ export function AiComplianceSystemDetailPage() {
             {`Evidence: ${evidenceFreshness}`}
           </Badge>
           <Badge tone={priorityScore >= 70 ? "danger" : "info"}>{`Priority: ${priorityScore}`}</Badge>
+          <Badge tone={presentSlaTone(slaState)}>{`SLA: ${slaState}`}</Badge>
         </div>
         <p className="admin-app__card-text">{`Organization: ${system.tenant.name}`}</p>
         <p className="admin-app__card-text">{`Owner: ${complianceOwner?.name ?? system.createdBy?.name ?? "Unassigned"}`}</p>
         <p className="admin-app__card-text">{`Advisor reviewer: ${advisorReviewer?.name ?? "Not assigned"}`}</p>
         <p className="admin-app__card-text">{`Last operator: ${lastOperator?.name ?? lastOperator?.email ?? "Unknown"}`}</p>
         <p className="admin-app__card-text">{`Review summary: ${reviewStatus}`}</p>
+        <p className="admin-app__card-text">{`SLA reason: ${presentSlaReason(system)}`}</p>
       </div>
 
       <PlatformActivityTimeline
         title="Assessment timeline"
         items={timelineItems}
-        emptyText="No compliance events yet."
+        emptyText="No assessment, obligation, evidence, or advisor signals yet."
       />
 
       <div className="admin-app__card admin-app__card--wide">
@@ -242,4 +160,3 @@ export function AiComplianceSystemDetailPage() {
     </PageShell>
   );
 }
-

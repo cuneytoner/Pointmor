@@ -7,10 +7,13 @@ import {
   deriveOpenObligationCount,
   derivePriorityScore,
   deriveReviewStatus,
+  deriveSlaState,
   deriveSystemCategory,
   deriveSystemHealth,
   presentEvidenceFreshnessTone,
   presentRiskLabel,
+  presentSlaReason,
+  presentSlaTone,
 } from "../lib/aiCompliancePresentation";
 import { presentHealthTone } from "../lib/platformPresentation";
 
@@ -38,6 +41,7 @@ export function AiComplianceSystemsPage() {
                 <th>Last assessment</th>
                 <th>Owner</th>
                 <th>Evidence freshness</th>
+                <th>SLA state</th>
                 <th>Priority</th>
                 <th>Health</th>
               </tr>
@@ -68,6 +72,11 @@ export function AiComplianceSystemsPage() {
                         {deriveEvidenceFreshness(system)}
                       </Badge>
                     </td>
+                    <td title={presentSlaReason(system)}>
+                      <Badge tone={presentSlaTone(deriveSlaState(system))}>
+                        {deriveSlaState(system)}
+                      </Badge>
+                    </td>
                     <td>
                       <Badge tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}>
                         {derivePriorityScore(system)}
@@ -89,4 +98,3 @@ export function AiComplianceSystemsPage() {
     </PageShell>
   );
 }
-

@@ -75,6 +75,16 @@ Güvenlik:
 - AI output suggestion'dır; legal conclusion değildir
 - `ai_act.export` izni bu MVP fazında yalnızca reserve edilir; export endpoint'i henüz yoktur.
 
+## Operational realism layer (Step 8)
+
+AI Compliance platform yüzeyleri, geniş backend rewrite veya workflow engine eklemeden operasyonel görünürlüğü artırır:
+
+- **Today's Action Queue:** overdue obligations, escalated assessments, stale/critical evidence, blocked reviews, advisor waiting items ve high-priority AI systems mevcut bootstrap/moduleOperations kayıtlarından türetilir.
+- **Provenance-aware timeline:** event satırları actor, source, timestamp, related object, severity ve event reason gösterir.
+- **Derived signal ayrımı:** Persisted audit/event kaydı olmayan satırlar `Derived signal` olarak etiketlenir; gerçek audit provenance ima edilmez.
+- **SLA/aging presentation:** On track, Due soon, Overdue, Blocked ve Stale evidence durumları command center, systems registry, system detail ve Organization Detail AI Compliance özetinde gösterilir.
+- **Boundary:** Bu yüzeyler yalnızca `ai_act` module aktivasyonu ve mevcut platform/admin erişim bağlamı içinde görünür; loyalty-only organizasyonlara AI Compliance widget'ı sızdırılmaz.
+
 Questionnaire keys (v1, 10 soru):
 
 Bu key seti için tek kaynak `apps/api/src/lib/ai-act-assessment.ts` dosyasındaki `AI_ACT_QUESTION_KEYS` tanımıdır; legacy key setleri kullanılmaz.

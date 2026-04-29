@@ -16,6 +16,10 @@ export type PlatformActivityItem = {
   organization?: string;
   chain?: string;
   aging?: string;
+  actor?: string;
+  source?: string;
+  relatedObject?: string;
+  reason?: string;
 };
 
 export function PlatformActivityTimeline({
@@ -45,8 +49,11 @@ export function PlatformActivityTimeline({
                   <th>Event</th>
                   <th>Organization</th>
                   <th>When</th>
+                  <th>Actor</th>
+                  <th>Source</th>
+                  <th>Related object</th>
+                  <th>Reason</th>
                   <th>Aging</th>
-                  <th>Chain</th>
                   <th>Severity</th>
                 </tr>
               </thead>
@@ -54,10 +61,13 @@ export function PlatformActivityTimeline({
                 {group.items.map((item) => (
                   <tr key={item.id}>
                     <td>{item.title}</td>
-                    <td>{item.organization ?? "—"}</td>
+                    <td>{item.organization ?? "-"}</td>
                     <td className="data-table__muted">{item.when}</td>
-                    <td className="data-table__muted">{item.aging ?? "—"}</td>
-                    <td className="data-table__muted">{item.chain ?? "—"}</td>
+                    <td className="data-table__muted">{item.actor ?? "-"}</td>
+                    <td className="data-table__muted">{item.source ?? item.chain ?? "-"}</td>
+                    <td className="data-table__muted">{item.relatedObject ?? "-"}</td>
+                    <td className="data-table__muted">{item.reason ?? "-"}</td>
+                    <td className="data-table__muted">{item.aging ?? "-"}</td>
                     <td>
                       <Badge tone={presentActivitySeverityTone(item.severity)}>
                         {`${presentActivitySeverityIcon(item.severity)} ${presentActivitySeverityLabel(
@@ -103,4 +113,3 @@ function groupByType(items: PlatformActivityItem[]): Array<{
     items: groupItems,
   }));
 }
-

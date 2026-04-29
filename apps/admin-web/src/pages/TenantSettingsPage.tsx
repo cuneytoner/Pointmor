@@ -2,12 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "../hooks/useTranslation";
 import { PageShell } from "../components/PageShell";
+import { Badge } from "../components/ui/Badge";
 import {
   FORM_CONTROL_CLASS,
   FORM_FIELD_GRID_FULL_CLASS,
   FormField,
   FormFieldGrid,
   FormSection,
+  SelectField,
   TextAreaField,
   TextField,
 } from "../components/form";
@@ -23,6 +25,15 @@ import {
   type TenantRetentionSettingsDto,
 } from "../lib/tenant-retention-api";
 import { canAccessLoyaltySurface } from "../lib/tenant-module-access";
+
+const LANGUAGE_OPTIONS = [
+  { value: "en", label: "English" },
+  { value: "tr", label: "Türkçe" },
+  { value: "es", label: "Español" },
+  { value: "de", label: "Deutsch" },
+] as const;
+
+const CURRENCY_OPTIONS = ["EUR", "USD", "GBP", "TRY"] as const;
 
 function RetentionDaysControl(props: {
   limit: RetentionFieldLimit;
@@ -67,6 +78,17 @@ function RetentionDaysControl(props: {
       }}
     />
   );
+}
+
+function orderSupportedLanguages(values: string[]): string[] {
+  const normalized = new Set(values.map((value) => value.trim().toLowerCase()).filter(Boolean));
+  const ordered = LANGUAGE_OPTIONS.map((option) => option.value).filter((value) =>
+    normalized.has(value),
+  );
+  const custom = Array.from(normalized).filter(
+    (value) => !LANGUAGE_OPTIONS.some((option) => option.value === value),
+  );
+  return [...ordered, ...custom];
 }
 
 function addressToText(a: unknown): string {
@@ -301,22 +323,49 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
             >
             <div className="loyalty-form-stack loyalty-form-stack--relaxed tenant-store-form">
               <FormFieldGrid>
-                <FormField id="ts-lang" label={t("tenantSettings.store.defaultLanguage")}>
-                  <TextField
+                <FormField
+                  id="ts-lang"
+                  label={t("tenantSettings.store.defaultLanguage")}
+                  hint={t("tenantSettings.store.defaultLanguageHint")}
+                >
+                  <SelectField
                     id="ts-lang"
                     value={form.defaultLanguage}
                     onChange={(e) => setForm((f) => (f ? { ...f, defaultLanguage: e.target.value } : f))}
-                    autoComplete="off"
-                  />
+                  >
+                    {LANGUAGE_OPTIONS.some((option) => option.value === form.defaultLanguage) ? null : (
+                      <option value={form.defaultLanguage}>
+                        {`${form.defaultLanguage} (${t("tenantSettings.store.unsupportedOption")})`}
+                      </option>
+                    )}
+                    {LANGUAGE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {`${option.value} — ${option.label}`}
+                      </option>
+                    ))}
+                  </SelectField>
                 </FormField>
-                <FormField id="ts-currency" label={t("tenantSettings.store.currency")}>
-                  <TextField
+                <FormField
+                  id="ts-currency"
+                  label={t("tenantSettings.store.currency")}
+                  hint={t("tenantSettings.store.currencyHint")}
+                >
+                  <SelectField
                     id="ts-currency"
-                    maxLength={3}
                     value={form.currency}
                     onChange={(e) => setForm((f) => (f ? { ...f, currency: e.target.value } : f))}
-                    autoComplete="off"
-                  />
+                  >
+                    {CURRENCY_OPTIONS.some((code) => code === form.currency) ? null : (
+                      <option value={form.currency}>
+                        {`${form.currency} (${t("tenantSettings.store.unsupportedOption")})`}
+                      </option>
+                    )}
+                    {CURRENCY_OPTIONS.map((code) => (
+                      <option key={code} value={code}>
+                        {code}
+                      </option>
+                    ))}
+                  </SelectField>
                 </FormField>
                 <FormField id="ts-tz" label={t("tenantSettings.store.timezone")}>
                   <TextField
@@ -347,25 +396,49 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
                   id="ts-supported"
                   className={FORM_FIELD_GRID_FULL_CLASS}
                   label={t("tenantSettings.store.supportedLanguages")}
+                  hint={t("tenantSettings.store.supportedLanguagesHint")}
                 >
-                  <TextField
-                    id="ts-supported"
-                    value={form.supportedLanguages.join(",")}
-                    onChange={(e) =>
-                      setForm((f) =>
-                        f
-                          ? {
-                              ...f,
-                              supportedLanguages: e.target.value
-                                .split(",")
-                                .map((s) => s.trim().toLowerCase())
-                                .filter(Boolean),
-                            }
-                          : f,
+                  <div id="ts-supported" className="chip-row" role="group">
+                    {LANGUAGE_OPTIONS.map((option) => {
+                      const checked = form.supportedLanguages.includes(option.value);
+                      const disabled = checked && form.supportedLanguages.length <= 1;
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          className={checked ? "admin-primary-btn" : "admin-secondary-btn"}
+                          aria-pressed={checked}
+                          disabled={disabled}
+                          onClick={() =>
+                            setForm((f) => {
+                              if (!f) return f;
+                              const current = f.supportedLanguages;
+                              const next = checked
+                                ? current.filter((value) => value !== option.value)
+                                : [...current, option.value];
+                              return {
+                                ...f,
+                                supportedLanguages: orderSupportedLanguages(
+                                  next.length > 0 ? next : current,
+                                ),
+                              };
+                            })
+                          }
+                        >
+                          {`${option.value} — ${option.label}`}
+                        </button>
+                      );
+                    })}
+                    {form.supportedLanguages
+                      .filter(
+                        (value) => !LANGUAGE_OPTIONS.some((option) => option.value === value),
                       )
-                    }
-                    autoComplete="off"
-                  />
+                      .map((value) => (
+                        <Badge key={value} tone="warning">
+                          {`${value} (${t("tenantSettings.store.unsupportedOption")})`}
+                        </Badge>
+                      ))}
+                  </div>
                 </FormField>
                 <FormField
                   id="ts-address"

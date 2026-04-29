@@ -47,6 +47,11 @@ Bu planın güncel odağı, teslim edilmiş temel teknik kabiliyetler üzerinde 
   - Versioned assessment ve sistem başına tek `current` kuralı uygulanır.
 - **AI Act MVP UI (end-to-end flow) - DONE**
   - AI system listesi, yeni sistem oluşturma, assessment, risk sonucu, obligations/tasks yüzeyleri çalışır durumda ve backend kontratıyla hizalıdır.
+- **AI Act Operational Realism Layer (Step 8) - DONE**
+  - Command center içine Today's Action Queue eklendi.
+  - Timeline satırları actor, source, timestamp, related object, severity ve event reason gösterir.
+  - SLA/aging durumları AI Compliance command center, systems registry, system detail ve Organization Detail AI Compliance özetinde görünür.
+  - Persisted audit kaydı olmayan satırlar derived signal olarak etiketlenir; gerçek audit provenance ima edilmez.
 - **Multi-product seed structure (platform demo baseline) - DONE**
   - Seed tenant seti AI Act focused, Loyalty focused, Mixed ve Advisor senaryolarini module activation + membership-first doctrine ile temsil eder.
 - **Platform Console UX Refactor (Step 2) - DONE**
@@ -299,6 +304,7 @@ MVP kapsamı:
 - Obligations & Tasks UX improvement (prioritization + clarity)
 - i18n polish (Turkish-first cleanup)
 - AI Act result explanation improvements
+- Persistent audit/event source model for AI Compliance operational timelines
 
 ---
 

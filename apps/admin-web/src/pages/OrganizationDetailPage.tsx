@@ -13,7 +13,9 @@ import {
   deriveEvidenceFreshness,
   deriveOrganizationRiskTrend,
   derivePriorityScore,
+  deriveSlaState,
   presentTrendTone,
+  presentSlaTone,
 } from "../lib/aiCompliancePresentation";
 import {
   deriveOnboardingStage,
@@ -110,30 +112,40 @@ export function OrganizationDetailPage() {
       severity: subscription ? "info" : "warning",
       organization: organization.name,
     },
-    {
-      id: `${organization.id}-ai`,
-      title: activeModules.has("ai_act")
-        ? "Compliance queue actively monitored"
-        : "Compliance module currently inactive",
-      when: "Current cycle",
-      type: "compliance",
-      severity: activeModules.has("ai_act") ? "success" : "warning",
-      organization: organization.name,
-    },
-    {
-      id: `${organization.id}-ops`,
-      title: activeModules.has("cafe")
-        ? "Loyalty campaigns are in operational scope"
-        : "Loyalty not enabled for this organization",
-      when: "Current cycle",
-      type: "loyalty",
-      severity: activeModules.has("cafe") ? "info" : "warning",
-      organization: organization.name,
-    },
+    ...(activeModules.has("ai_act")
+      ? [
+          {
+            id: `${organization.id}-ai`,
+            title: "AI Compliance queue monitored",
+            when: "Current cycle",
+            type: "compliance" as const,
+            severity: "success" as const,
+            organization: organization.name,
+            source: "Module activation",
+            relatedObject: "ai_act",
+            reason: "AI Compliance module is active for this organization.",
+          },
+        ]
+      : []),
+    ...(activeModules.has("cafe")
+      ? [
+          {
+            id: `${organization.id}-ops`,
+            title: "Loyalty campaigns are in operational scope",
+            when: "Current cycle",
+            type: "loyalty" as const,
+            severity: "info" as const,
+            organization: organization.name,
+          },
+        ]
+      : []),
   ];
-  const aiSystems = (bootstrap?.moduleOperations.aiCompliance.systems ?? []).filter(
-    (row) => row.tenant.id === organization.id,
-  );
+  const hasAiCompliance = activeModules.has("ai_act");
+  const aiSystems = hasAiCompliance
+    ? (bootstrap?.moduleOperations.aiCompliance.systems ?? []).filter(
+        (row) => row.tenant.id === organization.id,
+      )
+    : [];
   const aiOpenObligations = aiSystems.reduce(
     (sum, row) => sum + row.obligations.filter((o) => o.status === "PENDING" || o.status === "IN_PROGRESS").length,
     0,
@@ -284,33 +296,61 @@ export function OrganizationDetailPage() {
         emptyText="No recent operational events."
       />
 
-      <div className="admin-app__card admin-app__card--wide">
-        <p className="admin-app__card-title">Compliance/activity highlights</p>
-        <div className="chip-row">
-          <Badge tone={productLabels.includes("AI Compliance") ? "success" : "neutral"}>
-            {productLabels.includes("AI Compliance")
-              ? "AI Compliance coverage active"
-              : "AI Compliance coverage unavailable"}
-          </Badge>
-          <Badge tone={productLabels.includes("Document Intelligence") ? "info" : "neutral"}>
-            {productLabels.includes("Document Intelligence")
-              ? "Document Intelligence connected"
-              : "Document Intelligence not enabled"}
-          </Badge>
-          <Badge tone={highPressureSystems > 0 ? "danger" : "success"}>
-            {`Operational pressure: ${highPressureSystems > 0 ? `${highPressureSystems} high-priority systems` : "Balanced"}`}
-          </Badge>
-          <Badge tone={staleEvidenceSystems > 0 ? "warning" : "success"}>
-            {`Evidence freshness: ${staleEvidenceSystems > 0 ? `${staleEvidenceSystems} stale systems` : "Fresh"}`}
-          </Badge>
-          <Badge tone={reviewVelocity === "Low" ? "warning" : reviewVelocity === "Medium" ? "info" : "success"}>
-            {`Review velocity: ${reviewVelocity}`}
-          </Badge>
-          <Badge tone={complianceMaturity === "Needs Stabilization" ? "warning" : "info"}>
-            {`Compliance maturity: ${complianceMaturity}`}
-          </Badge>
+      {hasAiCompliance ? (
+        <div className="admin-app__card admin-app__card--wide">
+          <p className="admin-app__card-title">AI Compliance summary</p>
+          <div className="chip-row">
+            <Badge tone="success">AI Compliance coverage active</Badge>
+            <Badge tone={productLabels.includes("Document Intelligence") ? "info" : "neutral"}>
+              {productLabels.includes("Document Intelligence")
+                ? "Document Intelligence connected"
+                : "Document Intelligence not enabled"}
+            </Badge>
+            <Badge tone={highPressureSystems > 0 ? "danger" : "success"}>
+              {`Operational pressure: ${highPressureSystems > 0 ? `${highPressureSystems} high-priority systems` : "Balanced"}`}
+            </Badge>
+            <Badge tone={staleEvidenceSystems > 0 ? "warning" : "success"}>
+              {`Evidence freshness: ${staleEvidenceSystems > 0 ? `${staleEvidenceSystems} stale systems` : "Fresh"}`}
+            </Badge>
+            <Badge tone={reviewVelocity === "Low" ? "warning" : reviewVelocity === "Medium" ? "info" : "success"}>
+              {`Review velocity: ${reviewVelocity}`}
+            </Badge>
+            <Badge tone={complianceMaturity === "Needs Stabilization" ? "warning" : "info"}>
+              {`Compliance maturity: ${complianceMaturity}`}
+            </Badge>
+          </div>
+          {aiSystems.length > 0 ? (
+            <div className="table-wrap" style={{ marginTop: 12 }}>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>AI system</th>
+                    <th>SLA state</th>
+                    <th>Priority</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aiSystems.slice(0, 4).map((system) => (
+                    <tr key={system.id}>
+                      <td>{system.name}</td>
+                      <td>
+                        <Badge tone={presentSlaTone(deriveSlaState(system))}>
+                          {deriveSlaState(system)}
+                        </Badge>
+                      </td>
+                      <td>{derivePriorityScore(system)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="admin-app__card-text data-table__muted">
+              AI Compliance is enabled, but no AI systems are registered yet.
+            </p>
+          )}
         </div>
-      </div>
+      ) : null}
 
       <Link to="/platform/organizations" className="admin-secondary-btn">
         {t("organizationDetail.backToOrganizations")}

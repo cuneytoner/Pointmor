@@ -8,13 +8,18 @@ import {
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import {
   buildReviewQueueIntelligence,
+  buildOperationsTimeline,
+  buildTodayActionQueue,
   deriveAdvisorWorkload,
   deriveEvidenceFreshness,
   derivePriorityScore,
   deriveReviewStatus,
+  deriveSlaState,
+  presentSlaTone,
 } from "../lib/aiCompliancePresentation";
 import {
   type ActivitySeverity,
+  presentActivitySeverityLabel,
   presentActivitySeverityTone,
 } from "../lib/platformPresentation";
 
@@ -24,6 +29,11 @@ export function AiComplianceOperationsPage() {
   const systems = aiOps?.systems ?? [];
   const reviewQueue = buildReviewQueueIntelligence(systems);
   const advisorWorkload = deriveAdvisorWorkload(systems, bootstrap?.users ?? []);
+  const todayActionQueue = buildTodayActionQueue(systems, bootstrap?.users ?? []);
+  const timelineItems: PlatformActivityItem[] = buildOperationsTimeline(
+    systems,
+    bootstrap?.users ?? [],
+  );
   const topPrioritySystems = [...systems]
     .sort((a, b) => derivePriorityScore(b) - derivePriorityScore(a))
     .slice(0, 5);
@@ -39,102 +49,6 @@ export function AiComplianceOperationsPage() {
     return freshness === "Stale" || freshness === "Critical";
   });
 
-  const timelineItems: PlatformActivityItem[] = [
-    {
-      id: "ops-review",
-      title: "Systems needing review monitored",
-      when: `${aiOps?.systemsNeedingReview ?? 0} systems`,
-      aging: "Queue cycle",
-      chain: "Review Queue",
-      type: "compliance",
-      severity: (aiOps?.systemsNeedingReview ?? 0) > 0 ? "warning" : "success",
-    },
-    {
-      id: "ops-overdue",
-      title: "Overdue obligations detected",
-      when: `${aiOps?.overdueObligations ?? 0} overdue`,
-      aging: "14d+",
-      chain: "Obligation Chain",
-      type: "compliance",
-      severity: (aiOps?.overdueObligations ?? 0) > 0 ? "overdue" : "success",
-    },
-    {
-      id: "ops-escalated",
-      title: "Escalated assessments triaged",
-      when: `${aiOps?.escalatedAssessments ?? 0} escalated`,
-      aging: "7d+",
-      chain: "Escalation Chain",
-      type: "compliance",
-      severity: (aiOps?.escalatedAssessments ?? 0) > 0 ? "escalation" : "info",
-    },
-    {
-      id: "ops-advisor",
-      title: "Advisor workload synchronized",
-      when: `${aiOps?.advisorWorkload ?? 0} open actions`,
-      aging: "Current",
-      chain: "Advisor Chain",
-      type: "advisor",
-      severity: (aiOps?.advisorWorkload ?? 0) > 0 ? "warning" : "info",
-    },
-    {
-      id: "ops-evidence",
-      title: "Evidence backlog checkpoint",
-      when: `${aiOps?.evidenceBacklog ?? 0} evidence records`,
-      aging: "Evidence window",
-      chain: "Evidence Chain",
-      type: "compliance",
-      severity: (aiOps?.evidenceBacklog ?? 0) === 0 ? "risk" : "info",
-    },
-    {
-      id: "ops-reassign",
-      title: "Review reassigned",
-      when: `${reviewQueue.find((q) => q.key === "advisor_blocked")?.count ?? 0} blocked systems`,
-      aging: "Current",
-      chain: "Advisor Chain",
-      type: "advisor",
-      severity: (reviewQueue.find((q) => q.key === "advisor_blocked")?.count ?? 0) > 0 ? "warning" : "info",
-    },
-    {
-      id: "ops-evidence-expired",
-      title: "Evidence expired",
-      when: `${expiringEvidence.length} stale systems`,
-      aging: "30d+",
-      chain: "Evidence Chain",
-      type: "compliance",
-      severity: expiringEvidence.length > 0 ? "overdue" : "success",
-    },
-    {
-      id: "ops-escalation-triggered",
-      title: "Escalation triggered",
-      when: `${reviewQueue.find((q) => q.key === "escalated")?.count ?? 0} systems`,
-      aging: "Escalation SLA",
-      chain: "Escalation Chain",
-      type: "compliance",
-      severity: (reviewQueue.find((q) => q.key === "escalated")?.count ?? 0) > 0 ? "escalation" : "info",
-    },
-    {
-      id: "ops-advisor-assigned",
-      title: "Advisor assigned",
-      when: `${advisorWorkload.length} advisors on rotation`,
-      aging: "Current",
-      chain: "Advisor Chain",
-      type: "advisor",
-      severity: "info",
-    },
-    {
-      id: "ops-overdue-reminder",
-      title: "Overdue reminder generated",
-      when: `${reviewQueue.find((q) => q.key === "overdue_obligations")?.count ?? 0} queues`,
-      aging: "14d+",
-      chain: "Obligation Chain",
-      type: "compliance",
-      severity:
-        (reviewQueue.find((q) => q.key === "overdue_obligations")?.count ?? 0) > 0
-          ? "overdue"
-          : "success",
-    },
-  ];
-
   return (
     <PageShell
       eyebrow="Products / AI Compliance"
@@ -148,6 +62,63 @@ export function AiComplianceOperationsPage() {
         <Metric label="Escalated assessments" value={aiOps?.escalatedAssessments ?? 0} />
         <Metric label="Advisor workload" value={aiOps?.advisorWorkload ?? 0} />
         <Metric label="Evidence backlog" value={aiOps?.evidenceBacklog ?? 0} />
+      </div>
+
+      <div className="admin-app__card admin-app__card--wide">
+        <div className="card-head">
+          <p className="admin-app__card-title">Today's Action Queue</p>
+          <Badge tone={todayActionQueue.length > 0 ? "warning" : "success"}>
+            {todayActionQueue.length > 0 ? `${todayActionQueue.length} items need attention` : "No urgent actions"}
+          </Badge>
+        </div>
+        <div className="table-wrap">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Action</th>
+                <th>Organization</th>
+                <th>AI system</th>
+                <th>Severity</th>
+                <th>SLA</th>
+                <th>Reason</th>
+                <th>Suggested next action</th>
+                <th>Target</th>
+              </tr>
+            </thead>
+            <tbody>
+              {todayActionQueue.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="data-table__muted">
+                    No overdue obligations, blocked reviews, stale evidence, or high-priority systems.
+                  </td>
+                </tr>
+              ) : (
+                todayActionQueue.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.title}</td>
+                    <td>{item.organization}</td>
+                    <td>{item.system}</td>
+                    <td>
+                      <Badge tone={presentActivitySeverityTone(item.severity)}>
+                        {presentActivitySeverityLabel(item.severity)}
+                      </Badge>
+                    </td>
+                    <td>
+                      <Badge tone={presentSlaTone(item.slaState)}>{item.slaState}</Badge>
+                    </td>
+                    <td className="data-table__muted">{item.reason}</td>
+                    <td className="data-table__muted">{item.suggestedNextAction}</td>
+                    <td>
+                      <Link to={item.targetRoute} className="admin-secondary-btn">
+                        Open
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="admin-app__card admin-app__card--wide">
@@ -294,6 +265,7 @@ export function AiComplianceOperationsPage() {
                 <th>Priority score</th>
                 <th>Review status</th>
                 <th>Evidence freshness</th>
+                <th>SLA state</th>
               </tr>
             </thead>
             <tbody>
@@ -304,6 +276,11 @@ export function AiComplianceOperationsPage() {
                   <td>{derivePriorityScore(system)}</td>
                   <td>{deriveReviewStatus(system)}</td>
                   <td>{deriveEvidenceFreshness(system)}</td>
+                  <td>
+                    <Badge tone={presentSlaTone(deriveSlaState(system))}>
+                      {deriveSlaState(system)}
+                    </Badge>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -339,7 +316,7 @@ function ActionWidget({
     <div className="admin-app__card">
       <p className="admin-app__card-title">{title}</p>
       <p className="admin-app__card-text">{description}</p>
-      <Badge tone={tone}>Action oriented</Badge>
+      <Badge tone={tone}>Derived from current records</Badge>
     </div>
   );
 }
@@ -352,4 +329,3 @@ function Metric({ label, value }: { label: string; value: number }) {
     </div>
   );
 }
-
