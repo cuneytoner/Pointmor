@@ -29,6 +29,7 @@
 
 - **Küçük batch:** Bir PR = bir özellik veya bir bugfix + test.
 - **Commit mesajları:** Imperatif kısa özet; gövde isteğe bağlı bağlam.
+- **Commit dili:** Commit başlığı ve gövdesi İngilizce yazılır.
 - **Refactor:** Davranış değişmez; ayrı commit veya açık PR başlığı.
 - **TODO:** `TODO(owner|issue): açıklama` — sahipsiz TODO birikmez.
 
