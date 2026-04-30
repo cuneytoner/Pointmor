@@ -16,46 +16,40 @@ export function AdvisorPortalOperationsPage() {
     >
       <div className="admin-app__card admin-app__card--wide">
         <p className="admin-app__card-title">Advisor distribution</p>
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Advisor</th>
-                <th>Assigned organizations</th>
-                <th>Active reviews</th>
-                <th>Overdue obligations</th>
-                <th>Escalated systems</th>
-                <th>Response pressure</th>
-              </tr>
-            </thead>
-            <tbody>
-              {workload.map((row) => (
-                <tr key={row.advisorId}>
-                  <td>{row.advisorName}</td>
-                  <td>{row.assignedOrganizations}</td>
-                  <td>{row.activeReviews}</td>
-                  <td>{row.overdueObligations}</td>
-                  <td>{row.escalatedSystems}</td>
-                  <td>
-                    <Badge
-                      tone={
-                        row.responsePressure === "High"
-                          ? "danger"
-                          : row.responsePressure === "Elevated"
-                            ? "warning"
-                            : "success"
-                      }
-                    >
-                      {row.responsePressure}
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="advisor-workload-grid">
+          {workload.map((row) => (
+            <article className="advisor-workload-card" key={row.advisorId}>
+              <div className="card-head">
+                <p className="admin-app__card-title">{row.advisorName}</p>
+                <Badge tone={advisorPressureTone(row.responsePressure)}>
+                  {row.responsePressure}
+                </Badge>
+              </div>
+              <div className="advisor-workload-card__metrics">
+                <MetricPill label="Assigned orgs" value={row.assignedOrganizations} />
+                <MetricPill label="Active reviews" value={row.activeReviews} />
+                <MetricPill label="Escalations" value={row.escalatedSystems} />
+              </div>
+              <p className="admin-app__card-text">
+                {`${row.overdueObligations} overdue obligations across assigned work.`}
+              </p>
+            </article>
+          ))}
         </div>
       </div>
     </PageShell>
   );
 }
 
+function advisorPressureTone(pressure: string): "danger" | "warning" | "success" {
+  return pressure === "High" ? "danger" : pressure === "Elevated" ? "warning" : "success";
+}
+
+function MetricPill({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="advisor-workload-card__metric">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}

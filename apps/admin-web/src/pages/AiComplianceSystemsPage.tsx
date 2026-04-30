@@ -34,18 +34,11 @@ export function AiComplianceSystemsPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>System name</th>
-                <th>Organization</th>
-                <th>Category</th>
-                <th>Risk level</th>
-                <th>Review status</th>
-                <th>Open obligations</th>
-                <th>Last assessment</th>
+                <th>System</th>
+                <th>Risk / review</th>
+                <th>Obligations</th>
                 <th>Owner</th>
-                <th>Evidence freshness</th>
-                <th>SLA state</th>
-                <th>Priority</th>
-                <th>Priority drivers</th>
+                <th>SLA / priority</th>
                 <th>Health</th>
               </tr>
             </thead>
@@ -54,39 +47,41 @@ export function AiComplianceSystemsPage() {
                 const health = deriveSystemHealth(system);
                 return (
                   <tr key={system.id}>
-                    <td>
+                    <td className="ai-registry-system-cell">
                       <Link to={`/platform/products/ai-compliance/systems/${encodeURIComponent(system.id)}`}>
                         {system.name}
                       </Link>
+                      <div className="data-table__muted">{system.tenant.name}</div>
+                      <div className="data-table__muted">{deriveSystemCategory(system)}</div>
                     </td>
-                    <td>{system.tenant.name}</td>
-                    <td className="data-table__muted">{deriveSystemCategory(system)}</td>
-                    <td>{presentRiskLabel(system.currentAssessment?.riskLevel ?? null)}</td>
-                    <td>{deriveReviewStatus(system)}</td>
-                    <td>{deriveOpenObligationCount(system)}</td>
-                    <td className="data-table__muted">
-                      {system.currentAssessment
-                        ? formatOperationalAge(system.currentAssessment.updatedAt)
-                        : "No assessment"}
+                    <td>
+                      <strong>{presentRiskLabel(system.currentAssessment?.riskLevel ?? null)}</strong>
+                      <div className="data-table__muted">{deriveReviewStatus(system)}</div>
+                    </td>
+                    <td>
+                      <strong>{deriveOpenObligationCount(system)}</strong>
+                      <div className="data-table__muted">
+                        {system.currentAssessment
+                          ? formatOperationalAge(system.currentAssessment.updatedAt)
+                          : "No assessment"}
+                      </div>
                     </td>
                     <td>{system.createdBy?.name ?? system.createdBy?.email ?? "Unassigned"}</td>
-                    <td>
-                      <Badge tone={presentEvidenceFreshnessTone(deriveEvidenceFreshness(system))}>
-                        {deriveEvidenceFreshness(system)}
-                      </Badge>
-                    </td>
                     <td title={presentSlaReason(system)}>
-                      <Badge tone={presentSlaTone(deriveSlaState(system))}>
-                        {deriveSlaState(system)}
-                      </Badge>
-                    </td>
-                    <td>
-                      <Badge tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}>
-                        {derivePriorityScore(system)}
-                      </Badge>
-                    </td>
-                    <td className="data-table__muted">
-                      {derivePriorityReasons(system).join("; ")}
+                      <div className="ai-registry-badge-stack">
+                        <Badge tone={presentSlaTone(deriveSlaState(system))}>
+                          {deriveSlaState(system)}
+                        </Badge>
+                        <Badge tone={presentEvidenceFreshnessTone(deriveEvidenceFreshness(system))}>
+                          {deriveEvidenceFreshness(system)}
+                        </Badge>
+                        <Badge tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}>
+                          {`Priority ${derivePriorityScore(system)}`}
+                        </Badge>
+                      </div>
+                      <div className="data-table__muted ai-registry-reasons">
+                        {derivePriorityReasons(system).join("; ")}
+                      </div>
                     </td>
                     <td>
                       <Badge tone={presentHealthTone(health)}>{health}</Badge>

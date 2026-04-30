@@ -76,92 +76,69 @@ export function PlatformProductsPage() {
 
       <div className="admin-app__card admin-app__card--wide">
         <p className="admin-app__card-title">Product Activation Matrix</p>
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Organization</th>
-                <th>Active plan</th>
-                <th>AI Compliance</th>
-                <th>Loyalty</th>
-                <th>Advisor Portal</th>
-                <th>Document Intelligence</th>
-                <th>Segment</th>
-                <th>Stage</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(bootstrap?.tenants ?? []).map((tenant) => {
-                const activeModules = moduleMap.get(tenant.id) ?? new Set<string>();
-                const subscription = subscriptionMap.get(tenant.id);
-                const health = deriveOrganizationHealth({
-                  subscription: subscription ?? null,
-                  modules: activeModules,
-                  hasRecentActivity: true,
-                  hasAdvisorLink: Boolean(
-                    (bootstrap?.users ?? []).some((u) =>
-                      u.memberships?.some(
-                        (m) => m.tenant.slug === tenant.slug && m.role === "ADVISOR",
-                      ),
-                    ),
+        <div className="operation-row-list">
+          {(bootstrap?.tenants ?? []).map((tenant) => {
+            const activeModules = moduleMap.get(tenant.id) ?? new Set<string>();
+            const subscription = subscriptionMap.get(tenant.id);
+            const health = deriveOrganizationHealth({
+              subscription: subscription ?? null,
+              modules: activeModules,
+              hasRecentActivity: true,
+              hasAdvisorLink: Boolean(
+                (bootstrap?.users ?? []).some((u) =>
+                  u.memberships?.some(
+                    (m) => m.tenant.slug === tenant.slug && m.role === "ADVISOR",
                   ),
-                });
-                const stage = deriveOnboardingStage({
-                  onboardingStep: tenant.onboardingStep,
-                  onboardingCompletedAt: tenant.onboardingCompletedAt,
-                  health,
-                  modules: activeModules,
-                });
-                const segments = deriveOrganizationSegmentation({
-                  modules: activeModules,
-                  planName: subscription?.plan.name ?? null,
-                  tenantType: tenant.type,
-                });
-                return (
-                  <tr key={tenant.id}>
-                    <td>
-                      <Link to={`/platform/organizations/${encodeURIComponent(tenant.id)}`}>{tenant.name}</Link>
-                    </td>
-                    <td>{subscription?.plan.name ?? "—"}</td>
-                    <td>
-                      {moduleBadge(activeModules, "ai_act")}
-                      {activeModules.has("ai_act") ? (
-                        <div className="chip-row" style={{ marginTop: 6 }}>
-                          <Badge tone="warning">
-                            {`${aiStatsByTenant.get(tenant.id)?.openObligations ?? 0} open obligations`}
-                          </Badge>
-                          <Badge tone="info">
-                            {`${aiStatsByTenant.get(tenant.id)?.pendingReview ?? 0} pending review`}
-                          </Badge>
-                        </div>
-                      ) : null}
-                    </td>
-                    <td>{moduleBadge(activeModules, "cafe")}</td>
-                    <td>{moduleBadge(activeModules, "advisor_dashboard")}</td>
-                    <td>{moduleBadge(activeModules, "ai_document_intelligence")}</td>
-                    <td>
-                      <div className="chip-row">
-                        {segments.map((segment) => (
-                          <Badge key={`${tenant.id}-${segment}`} tone="neutral">
-                            {segment}
-                          </Badge>
-                        ))}
-                      </div>
-                    </td>
-                    <td>
-                      <Badge tone={presentOnboardingTone(stage)}>{stage}</Badge>
-                    </td>
-                    <td>
-                      <Badge tone={presentHealthTone(health)}>
-                        {health}
+                ),
+              ),
+            });
+            const stage = deriveOnboardingStage({
+              onboardingStep: tenant.onboardingStep,
+              onboardingCompletedAt: tenant.onboardingCompletedAt,
+              health,
+              modules: activeModules,
+            });
+            const segments = deriveOrganizationSegmentation({
+              modules: activeModules,
+              planName: subscription?.plan.name ?? null,
+              tenantType: tenant.type,
+            });
+            return (
+              <article className="operation-row" key={tenant.id}>
+                <div className="operation-row__identity">
+                  <Link to={`/platform/organizations/${encodeURIComponent(tenant.id)}`}>
+                    {tenant.name}
+                  </Link>
+                  <p>{subscription?.plan.name ?? "No active plan"}</p>
+                </div>
+                <div className="operation-row__products">
+                  {moduleBadge(activeModules, "ai_act")}
+                  {moduleBadge(activeModules, "cafe")}
+                  {moduleBadge(activeModules, "advisor_dashboard")}
+                  {moduleBadge(activeModules, "ai_document_intelligence")}
+                  {activeModules.has("ai_act") ? (
+                    <>
+                      <Badge tone="warning">
+                        {`${aiStatsByTenant.get(tenant.id)?.openObligations ?? 0} open obligations`}
                       </Badge>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <Badge tone="info">
+                        {`${aiStatsByTenant.get(tenant.id)?.pendingReview ?? 0} pending review`}
+                      </Badge>
+                    </>
+                  ) : null}
+                </div>
+                <div className="operation-row__state">
+                  {segments.map((segment) => (
+                    <Badge key={`${tenant.id}-${segment}`} tone="neutral">
+                      {segment}
+                    </Badge>
+                  ))}
+                  <Badge tone={presentOnboardingTone(stage)}>{stage}</Badge>
+                  <Badge tone={presentHealthTone(health)}>{health}</Badge>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
     </PageShell>
@@ -172,8 +149,7 @@ function moduleBadge(activeModules: Set<string>, moduleName: string) {
   const isActive = activeModules.has(moduleName);
   return (
     <Badge tone={isActive ? "success" : "neutral"}>
-      {isActive ? presentModuleLabel(moduleName) : "—"}
+      {isActive ? presentModuleLabel(moduleName) : `${presentModuleLabel(moduleName)} off`}
     </Badge>
   );
 }
-

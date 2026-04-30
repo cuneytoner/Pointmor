@@ -39,46 +39,54 @@ export function PlatformActivityTimeline({
         <p className="admin-app__card-text data-table__muted">{emptyText}</p>
       ) : (
         grouped.map((group) => (
-          <div className="table-wrap" key={group.type}>
-            <p className="admin-app__card-text" style={{ marginBottom: 8 }}>
-              <strong>{presentTypeLabel(group.type)}</strong>
-            </p>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Event</th>
-                  <th>Organization</th>
-                  <th>When</th>
-                  <th>Actor</th>
-                  <th>Source</th>
-                  <th>Related object</th>
-                  <th>Reason</th>
-                  <th>Aging</th>
-                  <th>Severity</th>
-                </tr>
-              </thead>
-              <tbody>
-                {group.items.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.title}</td>
-                    <td>{item.organization ?? "-"}</td>
-                    <td className="data-table__muted">{item.when}</td>
-                    <td className="data-table__muted">{item.actor ?? "-"}</td>
-                    <td className="data-table__muted">{item.source ?? item.chain ?? "-"}</td>
-                    <td className="data-table__muted">{item.relatedObject ?? "-"}</td>
-                    <td className="data-table__muted">{item.reason ?? "-"}</td>
-                    <td className="data-table__muted">{item.aging ?? "-"}</td>
-                    <td>
-                      <Badge tone={presentActivitySeverityTone(item.severity)}>
-                        {`${presentActivitySeverityIcon(item.severity)} ${presentActivitySeverityLabel(
-                          item.severity,
-                        )}`}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="activity-group" key={group.type}>
+            <div className="activity-group__head">
+              <p className="admin-app__card-text">
+                <strong>{presentTypeLabel(group.type)}</strong>
+              </p>
+              <Badge tone="neutral">{`${group.items.length} events`}</Badge>
+            </div>
+            <div className="activity-event-list">
+              {group.items.map((item) => (
+                <article className="activity-event" key={item.id}>
+                  <div className="activity-event__main">
+                    <div>
+                      <p className="activity-event__title">{item.title}</p>
+                      <p className="activity-event__meta">
+                        {[item.organization, item.when].filter(Boolean).join(" - ")}
+                      </p>
+                    </div>
+                    <Badge tone={presentActivitySeverityTone(item.severity)}>
+                      {`${presentActivitySeverityIcon(item.severity)} ${presentActivitySeverityLabel(
+                        item.severity,
+                      )}`}
+                    </Badge>
+                  </div>
+                  <dl className="activity-event__details">
+                    <div>
+                      <dt>Actor</dt>
+                      <dd>{item.actor ?? "-"}</dd>
+                    </div>
+                    <div>
+                      <dt>Source</dt>
+                      <dd>{item.source ?? item.chain ?? "-"}</dd>
+                    </div>
+                    <div>
+                      <dt>Related object</dt>
+                      <dd>{item.relatedObject ?? "-"}</dd>
+                    </div>
+                    <div>
+                      <dt>Reason</dt>
+                      <dd>{item.reason ?? "-"}</dd>
+                    </div>
+                    <div>
+                      <dt>Aging</dt>
+                      <dd>{item.aging ?? "-"}</dd>
+                    </div>
+                  </dl>
+                </article>
+              ))}
+            </div>
           </div>
         ))
       )}

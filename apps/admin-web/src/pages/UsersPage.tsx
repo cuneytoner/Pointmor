@@ -103,14 +103,11 @@ export function UsersPage() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>{t("users.columns.name")}</th>
-                  <th>{t("common.email")}</th>
-                  <th>{t("users.columns.role")}</th>
-                  <th>{t("users.columns.workspace")}</th>
-                  <th>Access scope</th>
+                  <th>User</th>
+                  <th>Role</th>
+                  <th>Organization / access</th>
                   <th>Linked products</th>
-                  <th>Last activity</th>
-                  <th>Invitation status</th>
+                  <th>Activity state</th>
                 </tr>
               </thead>
               <tbody>
@@ -130,23 +127,27 @@ export function UsersPage() {
                   );
                   return (
                   <tr key={u.id}>
-                    <td>{u.name}</td>
-                    <td className="data-table__mono">{u.email}</td>
+                    <td>
+                      <strong>{u.name}</strong>
+                      <div className="data-table__mono data-table__muted">{u.email}</div>
+                    </td>
                     <td>
                       <Badge tone={roleTone(u.role)}>{roleLabel(u)}</Badge>
                     </td>
                     <td className="data-table__muted">
-                      {u.platformAdmin
-                        ? "Platform"
-                        : primaryOrganization
-                        ? `${primaryOrganization.name} (${primaryOrganization.slug})`
-                        : "—"}
-                    </td>
-                    <td className="data-table__muted">
-                      {deriveUserAccessScope({
-                        platformAdmin: u.platformAdmin,
-                        memberships: u.memberships ?? [],
-                      })}
+                      <strong>
+                        {u.platformAdmin
+                          ? "Platform"
+                          : primaryOrganization
+                            ? `${primaryOrganization.name} (${primaryOrganization.slug})`
+                            : "-"}
+                      </strong>
+                      <div>
+                        {deriveUserAccessScope({
+                          platformAdmin: u.platformAdmin,
+                          memberships: u.memberships ?? [],
+                        })}
+                      </div>
                     </td>
                     <td>
                       <div className="chip-row">
@@ -157,8 +158,8 @@ export function UsersPage() {
                         ))}
                       </div>
                     </td>
-                    <td className="data-table__muted">Active this week</td>
                     <td>
+                      <div className="data-table__muted">Active this week</div>
                       <Badge
                         tone={(u.memberships ?? []).length === 0 && !u.platformAdmin ? "warning" : "success"}
                       >

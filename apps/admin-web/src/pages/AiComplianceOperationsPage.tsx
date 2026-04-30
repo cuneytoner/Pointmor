@@ -72,66 +72,45 @@ export function AiComplianceOperationsPage() {
             {todayActionQueue.length > 0 ? `${todayActionQueue.length} items need attention` : "No urgent actions"}
           </Badge>
         </div>
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Action</th>
-                <th>Category</th>
-                <th>Organization</th>
-                <th>AI system</th>
-                <th>Severity</th>
-                <th>SLA</th>
-                <th>Reason</th>
-                <th>Context</th>
-                <th>Priority drivers</th>
-                <th>Target</th>
-              </tr>
-            </thead>
-            <tbody>
-              {todayActionQueue.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="data-table__muted">
-                    No overdue obligations, blocked reviews, stale evidence, or high-priority systems.
-                  </td>
-                </tr>
-              ) : (
-                todayActionQueue.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <strong>{item.primaryAction}</strong>
-                      <div className="data-table__muted">{item.title}</div>
-                    </td>
-                    <td>{item.actionCategory}</td>
-                    <td>{item.organization}</td>
-                    <td>{item.system}</td>
-                    <td>
-                      <Badge tone={presentActivitySeverityTone(item.severity)}>
-                        {presentActivitySeverityLabel(item.severity)}
-                      </Badge>
-                    </td>
-                    <td>
-                      <Badge tone={presentSlaTone(item.slaState)}>{item.slaState}</Badge>
-                    </td>
-                    <td className="data-table__muted">{item.reason}</td>
-                    <td className="data-table__muted">
-                      {item.secondaryContext}
-                      <div>{item.suggestedNextAction}</div>
-                    </td>
-                    <td className="data-table__muted">
-                      <strong>{`Priority ${item.priorityScore}`}</strong>
-                      <div>{item.priorityReasons.join("; ")}</div>
-                    </td>
-                    <td>
-                      <Link to={item.targetRoute} className="admin-secondary-btn">
-                        {item.actionLabel}
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="ops-action-list">
+          {todayActionQueue.length === 0 ? (
+            <p className="admin-app__card-text data-table__muted">
+              No overdue obligations, blocked reviews, stale evidence, or high-priority systems.
+            </p>
+          ) : (
+            todayActionQueue.map((item) => (
+              <article className="ops-action-card" key={item.id}>
+                <div className="ops-action-card__main">
+                  <div>
+                    <p className="ops-action-card__title">{item.primaryAction}</p>
+                    <p className="ops-action-card__meta">
+                      {`${item.organization} - ${item.system}`}
+                    </p>
+                  </div>
+                  <div className="ops-action-card__badges">
+                    <Badge tone={presentActivitySeverityTone(item.severity)}>
+                      {presentActivitySeverityLabel(item.severity)}
+                    </Badge>
+                    <Badge tone={presentSlaTone(item.slaState)}>{item.slaState}</Badge>
+                  </div>
+                </div>
+                <p className="admin-app__card-text">{item.reason}</p>
+                <p className="admin-app__card-text data-table__muted">
+                  {item.suggestedNextAction}
+                </p>
+                <div className="ops-action-card__footer">
+                  <div className="ops-action-card__context">
+                    <span>{item.actionCategory}</span>
+                    <span>{item.secondaryContext}</span>
+                    <span>{`Priority ${item.priorityScore}: ${item.priorityReasons.join("; ")}`}</span>
+                  </div>
+                  <Link to={item.targetRoute} className="admin-secondary-btn">
+                    {item.actionLabel}
+                  </Link>
+                </div>
+              </article>
+            ))
+          )}
         </div>
       </div>
 
@@ -256,55 +235,48 @@ export function AiComplianceOperationsPage() {
             Open systems registry
           </Link>
         </div>
-        <div className="chip-row">
+        <div className="ops-queue-grid">
           {systems.slice(0, 8).map((system) => (
-            <Badge
+            <Link
               key={system.id}
-              tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}
+              to={`/platform/products/ai-compliance/systems/${encodeURIComponent(system.id)}`}
+              className="ops-queue-item"
             >
-              {`${system.name} (${system.tenant.name}) • Priority ${derivePriorityScore(system)}`}
-            </Badge>
+              <span>
+                <strong>{system.name}</strong>
+                <small>{system.tenant.name}</small>
+              </span>
+              <Badge tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}>
+                {`Priority ${derivePriorityScore(system)}`}
+              </Badge>
+            </Link>
           ))}
         </div>
       </div>
 
       <div className="admin-app__card admin-app__card--wide">
         <p className="admin-app__card-title">Top priority systems</p>
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>System</th>
-                <th>Organization</th>
-                <th>Priority score</th>
-                <th>Why</th>
-                <th>Review status</th>
-                <th>Evidence freshness</th>
-                <th>SLA state</th>
-              </tr>
-            </thead>
-            <tbody>
-              {topPrioritySystems.map((system) => (
-                <tr key={system.id}>
-                  <td>{system.name}</td>
-                  <td>{system.tenant.name}</td>
-                  <td>
-                    <Badge tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}>
-                      {derivePriorityScore(system)}
-                    </Badge>
-                  </td>
-                  <td className="data-table__muted">{derivePriorityReasons(system).join("; ")}</td>
-                  <td>{deriveReviewStatus(system)}</td>
-                  <td>{deriveEvidenceFreshness(system)}</td>
-                  <td>
-                    <Badge tone={presentSlaTone(deriveSlaState(system))}>
-                      {deriveSlaState(system)}
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="ops-compact-list">
+          {topPrioritySystems.map((system) => (
+            <article className="ops-compact-row ops-compact-row--priority" key={system.id}>
+              <div>
+                <p className="ops-action-card__title">{system.name}</p>
+                <p className="ops-action-card__meta">{system.tenant.name}</p>
+              </div>
+              <div className="ops-compact-row__status">
+                <Badge tone="neutral">{deriveReviewStatus(system)}</Badge>
+                <Badge tone={presentSlaTone(deriveSlaState(system))}>
+                  {deriveSlaState(system)}
+                </Badge>
+                <Badge tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}>
+                  {`Priority ${derivePriorityScore(system)}`}
+                </Badge>
+              </div>
+              <p className="admin-app__card-text data-table__muted">
+                {derivePriorityReasons(system).join("; ")}
+              </p>
+            </article>
+          ))}
         </div>
       </div>
 

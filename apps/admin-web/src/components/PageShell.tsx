@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 type PageShellProps = {
-  /** Üst başlık yok — üst layout (ör. Workspace Administration) sağlar */
+  /** Üst başlık yok; üst layout (ör. Workspace Administration) sağlar. */
   embedded?: boolean;
   eyebrow?: string;
   title?: string;
