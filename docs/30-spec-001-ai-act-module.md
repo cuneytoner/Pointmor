@@ -75,21 +75,33 @@ Güvenlik:
 - AI output suggestion'dır; legal conclusion değildir
 - `ai_act.export` izni bu MVP fazında yalnızca reserve edilir; export endpoint'i henüz yoktur.
 
-## AI Compliance Operations Endpoint (Step 13)
+## AI Compliance Operations Endpoint (Step 13 - Authoritative)
 
 **Endpoint:** `GET /admin/products/ai-compliance/operations`
 
-**Amaç:** `/admin/bootstrap` `moduleOperations` yükünü azaltmak; AI Compliance operasyonel verisini ürün-özel endpoint'e taşımak.
+**Durum:** Artık **birincil (authoritative)** veri kaynağı. `/admin/bootstrap` `moduleOperations.aiCompliance` yalnızca minimal sayaçlar döndürür; sistem listesi boş döner (DEPRECATED).
+
+**Amaç:**
+- `/admin/bootstrap` yükünü azaltmak
+- AI Compliance operasyonel verisini ürün-özel endpoint'te toplamak
+- Platform admin için cross-organization görünürlük sağlamak
+- Loyalty-only tenant'ların AI Compliance verisine erişimini engellemek
+
+**Scope davranışı:**
+1. **Platform admin/operator:** Tüm ai_act-aktif tenant'ların cross-organization operasyonel verisi
+2. **Tenant user:** Yalnızca kendi erişilebilir tenant scope'u (ai_act aktif ve ai_act.view izni gerekli)
+3. **Loyalty-only / cafe-only tenant:** Boş/zero veri (ai_act modülü olmadan erişilemez)
+4. **Unauthenticated:** `401 unauthorized`
 
 **Erişim kontrolleri:**
 - Kimlik doğrulama (authenticated user)
-- Membership-first tenant access
+- Membership-first tenant access (tenant kullanıcıları için)
 - `ai_act.view` izin kontrolü
 - `ai_act` modül aktivasyonu kontrolü
 
 **Hata yanıtları (flat format):**
 - `401 unauthorized` — Geçerli oturum yok
-- `403 tenant_context_required` — Tenant bağlamı eksik veya platform admin tenant'sız istek yaptı
+- `403 tenant_context_required` — Tenant bağlamı eksik (normal kullanıcılar için)
 - `403 permission_denied` — `ai_act.view` izni yok
 - `403 module_not_active` — `ai_act` modülü aktif değil
 
@@ -106,12 +118,25 @@ Güvenlik:
     "escalatedAssessments": number,
     "advisorWorkload": number,
     "evidenceBacklog": number,
-    "systems": [...]
+    "systems": [...]  // AI sistem listesi detayları
   }
 }
 ```
 
-**Migration notu:** Mevcut `/admin/bootstrap` `moduleOperations.aiCompliance` verisi backward compatibility için korunur. Yeni kod `useAiComplianceOperations` hook'unu kullanmalı; legacy bootstrap verisi geçici fallback olarak mevcut.
+**Backend read model:**
+Tek kaynak: `loadAiComplianceOperationsForScope({ mode: "tenant" | "cross_org" | "platform_admin" })` — `apps/api/src/lib/ai-compliance-operations.ts`
+
+**Frontend kullanımı:**
+```typescript
+const { token, refreshKey } = useAuth();
+const { data, loading, error } = useAiComplianceOperations(token, refreshKey);
+```
+
+**Migration durumu:**
+- `/admin/bootstrap` `moduleOperations.aiCompliance.systems` → **DEPRECATED** (boş array döner)
+- `/admin/bootstrap` sayaçlar → **geçici** backward compatibility (Step 14'te kaldırılacak)
+- Birincil endpoint: `GET /admin/products/ai-compliance/operations`
+- Frontend: `AiComplianceOperationsPage` zaten yeni hook'u kullanıyor
 
 ## Operational realism layer (Step 8)
 

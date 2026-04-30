@@ -74,11 +74,14 @@ Bu planın güncel odağı, teslim edilmiş temel teknik kabiliyetler üzerinde 
   - Seed persona ve e-posta sunumu gerçekçi SaaS demo kimliğine alınmıştır.
   - Canonical plan mapping (Compliance Pro / Starter Platform / Multi-Product Business / Advisor Firm) düzeltilmiştir.
   - `/admin/bootstrap` yanıtına `platformMetrics` eklenerek dashboard metrikleri API kontratıyla hizalanmıştır.
-- **Bootstrap Split / AI Compliance Operations Endpoint (Step 13) - DONE**
-  - `GET /admin/products/ai-compliance/operations` endpoint eklendi. `/admin/bootstrap` `moduleOperations` yükü azaltılmaya başlandı.
-  - Endpoint erişim kontrolleri: authenticated user, membership-first tenant access, `ai_act.view` izin, `ai_act` modül aktivasyonu.
-  - Frontend: `useAiComplianceOperations` hook eklendi, geçici bootstrap fallback mevcut.
-  - Mevcut bootstrap verisi korundu (backward compatibility), TODO/deprecation notları eklendi.
+- **Bootstrap Split / AI Compliance Operations Endpoint (Step 13) - DONE (Authoritative)**
+  - `GET /admin/products/ai-compliance/operations` endpoint **birincil** veri kaynağı oldu.
+  - Platform admin cross-organization görünürlüğü: Tüm ai_act-aktif tenant'ların operasyonel verisi.
+  - Shared backend read model: `loadAiComplianceOperationsForScope()` — `apps/api/src/lib/ai-compliance-operations.ts`.
+  - `/admin/bootstrap` `moduleOperations.aiCompliance.systems` → **DEPRECATED** (boş array döner, sadece sayaçlar korunur).
+  - Frontend: `AiComplianceOperationsPage` yeni `useAiComplianceOperations` hook'unu kullanıyor; error state handling eklendi.
+  - API testleri: unauthenticated, loyalty-only, inactive module, permission denied, valid access, advisor, platform admin, cross-org scope.
+  - Migration backlog: Step 14'te bootstrap AI Compliance verisi tamamen kaldırılacak.
 
 ---
 

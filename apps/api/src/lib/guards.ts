@@ -56,6 +56,10 @@ const MODULE_SCOPED_PERMISSIONS = new Set<TenantPermission>([
   "menu.manage",
   "analytics.view",
   "automation.run",
+  "ai_act.view",
+  "ai_act.manage",
+  "ai_act.assess",
+  "ai_act.export",
 ]);
 
 /**

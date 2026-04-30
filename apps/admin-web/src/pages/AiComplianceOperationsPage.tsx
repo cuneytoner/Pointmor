@@ -6,6 +6,11 @@ import {
   type PlatformActivityItem,
 } from "../components/PlatformActivityTimeline";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
+import { useAuth } from "../contexts/AuthContext";
+import {
+  useAiComplianceOperations,
+  getAiComplianceOperationsFallback,
+} from "../hooks/useAiComplianceOperations";
 import {
   buildReviewQueueIntelligence,
   buildOperationsTimeline,
@@ -26,8 +31,23 @@ import {
 
 export function AiComplianceOperationsPage() {
   const { bootstrap } = useAdminDataContext();
-  const aiOps = bootstrap?.moduleOperations.aiCompliance;
+  const { token, refreshKey } = useAuth();
+
+  // Primary data source: dedicated AI Compliance endpoint
+  const {
+    loading: opsLoading,
+    error: opsError,
+    data: opsData,
+  } = useAiComplianceOperations(token, refreshKey);
+
+  // Temporary fallback to bootstrap only if endpoint fails (dev/network issues only)
+  // Backend security errors (403) will surface, not fallback
+  const fallbackData = getAiComplianceOperationsFallback(bootstrap);
+  const aiOps = opsData?.aiCompliance ?? fallbackData?.aiCompliance;
   const systems = aiOps?.systems ?? [];
+
+  // Loading state: show loading only when fetching, not when using fallback
+  const isLoading = opsLoading && !aiOps;
   const reviewQueue = buildReviewQueueIntelligence(systems);
   const advisorWorkload = deriveAdvisorWorkload(systems, bootstrap?.users ?? []);
   const todayActionQueue = buildTodayActionQueue(systems, bootstrap?.users ?? []);
@@ -50,12 +70,40 @@ export function AiComplianceOperationsPage() {
     return freshness === "Stale" || freshness === "Critical";
   });
 
+  // Error display
+  if (opsError && !aiOps) {
+    return (
+      <PageShell
+        eyebrow="Products / AI Compliance"
+        title="AI Compliance Command Center"
+        description="Operational control surface for review lifecycle, obligations, and ownership."
+      >
+        <div className="admin-app__card admin-app__card--wide">
+          <p className="admin-app__card-title">Error loading AI Compliance data</p>
+          <p className="admin-app__card-text">
+            {opsError === "permission_denied" && "You do not have permission to access AI Compliance operations."}
+            {opsError === "module_not_active" && "AI Compliance module is not active for this tenant."}
+            {opsError === "tenant_context_required" && "Tenant context is required."}
+            {opsError === "unauthorized" && "Session expired. Please log in again."}
+            {!["permission_denied", "module_not_active", "tenant_context_required", "unauthorized"].includes(opsError ?? "") &&
+              `Failed to load data: ${opsError}`}
+          </p>
+        </div>
+      </PageShell>
+    );
+  }
+
   return (
     <PageShell
       eyebrow="Products / AI Compliance"
       title="AI Compliance Command Center"
       description="Operational control surface for review lifecycle, obligations, and ownership."
     >
+      {isLoading && (
+        <div className="admin-app__card admin-app__card--wide">
+          <p className="admin-app__card-text">Loading AI Compliance operations...</p>
+        </div>
+      )}
       <div className="plan-grid">
         <Metric label="Active organizations" value={aiOps?.activeOrganizations ?? 0} />
         <Metric label="Systems needing review" value={aiOps?.systemsNeedingReview ?? 0} />
