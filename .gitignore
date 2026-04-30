@@ -48,6 +48,13 @@ coverage/
 # Misc
 .cache/
 .turbo/
+.tmp/
 *.pem
 infra/docker/.last-demo-release-sha
 infra/docker/.last-demo-deployed-at
+
+
+# AI / editor local junk
+.windsurf/cache/
+.windsurf/logs/
+.windsurf/tmp/
