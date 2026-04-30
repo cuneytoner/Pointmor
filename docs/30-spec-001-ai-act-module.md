@@ -75,6 +75,44 @@ Güvenlik:
 - AI output suggestion'dır; legal conclusion değildir
 - `ai_act.export` izni bu MVP fazında yalnızca reserve edilir; export endpoint'i henüz yoktur.
 
+## AI Compliance Operations Endpoint (Step 13)
+
+**Endpoint:** `GET /admin/products/ai-compliance/operations`
+
+**Amaç:** `/admin/bootstrap` `moduleOperations` yükünü azaltmak; AI Compliance operasyonel verisini ürün-özel endpoint'e taşımak.
+
+**Erişim kontrolleri:**
+- Kimlik doğrulama (authenticated user)
+- Membership-first tenant access
+- `ai_act.view` izin kontrolü
+- `ai_act` modül aktivasyonu kontrolü
+
+**Hata yanıtları (flat format):**
+- `401 unauthorized` — Geçerli oturum yok
+- `403 tenant_context_required` — Tenant bağlamı eksik veya platform admin tenant'sız istek yaptı
+- `403 permission_denied` — `ai_act.view` izni yok
+- `403 module_not_active` — `ai_act` modülü aktif değil
+
+**Yanıt yapısı:**
+```json
+{
+  "aiCompliance": {
+    "activeOrganizations": number,
+    "assessmentsCompleted": number,
+    "pendingReviews": number,
+    "openObligations": number,
+    "systemsNeedingReview": number,
+    "overdueObligations": number,
+    "escalatedAssessments": number,
+    "advisorWorkload": number,
+    "evidenceBacklog": number,
+    "systems": [...]
+  }
+}
+```
+
+**Migration notu:** Mevcut `/admin/bootstrap` `moduleOperations.aiCompliance` verisi backward compatibility için korunur. Yeni kod `useAiComplianceOperations` hook'unu kullanmalı; legacy bootstrap verisi geçici fallback olarak mevcut.
+
 ## Operational realism layer (Step 8)
 
 AI Compliance platform yüzeyleri, geniş backend rewrite veya workflow engine eklemeden operasyonel görünürlüğü artırır:

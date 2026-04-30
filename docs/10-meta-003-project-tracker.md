@@ -27,6 +27,7 @@ Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-ru
 - **AI Act Workflow Realism & Actionability Layer (Step 9):** **COMPLETE** - AI Compliance operasyon yüzeylerinde readable operational time, priority explainability, daha aksiyon alınabilir Today's Action Queue, controlled friction signals ve derived signal honesty güçlendirildi; backend workflow persistence hâlâ ayrı fazdır.
 - **Organization Settings Form Governance (Step 11):** **COMPLETE** - Organization App genel ayarlarında timezone, ülke, para birimi ve dil seçenekleri kontrollü inputlarla yönetilir; telefon/e-posta semantiği ve trimleme eklendi, backend payload uyumluluğu korundu.
 - **Platform Console UX Refactor (Step 2):** **COMPLETE** - dashboard canlı product-aware metriklere geçti, organizations terminolojisi standardize edildi, organizations sayfasına module/urun badge görünürlüğü eklendi, plan feature etiketleri insan okunur hale getirildi, canonical seed persona + email ve plan mapping düzeltildi, bootstrap API `platformMetrics` ile genişletildi.
+- **Bootstrap Split / AI Compliance Operations Endpoint (Step 13):** **COMPLETE** - `GET /admin/products/ai-compliance/operations` endpoint eklendi. `/admin/bootstrap` `moduleOperations` yükü azaltılmaya başlandı. Membership-first erişim, ai_act modül aktivasyonu ve `ai_act.view` izin kontrolleri enforce ediliyor. Frontend'de `useAiComplianceOperations` hook ve geçici bootstrap fallback eklendi.
 
 ### Current Priority
 

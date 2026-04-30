@@ -117,6 +117,10 @@ export async function registerSessionRoutes(app: FastifyInstance): Promise<void>
             orderBy: [{ tenantId: "asc" }, { module: { name: "asc" } }],
           });
     const platformMetrics = await loadPlatformMetricsForSession(s, tenantIds);
+    // TODO(platform-api): moduleOperations is being split into product-specific endpoints.
+    // See GET /admin/products/ai-compliance/operations for AI Compliance operational data.
+    // This field is preserved for backward compatibility during migration.
+    // Do not expand moduleOperations; add new product data to dedicated endpoints.
     const moduleOperations = await loadModuleOperationsForSession(s, tenantIds);
 
     return {

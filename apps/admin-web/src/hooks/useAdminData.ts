@@ -177,7 +177,10 @@ export type AdminBootstrap = {
   tenantModules: TenantModuleDto[];
   platformMetrics: PlatformMetricsDto;
   // TODO(platform-api): /admin/bootstrap payload is growing too broad.
-  // Split session bootstrap and product operational endpoints in a follow-up step.
+  // moduleOperations is being migrated to product-specific endpoints:
+  // - GET /admin/products/ai-compliance/operations (see useAiComplianceOperations hook)
+  // This field is preserved for backward compatibility during migration.
+  // Do not expand; add new product data to dedicated endpoints.
   moduleOperations: ModuleOperationsDto;
   auditLogs: AuditLogDto[];
   /** `/tenant/entitlements` — yalnızca tenant oturumunda doldurulur. */
