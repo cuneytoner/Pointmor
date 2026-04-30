@@ -1525,7 +1525,7 @@
 
   .admin-app__topbar-title {
     min-width: 0;
-    flex: 1 1 auto;
+    flex: 1 1 8rem;
   }
 
   .admin-app__topbar-spacer {
@@ -1551,7 +1551,42 @@
   }
 
   .lang-selector--topbar {
-    max-width: 9.5rem;
+    order: 5;
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+
+  .lang-selector--topbar .lang-selector__track {
+    flex-wrap: wrap;
+    overflow: visible;
+    gap: 0.35rem;
+    padding: 0.05rem 0;
+    scrollbar-width: none;
+  }
+
+  .lang-selector--topbar .lang-selector__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lang-selector--topbar .lang-selector__pill {
+    flex: 0 0 auto;
+    padding: 0.34rem 0.58rem;
+    transform: none;
+  }
+
+  .lang-selector--topbar .lang-selector__pill:hover,
+  .lang-selector--topbar .lang-selector__pill--active:hover {
+    transform: none;
+  }
+
+  .admin-app__topbar-plan-wrap {
+    order: 2;
+    flex: 0 0 auto;
+    margin-left: 0;
+  }
+
+  .admin-app__topbar-plan-wrap .plan-badge {
+    white-space: nowrap;
   }
 
   .workspace__status-band {
@@ -1651,7 +1686,7 @@
   }
 
   .lang-selector--topbar {
-    max-width: 7.25rem;
+    max-width: 100%;
   }
 
   .lang-selector__pill {
@@ -1667,7 +1702,7 @@
   }
 
   .admin-app__topbar-plan-wrap {
-    order: 4;
+    order: 2;
   }
 
   .activity-group,
@@ -3994,6 +4029,18 @@ a.admin-secondary-btn:hover {
   align-items: center;
 }
 
+@media (max-width: 820px) {
+  .admin-app__topbar-plan-wrap {
+    order: 2;
+    flex: 0 0 auto;
+    margin-left: 0;
+  }
+
+  .admin-app__topbar-plan-wrap .plan-badge {
+    white-space: nowrap;
+  }
+}
+
 .plan-badge {
   display: inline-block;
   font-size: 0.6875rem;
@@ -4268,6 +4315,76 @@ a.admin-secondary-btn:hover {
   flex-direction: column;
   gap: 1rem;
   align-items: flex-start;
+}
+
+.compliance-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .billing-summary .metric-grid,
+  .metric-grid--3 {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-card {
+    padding: 0.85rem;
+  }
+
+  .usage-row__head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .billing-actions,
+  .billing-modal-actions,
+  .modal-card--form .billing-modal-actions,
+  .feature-plan-gate,
+  .compliance-export-actions {
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .billing-actions,
+  .billing-modal-actions,
+  .modal-card--form .billing-modal-actions,
+  .compliance-export-actions {
+    flex-direction: column;
+  }
+
+  .billing-actions .admin-primary-btn,
+  .billing-actions .admin-secondary-btn,
+  .billing-modal-actions .admin-primary-btn,
+  .billing-modal-actions .admin-secondary-btn,
+  .feature-plan-gate .admin-primary-btn,
+  .feature-plan-gate .admin-secondary-btn,
+  .compliance-export-actions .admin-primary-btn,
+  .compliance-export-actions .admin-secondary-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 0.75rem;
+  }
+
+  .modal-card,
+  .modal-card--form {
+    width: 100%;
+    max-height: calc(100dvh - 1.5rem);
+  }
+
+  .modal-card--form .modal-card__head,
+  .modal-card--form .modal-card__body,
+  .modal-card--form .modal-card__footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
 
 /* HQ / franchise dashboard */

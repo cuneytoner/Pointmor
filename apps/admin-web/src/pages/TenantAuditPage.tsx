@@ -94,21 +94,23 @@ export function TenantAuditPage() {
             {t("tenantAudit.exportHint")}
           </p>
           {fullPack ? (
-            <button
-              type="button"
-              className="admin-primary-btn"
-              onClick={() => {
-                if (!token?.trim()) return;
-                if (!window.confirm(t("compliance.exportConfirmAuditCsv"))) return;
-                downloadComplianceExport(token, "/audit/export/csv", "audit-export.csv", locale).catch(
-                  () => undefined,
-                );
-              }}
-            >
-              {t("compliance.exportAuditCsv")}
-            </button>
+            <div className="compliance-export-actions">
+              <button
+                type="button"
+                className="admin-primary-btn"
+                onClick={() => {
+                  if (!token?.trim()) return;
+                  if (!window.confirm(t("compliance.exportConfirmAuditCsv"))) return;
+                  downloadComplianceExport(token, "/audit/export/csv", "audit-export.csv", locale).catch(
+                    () => undefined,
+                  );
+                }}
+              >
+                {t("compliance.exportAuditCsv")}
+              </button>
+            </div>
           ) : (
-            <div className="feature-plan-gate" style={{ padding: 0 }}>
+            <div className="feature-plan-gate compliance-export-actions" style={{ padding: 0 }}>
               <p className="admin-app__card-text">{t("compliance.upgradeUnlockFullPack")}</p>
               <Link to="/app/admin/billing" className="admin-primary-btn">
                 {t("compliancePack.ctaPlans")}
