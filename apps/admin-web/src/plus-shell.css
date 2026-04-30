@@ -1719,6 +1719,34 @@
   .ops-queue-item {
     align-items: flex-start;
     flex-direction: column;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .card-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .card-head .admin-primary-btn,
+  .card-head .admin-secondary-btn,
+  .page-shell__body > .admin-primary-btn,
+  .page-shell__body > .admin-secondary-btn,
+  .ops-action-card__footer .admin-primary-btn,
+  .ops-action-card__footer .admin-secondary-btn {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .ops-action-card__footer {
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .ops-queue-item .badge {
+    align-self: flex-start;
   }
 }
 
@@ -4672,6 +4700,61 @@ a.admin-secondary-btn:hover {
 .subscriptions-apply-btn {
   font-size: 0.8125rem;
   padding: 0.35rem 0.75rem;
+}
+
+@media (max-width: 520px) {
+  .subscriptions-table {
+    min-width: 0;
+  }
+
+  .subscriptions-table thead {
+    display: none;
+  }
+
+  .subscriptions-table,
+  .subscriptions-table tbody,
+  .subscriptions-table tr,
+  .subscriptions-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .subscriptions-table tr {
+    padding: 0.85rem 0;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  }
+
+  .subscriptions-table tr:last-child {
+    border-bottom: 0;
+  }
+
+  .subscriptions-table td {
+    border-bottom: 0;
+    padding: 0.25rem 0;
+  }
+
+  .subscriptions-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.15rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+
+  .subscriptions-plan-cell,
+  .subscriptions-plan-label,
+  .subscriptions-plan-select,
+  .subscriptions-apply-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .subscriptions-apply-btn {
+    justify-content: center;
+  }
 }
 
 .sr-only {

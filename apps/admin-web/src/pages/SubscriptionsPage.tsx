@@ -95,7 +95,7 @@ export function SubscriptionsPage() {
       ) : null}
       <div className="admin-app__card admin-app__card--wide">
         <div className="table-wrap">
-          <table className="data-table">
+          <table className="data-table subscriptions-table">
             <thead>
               <tr>
                 <th>{t("common.id")}</th>
@@ -114,9 +114,9 @@ export function SubscriptionsPage() {
                 const health = presentSubscriptionHealth(r);
                 return (
                   <tr key={r.id}>
-                    <td className="data-table__mono">{r.id}</td>
-                    <td>{r.tenant.name}</td>
-                    <td>
+                    <td className="data-table__mono" data-label={t("common.id")}>{r.id}</td>
+                    <td data-label={t("subscriptions.columns.workspace")}>{r.tenant.name}</td>
+                    <td data-label={t("subscriptions.columns.plan")}>
                       <div className="chip-row">
                         <span>{r.plan.name}</span>
                         <Badge tone={r.plan.planType === "free" ? "neutral" : "info"}>
@@ -128,16 +128,16 @@ export function SubscriptionsPage() {
                         </Badge>
                       </div>
                     </td>
-                    <td>
+                    <td data-label={t("subscriptions.columns.status")}>
                       <div className="chip-row">
                         <Badge tone={statusTone(r.status)}>{statusLabel(r.status)}</Badge>
                         <Badge tone={health.tone}>{health.label}</Badge>
                       </div>
                     </td>
-                    <td className="data-table__muted">
+                    <td className="data-table__muted" data-label={t("subscriptions.columns.renews")}>
                       {r.renewsAt ? formatDateLabel(r.renewsAt, locale) : "—"}
                     </td>
-                    <td>
+                    <td data-label={t("subscriptions.columns.actions")}>
                       <div className="subscriptions-plan-cell">
                         <label className="subscriptions-plan-label">
                           <span className="sr-only">{t("subscriptions.changePlan")}</span>

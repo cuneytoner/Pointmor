@@ -19,6 +19,7 @@ import { permissionForProductPath } from "../lib/productRegistry";
 
 export function RequirePlatformLayout(): ReactNode {
   const { auth } = useAdminDataContext();
+  if (!auth) return null;
   if (!auth?.user.platformAdmin) {
     return <Navigate to="/app/dashboard" replace />;
   }
