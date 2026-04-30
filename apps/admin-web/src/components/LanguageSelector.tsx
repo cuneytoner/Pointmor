@@ -5,14 +5,7 @@ import {
 } from "../contexts/LocaleContext";
 import type { LocaleCode } from "../i18n/locale";
 import { useTranslation } from "../hooks/useTranslation";
-
-/** Görsel tutarlılık için bölgesel bayrak (emoji). */
-const LOCALE_FLAGS: Record<LocaleCode, string> = {
-  en: "🇬🇧",
-  tr: "🇹🇷",
-  es: "🇪🇸",
-  de: "🇩🇪",
-};
+import { LanguageFlag } from "./LanguageFlag";
 
 function shortLabel(code: LocaleCode): string {
   return code.toUpperCase();
@@ -48,9 +41,7 @@ export function LanguageSelector({ variant }: LanguageSelectorProps) {
               aria-label={fullName}
               aria-pressed={active}
             >
-              <span className={`lang-selector__flag lang-selector__flag--${code}`} aria-hidden>
-                {LOCALE_FLAGS[code]}
-              </span>
+              <LanguageFlag code={code} />
               <span className="lang-selector__short">{shortLabel(code)}</span>
             </button>
           );
