@@ -48,7 +48,7 @@ export function LanguageSelector({ variant }: LanguageSelectorProps) {
               aria-label={fullName}
               aria-pressed={active}
             >
-              <span className="lang-selector__flag" aria-hidden>
+              <span className={`lang-selector__flag lang-selector__flag--${code}`} aria-hidden>
                 {LOCALE_FLAGS[code]}
               </span>
               <span className="lang-selector__short">{shortLabel(code)}</span>
