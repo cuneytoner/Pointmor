@@ -26,6 +26,11 @@ if [ -z "${DATABASE_URL_DEMO:-}" ]; then
   exit 1
 fi
 
+if [ -z "$DEMO_ADMIN_PASSWORD" ] || [ -z "$DEMO_OPERATOR_PASSWORD" ]; then
+  echo "seed-full-demo: DEMO_ADMIN_PASSWORD ve DEMO_OPERATOR_PASSWORD (min. 12 karakter) gerekli."
+  exit 1
+fi
+
 cd "$ROOT"
 
 if ! docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" ps -q "$SERVICE_NAME" 2>/dev/null | grep -q .; then
@@ -39,6 +44,10 @@ echo "seed-full-demo: FORCE_RESEED_DEMO=$FORCE_RESEED_DEMO (1 = mevcut senaryo v
 
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" exec -T \
   -e DATABASE_URL="$DATABASE_URL_DEMO" \
+  -e DEMO_ADMIN_PASSWORD="$DEMO_ADMIN_PASSWORD" \
+  -e DEMO_OPERATOR_PASSWORD="$DEMO_OPERATOR_PASSWORD" \
+  -e "DEMO_ADMIN_EMAIL=${DEMO_ADMIN_EMAIL:-admin-demo@pointmor.demo}" \
+  -e "DEMO_OPERATOR_EMAIL=${DEMO_OPERATOR_EMAIL:-owner-demo@pointmor.demo}" \
   -e APP_ENV=demo \
   -e ALLOW_FULL_DEMO_SEED=true \
   -e CONFIRM_FULL_DEMO_SEED=I_UNDERSTAND_FULL_DEMO_SEED \

@@ -101,7 +101,7 @@ EOF
     reset-seed)
       echo "🧨 DB reset + generate + migrate + seed..."
       run_compose exec -T api-demo sh -c 'cd /app/apps/api && npm run db:generate'
-      run_compose exec -T api-demo sh -c 'cd /app/apps/api && npx prisma migrate reset --force'
+      run_compose exec -T api-demo sh -c 'cd /app/apps/api && npx prisma migrate reset --force --skip-seed'
       ./infra/scripts/migrate-demo.sh
       if [ "$full_seed" -eq 1 ]; then
         ./infra/scripts/seed-full-demo.sh

@@ -418,14 +418,20 @@ export async function runSeed(input?: { mode?: SeedMode; includeFullDemoScenario
     return;
   }
 
-  const adminPassword = resolvePassword("SEED_DEV_ADMIN_PASSWORD", "PointmorDev!Admin", {
-    mode,
-    required: false,
-  });
-  const operatorPassword = resolvePassword("SEED_DEV_OPERATOR_PASSWORD", "PointmorDev!Demo", {
-    mode,
-    required: false,
-  });
+  const adminPassword =
+    mode === "dev"
+      ? resolvePassword("SEED_DEV_ADMIN_PASSWORD", "PointmorDev!Admin", {
+          mode,
+          required: false,
+        })
+      : "";
+  const operatorPassword =
+    mode === "dev"
+      ? resolvePassword("SEED_DEV_OPERATOR_PASSWORD", "PointmorDev!Demo", {
+          mode,
+          required: false,
+        })
+      : "";
   const demoAdminPassword = resolvePasswordWithAliases(
     ["SEED_DEMO_ADMIN_PASSWORD", "DEMO_ADMIN_PASSWORD"],
     adminPassword,
@@ -474,4 +480,10 @@ export async function runSeed(input?: { mode?: SeedMode; includeFullDemoScenario
   );
 }
 
-await runSeed();
+const entrypoint = process.argv[1]
+  ? pathToFileURL(path.resolve(process.argv[1])).href
+  : "";
+
+if (import.meta.url === entrypoint) {
+  await runSeed();
+}

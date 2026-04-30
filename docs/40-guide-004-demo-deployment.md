@@ -80,6 +80,25 @@ Demo DB, local dev DB ile paylaşılmamalıdır.
 
 ---
 
+## 3.0) Dev / demo / production ayrımı
+
+Bu üç akış birbirine karıştırılmamalıdır:
+
+| Ortam | Amaç | DB komutu | Seed env | Kullanım |
+|-------|------|----------|----------|----------|
+| Local dev | Geliştirme makinesi | `npm run db:seed -w api` | `SEED_DEV_ADMIN_PASSWORD`, `SEED_DEV_OPERATOR_PASSWORD` opsiyonel; yoksa dev fallback kullanılır | Lokal geliştirme |
+| Demo | Cloud/demo host | `./infra/scripts/seed-demo.sh` veya `pmdeploy --db-mode update-seed` | `DEMO_ADMIN_PASSWORD`, `DEMO_OPERATOR_PASSWORD` zorunlu | Demo/staging benzeri ortam |
+| Production | Canlı sistem | Seed yok; yalnız explicit migrate | `PROD_BOOTSTRAP_ADMIN_PASSWORD` yalnız ilk bootstrap gerekiyorsa | Canlı operasyon |
+
+Önemli kurallar:
+
+- Demo deploy sırasında dev seed değişkenleri kullanılmaz.
+- Demo seed için `DEMO_ADMIN_PASSWORD` ve `DEMO_OPERATOR_PASSWORD` en az 12 karakter olmalıdır.
+- Production'da demo seed ve full demo seed çalıştırılmaz.
+- `pmdeploy --db-mode reset-seed` destruktiftir; migration reset sırasında implicit seed atlanır, seed yalnız `seed-demo.sh` / `seed-full-demo.sh` ile explicit çalışır.
+
+---
+
 ## 3.1) Deploy öncesi repo sync/pull (script değişiklikleri için kritik)
 
 `deploy-demo.sh`, `migrate-demo.sh`, `seed-demo.sh` ve diğer `infra/scripts/*.sh` dosyaları
@@ -135,8 +154,8 @@ Cloudflare tunnel ile:
 
 Not:
 
-- Deploy scriptinin otomatik seed davranışı script implementasyonuna bağlıdır.
-- Operasyonel standart: deploy sonrası seed adımını explicit çalıştır.
+- `deploy-demo.sh` yalnız build/up/migrate/health yapar; seed çalıştırmaz.
+- `pmdeploy` helper'ı varsayılan olarak `--db-mode update-seed` kullanır ve deploy sonrası seed adımını explicit çalıştırır.
 - Demo deploy, production deploy değildir.
 
 ---
@@ -170,12 +189,42 @@ Seed farkı:
 - `seed-demo.sh`: temel demo verisi.
 - `seed-full-demo.sh`: daha geniş demo senaryosu, çok tenant/ek veri.
 - `seed-demo.sh`, konteyner içinde `SEED_MODE=demo npx prisma db seed` çalıştırır (cross-env gerektirmez).
+- `seed-full-demo.sh`, konteyner içinde guarded `npm run db:seed:full:demo -w api` çalıştırır.
 
 Uyarılar:
 
 - Demo seed production seed değildir.
 - `seed` verisi `TenantMembership` hizasını korumalıdır.
 - `User.tenantId` legacy alandır; access için kullanılmaz.
+- Demo seed `DEMO_ADMIN_PASSWORD` ve `DEMO_OPERATOR_PASSWORD` ister; `SEED_DEV_*` değişkenleri demo ortamında gerekli değildir.
+
+### 6.1) Sık hata: `missing_required_password:SEED_DEV_ADMIN_PASSWORD`
+
+Belirti:
+
+```text
+Error: missing_required_password:SEED_DEV_ADMIN_PASSWORD
+```
+
+Anlamı:
+
+- Demo seed akışı yanlışlıkla dev seed parolasını arıyordur veya host eski script/commit ile çalışıyordur.
+
+Kontrol:
+
+```bash
+cd /opt/pointmor-demo/Pointmor
+git rev-parse --short HEAD
+git pull --ff-only
+grep -n "SEED_MODE=demo" infra/scripts/seed-demo.sh
+grep -n "DEMO_ADMIN_PASSWORD" infra/scripts/seed-full-demo.sh
+```
+
+Beklenen:
+
+- `.env.demo` içinde `DEMO_ADMIN_PASSWORD` ve `DEMO_OPERATOR_PASSWORD` tanımlı olmalı.
+- `seed-demo.sh`, container içinde `SEED_MODE=demo npx prisma db seed` çalıştırmalı.
+- Full demo seed, `DEMO_ADMIN_PASSWORD` ve `DEMO_OPERATOR_PASSWORD` değerlerini container'a geçirmeli.
 
 ---
 
