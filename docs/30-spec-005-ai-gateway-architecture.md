@@ -82,6 +82,8 @@ AI Gateway should return enough metadata for audit and review:
 
 Features must check provider capabilities instead of assuming all providers behave like frontier cloud models.
 
+The canonical provider capability registry specification is [`30-spec-012-provider-capability-registry.md`](./30-spec-012-provider-capability-registry.md).
+
 Capability examples:
 
 | Capability | Meaning |

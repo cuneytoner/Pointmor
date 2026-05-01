@@ -202,6 +202,8 @@ Future adapters must satisfy the same normalized contract rather than introducin
 
 ## 8. Capability Profile
 
+The provider capability registry and feature matching rules are specified in [`30-spec-012-provider-capability-registry.md`](./30-spec-012-provider-capability-registry.md).
+
 MVP capabilities:
 
 | Capability | Meaning |
