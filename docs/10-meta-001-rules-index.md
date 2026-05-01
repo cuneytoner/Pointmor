@@ -12,12 +12,14 @@ Kullanıcılar tenant'lara membership üzerinden erişir.
 |---|---|
 | Çekirdek platform tanımı | [`10-meta-004-core-platform-definition.md`](./10-meta-004-core-platform-definition.md) |
 | Proje planı / yol haritası (tek kaynak) | [`10-meta-005-platform-project-plan.md`](./10-meta-005-platform-project-plan.md) |
+| AI Infrastructure implementation backlog | [`10-meta-006-ai-infrastructure-implementation-backlog.md`](./10-meta-006-ai-infrastructure-implementation-backlog.md) |
 | Ürün kapsamı | [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md) |
 | Mimari katmanlar | [`20-rules-002-architecture.md`](./20-rules-002-architecture.md) |
 | Veri modeli ve erişim kaynağı | [`20-rules-003-data-model.md`](./20-rules-003-data-model.md) |
 | API enforcement | [`20-rules-004-api-design.md`](./20-rules-004-api-design.md) |
 | Güvenlik doktrini | [`20-rules-015-cross-tenant-access-security.md`](./20-rules-015-cross-tenant-access-security.md), [`20-rules-017-enforcement-contract.md`](./20-rules-017-enforcement-contract.md) |
-| AI guardrails (risk/security) | [`20-rules-019-ai-document-intelligence-risk.md`](./20-rules-019-ai-document-intelligence-risk.md) |
+| AI document intelligence guardrails (risk/security) | [`20-rules-019-ai-document-intelligence-risk.md`](./20-rules-019-ai-document-intelligence-risk.md) |
+| AI governance and risk controls | [`20-rules-020-ai-governance-and-risk-controls.md`](./20-rules-020-ai-governance-and-risk-controls.md) |
 | schema constraints | [`20-rules-016-schema-constraints.md`](./20-rules-016-schema-constraints.md) |
 | Enforcement contract | [`20-rules-017-enforcement-contract.md`](./20-rules-017-enforcement-contract.md) |
 | Module'ler | [`20-rules-013-platform-modules.md`](./20-rules-013-platform-modules.md) |
@@ -25,6 +27,11 @@ Kullanıcılar tenant'lara membership üzerinden erişir.
 | Cross-tenant security | [`20-rules-015-cross-tenant-access-security.md`](./20-rules-015-cross-tenant-access-security.md) |
 | AI Act module spec | [`30-spec-001-ai-act-module.md`](./30-spec-001-ai-act-module.md) |
 | Platform AI infrastructure spec | [`30-spec-003-ai-document-intelligence-infrastructure.md`](./30-spec-003-ai-document-intelligence-infrastructure.md) |
+| AI infrastructure strategy | [`30-spec-004-ai-infrastructure-strategy.md`](./30-spec-004-ai-infrastructure-strategy.md) |
+| AI Gateway architecture | [`30-spec-005-ai-gateway-architecture.md`](./30-spec-005-ai-gateway-architecture.md) |
+| Pointmor Local Agent | [`30-spec-006-pointmor-local-agent.md`](./30-spec-006-pointmor-local-agent.md) |
+| Certified AI hardware profiles | [`41-ref-008-certified-ai-hardware-profiles.md`](./41-ref-008-certified-ai-hardware-profiles.md) |
+| AI deployment packaging | [`41-ref-009-ai-deployment-packaging.md`](./41-ref-009-ai-deployment-packaging.md) |
 | Ürün shell'leri ve branding | [`30-spec-002-product-shells-and-branding.md`](./30-spec-002-product-shells-and-branding.md) |
 | Demo deployment (tek kaynak) | [`40-guide-004-demo-deployment.md`](./40-guide-004-demo-deployment.md) |
 | Yerel geliştirme komutları | [`40-guide-001-run-local.md`](./40-guide-001-run-local.md) |

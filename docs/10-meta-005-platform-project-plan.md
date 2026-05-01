@@ -34,6 +34,79 @@ Bu planın güncel odağı, teslim edilmiş temel teknik kabiliyetler üzerinde 
 
 ---
 
+## AI Infrastructure & Private AI Roadmap
+
+This is a parallel strategic workstream. It does not replace Phase 7 pilot / real-world validation and does not make AI mandatory for deterministic compliance state.
+
+Related documents:
+
+- Strategy: [`30-spec-004-ai-infrastructure-strategy.md`](./30-spec-004-ai-infrastructure-strategy.md)
+- Gateway architecture: [`30-spec-005-ai-gateway-architecture.md`](./30-spec-005-ai-gateway-architecture.md)
+- Local Agent: [`30-spec-006-pointmor-local-agent.md`](./30-spec-006-pointmor-local-agent.md)
+- Certified hardware profiles: [`41-ref-008-certified-ai-hardware-profiles.md`](./41-ref-008-certified-ai-hardware-profiles.md)
+- Sales / product packaging: [`41-ref-009-ai-deployment-packaging.md`](./41-ref-009-ai-deployment-packaging.md)
+
+### Principles
+
+- AI is optional for core deterministic compliance state.
+- AI outputs require review for critical compliance workflows.
+- Product modules must call AI Gateway, not providers directly.
+- Deployment profile differences must be handled via capability checks.
+- Manual fallback must exist when AI is unavailable.
+
+### Phase 1: AI Gateway Foundation
+
+- provider abstraction
+- tenant AI settings concept
+- async AI jobs
+- prompt registry
+- audit logs
+- structured output validation
+- cloud provider adapter first
+
+### Phase 2: Cloud AI Production Path
+
+- OpenAI/Anthropic/Azure provider support
+- token/cost tracking
+- retries/fallback
+- rate limits
+- advisor review flags
+- AI output auditability
+
+### Phase 3: Local AI Demo Path
+
+- Mac Mini demo node
+- Ollama/local runtime adapter
+- local embeddings proof of concept
+- sample tenant documents
+- private AI demo workflow
+
+### Phase 4: Pointmor Local Agent MVP
+
+- secure outbound communication
+- job polling/dispatch
+- local inference bridge
+- heartbeat/health status
+- local vector store
+- offline/retry behavior
+
+### Phase 5: Enterprise Private AI
+
+- GPU workstation profile
+- vLLM-compatible endpoint
+- private cloud deployment pattern
+- support/runbook docs
+
+### Phase 6: Full On-Prem / Regulated Offering
+
+- full module deployment option
+- customer-owned infrastructure
+- certified hardware profiles
+- backup/upgrade/support process
+- air-gapped future planning
+
+---
+
 ## 4. Completed Foundations (Locked)
 
 - **Invitation Security Hardening - DONE**

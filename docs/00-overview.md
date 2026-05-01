@@ -21,9 +21,10 @@ Kullanıcılar tenant'lara membership üzerinden erişir.
 1. Çekirdek tanım: [`10-meta-004-core-platform-definition.md`](./10-meta-004-core-platform-definition.md)
 2. Kurallar dizini (kanonik harita): [`10-meta-001-rules-index.md`](./10-meta-001-rules-index.md)
 3. Kanonik proje planı / yol haritası: [`10-meta-005-platform-project-plan.md`](./10-meta-005-platform-project-plan.md)
-4. Ürün kapsamı: [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md)
-5. Veritabanı reset/seed operasyonları: [`40-guide-009-database-reset-and-seed.md`](./40-guide-009-database-reset-and-seed.md)
-6. Dev Debian VM PostgreSQL service runbook: [`40-guide-010-dev-vm-postgresql-service.md`](./40-guide-010-dev-vm-postgresql-service.md)
+4. AI Infrastructure implementation backlog: [`10-meta-006-ai-infrastructure-implementation-backlog.md`](./10-meta-006-ai-infrastructure-implementation-backlog.md)
+5. Ürün kapsamı: [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md)
+6. Veritabanı reset/seed operasyonları: [`40-guide-009-database-reset-and-seed.md`](./40-guide-009-database-reset-and-seed.md)
+7. Dev Debian VM PostgreSQL service runbook: [`40-guide-010-dev-vm-postgresql-service.md`](./40-guide-010-dev-vm-postgresql-service.md)
 
 ## Dokümantasyon yapısı
 
@@ -37,7 +38,13 @@ Kullanıcılar tenant'lara membership üzerinden erişir.
 ## AI Document Intelligence navigasyonu
 
 - Risk / security guardrails: [`20-rules-019-ai-document-intelligence-risk.md`](./20-rules-019-ai-document-intelligence-risk.md)
+- AI governance and risk controls: [`20-rules-020-ai-governance-and-risk-controls.md`](./20-rules-020-ai-governance-and-risk-controls.md)
 - Platform AI infrastructure spec: [`30-spec-003-ai-document-intelligence-infrastructure.md`](./30-spec-003-ai-document-intelligence-infrastructure.md)
+- AI infrastructure strategy: [`30-spec-004-ai-infrastructure-strategy.md`](./30-spec-004-ai-infrastructure-strategy.md)
+- AI Gateway architecture: [`30-spec-005-ai-gateway-architecture.md`](./30-spec-005-ai-gateway-architecture.md)
+- Pointmor Local Agent spec: [`30-spec-006-pointmor-local-agent.md`](./30-spec-006-pointmor-local-agent.md)
+- Certified AI hardware profiles: [`41-ref-008-certified-ai-hardware-profiles.md`](./41-ref-008-certified-ai-hardware-profiles.md)
+- AI deployment packaging: [`41-ref-009-ai-deployment-packaging.md`](./41-ref-009-ai-deployment-packaging.md)
 
 ## Kanonik kavram sahipliği
 

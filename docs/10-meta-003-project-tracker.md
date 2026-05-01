@@ -34,6 +34,29 @@ Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-ru
 - **Phase 7 - Pilot & Real-World Validation (GTM-aligned): ACTIVE**
 - AI Act MVP artık "in progress" değil; tamamlanmış temel olarak pilot fazına girdi sağlar.
 
+### AI Infrastructure & Private AI Roadmap
+
+**Status:** Strategic workstream / documentation baseline. This runs alongside Phase 7 pilot work and does not replace current product validation priorities.
+
+**Principles:**
+
+- AI is optional for core deterministic compliance state.
+- AI outputs require review for critical compliance workflows.
+- Product modules must call AI Gateway, not providers directly.
+- Deployment profile differences must be handled via capability checks.
+- Manual fallback must exist when AI is unavailable.
+
+**Phases:**
+
+1. **AI Gateway Foundation:** provider abstraction, tenant AI settings concept, async AI jobs, prompt registry, audit logs, structured output validation, cloud provider adapter first.
+2. **Cloud AI Production Path:** OpenAI/Anthropic/Azure provider support, token/cost tracking, retries/fallback, rate limits, advisor review flags, AI output auditability.
+3. **Local AI Demo Path:** Mac Mini demo node, Ollama/local runtime adapter, local embeddings proof of concept, sample tenant documents, private AI demo workflow.
+4. **Pointmor Local Agent MVP:** secure outbound communication, job polling/dispatch, local inference bridge, heartbeat/health status, local vector store, offline/retry behavior.
+5. **Enterprise Private AI:** GPU workstation profile, vLLM-compatible endpoint, private cloud deployment pattern, support/runbook docs.
+6. **Full On-Prem / Regulated Offering:** full module deployment option, customer-owned infrastructure, certified hardware profiles, backup/upgrade/support process, air-gapped future planning.
+
+**Reference docs:** [`30-spec-004-ai-infrastructure-strategy.md`](./30-spec-004-ai-infrastructure-strategy.md), [`30-spec-005-ai-gateway-architecture.md`](./30-spec-005-ai-gateway-architecture.md), [`30-spec-006-pointmor-local-agent.md`](./30-spec-006-pointmor-local-agent.md), [`41-ref-008-certified-ai-hardware-profiles.md`](./41-ref-008-certified-ai-hardware-profiles.md), [`41-ref-009-ai-deployment-packaging.md`](./41-ref-009-ai-deployment-packaging.md).
+
 ### Faz 3 — Müşteri Deneyimi (PWA + public API)
 
 **Durum:** Ürün akışı açısından kapatıldı (QR → gate/home → puan; telefon+token; ödül talebi; offline snapshot). **Canonical public müşteri API'si:** **`/public/tenants/:slug/*`** (bootstrap = `GET /public/tenants/:slug`, session, `customers/me`, `claims`, `analytics/events`). Legacy **`/public/loyalty/:slug/*`** — GET endpoint'leri 308 ile canonical'a yönlendirilir; POST endpoint'leri geçici uyumluluk için yerinde kalır. Global + public scope rate limit ve Bearer + tenant slug ile tenant izolasyonu uygulanır.
