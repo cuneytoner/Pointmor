@@ -35,6 +35,7 @@ Kullanıcılar tenant'lara membership üzerinden erişir.
 | Tenant AI budgeting and cost isolation | [`30-spec-008-tenant-ai-budgeting-and-cost-isolation.md`](./30-spec-008-tenant-ai-budgeting-and-cost-isolation.md) |
 | Data residency and regional AI strategy | [`30-spec-009-data-residency-and-regional-ai-strategy.md`](./30-spec-009-data-residency-and-regional-ai-strategy.md) |
 | AI Gateway MVP technical design | [`30-spec-010-ai-gateway-mvp-technical-design.md`](./30-spec-010-ai-gateway-mvp-technical-design.md) |
+| AI job lifecycle specification | [`30-spec-011-ai-job-lifecycle.md`](./30-spec-011-ai-job-lifecycle.md) |
 | Certified AI hardware profiles | [`41-ref-008-certified-ai-hardware-profiles.md`](./41-ref-008-certified-ai-hardware-profiles.md) |
 | AI deployment packaging | [`41-ref-009-ai-deployment-packaging.md`](./41-ref-009-ai-deployment-packaging.md) |
 | Ürün shell'leri ve branding | [`30-spec-002-product-shells-and-branding.md`](./30-spec-002-product-shells-and-branding.md) |

@@ -143,6 +143,8 @@ The response must distinguish "AI job completed" from "output accepted into dete
 
 ## 6. AI Job Lifecycle
 
+The detailed lifecycle/state-machine specification is maintained in [`30-spec-011-ai-job-lifecycle.md`](./30-spec-011-ai-job-lifecycle.md).
+
 | State | Entered when | User/admin visibility | Retry allowed? | Manual fallback expected? |
 |---|---|---|---|---|
 | `draft` / `requested` | Product module validates request and prepares job creation. | Usually not visible unless request is saved before queueing. | Yes, before provider call. | Not yet. |
