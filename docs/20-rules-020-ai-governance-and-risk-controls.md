@@ -6,6 +6,8 @@ AI assists users and advisors. AI must not be the sole authoritative decision-ma
 
 Deterministic compliance state remains owned by Pointmor product workflows, persisted records, explicit review actions, and applicable rule logic. AI output is advisory until reviewed and accepted through a governed workflow.
 
+The canonical deterministic state doctrine is defined in [`20-rules-021-deterministic-compliance-doctrine.md`](./20-rules-021-deterministic-compliance-doctrine.md). This document adds AI-specific governance controls on top of that doctrine.
+
 ---
 
 ## 2. Human / Advisor Review
@@ -202,3 +204,4 @@ Provider and runtime capabilities must be checked through the AI Gateway. Produc
 - Certified AI hardware profiles: [`41-ref-008-certified-ai-hardware-profiles.md`](./41-ref-008-certified-ai-hardware-profiles.md)
 - AI deployment packaging: [`41-ref-009-ai-deployment-packaging.md`](./41-ref-009-ai-deployment-packaging.md)
 - AI Document Intelligence risk guardrails: [`20-rules-019-ai-document-intelligence-risk.md`](./20-rules-019-ai-document-intelligence-risk.md)
+- Deterministic compliance doctrine: [`20-rules-021-deterministic-compliance-doctrine.md`](./20-rules-021-deterministic-compliance-doctrine.md)

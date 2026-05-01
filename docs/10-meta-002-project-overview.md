@@ -10,7 +10,9 @@
 
 **Eski veri platformu domain'i** (Data Health, Governance, Lineage, connector/scan/registry) koddan ve schema'dan kaldırılmıştır; ilgili eski plan/spec dokümanları da `docs/` içinden temizlenmiştir (gerekirse git geçmişi). Güncel ürün yönü core platform + module genişlemesidir.
 
-**Cafe module (`cafe`):** Loyalty (faz 1) Prisma modelleri ve tenant bağlamında REST endpoint'leri (`/customers`, `/visits`, `/rewards`, `/redemptions`, hesap özeti) `apps/api` içindedir. Müşteri tarafı (PWA) canonical public API ile konuşur: **`/public/tenants/:tenantSlug/...`** (legacy `/public/loyalty/...` GET'leri 308 yönlendirme). Tenant App'te ödül talebi onayı ve kullanım listesi Kullanımlar ekranında işlenir.
+**Supported business module (`cafe`):** Loyalty Prisma modelleri ve tenant bağlamında REST endpoint'leri (`/customers`, `/visits`, `/rewards`, `/redemptions`, hesap özeti) `apps/api` içindedir. Müşteri tarafı (PWA) canonical public API ile konuşur: **`/public/tenants/:tenantSlug/...`** (legacy `/public/loyalty/...` GET'leri 308 yönlendirme). Tenant App'te ödül talebi onayı ve kullanım listesi Kullanımlar ekranında işlenir.
+
+**Compliance module (`ai_act`):** AI Act Compliance; AI system inventory, assessment, obligations/tasks, advisor review, operational command center ve AI Compliance operations endpoint ile platformun governance/compliance yönünü taşır.
 
 **Cashier (Tenant App):** Tek ekranda visit + müşteri + ödül kullanımı için ürün/UX kararları [`42-design-tenant-cashier-flow.md`](./42-design-tenant-cashier-flow.md) dosyasında; varsayılan operasyon sırası **önce visit, sonra redeem**, çift CTA (Complete visit primary, Use reward secondary). **Cihaz / vardiya bağlamı (slice):** backend’de `DeviceSession` + `CashierShift` + isteğe bağlı `Branch`; işlemler header veya null ile etiketlenir; tam POS muhasebesi yok.
 
@@ -20,7 +22,7 @@
 
 ## Güncel odak (ürün)
 
-**Real-world validation (pilot):** Çekirdek özellikler repoda mevcut; sıradaki kritik faz **sahada doğrulama**dır: 1–3 gerçek restoran/kafe, demo seed’den bağımsız tenant ve veri, QR + kasiyer + müşteri akışının canlı ölçümü ve yapılandırılmış geri bildirim. Ayrıntılı pilot çerçevesi, ölçüm ve riskler: [`10-meta-003-project-tracker.md`](./10-meta-003-project-tracker.md) **Phase 7**. Ürün önceliği kuralı: [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md) — **validation-first**.
+**Real-world validation (pilot):** Çekirdek özellikler repoda mevcut; sıradaki kritik faz **sahada doğrulama**dır. Pilotlar module bağlamına göre cafe/loyalty operasyonları, AI Act compliance workflow'ları veya advisor/client süreçlerini doğrulayabilir. Ayrıntılı pilot çerçevesi, ölçüm ve riskler: [`10-meta-003-project-tracker.md`](./10-meta-003-project-tracker.md) **Phase 7**. Ürün önceliği kuralı: [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md) — **validation-first**.
 
 ## Teknik yığın
 
@@ -42,10 +44,7 @@ Detaylı kurallar: [`20-rules-001-product-scope.md`](./20-rules-001-product-scop
 
 ## Platform Evrimi
 
-- Proje, cafe/loyalty odaklı bir başlangıçtan platform mimarisine evrildi.
-- Şimdi modüler çok kiracılı platforma evriliyor.
-- Mevcut cafe işlevleri değişmeden korunur.
+- Pointmor, erken operasyonel/business module'lerden daha geniş bir modüler çok kiracılı SaaS platformuna evrildi.
+- Mevcut cafe/loyalty işlevleri desteklenen business module olarak korunur.
 - Yeni module'ler çekirdek platformun üzerine eklenir.
-- İlk yeni module: **AI Act Compliance**.
-
-- **AI Act Compliance**, platformun **ilk loyalty dışı module** konumundadır ve birincil kullanım amacı **B2B compliance** süreçleridir.
+- **AI Act Compliance**, governance, compliance, advisor workflow'ları ve AI-augmented operations yönünün stratejik module'üdür.

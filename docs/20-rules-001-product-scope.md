@@ -10,9 +10,17 @@
 
 **Tek doğruluk ifadesi:** **Pointmor modüler çok kiracılı bir platformdur. Kullanıcılar tenant'lara membership üzerinden erişir. İşlevsellik module'ler üzerinden sunulur.**
 
-**Şu anki repoda** core platform (kimlik, kiracı, membership, plan, abonelik, admin UI) ve **cafe module (`cafe`)** bulunur (müşteri, ziyaret, ödül, kullanım — Prisma + tenant kapsamlı API). Müşteri PWA + canonical public API, kasiyer onaylı talep → kullanım akışı ve Tenant App'te kullanım operasyon ekranı mevcut kapsamda. **Plan / entitlement:** `GET /tenant/entitlements`, yazma yollarında limit ve özellik kontrolleri, Tenant App'te kullanım ve yükseltme UX'i (demo plan değişimi; gerçek ödeme/PSP/fatura entegrasyonu ürün olgunluğuna göre sonraki adım).
+**Şu anki repoda** core platform (kimlik, kiracı, membership, plan, abonelik, admin UI), desteklenen mevcut **cafe/business module (`cafe`)** ve compliance odaklı **AI Act module (`ai_act`)** bulunur. Cafe module; müşteri, ziyaret, ödül, kullanım, canonical public API, kasiyer onaylı talep → kullanım akışı ve Tenant App operasyon ekranlarını kapsar. AI Act module; AI system inventory, assessment, obligations/tasks ve compliance operasyon yüzeylerini kapsar. **Plan / entitlement:** `GET /tenant/entitlements`, yazma yollarında limit ve özellik kontrolleri, Tenant App'te kullanım ve yükseltme UX'i (demo plan değişimi; gerçek ödeme/PSP/fatura entegrasyonu ürün olgunluğuna göre sonraki adım).
 
 **Tenant kasa yüzeyi (hedef):** Tek ekranda visit ve anında ödül kullanımı (`POST /visits`, `POST /redemptions`) — ürün sırası ve CTA kuralları [`42-design-tenant-cashier-flow.md`](./42-design-tenant-cashier-flow.md).
+
+---
+
+## Platform Evolution
+
+Pointmor, erken operasyonel/business module'lerden daha geniş bir modüler çok kiracılı SaaS platformuna evrilmiştir. Existing loyalty/business module desteklenir; yeni stratejik yön governance, compliance, advisor workflow'ları ve AI-augmented operasyonlardır.
+
+Bu kapsam kuralı, platformu cafe/loyalty uygulaması olarak değil, birden fazla domain module'ünü aynı tenant, membership, plan, audit ve module activation doktriniyle taşıyan compliance-capable SaaS platformu olarak tanımlar.
 
 ---
 
@@ -77,7 +85,7 @@ Yeni özellik şunları netleştirmeli: hangi **kiracı** verisini taşıyor, **
 
 ## Platform Extension Strategy
 
-- **Cafe domain korunur:** Mevcut cafe/loyalty kapsamı ve iş akışları bozulmadan devam eder.
+- **Mevcut business module korunur:** Cafe/loyalty kapsamı ve iş akışları bozulmadan desteklenmeye devam eder.
 - **Yeni domain = module:** Yeni iş alanları çekirdek yerine module olarak eklenir.
 - **Domain logic karışmaz:** Module'ler kendi domain sorumluluğunu taşır; farklı domain kuralları aynı iş akışında iç içe geçirilmez.
 - **Core platform ortaktır:** auth, tenant, membership, plan/abonelik ve temel güvenlik katmanı tüm module'ler için ortak altyapıdır.

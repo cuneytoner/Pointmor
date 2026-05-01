@@ -5,9 +5,17 @@
 Pointmor modüler çok kiracılı bir platformdur.  
 Platform çekirdeği tenant, membership, auth/session, güvenlik ve module activation katmanını sağlar; alan işlevleri module yapılarıyla sunulur.
 
-- Cafe/loyalty alanı platform içinde **mevcut module (`cafe`)** olarak konumlanır.
-- AI Act Compliance module, platformdaki **ilk loyalty dışı module** olarak konumlanır.
+- Cafe/loyalty alanı platform içinde **desteklenen mevcut business module (`cafe`)** olarak konumlanır.
+- AI Act Compliance module, platformun **stratejik compliance-capable product direction** yönünü temsil eder.
 - Advisor/client modeli, platformun B2B dağıtım ve operasyon ölçekleme katmanı olarak stratejiktir.
+
+---
+
+## Platform Evolution
+
+Pointmor, erken operasyonel/business module'lerden daha geniş bir modüler çok kiracılı SaaS platformuna evrilmiştir. Mevcut loyalty/business module desteklenmeye devam eder; yeni stratejik yön governance, compliance, advisor workflow'ları ve AI-augmented operations üzerine genişler.
+
+Bu planın amacı cafe/loyalty geçmişini silmek değildir. Ama platform konumlandırması artık multi-domain tenant platform, compliance-capable platform ve module bazlı ürün genişlemesi olarak okunmalıdır.
 
 ---
 
@@ -40,6 +48,7 @@ This is a parallel strategic workstream. It does not replace Phase 7 pilot / rea
 
 Related documents:
 
+- Deterministic compliance doctrine: [`20-rules-021-deterministic-compliance-doctrine.md`](./20-rules-021-deterministic-compliance-doctrine.md)
 - Strategy: [`30-spec-004-ai-infrastructure-strategy.md`](./30-spec-004-ai-infrastructure-strategy.md)
 - Gateway architecture: [`30-spec-005-ai-gateway-architecture.md`](./30-spec-005-ai-gateway-architecture.md)
 - Local Agent: [`30-spec-006-pointmor-local-agent.md`](./30-spec-006-pointmor-local-agent.md)
@@ -49,6 +58,7 @@ Related documents:
 ### Principles
 
 - AI is optional for core deterministic compliance state.
+- Deterministic systems remain the authoritative source of compliance state.
 - AI outputs require review for critical compliance workflows.
 - Product modules must call AI Gateway, not providers directly.
 - Deployment profile differences must be handled via capability checks.
@@ -243,7 +253,7 @@ upload
 
 ## Phase 4 - AI Act MVP (Delivered)
 
-- **Durum:** İlk loyalty dışı module MVP'i teslim edildi.
+- **Durum:** Compliance odaklı `ai_act` module MVP'i teslim edildi.
 - **Kod değişiklikleri:** `AiSystem`, `AiAssessment`, `AiAssessmentAnswer`, `AiObligation`, `AiTask`, `AiEvidence`, `AiDocumentLink` tenant-scoped veri modeli; değerlendirme/risk akışı için derived-data kurgusu.
 - **Enforcement gereksinimleri:** Tenant izolasyonu, membership tabanlı erişim, module activation gate.
 - **Dokümantasyon güncellemeleri:** AI Act spec dosyasını endpoint/model ve akış detaylarıyla güncellemek; paylaşılan AI infrastructure spec ve AI risk guardrail dokümanlarıyla birlikte tutmak.
@@ -468,7 +478,7 @@ MVP kapsamı:
 ## 13. Karar Günlüğü
 
 - Pointmor platform kimliği korunur.
-- Cafe/loyalty alanı çekirdek değil, module olarak kalır.
+- Cafe/loyalty alanı çekirdek değil, desteklenen mevcut business module olarak kalır.
 - Repo kısa vadede bölünmez; tek platform reposu ile ilerlenir.
 - `TenantMembership`, erişim için source of truth'tur.
 - `User.tenantId`, legacy fallback olarak kalır (erişim kararı için kullanılmaz).

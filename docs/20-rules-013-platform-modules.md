@@ -23,7 +23,7 @@
 2. **Module core entity değiştiremez:** Module'ler core tablolarda iş kuralı mutasyonu yapmaz; core verisini yalnızca izinli okuma/bağlantı amacıyla kullanır.
 3. **Tenant scope zorunludur:** Module verisi tenant kapsamlıdır; cross-tenant erişim yalnızca core membership/policy kontrolü ile mümkündür.
 4. **Erişim membership tabanlıdır:** Her module API/UI erişimi aktif tenant + membership bağlamında değerlendirilir.
-5. **Mevcut cafe alanı korunur:** Var olan loyalty/cafe işlevleri kaldırılmaz; platform içinde `cafe` module olarak konumlanır.
+5. **Mevcut business module korunur:** Var olan loyalty/cafe işlevleri kaldırılmaz; platform içinde desteklenen `cafe` module olarak konumlanır.
 
 ---
 
@@ -54,7 +54,7 @@ Tenant bazında module durumunu tanımlar.
 | Module | Durum | Açıklama |
 |------|------|----------|
 | **`cafe`** | Mevcut | Loyalty/cafe operasyonları (müşteri, ziyaret, ödül, redemption, cashier vb.) |
-| **`ai_act`** | Yeni (ilk non-loyalty) | B2B compliance odaklı AI Act uyum süreçleri |
+| **`ai_act`** | Stratejik compliance module | B2B governance ve AI Act uyum süreçleri |
 
 ---
 
@@ -80,6 +80,6 @@ Bu module'ler, core kuralları ve tenant izolasyonu değişmeden eklenir; her bi
 
 ## İlgili dokümanlar
 
-- Ürün kapsamı ve cafe/loyalty odağı: [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md)
+- Ürün kapsamı ve module bazlı platform konumlandırması: [`20-rules-001-product-scope.md`](./20-rules-001-product-scope.md)
 - Veri modeli ve migration ilkeleri: [`20-rules-003-data-model.md`](./20-rules-003-data-model.md)
 - Güvenlik ve tenant izolasyonu: [`20-rules-005-security.md`](./20-rules-005-security.md)

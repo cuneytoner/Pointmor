@@ -8,8 +8,8 @@ Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-ru
 
 - **Ürün adı:** Pointmor — modüler çok kiracılı platform.
 - **Tek doğruluk ifadesi:** Pointmor modüler çok kiracılı bir platformdur. Kullanıcılar tenant'lara membership üzerinden erişir. İşlevsellik module'ler üzerinden sunulur.
-- **Cafe konumu:** Loyalty/cafe alanı platformdaki **existing module (`cafe`)** olarak sürer.
-- **İlk loyalty dışı module:** **AI Act Compliance** (B2B compliance kullanım senaryosu).
+- **Cafe konumu:** Loyalty/cafe alanı platformdaki desteklenen mevcut business module (`cafe`) olarak sürer.
+- **Compliance yönü:** **AI Act Compliance** (`ai_act`) governance, compliance ve advisor workflow'ları için stratejik module yönünü temsil eder.
 - **Çekirdek korundu:** Tenant, User, auth/session, Plan, Subscription, audit; Platform + Tenant admin yüzeyleri.
 - **Temizlik tamamlandı:** Eski data-platform bileşenleri kod ve schema'dan kaldırılmış, tracker yalnız mevcut platform ve module durumunu takip eder.
 - **Loyalty (faz 1):** `Customer`, `Visit`, `Reward`, `Redemption` modelleri ve tenant kapsamlı API endpoint'leri (`apps/api`) mevcut.
@@ -33,6 +33,10 @@ Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-ru
 
 - **Phase 7 - Pilot & Real-World Validation (GTM-aligned): ACTIVE**
 - AI Act MVP artık "in progress" değil; tamamlanmış temel olarak pilot fazına girdi sağlar.
+
+### Platform Evolution
+
+Pointmor, erken operasyonel/business module'lerden daha geniş bir modüler çok kiracılı SaaS platformuna evrilmiştir. Mevcut loyalty/business module desteklenir; yeni stratejik yön governance, compliance, advisor workflow'ları ve AI-augmented operasyonlardır.
 
 ### AI Infrastructure & Private AI Roadmap
 
@@ -179,7 +183,7 @@ Canlı teknik/ürün özeti. Kurallar: [`20-rules-001-product-scope.md`](./20-ru
 
 - Core platform: tenant/membership/auth/plan sınırlarını sert koru.
 - `cafe` module: mevcut operasyon iyileştirmeleri pilot bulgularına göre sürdür.
-- `ai_act` module: ilk loyalty dışı B2B compliance genişlemesi olarak ürünleştir.
+- `ai_act` module: compliance-capable platform yönünün B2B governance ve AI Act workflow'ları için ürünleşmiş module'ü olarak geliştir.
 - Sonraki module'ler: module activation ve tenant izolasyonu kurallarına göre kademeli eklenir.
 
 **Tamamlanan (bu dilim):** PWA tabanı `/public/tenants/...`; Tenant App **Kullanımlar** — bekleyen/tamamlanan filtre, detay paneli, müşteri profilinde talep geçmişi; `409` mesaj ayrımı.

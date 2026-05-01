@@ -20,6 +20,7 @@ Kullanıcılar tenant'lara membership üzerinden erişir.
 | Güvenlik doktrini | [`20-rules-015-cross-tenant-access-security.md`](./20-rules-015-cross-tenant-access-security.md), [`20-rules-017-enforcement-contract.md`](./20-rules-017-enforcement-contract.md) |
 | AI document intelligence guardrails (risk/security) | [`20-rules-019-ai-document-intelligence-risk.md`](./20-rules-019-ai-document-intelligence-risk.md) |
 | AI governance and risk controls | [`20-rules-020-ai-governance-and-risk-controls.md`](./20-rules-020-ai-governance-and-risk-controls.md) |
+| Deterministic compliance doctrine | [`20-rules-021-deterministic-compliance-doctrine.md`](./20-rules-021-deterministic-compliance-doctrine.md) |
 | schema constraints | [`20-rules-016-schema-constraints.md`](./20-rules-016-schema-constraints.md) |
 | Enforcement contract | [`20-rules-017-enforcement-contract.md`](./20-rules-017-enforcement-contract.md) |
 | Module'ler | [`20-rules-013-platform-modules.md`](./20-rules-013-platform-modules.md) |
@@ -30,6 +31,10 @@ Kullanıcılar tenant'lara membership üzerinden erişir.
 | AI infrastructure strategy | [`30-spec-004-ai-infrastructure-strategy.md`](./30-spec-004-ai-infrastructure-strategy.md) |
 | AI Gateway architecture | [`30-spec-005-ai-gateway-architecture.md`](./30-spec-005-ai-gateway-architecture.md) |
 | Pointmor Local Agent | [`30-spec-006-pointmor-local-agent.md`](./30-spec-006-pointmor-local-agent.md) |
+| AI feature classification matrix | [`30-spec-007-ai-feature-classification-matrix.md`](./30-spec-007-ai-feature-classification-matrix.md) |
+| Tenant AI budgeting and cost isolation | [`30-spec-008-tenant-ai-budgeting-and-cost-isolation.md`](./30-spec-008-tenant-ai-budgeting-and-cost-isolation.md) |
+| Data residency and regional AI strategy | [`30-spec-009-data-residency-and-regional-ai-strategy.md`](./30-spec-009-data-residency-and-regional-ai-strategy.md) |
+| AI Gateway MVP technical design | [`30-spec-010-ai-gateway-mvp-technical-design.md`](./30-spec-010-ai-gateway-mvp-technical-design.md) |
 | Certified AI hardware profiles | [`41-ref-008-certified-ai-hardware-profiles.md`](./41-ref-008-certified-ai-hardware-profiles.md) |
 | AI deployment packaging | [`41-ref-009-ai-deployment-packaging.md`](./41-ref-009-ai-deployment-packaging.md) |
 | Ürün shell'leri ve branding | [`30-spec-002-product-shells-and-branding.md`](./30-spec-002-product-shells-and-branding.md) |

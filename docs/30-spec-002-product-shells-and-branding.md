@@ -17,8 +17,9 @@ Bu modelde ürünler ayrı hissedilir; platform çekirdeği ise ortak kalır.
 
 | Ürün yüzeyi | Kapsam |
 |-------------|--------|
-| **Pointmor** | Cafe/loyalty module odaklı ürün yüzeyi |
-| **AI Act product** | AI Act uyum module için ayrı ürün yüzeyi |
+| **Pointmor Platform** | Çok kiracılı SaaS çekirdeği, Platform Console ve tenant-scoped module yönetimi |
+| **Cafe / Loyalty module surface** | Desteklenen mevcut business module için operasyonel ürün yüzeyi |
+| **AI Compliance product surface** | AI Act uyum, governance ve advisor workflow'ları için ürün yüzeyi |
 
 ---
 
@@ -32,7 +33,7 @@ Bu modelde ürünler ayrı hissedilir; platform çekirdeği ise ortak kalır.
 
 ## Routing
 
-- Cafe yüzeyi: `/app/cafe/*`
+- Cafe / loyalty yüzeyi: `/app/cafe/*`
 - AI Act yüzeyi: `/app/ai-act/*`
 
 **Kural:** Route ayrımı ürün deneyimi içindir; güvenlik ve tenant erişim kontrolleri ortak core tarafından uygulanır.

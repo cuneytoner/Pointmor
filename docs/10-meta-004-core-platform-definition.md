@@ -14,6 +14,14 @@ Bu ifade, ürün kimliği ve mimari sınırlar için ana referanstır.
 
 ---
 
+## Platform Evolution
+
+Pointmor, erken operasyonel/business module'lerden daha geniş bir modüler SaaS platformuna evrilmiştir. Mevcut module'ler desteklenmeye devam eder; yeni stratejik yön governance, compliance, advisor workflow'ları ve AI-augmented operasyonlar üzerine genişler.
+
+Bu evrim, platformun cafe/loyalty alanına indirgenmesi anlamına gelmez. Cafe/loyalty desteklenen mevcut bir business module'dür; AI Act ve compliance workflow'ları ise aynı tenant, membership, module activation ve audit doktrini üzerinde doğal platform genişlemesidir.
+
+---
+
 ## Çekirdek platform bileşenleri
 
 | Bileşen | Tanım |
@@ -38,8 +46,8 @@ Bu ifade, ürün kimliği ve mimari sınırlar için ana referanstır.
 
 - Çekirdek platform: kimlik, tenant, membership, auth/session, plan/abonelik, güvenlik ve audit temelini sağlar.
 - Module'ler domain işlevini sağlar (`cafe`, `ai_act`, vb.) ve core kimlik/izolasyon modelini değiştirmez.
-- Cafe/loyalty alanı platformda **mevcut module (`cafe`)** olarak konumlanır.
-- AI Act Compliance, platformun **ilk loyalty dışı module** örneğidir (B2B compliance kullanım durumu).
+- Cafe/loyalty alanı platformda **desteklenen mevcut business module (`cafe`)** olarak konumlanır.
+- AI Act Compliance, platformun **stratejik compliance module (`ai_act`)** yönünü temsil eder.
 
 ---
 

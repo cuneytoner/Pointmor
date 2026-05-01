@@ -2,7 +2,7 @@
 
 **Amaç:** Tenant bazlı AI Act uyum sürecini standartlaştırmak; AI sistem envanteri, risk değerlendirmesi, uyum görevleri ve raporlamayı tek module altında yönetmek.
 
-**Konum:** `ai_act`, platformdaki **first non-loyalty module** olarak konumlanır; ana kullanım amacı **B2B compliance** süreçleridir.
+**Konum:** `ai_act`, platformun **compliance-capable SaaS** yönünü taşıyan stratejik module'dür; ana kullanım amacı **B2B compliance**, governance ve advisor workflow'larıdır.
 
 **Paylaşılan AI katmanı bağımlılığı:** `ai_act` module, ortak AI Document Intelligence altyapısını tüketir; doküman sınıflandırma, extraction, embedding ve tenant-scoped retrieval bu paylaşılan katman üzerinden sağlanır.
 

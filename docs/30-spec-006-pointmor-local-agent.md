@@ -16,6 +16,8 @@ The Local Agent exists so Product AI capabilities can run closer to customer dat
 
 Product modules should continue to call Pointmor APIs and AI Gateway. AI Gateway decides when a job should route to Local Agent based on tenant policy, deployment mode, module requirements, and provider capabilities.
 
+Data residency and regional AI routing policy is defined in [`30-spec-009-data-residency-and-regional-ai-strategy.md`](./30-spec-009-data-residency-and-regional-ai-strategy.md).
+
 ## 2. Deployment Modes
 
 ### Cloud-Managed Hybrid
@@ -369,4 +371,3 @@ Recommended MVP boundary:
 - avoid air-gapped support until update/support procedures are proven
 
 The Local Agent MVP should prove the contract before broad runtime or hardware support is promised.
-

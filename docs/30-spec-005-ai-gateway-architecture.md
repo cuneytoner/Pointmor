@@ -58,6 +58,10 @@ AI Gateway is responsible for:
 - provider error normalization
 - model/runtime metadata capture
 
+Tenant budgeting, quota, and cost-isolation strategy is defined separately in [`30-spec-008-tenant-ai-budgeting-and-cost-isolation.md`](./30-spec-008-tenant-ai-budgeting-and-cost-isolation.md).
+
+Data residency and regional AI routing strategy is defined separately in [`30-spec-009-data-residency-and-regional-ai-strategy.md`](./30-spec-009-data-residency-and-regional-ai-strategy.md).
+
 AI Gateway should return enough metadata for audit and review:
 
 - tenant id
@@ -328,6 +332,8 @@ AI output remains derived and non-authoritative unless explicitly converted into
 
 Phase 1 should introduce interfaces, contracts, and one cloud provider path.
 
+The concrete MVP technical design and implementation phasing are defined in [`30-spec-010-ai-gateway-mvp-technical-design.md`](./30-spec-010-ai-gateway-mvp-technical-design.md).
+
 Recommended Phase 1 scope:
 
 - AI Gateway TypeScript interfaces
@@ -350,4 +356,3 @@ Out of Phase 1:
 - autonomous compliance decisions
 
 Local, private, and on-prem adapters should be added after the gateway contract is stable. This keeps product modules insulated from provider churn and avoids building private deployment complexity before the core abstraction is proven.
-

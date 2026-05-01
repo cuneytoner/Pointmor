@@ -6,6 +6,8 @@ Pointmor is compliance-native and AI-augmented.
 
 AI should help users and advisors understand documents, prepare evidence, prioritize work, and draft review-ready outputs. AI must not produce authoritative compliance decisions. Final compliance status, obligation completion, and advisory conclusions remain deterministic, reviewable, and attributable to humans or explicit system rules.
 
+The deterministic compliance doctrine is canonical for this boundary: [`20-rules-021-deterministic-compliance-doctrine.md`](./20-rules-021-deterministic-compliance-doctrine.md).
+
 The platform should support cloud AI, private AI, and on-prem AI without rewriting core product modules. Product modules such as `ai_act`, advisor workflows, future expense capture, contract review, and e-invoice should consume AI through a shared infrastructure boundary instead of directly binding to a specific model provider or hardware runtime.
 
 The strategic direction is:
@@ -281,4 +283,3 @@ Cross-tenant retrieval, shared prompt context, and global semantic search across
 ### Keep external provider behavior transparent
 
 If an external AI provider is used, the deployment mode and data transfer boundary must be explicit. Customers should understand whether documents are processed in cloud AI, hybrid/local AI, private AI, or on-prem AI.
-
