@@ -58,6 +58,8 @@ AI Gateway is responsible for:
 - provider error normalization
 - model/runtime metadata capture
 
+Prompt registry and governance are specified in [`30-spec-013-prompt-registry-and-governance.md`](./30-spec-013-prompt-registry-and-governance.md).
+
 Tenant budgeting, quota, and cost-isolation strategy is defined separately in [`30-spec-008-tenant-ai-budgeting-and-cost-isolation.md`](./30-spec-008-tenant-ai-budgeting-and-cost-isolation.md).
 
 Data residency and regional AI routing strategy is defined separately in [`30-spec-009-data-residency-and-regional-ai-strategy.md`](./30-spec-009-data-residency-and-regional-ai-strategy.md).

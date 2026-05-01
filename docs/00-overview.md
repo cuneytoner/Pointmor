@@ -50,6 +50,7 @@ Kullanıcılar tenant'lara membership üzerinden erişir.
 - AI Gateway MVP technical design: [`30-spec-010-ai-gateway-mvp-technical-design.md`](./30-spec-010-ai-gateway-mvp-technical-design.md)
 - AI job lifecycle specification: [`30-spec-011-ai-job-lifecycle.md`](./30-spec-011-ai-job-lifecycle.md)
 - Provider capability registry: [`30-spec-012-provider-capability-registry.md`](./30-spec-012-provider-capability-registry.md)
+- Prompt registry and governance: [`30-spec-013-prompt-registry-and-governance.md`](./30-spec-013-prompt-registry-and-governance.md)
 - Certified AI hardware profiles: [`41-ref-008-certified-ai-hardware-profiles.md`](./41-ref-008-certified-ai-hardware-profiles.md)
 - AI deployment packaging: [`41-ref-009-ai-deployment-packaging.md`](./41-ref-009-ai-deployment-packaging.md)
 

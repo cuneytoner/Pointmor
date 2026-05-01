@@ -92,6 +92,8 @@ Provider Runtime is the actual external or internal AI service. For MVP this is 
 
 ## 4. Request Contract
 
+Prompt registry and prompt governance rules are specified in [`30-spec-013-prompt-registry-and-governance.md`](./30-spec-013-prompt-registry-and-governance.md).
+
 Conceptual request shape:
 
 | Field | Purpose |
