@@ -158,11 +158,12 @@ export function OrganizationDetailPage() {
       // Still loading - will be handled in render
     } else if (aiError) {
       // Handle different error types according to fallback rules
-      if (aiError === "unauthorized" || aiError === "permission_denied" || 
+      if (aiError === "unauthorized" || aiError === "forbidden" || aiError === "permission_denied" || 
           aiError === "module_not_active" || aiError === "tenant_context_required") {
         // Don't use fallback for auth/security/module errors - show honest error state
         showAiComplianceError = true;
         aiComplianceErrorMessage = aiError === "unauthorized" ? "Authentication required" : 
+                                  aiError === "forbidden" ? "Access denied" :
                                   aiError === "permission_denied" ? "Access denied" :
                                   aiError === "module_not_active" ? "AI Compliance module not active" :
                                   "Tenant context required";
@@ -179,13 +180,9 @@ export function OrganizationDetailPage() {
     } else if (aiData) {
       // Use authoritative endpoint data
       aiSystems = aiData.aiCompliance.systems.filter((row) => row.tenant.id === organization.id);
-    } else {
-      // No data and no error - try fallback as last resort
-      const fallback = getAiComplianceOperationsFallback(bootstrap);
-      if (fallback) {
-        aiSystems = fallback.aiCompliance.systems.filter((row) => row.tenant.id === organization.id);
-      }
     }
+    // Note: No "else" fallback here - if !aiLoading && !aiError && !aiData, 
+    // we're in the initial unresolved state, so we'll show loading in render
   }
   const aiOpenObligations = aiSystems.reduce(
     (sum, row) => sum + row.obligations.filter((o) => o.status === "PENDING" || o.status === "IN_PROGRESS").length,
@@ -340,7 +337,7 @@ export function OrganizationDetailPage() {
       {hasAiCompliance ? (
         <div className="admin-app__card admin-app__card--wide">
           <p className="admin-app__card-title">AI Compliance summary</p>
-          {aiLoading ? (
+          {aiLoading || (!aiError && !aiData) ? (
             <p className="admin-app__card-text">Loading AI Compliance data...</p>
           ) : showAiComplianceError ? (
             <EmptyState

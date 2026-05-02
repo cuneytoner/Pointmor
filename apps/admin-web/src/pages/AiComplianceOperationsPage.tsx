@@ -42,7 +42,7 @@ export function AiComplianceOperationsPage() {
 
   // Only use fallback for temporary network/dev issues, NOT for auth/module/permission failures
   const shouldUseFallback = opsError && 
-    !["unauthorized", "permission_denied", "module_not_active", "tenant_context_required"].includes(opsError);
+    !["unauthorized", "forbidden", "permission_denied", "module_not_active", "tenant_context_required"].includes(opsError);
   const fallbackData = shouldUseFallback ? getAiComplianceOperationsFallback(bootstrap) : null;
   const aiOps = opsData?.aiCompliance ?? fallbackData?.aiCompliance;
   const systems = aiOps?.systems ?? [];
@@ -82,11 +82,12 @@ export function AiComplianceOperationsPage() {
         <div className="admin-app__card admin-app__card--wide">
           <p className="admin-app__card-title">Error loading AI Compliance data</p>
           <p className="admin-app__card-text">
+            {opsError === "forbidden" && "Access denied. You do not have permission to access AI Compliance operations."}
             {opsError === "permission_denied" && "You do not have permission to access AI Compliance operations."}
             {opsError === "module_not_active" && "AI Compliance module is not active for this tenant."}
             {opsError === "tenant_context_required" && "Tenant context is required."}
             {opsError === "unauthorized" && "Session expired. Please log in again."}
-            {!["permission_denied", "module_not_active", "tenant_context_required", "unauthorized"].includes(opsError ?? "") &&
+            {!["unauthorized", "forbidden", "permission_denied", "module_not_active", "tenant_context_required"].includes(opsError ?? "") &&
               `Failed to load data: ${opsError}`}
           </p>
         </div>

@@ -161,9 +161,6 @@ async function loadModuleOperationsForSession(
     escalatedAssessments: number;
     advisorWorkload: number;
     evidenceBacklog: number;
-    // DEPRECATED: systems no longer returned in bootstrap
-    // Use GET /admin/products/ai-compliance/operations for operational data
-    systems: never[];
   };
   loyalty: {
     activeOrganizations: number;
@@ -247,9 +244,6 @@ async function loadModuleOperationsForSession(
   return {
     aiCompliance: {
       ...aiComplianceCounts,
-      // DEPRECATED: Return empty systems array
-      // Primary endpoint: GET /admin/products/ai-compliance/operations
-      systems: [],
     },
     loyalty: {
       activeOrganizations: loyaltyActiveOrganizations.length,
