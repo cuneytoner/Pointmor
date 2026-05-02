@@ -9,7 +9,6 @@ import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { useAuth } from "../contexts/AuthContext";
 import {
   useAiComplianceOperations,
-  getAiComplianceOperationsFallback,
 } from "../hooks/useAiComplianceOperations";
 import {
   buildReviewQueueIntelligence,
@@ -40,11 +39,9 @@ export function AiComplianceOperationsPage() {
     data: opsData,
   } = useAiComplianceOperations(token, refreshKey);
 
-  // Only use fallback for temporary network/dev issues, NOT for auth/module/permission failures
-  const shouldUseFallback = opsError && 
-    !["unauthorized", "forbidden", "permission_denied", "module_not_active", "tenant_context_required"].includes(opsError);
-  const fallbackData = shouldUseFallback ? getAiComplianceOperationsFallback(bootstrap) : null;
-  const aiOps = opsData?.aiCompliance ?? fallbackData?.aiCompliance;
+  // Note: Operations page requires full systems data, bootstrap only provides counts
+  // No fallback available - operations page needs dedicated endpoint data
+  const aiOps = opsData?.aiCompliance;
   const systems = aiOps?.systems ?? [];
 
   // Loading state: show loading only when fetching, not when using fallback

@@ -10,7 +10,7 @@ import {
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "../hooks/useTranslation";
-import { useAiComplianceOperations, getAiComplianceOperationsFallback } from "../hooks/useAiComplianceOperations";
+import { useAiComplianceOperations } from "../hooks/useAiComplianceOperations";
 import type { AiComplianceOperationsFullDto } from "../hooks/useAdminData";
 import {
   deriveEvidenceFreshness,
@@ -168,14 +168,9 @@ export function OrganizationDetailPage() {
                                   aiError === "module_not_active" ? "AI Compliance module not active" :
                                   "Tenant context required";
       } else {
-        // Use fallback only for temporary network/endpoint failures
-        const fallback = getAiComplianceOperationsFallback(bootstrap);
-        if (fallback) {
-          aiSystems = fallback.aiCompliance.systems.filter((row) => row.tenant.id === organization.id);
-        } else {
-          showAiComplianceError = true;
-          aiComplianceErrorMessage = "Unable to load AI systems data";
-        }
+        // No fallback available - bootstrap only provides counts, not systems
+        showAiComplianceError = true;
+        aiComplianceErrorMessage = "Unable to load AI systems data";
       }
     } else if (aiData) {
       // Use authoritative endpoint data

@@ -6,6 +6,9 @@ export type AiComplianceOperationsPayload = {
   aiCompliance: AiComplianceOperationsFullDto;
 };
 
+// Type for bootstrap fallback (counts-only)
+type AiComplianceCountsOnly = Omit<AiComplianceOperationsFullDto, "systems">;
+
 export type AiComplianceOperationsState = {
   loading: boolean;
   error: string | null;
@@ -106,7 +109,7 @@ export function useAiComplianceOperations(
  */
 export function getAiComplianceOperationsFallback(
   bootstrapData: { moduleOperations?: { aiCompliance?: any } } | null,
-): AiComplianceOperationsPayload | null {
+): { aiCompliance: AiComplianceCountsOnly } | null {
   if (!bootstrapData?.moduleOperations?.aiCompliance) {
     return null;
   }
@@ -119,13 +122,10 @@ export function getAiComplianceOperationsFallback(
     );
   }
 
-  // Return counts-only bootstrap data with empty systems array
+  // Return counts-only bootstrap data
   // Systems are no longer available in bootstrap - use dedicated endpoint
   const { systems: _, ...countsOnly } = bootstrapData.moduleOperations.aiCompliance as any;
   return { 
-    aiCompliance: {
-      ...countsOnly,
-      systems: [] // Empty systems array - use dedicated endpoint for operational systems
-    }
+    aiCompliance: countsOnly
   };
 }

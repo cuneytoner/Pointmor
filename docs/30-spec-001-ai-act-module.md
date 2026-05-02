@@ -79,7 +79,7 @@ Güvenlik:
 
 **Endpoint:** `GET /admin/products/ai-compliance/operations`
 
-**Durum:** Artık **birincil (authoritative)** veri kaynağı. `/admin/bootstrap` `moduleOperations.aiCompliance` yalnızca minimal sayaçlar döndürür; sistem listesi boş döner (DEPRECATED).
+**Durum:** Artık **birincil (authoritative)** veri kaynağı. `/admin/bootstrap` `moduleOperations.aiCompliance` artık sadece sayaç alanları döndürür, sistem listesi tamamen kaldırıldı (Step 14 ile).
 
 **Amaç:**
 - `/admin/bootstrap` yükünü azaltmak
@@ -132,11 +132,13 @@ const { token, refreshKey } = useAuth();
 const { data, loading, error } = useAiComplianceOperations(token, refreshKey);
 ```
 
-**Migration durumu:**
-- `/admin/bootstrap` `moduleOperations.aiCompliance.systems` → **DEPRECATED** (boş array döner)
-- `/admin/bootstrap` sayaçlar → **geçici** backward compatibility (Step 14'te kaldırılacak)
+**Migration durumu (Step 13 + 14 ile tamamlandı):**
+- `/admin/bootstrap` `moduleOperations.aiCompliance.systems` → **KALDIRILDI** (artık mevcut değil)
+- `/admin/bootstrap` sayaçlar → **KALDI** (sadece sayısal metrikler)
 - Birincil endpoint: `GET /admin/products/ai-compliance/operations`
-- Frontend: `AiComplianceOperationsPage` zaten yeni hook'u kullanıyor
+- Frontend: Tüm AI Compliance yüzeyleri yeni hook'u kullanıyor
+- Bootstrap contract hardened: TypeScript gelecekteki regressions'ları yakalar
+- Bootstrap contract testi eklendi: regressions'ları önler
 
 ## Operational realism layer (Step 8)
 

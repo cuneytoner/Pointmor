@@ -5,7 +5,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { PlatformActivityTimeline } from "../components/PlatformActivityTimeline";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { useAuth } from "../contexts/AuthContext";
-import { useAiComplianceOperations, getAiComplianceOperationsFallback } from "../hooks/useAiComplianceOperations";
+import { useAiComplianceOperations } from "../hooks/useAiComplianceOperations";
 import type { AiComplianceOperationsFullDto } from "../hooks/useAdminData";
 import {
   buildSystemTimeline,
@@ -53,26 +53,17 @@ export function AiComplianceSystemDetailPage() {
       errorMessage = error === "module_not_active" ? "AI Compliance module not active" : "Tenant context required";
       showEmptyState = true;
     } else {
-      // Use fallback only for temporary network/endpoint failures
-      const fallback = getAiComplianceOperationsFallback(bootstrap);
-      if (fallback) {
-        systems = fallback.aiCompliance.systems;
-      } else {
-        errorMessage = "Unable to load AI systems data";
-        showEmptyState = true;
-      }
+      // No fallback available - bootstrap only provides counts, not systems
+      errorMessage = "Unable to load AI systems data";
+      showEmptyState = true;
     }
   } else if (data) {
     // Use authoritative endpoint data
     systems = data.aiCompliance.systems;
   } else {
-    // No data and no error - try fallback as last resort
-    const fallback = getAiComplianceOperationsFallback(bootstrap);
-    if (fallback) {
-      systems = fallback.aiCompliance.systems;
-    } else {
-      showEmptyState = true;
-    }
+    // No data and no error - no fallback available
+    errorMessage = "Unable to load AI systems data";
+    showEmptyState = true;
   }
 
   const system = systems.find((s) => s.id === systemId);

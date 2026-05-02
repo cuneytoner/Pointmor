@@ -168,6 +168,15 @@ Related documents:
   - Error handling: Auth/security failures show honest error/empty states instead of silent fallback hydration.
   - API testleri: unauthenticated, loyalty-only, inactive module, permission denied, valid access, advisor, platform admin, cross-org scope.
   - Migration complete: All AI Compliance operational surfaces now use authoritative endpoint; bootstrap only carries minimal compatibility counts.
+- **Bootstrap Cleanup & Contract Hardening (Step 14) - DONE**
+  - Bootstrap contract son haline getirildi: `moduleOperations.aiCompliance.systems` alanı tamamen kaldırıldı.
+  - Bootstrap artık sadece sayısal metrikler döndürüyor, operasyonel sistem listesi değil.
+  - Frontend tipleri hardened edildi: `AdminBootstrap` ve `ModuleOperationsDto` artık `systems` içermiyor, TypeScript gelecekteki regressions'ları yakalar.
+  - `/admin/bootstrap` sadece minimal cross-product veri döndürür: auth/session, tenantModules, platformMetrics/minimal counts.
+  - AI Compliance operasyonel sistemleri artık `GET /admin/products/ai-compliance/operations` endpoint'ine aittir.
+  - Bootstrap fallback function güncellendi: Artık sadece sayaç verisi döndürüyor, sistem listesi değil.
+  - Bootstrap contract testi eklendi: `bootstrap-contract.test.ts` gelecekteki regressions'ları önler.
+  - Kalan backlog: persisted audit/workflow state, pagination, assignment/actions, notification/SLA engine.
 
 ---
 
