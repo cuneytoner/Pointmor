@@ -144,7 +144,7 @@ const { data, loading, error } = useAiComplianceOperations(token, refreshKey);
 
 AI Compliance platform yüzeyleri, geniş backend rewrite veya workflow engine eklemeden operasyonel görünürlüğü artırır:
 
-- **Today's Action Queue:** overdue obligations, escalated assessments, stale/critical evidence, blocked reviews, advisor waiting items ve high-priority AI systems mevcut bootstrap/moduleOperations kayıtlarından türetilir.
+- **Today's Action Queue:** overdue obligations, escalated assessments, stale/critical evidence, blocked reviews, advisor waiting items ve high-priority AI systems dedicated AI Compliance operations endpoint/read model'ünden türetilir. Bootstrap sadece minimal counts/context sağlar.
 - **Provenance-aware timeline:** event satırları actor, source, timestamp, related object, severity ve event reason gösterir.
 - **Derived signal ayrımı:** Persisted audit/event kaydı olmayan satırlar `Derived signal` olarak etiketlenir; gerçek audit provenance ima edilmez.
 - **SLA/aging presentation:** On track, Due soon, Overdue, Blocked ve Stale evidence durumları command center, systems registry, system detail ve Organization Detail AI Compliance özetinde gösterilir.

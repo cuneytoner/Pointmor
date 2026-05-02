@@ -161,7 +161,7 @@ Related documents:
   - `GET /admin/products/ai-compliance/operations` endpoint **birincil** veri kaynağı oldu.
   - Platform admin cross-organization görünürlüğü: Tüm ai_act-aktif tenant'ların operasyonel verisi.
   - Shared backend read model: `loadAiComplianceOperationsForScope()` — `apps/api/src/lib/ai-compliance-operations.ts`.
-  - `/admin/bootstrap` `moduleOperations.aiCompliance.systems` → **DEPRECATED** (boş array döner, sadece sayaçlar korunur).
+  - `/admin/bootstrap` `moduleOperations.aiCompliance.systems` → **KALDIRILDI** (Step 14 ile tamamen kaldırıldı).
   - Frontend migration completed: `AiComplianceSystemsPage`, `AiComplianceSystemDetailPage`, `OrganizationDetailPage` AI Compliance summary now use dedicated endpoint.
   - Fallback behavior hardened: Only activates for temporary network/endpoint failures; NOT for 401/403/permission_denied/module_not_active/tenant_context_required.
   - Organization Detail behavior: AI Compliance summary only renders for organizations with active_ai_act; shows honest empty/error states.
