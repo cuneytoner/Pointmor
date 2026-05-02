@@ -5,7 +5,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useAiComplianceOperations, getAiComplianceOperationsFallback } from "../hooks/useAiComplianceOperations";
-import type { ModuleOperationsDto } from "../hooks/useAdminData";
+import type { AiComplianceOperationsFullDto } from "../hooks/useAdminData";
 import {
   deriveEvidenceFreshness,
   deriveOpenObligationCount,
@@ -28,7 +28,7 @@ export function AiComplianceSystemsPage() {
   const { token } = useAuth();
   const { loading, error, data } = useAiComplianceOperations(token, 0);
 
-  let systems: ModuleOperationsDto["aiCompliance"]["systems"] = [];
+  let systems: AiComplianceOperationsFullDto["systems"] = [];
   let showEmptyState = false;
   let errorMessage: string | null = null;
 

@@ -6,6 +6,7 @@ import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
+import { useAiComplianceOperations } from "../hooks/useAiComplianceOperations";
 import { downloadComplianceExport } from "../lib/compliance-api";
 import { formatCount, formatPoints } from "../lib/formatters";
 import { getLoyaltySummary, type LoyaltySummary } from "../lib/tenant-loyalty-api";
@@ -22,6 +23,7 @@ export function TenantDashboardPage() {
   const { token } = useAuth();
   const { hasPermission } = usePermissions();
   const { auth, bootstrap } = useAdminDataContext();
+  const { data: aiOperations } = useAiComplianceOperations(token, 0);
   const [summary, setSummary] = useState<LoyaltySummary | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -32,10 +34,10 @@ export function TenantDashboardPage() {
   const loyaltyActive = canAccessLoyaltySurface(auth, bootstrap);
   const aiActActive = canAccessAiActSurface(auth, bootstrap);
   const advisorTenant = isAdvisorTenant(auth, bootstrap);
-  const aiOps = bootstrap?.moduleOperations?.aiCompliance;
+  const aiOps = aiOperations?.aiCompliance;
   const tenantAiSystems = (aiOps?.systems ?? []).filter((system) => system.tenant.id === tenantId);
   const tenantOpenObligations = tenantAiSystems.reduce((sum, system) => {
-    return sum + system.obligations.filter((obligation) => obligation.status !== "COMPLETED").length;
+    return sum + system.obligations.filter((obligation: any) => obligation.status !== "COMPLETED").length;
   }, 0);
 
   const sub = useMemo(() => {

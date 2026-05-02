@@ -40,9 +40,10 @@ export function AiComplianceOperationsPage() {
     data: opsData,
   } = useAiComplianceOperations(token, refreshKey);
 
-  // Temporary fallback to bootstrap only if endpoint fails (dev/network issues only)
-  // Backend security errors (403) will surface, not fallback
-  const fallbackData = getAiComplianceOperationsFallback(bootstrap);
+  // Only use fallback for temporary network/dev issues, NOT for auth/module/permission failures
+  const shouldUseFallback = opsError && 
+    !["unauthorized", "permission_denied", "module_not_active", "tenant_context_required"].includes(opsError);
+  const fallbackData = shouldUseFallback ? getAiComplianceOperationsFallback(bootstrap) : null;
   const aiOps = opsData?.aiCompliance ?? fallbackData?.aiCompliance;
   const systems = aiOps?.systems ?? [];
 

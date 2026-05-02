@@ -1,11 +1,15 @@
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
+import { useAuth } from "../contexts/AuthContext";
+import { useAiComplianceOperations } from "../hooks/useAiComplianceOperations";
 import { deriveAdvisorWorkload } from "../lib/aiCompliancePresentation";
 
 export function AdvisorPortalOperationsPage() {
   const { bootstrap } = useAdminDataContext();
-  const systems = bootstrap?.moduleOperations.aiCompliance.systems ?? [];
+  const { token } = useAuth();
+  const { data: aiOperations } = useAiComplianceOperations(token, 0);
+  const systems = aiOperations?.aiCompliance.systems ?? [];
   const workload = deriveAdvisorWorkload(systems, bootstrap?.users ?? []);
 
   return (

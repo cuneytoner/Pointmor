@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
+import { useAuth } from "../contexts/AuthContext";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useTranslation } from "../hooks/useTranslation";
+import { useAiComplianceOperations } from "../hooks/useAiComplianceOperations";
 import {
   deriveOnboardingStage,
   deriveOrganizationHealth,
@@ -16,6 +18,8 @@ import {
 export function TenantsPage() {
   const { t } = useTranslation();
   const { bootstrap } = useAdminDataContext();
+  const { token } = useAuth();
+  const { data: aiOperations } = useAiComplianceOperations(token, 0);
   const [q, setQ] = useState("");
   const moduleMap = useMemo(() => {
     const map = new Map<string, Set<string>>();
@@ -43,11 +47,11 @@ export function TenantsPage() {
   );
   const aiSystemByTenant = useMemo(() => {
     const map = new Map<string, { systems: number; openObligations: number; pendingReview: number }>();
-    for (const system of bootstrap?.moduleOperations.aiCompliance.systems ?? []) {
+    for (const system of aiOperations?.aiCompliance.systems ?? []) {
       const existing = map.get(system.tenant.id) ?? { systems: 0, openObligations: 0, pendingReview: 0 };
       existing.systems += 1;
       existing.openObligations += system.obligations.filter(
-        (o) => o.status === "PENDING" || o.status === "IN_PROGRESS",
+        (o: any) => o.status === "PENDING" || o.status === "IN_PROGRESS",
       ).length;
       if (!system.currentAssessment || system.currentAssessment.status === "DRAFT") {
         existing.pendingReview += 1;
@@ -55,7 +59,7 @@ export function TenantsPage() {
       map.set(system.tenant.id, existing);
     }
     return map;
-  }, [bootstrap?.moduleOperations.aiCompliance.systems]);
+  }, [aiOperations?.aiCompliance.systems]);
 
   if (!bootstrap) {
     return (

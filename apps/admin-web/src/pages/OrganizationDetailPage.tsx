@@ -11,7 +11,7 @@ import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "../hooks/useTranslation";
 import { useAiComplianceOperations, getAiComplianceOperationsFallback } from "../hooks/useAiComplianceOperations";
-import type { ModuleOperationsDto } from "../hooks/useAdminData";
+import type { AiComplianceOperationsFullDto } from "../hooks/useAdminData";
 import {
   deriveEvidenceFreshness,
   deriveOrganizationRiskTrend,
@@ -149,7 +149,7 @@ export function OrganizationDetailPage() {
   const hasAiCompliance = activeModules.has("ai_act");
   
   // Get AI systems from the dedicated endpoint with proper fallback behavior
-  let aiSystems: ModuleOperationsDto["aiCompliance"]["systems"] = [];
+  let aiSystems: AiComplianceOperationsFullDto["systems"] = [];
   let showAiComplianceError = false;
   let aiComplianceErrorMessage: string | null = null;
 

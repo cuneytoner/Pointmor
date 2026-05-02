@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { getApiBaseUrl } from "../lib/api-base";
-import type { ModuleOperationsDto } from "./useAdminData";
+import type { AiComplianceOperationsFullDto } from "./useAdminData";
 
 export type AiComplianceOperationsPayload = {
-  aiCompliance: ModuleOperationsDto["aiCompliance"];
+  aiCompliance: AiComplianceOperationsFullDto;
 };
 
 export type AiComplianceOperationsState = {
@@ -98,14 +98,14 @@ export function useAiComplianceOperations(
 /**
  * Temporary fallback helper for migration compatibility.
  *
- * Returns bootstrap data if available, with a deprecation warning in dev mode.
+ * Returns bootstrap counts if available, with a deprecation warning in dev mode.
  * Does not hide access errors - only used when the new endpoint is not yet
  * available or during gradual rollout.
  *
  * @deprecated Use useAiComplianceOperations for new code. Remove after migration.
  */
 export function getAiComplianceOperationsFallback(
-  bootstrapData: { moduleOperations?: { aiCompliance?: ModuleOperationsDto["aiCompliance"] } } | null,
+  bootstrapData: { moduleOperations?: { aiCompliance?: any } } | null,
 ): AiComplianceOperationsPayload | null {
   if (!bootstrapData?.moduleOperations?.aiCompliance) {
     return null;
@@ -119,5 +119,13 @@ export function getAiComplianceOperationsFallback(
     );
   }
 
-  return { aiCompliance: bootstrapData.moduleOperations.aiCompliance };
+  // Return counts-only bootstrap data with empty systems array
+  // Systems are no longer available in bootstrap - use dedicated endpoint
+  const { systems: _, ...countsOnly } = bootstrapData.moduleOperations.aiCompliance as any;
+  return { 
+    aiCompliance: {
+      ...countsOnly,
+      systems: [] // Empty systems array - use dedicated endpoint for operational systems
+    }
+  };
 }

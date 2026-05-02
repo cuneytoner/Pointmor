@@ -6,7 +6,7 @@ import { PlatformActivityTimeline } from "../components/PlatformActivityTimeline
 import { useAdminDataContext } from "../contexts/AdminDataContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useAiComplianceOperations, getAiComplianceOperationsFallback } from "../hooks/useAiComplianceOperations";
-import type { ModuleOperationsDto } from "../hooks/useAdminData";
+import type { AiComplianceOperationsFullDto } from "../hooks/useAdminData";
 import {
   buildSystemTimeline,
   deriveEvidenceFreshness,
@@ -36,7 +36,7 @@ export function AiComplianceSystemDetailPage() {
   const { token } = useAuth();
   const { loading, error, data } = useAiComplianceOperations(token, 0);
 
-  let systems: ModuleOperationsDto["aiCompliance"]["systems"] = [];
+  let systems: AiComplianceOperationsFullDto["systems"] = [];
   let showEmptyState = false;
   let errorMessage: string | null = null;
 
@@ -184,7 +184,7 @@ export function AiComplianceSystemDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {system.obligations.map((obligation: ModuleOperationsDto["aiCompliance"]["systems"][0]["obligations"][0]) => {
+              {system.obligations.map((obligation: AiComplianceOperationsFullDto["systems"][0]["obligations"][0]) => {
                 const ageDays = Math.floor((now - new Date(obligation.createdAt).getTime()) / (24 * 60 * 60 * 1000));
                 const state = deriveObligationWorkflowState({
                   status: obligation.status,

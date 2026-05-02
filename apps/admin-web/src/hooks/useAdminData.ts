@@ -116,41 +116,8 @@ export type ModuleOperationsDto = {
     escalatedAssessments: number;
     advisorWorkload: number;
     evidenceBacklog: number;
-    systems: Array<{
-      id: string;
-      name: string;
-      purpose: string | null;
-      providerType: string;
-      status: string;
-      updatedAt: string;
-      tenant: { id: string; name: string; slug: string; type: string | null };
-      createdBy: { id: string; name: string | null; email: string } | null;
-      currentAssessment: {
-        id: string;
-        status: string;
-        riskLevel: string | null;
-        createdAt: string;
-        updatedAt: string;
-        createdBy: { id: string; name: string | null; email: string } | null;
-      } | null;
-      obligations: Array<{
-        id: string;
-        obligationType: string;
-        status: string;
-        createdAt: string;
-        updatedAt: string;
-      }>;
-      tasks: Array<{
-        id: string;
-        title: string;
-        status: string;
-        priority: string;
-        createdAt: string;
-        updatedAt: string;
-        assignedTo: { id: string; name: string | null; email: string } | null;
-      }>;
-      evidencesCount: number;
-    }>;
+    // Systems array removed - use dedicated endpoint for operational systems
+    // See GET /admin/products/ai-compliance/operations and useAiComplianceOperations hook
   };
   loyalty: {
     activeOrganizations: number;
@@ -164,6 +131,54 @@ export type ModuleOperationsDto = {
     pendingAdvisorActions: number;
     sharedWorkspaceActivity: number;
   };
+};
+
+// Full AI Compliance operations type with systems (for dedicated endpoint)
+export type AiComplianceOperationsFullDto = {
+  activeOrganizations: number;
+  assessmentsCompleted: number;
+  pendingReviews: number;
+  openObligations: number;
+  systemsNeedingReview: number;
+  overdueObligations: number;
+  escalatedAssessments: number;
+  advisorWorkload: number;
+  evidenceBacklog: number;
+  systems: Array<{
+    id: string;
+    name: string;
+    purpose: string | null;
+    providerType: string;
+    status: string;
+    updatedAt: string;
+    tenant: { id: string; name: string; slug: string; type: string | null };
+    createdBy: { id: string; name: string | null; email: string } | null;
+    currentAssessment: {
+      id: string;
+      status: string;
+      riskLevel: string | null;
+      createdAt: string;
+      updatedAt: string;
+      createdBy: { id: string; name: string | null; email: string } | null;
+    } | null;
+    obligations: Array<{
+      id: string;
+      obligationType: string;
+      status: string;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+    tasks: Array<{
+      id: string;
+      title: string;
+      status: string;
+      priority: string;
+      createdAt: string;
+      updatedAt: string;
+      assignedTo: { id: string; name: string | null; email: string } | null;
+    }>;
+    evidencesCount: number;
+  }>;
 };
 
 export type AdminBootstrap = {

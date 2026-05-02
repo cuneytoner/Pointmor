@@ -263,20 +263,116 @@ export async function loadAiComplianceOperationsForScope(
 /**
  * Load minimal AI Compliance counts only (for bootstrap compatibility).
  * Returns counts without systems payload to reduce bootstrap size.
+ * Optimized to avoid querying full operational systems when only counts needed.
  */
 export async function loadAiComplianceCountsForScope(
   scope: AiComplianceScope,
 ): Promise<Omit<AiComplianceTenantOperations, "systems">> {
-  const full = await loadAiComplianceOperationsForScope(scope);
+  // Build tenant filter based on scope (same logic as full operations)
+  let tenantFilter: { tenantId?: string | { in: string[] } } = {};
+  let tenantIds: string[] = [];
+
+  if (scope.mode === "tenant") {
+    tenantFilter = { tenantId: scope.tenantId };
+    tenantIds = [scope.tenantId];
+  } else if (scope.mode === "cross_org") {
+    tenantFilter = { tenantId: { in: scope.tenantIds } };
+    tenantIds = scope.tenantIds;
+  } else if (scope.mode === "platform_admin") {
+    // For platform admin, first get the list of tenants with ai_act active
+    const activeModules = await prisma.tenantModule.findMany({
+      where: { isActive: true, module: { name: "ai_act" } },
+      select: { tenantId: true },
+    });
+    tenantIds = activeModules.map((m) => m.tenantId);
+    if (tenantIds.length === 0) {
+      // No tenants with ai_act active
+      return {
+        activeOrganizations: 0,
+        assessmentsCompleted: 0,
+        pendingReviews: 0,
+        openObligations: 0,
+        systemsNeedingReview: 0,
+        overdueObligations: 0,
+        escalatedAssessments: 0,
+        advisorWorkload: 0,
+        evidenceBacklog: 0,
+      };
+    }
+    tenantFilter = { tenantId: { in: tenantIds } };
+  }
+
+  // Run optimized count queries only (no systems data)
+  const [
+    aiActiveOrganizations,
+    aiAssessmentsCompleted,
+    aiPendingReviews,
+    aiOpenObligations,
+    aiSystemsNeedingReview,
+    aiOverdueObligations,
+    aiEscalatedAssessments,
+    aiAdvisorWorkload,
+    aiEvidenceBacklog,
+  ] = await Promise.all([
+    // Active organizations count (unique tenantIds with ai_act module active)
+    prisma.tenantModule.groupBy({
+      by: ["tenantId"],
+      where: { ...tenantFilter, isActive: true, module: { name: "ai_act" } },
+    }),
+    prisma.aiAssessment.count({
+      where: { ...tenantFilter, status: "COMPLETED" },
+    }),
+    prisma.aiAssessment.count({
+      where: { ...tenantFilter, status: "DRAFT" },
+    }),
+    prisma.aiObligation.count({
+      where: { ...tenantFilter, status: "PENDING" },
+    }),
+    prisma.aiAssessment.count({
+      where: { ...tenantFilter, status: "DRAFT" },
+    }),
+    prisma.aiObligation.count({
+      where: {
+        ...tenantFilter,
+        status: { in: ["PENDING", "IN_PROGRESS"] },
+        createdAt: {
+          lt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+        },
+      },
+    }),
+    prisma.aiAssessment.count({
+      where: {
+        ...tenantFilter,
+        status: "DRAFT",
+        updatedAt: {
+          lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        },
+      },
+    }),
+    prisma.aiTask.count({
+      where: {
+        ...tenantFilter,
+        status: { in: ["OPEN", "IN_PROGRESS"] },
+      },
+    }),
+    prisma.aiAssessment.count({
+      where: {
+        ...tenantFilter,
+        status: "COMPLETED",
+        riskLevel: { in: ["HIGH", "UNACCEPTABLE", "PROHIBITED"] },
+      },
+    }),
+  ]);
+
   return {
-    activeOrganizations: full.activeOrganizations,
-    assessmentsCompleted: full.assessmentsCompleted,
-    pendingReviews: full.pendingReviews,
-    openObligations: full.openObligations,
-    systemsNeedingReview: full.systemsNeedingReview,
-    overdueObligations: full.overdueObligations,
-    escalatedAssessments: full.escalatedAssessments,
-    advisorWorkload: full.advisorWorkload,
-    evidenceBacklog: full.evidenceBacklog,
+    activeOrganizations: aiActiveOrganizations.length,
+    assessmentsCompleted: aiAssessmentsCompleted,
+    pendingReviews: aiPendingReviews,
+    openObligations: aiOpenObligations,
+    systemsNeedingReview: aiSystemsNeedingReview,
+    overdueObligations: aiOverdueObligations,
+    escalatedAssessments: aiEscalatedAssessments,
+    advisorWorkload: aiAdvisorWorkload,
+    evidenceBacklog: aiEvidenceBacklog,
   };
 }

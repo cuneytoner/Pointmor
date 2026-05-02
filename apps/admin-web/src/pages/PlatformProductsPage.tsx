@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
+import { useAuth } from "../contexts/AuthContext";
+import { useAiComplianceOperations } from "../hooks/useAiComplianceOperations";
 import {
   deriveOnboardingStage,
   deriveOrganizationHealth,
@@ -14,6 +16,8 @@ import {
 
 export function PlatformProductsPage() {
   const { bootstrap } = useAdminDataContext();
+  const { token } = useAuth();
+  const { data: aiOperations } = useAiComplianceOperations(token, 0);
 
   const moduleMap = useMemo(() => {
     const map = new Map<string, Set<string>>();
@@ -31,10 +35,10 @@ export function PlatformProductsPage() {
   );
   const aiStatsByTenant = useMemo(() => {
     const map = new Map<string, { pendingReview: number; openObligations: number }>();
-    for (const system of bootstrap?.moduleOperations.aiCompliance.systems ?? []) {
+    for (const system of aiOperations?.aiCompliance.systems ?? []) {
       const existing = map.get(system.tenant.id) ?? { pendingReview: 0, openObligations: 0 };
       existing.openObligations += system.obligations.filter(
-        (o) => o.status === "PENDING" || o.status === "IN_PROGRESS",
+        (o: any) => o.status === "PENDING" || o.status === "IN_PROGRESS",
       ).length;
       if (!system.currentAssessment || system.currentAssessment.status === "DRAFT") {
         existing.pendingReview += 1;
@@ -42,7 +46,7 @@ export function PlatformProductsPage() {
       map.set(system.tenant.id, existing);
     }
     return map;
-  }, [bootstrap?.moduleOperations.aiCompliance.systems]);
+  }, [aiOperations?.aiCompliance.systems]);
 
   return (
     <PageShell

@@ -1,4 +1,4 @@
-import type { ModuleOperationsDto } from "../hooks/useAdminData";
+import type { AiComplianceOperationsFullDto } from "../hooks/useAdminData";
 import {
   deriveAssessmentWorkflowState,
   deriveObligationWorkflowState,
@@ -6,7 +6,7 @@ import {
   type ActivitySeverity,
 } from "./platformPresentation";
 
-export type AiComplianceSystemDto = ModuleOperationsDto["aiCompliance"]["systems"][number];
+export type AiComplianceSystemDto = AiComplianceOperationsFullDto["systems"][0];
 type UserDto = {
   id: string;
   name: string;
