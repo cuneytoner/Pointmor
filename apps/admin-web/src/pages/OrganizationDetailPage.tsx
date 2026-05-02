@@ -8,7 +8,10 @@ import {
   type PlatformActivityItem,
 } from "../components/PlatformActivityTimeline";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
+import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "../hooks/useTranslation";
+import { useAiComplianceOperations, getAiComplianceOperationsFallback } from "../hooks/useAiComplianceOperations";
+import type { ModuleOperationsDto } from "../hooks/useAdminData";
 import {
   deriveEvidenceFreshness,
   deriveOrganizationRiskTrend,
@@ -32,6 +35,8 @@ import {
 export function OrganizationDetailPage() {
   const { t } = useTranslation();
   const { bootstrap } = useAdminDataContext();
+  const { token } = useAuth();
+  const { loading: aiLoading, error: aiError, data: aiData } = useAiComplianceOperations(token, 0);
   const params = useParams<{ organizationId: string }>();
   const organizationId = params.organizationId ?? "";
 
@@ -142,11 +147,46 @@ export function OrganizationDetailPage() {
       : []),
   ];
   const hasAiCompliance = activeModules.has("ai_act");
-  const aiSystems = hasAiCompliance
-    ? (bootstrap?.moduleOperations.aiCompliance.systems ?? []).filter(
-        (row) => row.tenant.id === organization.id,
-      )
-    : [];
+  
+  // Get AI systems from the dedicated endpoint with proper fallback behavior
+  let aiSystems: ModuleOperationsDto["aiCompliance"]["systems"] = [];
+  let showAiComplianceError = false;
+  let aiComplianceErrorMessage: string | null = null;
+
+  if (hasAiCompliance) {
+    if (aiLoading) {
+      // Still loading - will be handled in render
+    } else if (aiError) {
+      // Handle different error types according to fallback rules
+      if (aiError === "unauthorized" || aiError === "permission_denied" || 
+          aiError === "module_not_active" || aiError === "tenant_context_required") {
+        // Don't use fallback for auth/security/module errors - show honest error state
+        showAiComplianceError = true;
+        aiComplianceErrorMessage = aiError === "unauthorized" ? "Authentication required" : 
+                                  aiError === "permission_denied" ? "Access denied" :
+                                  aiError === "module_not_active" ? "AI Compliance module not active" :
+                                  "Tenant context required";
+      } else {
+        // Use fallback only for temporary network/endpoint failures
+        const fallback = getAiComplianceOperationsFallback(bootstrap);
+        if (fallback) {
+          aiSystems = fallback.aiCompliance.systems.filter((row) => row.tenant.id === organization.id);
+        } else {
+          showAiComplianceError = true;
+          aiComplianceErrorMessage = "Unable to load AI systems data";
+        }
+      }
+    } else if (aiData) {
+      // Use authoritative endpoint data
+      aiSystems = aiData.aiCompliance.systems.filter((row) => row.tenant.id === organization.id);
+    } else {
+      // No data and no error - try fallback as last resort
+      const fallback = getAiComplianceOperationsFallback(bootstrap);
+      if (fallback) {
+        aiSystems = fallback.aiCompliance.systems.filter((row) => row.tenant.id === organization.id);
+      }
+    }
+  }
   const aiOpenObligations = aiSystems.reduce(
     (sum, row) => sum + row.obligations.filter((o) => o.status === "PENDING" || o.status === "IN_PROGRESS").length,
     0,
@@ -300,61 +340,72 @@ export function OrganizationDetailPage() {
       {hasAiCompliance ? (
         <div className="admin-app__card admin-app__card--wide">
           <p className="admin-app__card-title">AI Compliance summary</p>
-          <div className="chip-row">
-            <Badge tone="success">AI Compliance coverage active</Badge>
-            <Badge tone={productLabels.includes("Document Intelligence") ? "info" : "neutral"}>
-              {productLabels.includes("Document Intelligence")
-                ? "Document Intelligence connected"
-                : "Document Intelligence not enabled"}
-            </Badge>
-            <Badge tone={highPressureSystems > 0 ? "danger" : "success"}>
-              {`Operational pressure: ${highPressureSystems > 0 ? `${highPressureSystems} high-priority systems` : "Balanced"}`}
-            </Badge>
-            <Badge tone={staleEvidenceSystems > 0 ? "warning" : "success"}>
-              {`Evidence freshness: ${staleEvidenceSystems > 0 ? `${staleEvidenceSystems} stale systems` : "Fresh"}`}
-            </Badge>
-            <Badge tone={reviewVelocity === "Low" ? "warning" : reviewVelocity === "Medium" ? "info" : "success"}>
-              {`Review velocity: ${reviewVelocity}`}
-            </Badge>
-            <Badge tone={complianceMaturity === "Needs Stabilization" ? "warning" : "info"}>
-              {`Compliance maturity: ${complianceMaturity}`}
-            </Badge>
-          </div>
-          {aiSystems.length > 0 ? (
-            <div className="table-wrap" style={{ marginTop: 12 }}>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>AI system</th>
-                    <th>SLA state</th>
-                    <th>Priority</th>
-                    <th>Why</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {aiSystems.slice(0, 4).map((system) => (
-                    <tr key={system.id}>
-                      <td>{system.name}</td>
-                      <td>
-                        <Badge tone={presentSlaTone(deriveSlaState(system))}>
-                          {deriveSlaState(system)}
-                        </Badge>
-                      </td>
-                      <td>
-                        <Badge tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}>
-                          {derivePriorityScore(system)}
-                        </Badge>
-                      </td>
-                      <td className="data-table__muted">{derivePriorityReasons(system).join("; ")}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          {aiLoading ? (
+            <p className="admin-app__card-text">Loading AI Compliance data...</p>
+          ) : showAiComplianceError ? (
+            <EmptyState
+              title={aiComplianceErrorMessage || "AI Compliance Error"}
+              description="Please check your permissions and try again."
+            />
           ) : (
-            <p className="admin-app__card-text data-table__muted">
-              AI Compliance is enabled, but no AI systems are registered yet.
-            </p>
+            <>
+              <div className="chip-row">
+                <Badge tone="success">AI Compliance coverage active</Badge>
+                <Badge tone={productLabels.includes("Document Intelligence") ? "info" : "neutral"}>
+                  {productLabels.includes("Document Intelligence")
+                    ? "Document Intelligence connected"
+                    : "Document Intelligence not enabled"}
+                </Badge>
+                <Badge tone={highPressureSystems > 0 ? "danger" : "success"}>
+                  {`Operational pressure: ${highPressureSystems > 0 ? `${highPressureSystems} high-priority systems` : "Balanced"}`}
+                </Badge>
+                <Badge tone={staleEvidenceSystems > 0 ? "warning" : "success"}>
+                  {`Evidence freshness: ${staleEvidenceSystems > 0 ? `${staleEvidenceSystems} stale systems` : "Fresh"}`}
+                </Badge>
+                <Badge tone={reviewVelocity === "Low" ? "warning" : reviewVelocity === "Medium" ? "info" : "success"}>
+                  {`Review velocity: ${reviewVelocity}`}
+                </Badge>
+                <Badge tone={complianceMaturity === "Needs Stabilization" ? "warning" : "info"}>
+                  {`Compliance maturity: ${complianceMaturity}`}
+                </Badge>
+              </div>
+              {aiSystems.length > 0 ? (
+                <div className="table-wrap" style={{ marginTop: 12 }}>
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>AI system</th>
+                        <th>SLA state</th>
+                        <th>Priority</th>
+                        <th>Why</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {aiSystems.slice(0, 4).map((system) => (
+                        <tr key={system.id}>
+                          <td>{system.name}</td>
+                          <td>
+                            <Badge tone={presentSlaTone(deriveSlaState(system))}>
+                              {deriveSlaState(system)}
+                            </Badge>
+                          </td>
+                          <td>
+                            <Badge tone={derivePriorityScore(system) >= 70 ? "danger" : "info"}>
+                              {derivePriorityScore(system)}
+                            </Badge>
+                          </td>
+                          <td className="data-table__muted">{derivePriorityReasons(system).join("; ")}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="admin-app__card-text data-table__muted">
+                  AI Compliance is enabled, but no AI systems are registered yet.
+                </p>
+              )}
+            </>
           )}
         </div>
       ) : null}

@@ -157,14 +157,17 @@ Related documents:
   - Seed persona ve e-posta sunumu gerçekçi SaaS demo kimliğine alınmıştır.
   - Canonical plan mapping (Compliance Pro / Starter Platform / Multi-Product Business / Advisor Firm) düzeltilmiştir.
   - `/admin/bootstrap` yanıtına `platformMetrics` eklenerek dashboard metrikleri API kontratıyla hizalanmıştır.
-- **Bootstrap Split / AI Compliance Operations Endpoint (Step 13) - DONE (Authoritative)**
+- **Bootstrap Split / AI Compliance Operations Endpoint (Step 13) - DONE (Authoritative + Complete Frontend Migration)**
   - `GET /admin/products/ai-compliance/operations` endpoint **birincil** veri kaynağı oldu.
   - Platform admin cross-organization görünürlüğü: Tüm ai_act-aktif tenant'ların operasyonel verisi.
   - Shared backend read model: `loadAiComplianceOperationsForScope()` — `apps/api/src/lib/ai-compliance-operations.ts`.
   - `/admin/bootstrap` `moduleOperations.aiCompliance.systems` → **DEPRECATED** (boş array döner, sadece sayaçlar korunur).
-  - Frontend: `AiComplianceOperationsPage` yeni `useAiComplianceOperations` hook'unu kullanıyor; error state handling eklendi.
+  - Frontend migration completed: `AiComplianceSystemsPage`, `AiComplianceSystemDetailPage`, `OrganizationDetailPage` AI Compliance summary now use dedicated endpoint.
+  - Fallback behavior hardened: Only activates for temporary network/endpoint failures; NOT for 401/403/permission_denied/module_not_active/tenant_context_required.
+  - Organization Detail behavior: AI Compliance summary only renders for organizations with active_ai_act; shows honest empty/error states.
+  - Error handling: Auth/security failures show honest error/empty states instead of silent fallback hydration.
   - API testleri: unauthenticated, loyalty-only, inactive module, permission denied, valid access, advisor, platform admin, cross-org scope.
-  - Migration backlog: Step 14'te bootstrap AI Compliance verisi tamamen kaldırılacak.
+  - Migration complete: All AI Compliance operational surfaces now use authoritative endpoint; bootstrap only carries minimal compatibility counts.
 
 ---
 

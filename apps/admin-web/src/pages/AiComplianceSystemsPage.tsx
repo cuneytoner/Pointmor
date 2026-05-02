@@ -1,7 +1,11 @@
 import { Link } from "react-router-dom";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
+import { EmptyState } from "../components/ui/EmptyState";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
+import { useAuth } from "../contexts/AuthContext";
+import { useAiComplianceOperations, getAiComplianceOperationsFallback } from "../hooks/useAiComplianceOperations";
+import type { ModuleOperationsDto } from "../hooks/useAdminData";
 import {
   deriveEvidenceFreshness,
   deriveOpenObligationCount,
@@ -21,7 +25,81 @@ import { presentHealthTone } from "../lib/platformPresentation";
 
 export function AiComplianceSystemsPage() {
   const { bootstrap } = useAdminDataContext();
-  const systems = bootstrap?.moduleOperations.aiCompliance.systems ?? [];
+  const { token } = useAuth();
+  const { loading, error, data } = useAiComplianceOperations(token, 0);
+
+  let systems: ModuleOperationsDto["aiCompliance"]["systems"] = [];
+  let showEmptyState = false;
+  let errorMessage: string | null = null;
+
+  if (loading) {
+    // Show loading state
+  } else if (error) {
+    // Handle different error types according to fallback rules
+    if (error === "unauthorized" || error === "permission_denied") {
+      // Don't use fallback for auth/security errors - show honest error state
+      errorMessage = error === "unauthorized" ? "Authentication required" : "Access denied";
+      showEmptyState = true;
+    } else if (error === "module_not_active" || error === "tenant_context_required") {
+      // Don't use fallback for module/tenant errors - show honest empty state
+      errorMessage = error === "module_not_active" ? "AI Compliance module not active" : "Tenant context required";
+      showEmptyState = true;
+    } else {
+      // Use fallback only for temporary network/endpoint failures
+      const fallback = getAiComplianceOperationsFallback(bootstrap);
+      if (fallback) {
+        systems = fallback.aiCompliance.systems;
+      } else {
+        errorMessage = "Unable to load AI systems data";
+        showEmptyState = true;
+      }
+    }
+  } else if (data) {
+    // Use authoritative endpoint data
+    systems = data.aiCompliance.systems;
+  } else {
+    // No data and no error - try fallback as last resort
+    const fallback = getAiComplianceOperationsFallback(bootstrap);
+    if (fallback) {
+      systems = fallback.aiCompliance.systems;
+    } else {
+      showEmptyState = true;
+    }
+  }
+
+  if (loading) {
+    return (
+      <PageShell
+        eyebrow="Products / AI Compliance"
+        title="AI Systems Registry"
+        description="Cross-organization compliance operations queue and governance registry."
+      >
+        <div className="admin-app__card admin-app__card--wide">
+          <p className="admin-app__card-text">Loading AI systems...</p>
+        </div>
+      </PageShell>
+    );
+  }
+
+  if (showEmptyState) {
+    return (
+      <PageShell
+        eyebrow="Products / AI Compliance"
+        title="AI Systems Registry"
+        description="Cross-organization compliance operations queue and governance registry."
+      >
+        <div className="admin-app__card admin-app__card--wide">
+          <EmptyState
+            title={errorMessage || "No AI systems found"}
+            description={errorMessage ? "Please check your permissions and try again." : "No AI systems have been registered yet."}
+          />
+        </div>
+        <Link to="/platform/products/ai-compliance" className="admin-secondary-btn">
+          Back to AI Compliance operations
+        </Link>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell

@@ -1,8 +1,12 @@
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
+import { EmptyState } from "../components/ui/EmptyState";
 import { PlatformActivityTimeline } from "../components/PlatformActivityTimeline";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
+import { useAuth } from "../contexts/AuthContext";
+import { useAiComplianceOperations, getAiComplianceOperationsFallback } from "../hooks/useAiComplianceOperations";
+import type { ModuleOperationsDto } from "../hooks/useAdminData";
 import {
   buildSystemTimeline,
   deriveEvidenceFreshness,
@@ -29,10 +33,82 @@ import {
 export function AiComplianceSystemDetailPage() {
   const { systemId = "" } = useParams();
   const { bootstrap } = useAdminDataContext();
-  const system = (bootstrap?.moduleOperations.aiCompliance.systems ?? []).find((s) => s.id === systemId);
+  const { token } = useAuth();
+  const { loading, error, data } = useAiComplianceOperations(token, 0);
 
-  if (!system) {
-    return <Navigate to="/platform/products/ai-compliance/systems" replace />;
+  let systems: ModuleOperationsDto["aiCompliance"]["systems"] = [];
+  let showEmptyState = false;
+  let errorMessage: string | null = null;
+
+  if (loading) {
+    // Show loading state
+  } else if (error) {
+    // Handle different error types according to fallback rules
+    if (error === "unauthorized" || error === "permission_denied") {
+      // Don't use fallback for auth/security errors - show honest error state
+      errorMessage = error === "unauthorized" ? "Authentication required" : "Access denied";
+      showEmptyState = true;
+    } else if (error === "module_not_active" || error === "tenant_context_required") {
+      // Don't use fallback for module/tenant errors - show honest empty state
+      errorMessage = error === "module_not_active" ? "AI Compliance module not active" : "Tenant context required";
+      showEmptyState = true;
+    } else {
+      // Use fallback only for temporary network/endpoint failures
+      const fallback = getAiComplianceOperationsFallback(bootstrap);
+      if (fallback) {
+        systems = fallback.aiCompliance.systems;
+      } else {
+        errorMessage = "Unable to load AI systems data";
+        showEmptyState = true;
+      }
+    }
+  } else if (data) {
+    // Use authoritative endpoint data
+    systems = data.aiCompliance.systems;
+  } else {
+    // No data and no error - try fallback as last resort
+    const fallback = getAiComplianceOperationsFallback(bootstrap);
+    if (fallback) {
+      systems = fallback.aiCompliance.systems;
+    } else {
+      showEmptyState = true;
+    }
+  }
+
+  const system = systems.find((s) => s.id === systemId);
+
+  if (loading) {
+    return (
+      <PageShell
+        eyebrow="Products / AI Compliance / System"
+        title="Loading..."
+        description="Operational workflow, lifecycle, and obligation tracking for AI governance."
+      >
+        <div className="admin-app__card admin-app__card--wide">
+          <p className="admin-app__card-text">Loading AI system details...</p>
+        </div>
+      </PageShell>
+    );
+  }
+
+  if (showEmptyState || !system) {
+    return (
+      <PageShell
+        eyebrow="Products / AI Compliance / System"
+        title="System Not Found"
+        description="Operational workflow, lifecycle, and obligation tracking for AI governance."
+      >
+        <div className="admin-app__card admin-app__card--wide">
+          <EmptyState
+            title={errorMessage || "AI system not found"}
+            description={errorMessage ? "Please check your permissions and try again." : "The requested AI system could not be found or may have been removed."}
+          />
+        </div>
+        <Link to="/platform/products/ai-compliance/systems" className="admin-secondary-btn">
+          Back to AI systems
+        </Link>
+      </PageShell>
+    );
   }
 
   const membershipUsers = (bootstrap?.users ?? []).filter((user) =>
@@ -108,7 +184,7 @@ export function AiComplianceSystemDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {system.obligations.map((obligation) => {
+              {system.obligations.map((obligation: ModuleOperationsDto["aiCompliance"]["systems"][0]["obligations"][0]) => {
                 const ageDays = Math.floor((now - new Date(obligation.createdAt).getTime()) / (24 * 60 * 60 * 1000));
                 const state = deriveObligationWorkflowState({
                   status: obligation.status,
