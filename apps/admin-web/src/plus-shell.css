@@ -295,7 +295,7 @@
   gap: 0.4rem;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0.15rem 0.1rem 0.35rem;
+  padding: 0.15rem 0.4rem 0.35rem;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x proximity;
   scrollbar-width: thin;
@@ -328,8 +328,8 @@
 }
 
 .lang-selector--topbar .lang-selector__pill:hover {
-  transform: scale(1.06);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
   border-color: rgba(255, 255, 255, 0.35);
   color: #f1f5f9;
 }
@@ -346,11 +346,11 @@
 }
 
 .lang-selector--topbar .lang-selector__pill--active:hover {
-  transform: scale(1.07);
+  transform: scale(1.03);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.15) inset,
-    0 0 26px var(--lang-glow-strong),
-    0 8px 20px rgba(0, 86, 179, 0.5);
+    0 0 20px var(--lang-glow-strong),
+    0 6px 16px rgba(0, 86, 179, 0.4);
 }
 
 .lang-selector__flag {
