@@ -88,6 +88,7 @@ model Tenant {
   aiReviews                AiReview[]
   aiEmbeddings             AiEmbedding[]
   aiRiskResults            AiRiskResult[]
+  aiOperationalEvents      AiOperationalEvent[]
 }
 
 enum AiProviderType {
@@ -191,6 +192,7 @@ model AiSystem {
   documents    AiDocument[]
   extractions  AiExtraction[]
   embeddings   AiEmbedding[]
+  operationalEvents AiOperationalEvent[]
 
   @@index([tenantId])
   @@index([tenantId, status])
@@ -218,6 +220,7 @@ model AiAssessment {
   answers    AiAssessmentAnswer[]
   documents  AiDocument[]
   riskResults AiRiskResult[]
+  operationalEvents AiOperationalEvent[]
 
   @@index([tenantId])
   @@index([tenantId, aiSystemId])
@@ -256,6 +259,7 @@ model AiObligation {
   updatedAt      DateTime @updatedAt
 
   tasks AiTask[]
+  operationalEvents AiOperationalEvent[]
 
   @@index([tenantId])
   @@index([tenantId, aiSystemId])
@@ -282,11 +286,14 @@ model AiTask {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  operationalEvents AiOperationalEvent[]
+
   @@index([tenantId])
   @@index([tenantId, aiSystemId])
   @@index([tenantId, status])
   @@index([assignedToUserId])
   @@unique([tenantId, aiSystemId, obligationType, title])
+  @@unique([id, tenantId])
 }
 
 model AiEvidence {
@@ -437,6 +444,60 @@ model AiRiskResult {
 
   @@index([tenantId, createdAt])
   @@index([tenantId, aiAssessmentId])
+  @@unique([id, tenantId])
+}
+
+enum AiOperationalEventType {
+  SYSTEM_CREATED
+  SYSTEM_UPDATED
+  ASSESSMENT_SUBMITTED
+  ASSESSMENT_UPDATED
+  OBLIGATION_CREATED
+  OBLIGATION_UPDATED
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_COMPLETED
+  EVIDENCE_UPLOADED
+  EVIDENCE_MISSING_DETECTED
+  ADVISOR_REVIEW_REQUESTED
+  ADVISOR_REVIEW_COMPLETED
+  RISK_LEVEL_CHANGED
+  DEADLINE_APPROACHING
+  DEADLINE_MISSED
+}
+
+enum AiOperationalEventSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+model AiOperationalEvent {
+  id            String                    @id @default(cuid())
+  tenantId      String
+  tenant        Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  aiSystemId    String?
+  aiSystem      AiSystem?                 @relation(fields: [aiSystemId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  assessmentId  String?
+  assessment    AiAssessment?              @relation(fields: [assessmentId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  obligationId  String?
+  obligation    AiObligation?              @relation(fields: [obligationId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  taskId        String?
+  task          AiTask?                   @relation(fields: [taskId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  actorUserId   String?
+  actorUser     User?                     @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  eventType     AiOperationalEventType
+  severity      AiOperationalEventSeverity
+  source        String
+  message       String
+  metadata      Json?
+  createdAt     DateTime                  @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, aiSystemId, createdAt])
+  @@index([tenantId, eventType, createdAt])
+  @@index([tenantId, severity, createdAt])
   @@unique([id, tenantId])
 }
 
@@ -1301,6 +1362,7 @@ model User {
   aiAssessmentsCreated  AiAssessment[] @relation("AiAssessmentsCreatedBy")
   aiTasksAssigned       AiTask[] @relation("AiTasksAssignedTo")
   aiReviewsReviewed     AiReview[] @relation("AiReviewsReviewedBy")
+  aiOperationalEvents    AiOperationalEvent[]
 
   @@index([tenantId])
 }

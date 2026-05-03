@@ -132,13 +132,14 @@ const { token, refreshKey } = useAuth();
 const { data, loading, error } = useAiComplianceOperations(token, refreshKey);
 ```
 
-**Migration durumu (Step 13 + 14 ile tamamlandı):**
+**Migration durumu (Step 13 + 14 + 15 ile tamamlandı):**
 - `/admin/bootstrap` `moduleOperations.aiCompliance.systems` → **KALDIRILDI** (artık mevcut değil)
 - `/admin/bootstrap` sayaçlar → **KALDI** (sadece sayısal metrikler)
 - Birincil endpoint: `GET /admin/products/ai-compliance/operations`
 - Frontend: Tüm AI Compliance yüzeyleri yeni hook'u kullanıyor
 - Bootstrap contract hardened: TypeScript gelecekteki regressions'ları yakalar
 - Bootstrap contract testi eklendi: regressions'ları önler
+- **Persisted operational events (Step 15):** `AiOperationalEvent` modeli ile kalıcı olay kaydı eklendi. Timeline render'ı persisted olayları önceliklendiriyor.
 
 ## Operational realism layer (Step 8)
 

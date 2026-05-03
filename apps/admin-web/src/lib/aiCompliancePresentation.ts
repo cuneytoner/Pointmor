@@ -477,6 +477,28 @@ export function buildSystemTimeline(
   const items: Array<AiComplianceTimelineItem & { sortAt: number }> = [];
   const assessment = system.currentAssessment;
 
+  // Add persisted operational events (record-backed provenance)
+  for (const event of system.operationalEvents.slice(0, 10)) {
+    const actor = event.actor 
+      ? `${event.actor.name} (${event.actor.email})`
+      : people.complianceOwner ?? "System";
+    
+    items.push({
+      id: `${system.id}-event-${event.id}`,
+      title: `${event.eventType.replace(/_/g, ' ').toLowerCase()}${event.actor ? ` by ${actor}` : ''}`,
+      when: formatOperationalTime(event.createdAt),
+      type: "compliance",
+      severity: event.severity.toLowerCase() as ActivitySeverity,
+      organization: system.tenant.name,
+      actor,
+      source: `${event.source} (record)`,
+      relatedObject: system.name,
+      reason: event.message,
+      aging: formatOperationalAge(event.createdAt),
+      sortAt: new Date(event.createdAt).getTime(),
+    });
+  }
+
   if (assessment) {
     const actor = displayActor(assessment.createdBy) ?? people.complianceOwner ?? "Unknown operator";
     items.push({

@@ -178,6 +178,16 @@ export type AiComplianceOperationsFullDto = {
       assignedTo: { id: string; name: string | null; email: string } | null;
     }>;
     evidencesCount: number;
+    operationalEvents: Array<{
+      id: string;
+      eventType: string;
+      severity: string;
+      source: string;
+      message: string;
+      metadata: any;
+      createdAt: string;
+      actor: { id: string; name: string | null; email: string } | null;
+    }>;
   }>;
 };
 

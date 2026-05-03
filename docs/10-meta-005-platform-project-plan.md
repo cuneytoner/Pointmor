@@ -176,7 +176,16 @@ Related documents:
   - AI Compliance operasyonel sistemleri artık `GET /admin/products/ai-compliance/operations` endpoint'ine aittir.
   - Bootstrap fallback function güncellendi: Artık sadece sayaç verisi döndürüyor, sistem listesi değil.
   - Bootstrap contract testi eklendi: `bootstrap-contract.test.ts` gelecekteki regressions'ları önler.
-  - Kalan backlog: persisted audit/workflow state, pagination, assignment/actions, notification/SLA engine.
+- **Persisted Operational Events Foundation (Step 15) - DONE**
+  - AI Compliance için kalıcı operasyonel olaylar temeli eklendi.
+  - `AiOperationalEvent` append-only modeli: tenant-scoped olay kaydı, eventType/severity/source/message/metadata alanları.
+  - `recordAiOperationalEvent` helper: tenant ownership doğrulaması, metadata bounding, best-effort variant.
+  - AI Act akışlarına olay kaydı entegrasyonu: sistem oluşturma, değerlendirme gönderme.
+  - Read model entegrasyonu: `GET /admin/products/ai-compliance/operations` operational events döndürüyor.
+  - Frontend timeline: persisted olayları önceliklendiriyor, "record" label ile gösteriyor.
+  - Seed verisi: sentetik operational events (system_created, assessment_submitted, obligation_created, advisor_review_requested, evidence_missing_detected).
+  - Testler: tenant-scope doğrulaması, çapraz tenant sızıntısı önleme, payload limit kontrolü.
+  - Kalan backlog: assignment/actions, notifications, SLA engine, pagination.
 
 ---
 

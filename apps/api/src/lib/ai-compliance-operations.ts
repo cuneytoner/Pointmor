@@ -55,6 +55,16 @@ export type AiComplianceTenantOperations = {
       assignedTo: { id: string; name: string | null; email: string } | null;
     }>;
     evidencesCount: number;
+    operationalEvents: Array<{
+      id: string;
+      eventType: string;
+      severity: string;
+      source: string;
+      message: string;
+      metadata: any;
+      createdAt: Date;
+      actor: { id: string; name: string | null; email: string } | null;
+    }>;
   }>;
 };
 
@@ -220,6 +230,20 @@ export async function loadAiComplianceOperationsForScope(
         _count: {
           select: { evidences: true },
         },
+        operationalEvents: {
+          orderBy: { createdAt: "desc" },
+          take: 50, // Limit to recent events to avoid excessive payload
+          select: {
+            id: true,
+            eventType: true,
+            severity: true,
+            source: true,
+            message: true,
+            metadata: true,
+            createdAt: true,
+            actorUser: { select: { id: true, name: true, email: true } },
+          },
+        },
       },
     }),
   ]);
@@ -256,6 +280,16 @@ export async function loadAiComplianceOperationsForScope(
       obligations: row.obligations,
       tasks: row.tasks,
       evidencesCount: row._count.evidences,
+      operationalEvents: row.operationalEvents.map((event) => ({
+        id: event.id,
+        eventType: event.eventType,
+        severity: event.severity,
+        source: event.source,
+        message: event.message,
+        metadata: event.metadata,
+        createdAt: event.createdAt,
+        actor: event.actorUser,
+      })),
     })),
   };
 }

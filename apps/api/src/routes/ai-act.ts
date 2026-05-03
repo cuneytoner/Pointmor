@@ -15,6 +15,7 @@ import {
   systemScopedWhere,
   type AiActQuestionKey,
 } from "../lib/ai-act-assessment.js";
+import { recordAiOperationalEventBestEffort } from "../lib/ai-operational-events.js";
 
 const createAiSystemBodySchema = z.object({
   name: z.string().trim().min(1, "Sistem adi gerekli."),
@@ -89,7 +90,7 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
       if (!parsed.ok) {
         return reply.code(400).send({ error: parsed.error });
       }
-      return prisma.aiSystem.create({
+      const system = await prisma.aiSystem.create({
         data: {
           tenantId,
           name: parsed.data.name,
@@ -100,6 +101,23 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
           createdByUserId: s.user.id,
         },
       });
+
+      // Record operational event
+      await recordAiOperationalEventBestEffort({
+        tenantId,
+        aiSystemId: system.id,
+        actorUserId: s.user.id,
+        eventType: "SYSTEM_CREATED",
+        severity: "INFO",
+        source: "ai_act_api",
+        message: `AI system "${system.name}" created`,
+        metadata: {
+          providerType: system.providerType,
+          purpose: system.purpose,
+        },
+      });
+
+      return system;
     },
   );
 
@@ -282,6 +300,22 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
           throw err;
         }
       }
+
+      // Record operational event for assessment submission
+      await recordAiOperationalEventBestEffort({
+        tenantId,
+        aiSystemId: system.id,
+        assessmentId: result.id,
+        actorUserId: s.user.id,
+        eventType: "ASSESSMENT_SUBMITTED",
+        severity: "INFO",
+        source: "ai_act_api",
+        message: `Assessment submitted for AI system "${system.name}"`,
+        metadata: {
+          riskLevel: result.riskLevel,
+          confidence: result.confidence,
+        },
+      });
 
       return {
         assessmentId: result.id,

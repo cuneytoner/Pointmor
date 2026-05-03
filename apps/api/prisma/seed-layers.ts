@@ -1358,6 +1358,109 @@ export async function seedAiActMvpScenarios(
     },
     update: { metadata: { url: "https://example.invalid/synthetic-provider-docs" } },
   });
+
+  // Add synthetic operational events for realistic timeline
+  const operationalEvents = [
+    {
+      id: `seed_${scopePrefix}_event_system_created`,
+      aiSystemId: systemA.id,
+      eventType: "SYSTEM_CREATED" as const,
+      severity: "INFO" as const,
+      source: "ai_act_seed",
+      message: `AI system "${systemA.name}" created during seed setup`,
+      metadata: { providerType: systemA.providerType, seedScope: scopePrefix },
+      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+    },
+    {
+      id: `seed_${scopePrefix}_event_assessment_submitted`,
+      aiSystemId: systemA.id,
+      eventType: "ASSESSMENT_SUBMITTED" as const,
+      severity: "INFO" as const,
+      source: "ai_act_seed",
+      message: `Risk assessment completed for "${systemA.name}"`,
+      metadata: { riskLevel: "HIGH", confidence: 0.85, seedScope: scopePrefix },
+      createdAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000), // 25 days ago
+    },
+    {
+      id: `seed_${scopePrefix}_event_obligation_created`,
+      aiSystemId: systemA.id,
+      eventType: "OBLIGATION_CREATED" as const,
+      severity: "WARNING" as const,
+      source: "ai_act_seed",
+      message: `High-priority obligations generated from risk assessment`,
+      metadata: { obligationCount: 3, seedScope: scopePrefix },
+      createdAt: new Date(Date.now() - 24 * 24 * 60 * 60 * 1000), // 24 days ago
+    },
+    {
+      id: `seed_${scopePrefix}_event_advisor_review_requested`,
+      aiSystemId: systemB.id,
+      eventType: "ADVISOR_REVIEW_REQUESTED" as const,
+      severity: "WARNING" as const,
+      source: "ai_act_seed",
+      message: `Advisor review requested for "${systemB.name}" due to medium risk`,
+      metadata: { riskLevel: "MEDIUM", seedScope: scopePrefix },
+      createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000), // 20 days ago
+    },
+    {
+      id: `seed_${scopePrefix}_event_evidence_missing_detected`,
+      aiSystemId: systemA.id,
+      eventType: "EVIDENCE_MISSING_DETECTED" as const,
+      severity: "WARNING" as const,
+      source: "ai_act_seed",
+      message: `Missing evidence detected for compliance obligations`,
+      metadata: { missingEvidenceTypes: ["transparency_notice", "data_protection_policy"], seedScope: scopePrefix },
+      createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
+    },
+    {
+      id: `seed_${scopePrefix}_event_system_created_b`,
+      aiSystemId: systemB.id,
+      eventType: "SYSTEM_CREATED" as const,
+      severity: "INFO" as const,
+      source: "ai_act_seed",
+      message: `AI system "${systemB.name}" created during seed setup`,
+      metadata: { providerType: systemB.providerType, seedScope: scopePrefix },
+      createdAt: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000), // 28 days ago
+    },
+    {
+      id: `seed_${scopePrefix}_event_assessment_submitted_b`,
+      aiSystemId: systemB.id,
+      eventType: "ASSESSMENT_SUBMITTED" as const,
+      severity: "INFO" as const,
+      source: "ai_act_seed",
+      message: `Risk assessment completed for "${systemB.name}"`,
+      metadata: { riskLevel: "MEDIUM", confidence: 0.75, seedScope: scopePrefix },
+      createdAt: new Date(Date.now() - 23 * 24 * 60 * 60 * 1000), // 23 days ago
+    },
+  ];
+
+  for (const event of operationalEvents) {
+    await prisma.aiOperationalEvent.upsert({
+      where: { id: event.id },
+      create: {
+        id: event.id,
+        tenantId,
+        aiSystemId: event.aiSystemId,
+        actorUserId: createdByUserId,
+        eventType: event.eventType,
+        severity: event.severity,
+        source: event.source,
+        message: event.message,
+        metadata: event.metadata,
+        createdAt: event.createdAt,
+      },
+      update: {
+        tenantId,
+        aiSystemId: event.aiSystemId,
+        actorUserId: createdByUserId,
+        eventType: event.eventType,
+        severity: event.severity,
+        source: event.source,
+        message: event.message,
+        metadata: event.metadata,
+        createdAt: event.createdAt,
+      },
+    });
+  }
 }
 
 async function seedAssessmentAnswers(
