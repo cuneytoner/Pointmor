@@ -46,6 +46,27 @@ export async function recordAiOperationalEvent(
     }
   }
 
+  // Validate actor membership if actorUserId is provided
+  if (input.actorUserId) {
+    const actorMembership = await prisma.tenantMembership.findFirst({
+      where: {
+        userId: input.actorUserId,
+        tenantId: input.tenantId,
+      },
+      select: { id: true },
+    });
+
+    const actorUser = await prisma.user.findFirst({
+      where: { id: input.actorUserId },
+      select: { platformAdmin: true },
+    });
+
+    if (!actorMembership && !actorUser?.platformAdmin) {
+      // Drop actor attribution safely instead of rejecting
+      input.actorUserId = undefined;
+    }
+  }
+
   if (input.assessmentId) {
     const assessment = await prisma.aiAssessment.findFirst({
       where: {

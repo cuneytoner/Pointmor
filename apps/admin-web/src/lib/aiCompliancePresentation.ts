@@ -477,44 +477,95 @@ export function buildSystemTimeline(
   const items: Array<AiComplianceTimelineItem & { sortAt: number }> = [];
   const assessment = system.currentAssessment;
 
+  // Track dedupe keys to prevent duplicate timeline entries
+  const dedupeKeys = new Set<string>();
+
   // Add persisted operational events (record-backed provenance)
   for (const event of system.operationalEvents.slice(0, 10)) {
     const actor = event.actor 
       ? `${event.actor.name} (${event.actor.email})`
       : people.complianceOwner ?? "System";
     
-    items.push({
-      id: `${system.id}-event-${event.id}`,
-      title: `${event.eventType.replace(/_/g, ' ').toLowerCase()}${event.actor ? ` by ${actor}` : ''}`,
-      when: formatOperationalTime(event.createdAt),
-      type: "compliance",
-      severity: event.severity.toLowerCase() as ActivitySeverity,
-      organization: system.tenant.name,
-      actor,
-      source: `${event.source} (record)`,
-      relatedObject: system.name,
-      reason: event.message,
-      aging: formatOperationalAge(event.createdAt),
-      sortAt: new Date(event.createdAt).getTime(),
-    });
+    // Create readable related object labels
+    let relatedObjectLabel: string;
+    switch (event.relatedObjectType) {
+      case "assessment":
+        relatedObjectLabel = "Assessment record";
+        break;
+      case "obligation":
+        relatedObjectLabel = "Obligation record";
+        break;
+      case "task":
+        relatedObjectLabel = "Task record";
+        break;
+      case "ai_system":
+        relatedObjectLabel = "AI system record";
+        break;
+      default:
+        relatedObjectLabel = system.name;
+    }
+    
+    // Create dedupe key based on event type and related object type
+    let dedupeKey: string;
+    switch (event.eventType) {
+      case "ASSESSMENT_SUBMITTED":
+        dedupeKey = `ASSESSMENT_SUBMITTED-${event.relatedObjectType || 'unknown'}`;
+        break;
+      case "OBLIGATION_CREATED":
+      case "OBLIGATION_UPDATED":
+        dedupeKey = `${event.eventType}-${event.relatedObjectType || 'unknown'}`;
+        break;
+      case "TASK_CREATED":
+      case "TASK_UPDATED":
+        dedupeKey = `${event.eventType}-${event.relatedObjectType || 'unknown'}`;
+        break;
+      case "SYSTEM_CREATED":
+      case "SYSTEM_UPDATED":
+        dedupeKey = `${event.eventType}-${event.relatedObjectType || 'unknown'}-${new Date(event.createdAt).toISOString().slice(0, 10)}`;
+        break;
+      default:
+        dedupeKey = `${event.eventType}-${event.id}`;
+    }
+
+    if (!dedupeKeys.has(dedupeKey)) {
+      dedupeKeys.add(dedupeKey);
+      items.push({
+        id: `${system.id}-event-${event.id}`,
+        title: `${event.eventType.replace(/_/g, ' ').toLowerCase()}${event.actor ? ` by ${actor}` : ''}`,
+        when: formatOperationalTime(event.createdAt),
+        type: "compliance",
+        severity: event.severity.toLowerCase() as ActivitySeverity,
+        organization: system.tenant.name,
+        actor,
+        source: `${event.sourceLabel} (record)`,
+        relatedObject: relatedObjectLabel,
+        reason: event.message,
+        aging: formatOperationalAge(event.createdAt),
+        sortAt: new Date(event.createdAt).getTime(),
+      });
+    }
   }
 
   if (assessment) {
-    const actor = displayActor(assessment.createdBy) ?? people.complianceOwner ?? "Unknown operator";
-    items.push({
-      id: `${system.id}-assessment-${assessment.id}`,
-      title: `Assessment submitted by ${actor}`,
-      when: formatOperationalTime(assessment.updatedAt),
-      type: "compliance",
-      severity: deriveReviewStatus(system) === "Escalated" ? "escalation" : "info",
-      organization: system.tenant.name,
-      actor,
-      source: "Assessment record",
-      relatedObject: `Assessment ${assessment.id.slice(0, 8)}`,
-      reason: `${presentRiskLabel(assessment.riskLevel)} risk assessment is ${deriveReviewStatus(system).toLowerCase()}.`,
-      aging: formatOperationalAge(assessment.updatedAt),
-      sortAt: new Date(assessment.updatedAt).getTime(),
-    });
+    const dedupeKey = `ASSESSMENT_SUBMITTED-${assessment.id}`;
+    if (!dedupeKeys.has(dedupeKey)) {
+      dedupeKeys.add(dedupeKey);
+      const actor = displayActor(assessment.createdBy) ?? people.complianceOwner ?? "Unknown operator";
+      items.push({
+        id: `${system.id}-assessment-${assessment.id}`,
+        title: `Assessment submitted by ${actor}`,
+        when: formatOperationalTime(assessment.updatedAt),
+        type: "compliance",
+        severity: deriveReviewStatus(system) === "Escalated" ? "escalation" : "info",
+        organization: system.tenant.name,
+        actor,
+        source: "Assessment record",
+        relatedObject: `Assessment ${assessment.id.slice(0, 8)}`,
+        reason: `${presentRiskLabel(assessment.riskLevel)} risk assessment is ${deriveReviewStatus(system).toLowerCase()}.`,
+        aging: formatOperationalAge(assessment.updatedAt),
+        sortAt: new Date(assessment.updatedAt).getTime(),
+      });
+    }
   } else {
     items.push({
       id: `${system.id}-assessment-missing`,
@@ -533,29 +584,33 @@ export function buildSystemTimeline(
   }
 
   for (const obligation of system.obligations.slice(0, 4)) {
-    const state = deriveObligationWorkflowState({
-      status: obligation.status,
-      ageDays: ageInDays(obligation.createdAt),
-      hasEvidence: system.evidencesCount > 0,
-    });
-    const riskLabel = presentRiskLabel(assessment?.riskLevel ?? null).toLowerCase();
-    items.push({
-      id: `${system.id}-obligation-${obligation.id}`,
-      title: state === "Overdue" ? "Obligation overdue" : `Obligation created from ${riskLabel} risk result`,
-      when: formatOperationalTime(obligation.createdAt),
-      type: "compliance",
-      severity: state === "Overdue" ? "overdue" : state === "Awaiting Evidence" ? "warning" : "info",
-      organization: system.tenant.name,
-      actor: displayActor(assessment?.createdBy) ?? people.complianceOwner ?? "Derived signal",
-      source: "Obligation record",
-      relatedObject: obligation.obligationType,
-      reason:
-        state === "Overdue"
-          ? `${obligation.obligationType} is ${formatObligationSlaAge(obligation.createdAt)}.`
-          : `Created from ${presentRiskLabel(assessment?.riskLevel ?? null)} risk assessment.`,
-      aging: state,
-      sortAt: new Date(obligation.createdAt).getTime(),
-    });
+    const dedupeKey = `OBLIGATION_CREATED-${obligation.id}`;
+    if (!dedupeKeys.has(dedupeKey)) {
+      dedupeKeys.add(dedupeKey);
+      const state = deriveObligationWorkflowState({
+        status: obligation.status,
+        ageDays: ageInDays(obligation.createdAt),
+        hasEvidence: system.evidencesCount > 0,
+      });
+      const riskLabel = presentRiskLabel(assessment?.riskLevel ?? null).toLowerCase();
+      items.push({
+        id: `${system.id}-obligation-${obligation.id}`,
+        title: state === "Overdue" ? "Obligation overdue" : `Obligation created from ${riskLabel} risk result`,
+        when: formatOperationalTime(obligation.createdAt),
+        type: "compliance",
+        severity: state === "Overdue" ? "overdue" : state === "Awaiting Evidence" ? "warning" : "info",
+        organization: system.tenant.name,
+        actor: displayActor(assessment?.createdBy) ?? people.complianceOwner ?? "Derived signal",
+        source: "Obligation record",
+        relatedObject: obligation.obligationType,
+        reason:
+          state === "Overdue"
+            ? `${obligation.obligationType} is ${formatObligationSlaAge(obligation.createdAt)}.`
+            : `Created from ${presentRiskLabel(assessment?.riskLevel ?? null)} risk assessment.`,
+        aging: state,
+        sortAt: new Date(obligation.createdAt).getTime(),
+      });
+    }
   }
 
   const evidenceFreshness = deriveEvidenceFreshness(system);

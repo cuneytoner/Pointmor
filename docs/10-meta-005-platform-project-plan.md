@@ -179,12 +179,12 @@ Related documents:
 - **Persisted Operational Events Foundation (Step 15) - DONE**
   - AI Compliance için kalıcı operasyonel olaylar temeli eklendi.
   - `AiOperationalEvent` append-only modeli: tenant-scoped olay kaydı, eventType/severity/source/message/metadata alanları.
-  - `recordAiOperationalEvent` helper: tenant ownership doğrulaması, metadata bounding, best-effort variant.
-  - AI Act akışlarına olay kaydı entegrasyonu: sistem oluşturma, değerlendirme gönderme.
-  - Read model entegrasyonu: `GET /admin/products/ai-compliance/operations` operational events döndürüyor.
-  - Frontend timeline: persisted olayları önceliklendiriyor, "record" label ile gösteriyor.
+  - `recordAiOperationalEvent` helper: tenant ownership doğrulaması, actor membership validasyonu, metadata bounding, best-effort variant.
+  - AI Act akışlarına olay kaydı entegrasyonu: sistem oluşturma, değerlendirme gönderme, obligation/task oluşturma.
+  - Read model entegrasyonu: `GET /admin/products/ai-compliance/operations` operational events döndürüyor, metadata sanitization ile.
+  - Frontend timeline: persisted olayları önceliklendiriyor, dedupe stratejisi ile duplicate'leri engelliyor, readable source labels ve object types gösteriyor.
   - Seed verisi: sentetik operational events (system_created, assessment_submitted, obligation_created, advisor_review_requested, evidence_missing_detected).
-  - Testler: tenant-scope doğrulaması, çapraz tenant sızıntısı önleme, payload limit kontrolü.
+  - Testler: tenant-scope doğrulaması, çapraz tenant sızıntısı önleme, metadata sanitization, actor membership validasyonu, payload limit kontrolü.
   - Kalan backlog: assignment/actions, notifications, SLA engine, pagination.
 
 ---

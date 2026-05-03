@@ -182,11 +182,11 @@ export type AiComplianceOperationsFullDto = {
       id: string;
       eventType: string;
       severity: string;
-      source: string;
+      sourceLabel: string;
       message: string;
-      metadata: any;
       createdAt: string;
       actor: { id: string; name: string | null; email: string } | null;
+      relatedObjectType?: "assessment" | "obligation" | "task" | "ai_system";
     }>;
   }>;
 };

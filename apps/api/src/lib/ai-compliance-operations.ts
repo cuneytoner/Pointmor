@@ -59,11 +59,11 @@ export type AiComplianceTenantOperations = {
       id: string;
       eventType: string;
       severity: string;
-      source: string;
+      sourceLabel: string;
       message: string;
-      metadata: any;
       createdAt: Date;
       actor: { id: string; name: string | null; email: string } | null;
+      relatedObjectType?: "assessment" | "obligation" | "task" | "ai_system";
     }>;
   }>;
 };
@@ -239,8 +239,11 @@ export async function loadAiComplianceOperationsForScope(
             severity: true,
             source: true,
             message: true,
-            metadata: true,
             createdAt: true,
+            aiSystemId: true,
+            assessmentId: true,
+            obligationId: true,
+            taskId: true,
             actorUser: { select: { id: true, name: true, email: true } },
           },
         },
@@ -280,16 +283,39 @@ export async function loadAiComplianceOperationsForScope(
       obligations: row.obligations,
       tasks: row.tasks,
       evidencesCount: row._count.evidences,
-      operationalEvents: row.operationalEvents.map((event) => ({
-        id: event.id,
-        eventType: event.eventType,
-        severity: event.severity,
-        source: event.source,
-        message: event.message,
-        metadata: event.metadata,
-        createdAt: event.createdAt,
-        actor: event.actorUser,
-      })),
+      operationalEvents: row.operationalEvents.map((event) => {
+        // Map source codes to readable labels
+        const sourceLabels: Record<string, string> = {
+          "ai_act_api": "AI Act assessment flow",
+          "ai_act_seed": "Demo setup",
+          "system": "System generated",
+          "migration": "Migration",
+        };
+        const sourceLabel = sourceLabels[event.source] || event.source;
+        
+        // Determine related object type
+        let relatedObjectType: "assessment" | "obligation" | "task" | "ai_system" | undefined;
+        if (event.assessmentId) {
+          relatedObjectType = "assessment";
+        } else if (event.obligationId) {
+          relatedObjectType = "obligation";
+        } else if (event.taskId) {
+          relatedObjectType = "task";
+        } else if (event.aiSystemId) {
+          relatedObjectType = "ai_system";
+        }
+        
+        return {
+          id: event.id,
+          eventType: event.eventType,
+          severity: event.severity,
+          sourceLabel,
+          message: event.message,
+          createdAt: event.createdAt,
+          actor: event.actorUser,
+          relatedObjectType,
+        };
+      }),
     })),
   };
 }

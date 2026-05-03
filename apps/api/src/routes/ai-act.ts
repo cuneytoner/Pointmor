@@ -271,6 +271,41 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
             });
           }
 
+          // Record operational events for obligations and tasks if they were created
+          if (obligations.length > 0) {
+            await recordAiOperationalEventBestEffort({
+              tenantId,
+              aiSystemId: system.id,
+              assessmentId: assessment.id,
+              actorUserId: s.user.id,
+              eventType: "OBLIGATION_CREATED",
+              severity: "INFO",
+              source: "ai_act_api",
+              message: `${obligations.length} obligations generated from risk assessment`,
+              metadata: { 
+                riskLevel: classification.riskLevel,
+                obligationCount: obligations.length,
+              },
+            });
+          }
+
+          if (obligations.some(o => o.title)) {
+            await recordAiOperationalEventBestEffort({
+              tenantId,
+              aiSystemId: system.id,
+              assessmentId: assessment.id,
+              actorUserId: s.user.id,
+              eventType: "TASK_CREATED",
+              severity: "INFO",
+              source: "ai_act_api",
+              message: `Compliance tasks generated for obligations`,
+              metadata: { 
+                riskLevel: classification.riskLevel,
+                taskCount: obligations.filter(o => o.title).length,
+              },
+            });
+          }
+
           await tx.aiRiskResult.create({
             data: {
               tenantId,

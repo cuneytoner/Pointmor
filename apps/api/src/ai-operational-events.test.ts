@@ -210,7 +210,7 @@ describe("AI Operational Events", () => {
       membershipId: "other-membership-id",
     });
 
-    // Query AI Compliance operations for other tenant should not include test tenant's events
+    // Query AI Compliance operations for other tenant should return module_not_active
     const response = await app.inject({
       method: "GET",
       url: "/admin/products/ai-compliance/operations",
@@ -219,9 +219,9 @@ describe("AI Operational Events", () => {
       },
     });
 
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(403);
     const data = response.json();
-    expect(data.aiCompliance.systems).toHaveLength(0); // No systems for other tenant
+    expect(data.error).toBe("module_not_active");
 
     // Clean up
     await prisma.tenantMembership.deleteMany({
@@ -332,5 +332,127 @@ describe("AI Operational Events", () => {
     
     // Should be limited to 50 events
     expect(system.operationalEvents.length).toBeLessThanOrEqual(50);
+  });
+
+  it("should sanitize metadata in endpoint response", async () => {
+    // Create event with metadata
+    await recordAiOperationalEvent({
+      tenantId: testTenant.id,
+      aiSystemId: testSystem.id,
+      actorUserId: testUser.id,
+      eventType: "SYSTEM_UPDATED",
+      severity: "INFO",
+      source: "test",
+      message: "Test event with metadata",
+      metadata: { sensitive: "data", internal: "stuff", count: 42 },
+    });
+
+    // Query AI Compliance operations
+    const response = await app.inject({
+      method: "GET",
+      url: "/admin/products/ai-compliance/operations",
+      headers: {
+        cookie: `session=${testSession.token}`,
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const data = response.json();
+    const system = data.aiCompliance.systems[0];
+    const event = system.operationalEvents.find((e: any) => e.eventType === "SYSTEM_UPDATED");
+    
+    expect(event).toBeDefined();
+    // Should not include raw metadata
+    expect(event).not.toHaveProperty("metadata");
+    // Should include sanitized fields
+    expect(event).toHaveProperty("id");
+    expect(event).toHaveProperty("eventType");
+    expect(event).toHaveProperty("severity");
+    expect(event).toHaveProperty("sourceLabel");
+    expect(event).toHaveProperty("message");
+    expect(event).toHaveProperty("createdAt");
+    expect(event).toHaveProperty("actor");
+    expect(event).toHaveProperty("relatedObjectType");
+  });
+
+  it("should validate actor membership and drop attribution if invalid", async () => {
+    // Create another user without membership
+    const otherUser = await prisma.user.create({
+      data: {
+        email: "other-user@example.com",
+        name: "Other User",
+        passwordHash: "dummy-hash",
+        platformAdmin: false,
+        role: "MEMBER",
+      },
+    });
+
+    // Record event with invalid actor (no membership)
+    await recordAiOperationalEvent({
+      tenantId: testTenant.id,
+      aiSystemId: testSystem.id,
+      actorUserId: otherUser.id, // This user has no membership
+      eventType: "SYSTEM_UPDATED",
+      severity: "INFO",
+      source: "test",
+      message: "Test with invalid actor",
+    });
+
+    // Check that event was recorded but actor attribution was dropped
+    const events = await prisma.aiOperationalEvent.findMany({
+      where: { 
+        tenantId: testTenant.id,
+        eventType: "SYSTEM_UPDATED",
+      },
+      orderBy: { createdAt: "desc" },
+      take: 1,
+    });
+
+    expect(events).toHaveLength(1);
+    expect(events[0].actorUserId).toBeNull(); // Actor should be dropped
+
+    // Clean up
+    await prisma.user.delete({ where: { id: otherUser.id } });
+  });
+
+  it("should allow platform admin as actor without membership", async () => {
+    // Create platform admin user without membership
+    const platformAdminUser = await prisma.user.create({
+      data: {
+        email: "platform-admin@example.com",
+        name: "Platform Admin",
+        passwordHash: "dummy-hash",
+        platformAdmin: true,
+        role: "ADMIN",
+      },
+    });
+
+    // Record event with platform admin actor
+    await recordAiOperationalEvent({
+      tenantId: testTenant.id,
+      aiSystemId: testSystem.id,
+      actorUserId: platformAdminUser.id,
+      eventType: "SYSTEM_UPDATED",
+      severity: "INFO",
+      source: "test",
+      message: "Test with platform admin actor",
+    });
+
+    // Check that event was recorded with actor attribution preserved
+    const events = await prisma.aiOperationalEvent.findMany({
+      where: { 
+        tenantId: testTenant.id,
+        eventType: "SYSTEM_UPDATED",
+        message: "Test with platform admin actor",
+      },
+      orderBy: { createdAt: "desc" },
+      take: 1,
+    });
+
+    expect(events).toHaveLength(1);
+    expect(events[0].actorUserId).toBe(platformAdminUser.id); // Actor should be preserved
+
+    // Clean up
+    await prisma.user.delete({ where: { id: platformAdminUser.id } });
   });
 });

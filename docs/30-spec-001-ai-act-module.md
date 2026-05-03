@@ -139,7 +139,7 @@ const { data, loading, error } = useAiComplianceOperations(token, refreshKey);
 - Frontend: Tüm AI Compliance yüzeyleri yeni hook'u kullanıyor
 - Bootstrap contract hardened: TypeScript gelecekteki regressions'ları yakalar
 - Bootstrap contract testi eklendi: regressions'ları önler
-- **Persisted operational events (Step 15):** `AiOperationalEvent` modeli ile kalıcı olay kaydı eklendi. Timeline render'ı persisted olayları önceliklendiriyor.
+- **Persisted operational events (Step 15):** `AiOperationalEvent` modeli ile kalıcı olay kaydı eklendi. Timeline render'ı persisted olayları önceliklendiriyor, dedupe stratejisi ile duplicate'leri engelliyor. UI'da raw metadata/internal IDs gösterilmiyor, readable source labels ve object types kullanılıyor. Actor membership validasyonu ile güvenlik sağlanıyor.
 
 ## Operational realism layer (Step 8)
 
