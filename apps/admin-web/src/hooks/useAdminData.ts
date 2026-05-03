@@ -192,6 +192,8 @@ export type AiComplianceOperationsFullDto = {
       obligationId?: string;
       taskId?: string;
       aiSystemId?: string;
+      // Human-readable event label from API
+      eventLabel: string;
     }>;
   }>;
 };

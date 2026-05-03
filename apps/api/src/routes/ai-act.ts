@@ -225,6 +225,9 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
           }
 
           const obligations = obligationsForRisk(classification.riskLevel, normalized.answers);
+          const createdObligationIds: string[] = [];
+          const createdTaskIds: string[] = [];
+          
           for (const obligation of obligations) {
             const obligationRow = await tx.aiObligation.upsert({
               where: {
@@ -247,7 +250,9 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
               },
             });
 
-            await tx.aiTask.upsert({
+            createdObligationIds.push(obligationRow.id);
+
+            const taskRow = await tx.aiTask.upsert({
               where: {
                 tenantId_aiSystemId_obligationType_title: {
                   tenantId,
@@ -272,35 +277,42 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
                 status: "OPEN",
               },
             });
+
+            if (obligation.title) {
+              createdTaskIds.push(taskRow.id);
+            }
           }
 
           // Record operational events for obligations and tasks if they were created
           
-          if (obligations.length > 0) {
+          if (createdObligationIds.length > 0) {
             postCommitEvents.push(async () => {
               await recordAiOperationalEvent({
                 tenantId,
                 aiSystemId: system.id,
                 assessmentId: assessment.id,
+                obligationId: createdObligationIds[0], // Use first concrete obligation ID
                 actorUserId: s.user.id,
                 eventType: "OBLIGATION_CREATED",
                 severity: "INFO",
                 source: "ai_act_api",
-                message: `${obligations.length} obligations generated from risk assessment`,
+                message: `${createdObligationIds.length} obligations generated from risk assessment`,
                 metadata: { 
                   riskLevel: classification.riskLevel,
-                  obligationCount: obligations.length,
+                  obligationCount: createdObligationIds.length,
+                  obligationIds: createdObligationIds,
                 },
               });
             });
           }
 
-          if (obligations.some(o => o.title)) {
+          if (createdTaskIds.length > 0) {
             postCommitEvents.push(async () => {
               await recordAiOperationalEvent({
                 tenantId,
                 aiSystemId: system.id,
                 assessmentId: assessment.id,
+                taskId: createdTaskIds[0], // Use first concrete task ID
                 actorUserId: s.user.id,
                 eventType: "TASK_CREATED",
                 severity: "INFO",
@@ -308,7 +320,8 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
                 message: `Compliance tasks generated for obligations`,
                 metadata: { 
                   riskLevel: classification.riskLevel,
-                  taskCount: obligations.filter(o => o.title).length,
+                  taskCount: createdTaskIds.length,
+                  taskIds: createdTaskIds,
                 },
               });
             });

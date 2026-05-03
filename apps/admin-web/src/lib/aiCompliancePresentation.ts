@@ -542,19 +542,8 @@ export function buildSystemTimeline(
     if (!dedupeKeys.has(dedupeKey)) {
       dedupeKeys.add(dedupeKey);
       
-      // Map event types to human-readable labels
-      const eventTypeLabels: Record<string, string> = {
-        "AI_SYSTEM_CREATED": "AI system created",
-        "ASSESSMENT_SUBMITTED": "Assessment submitted",
-        "ASSESSMENT_UPDATED": "Assessment updated",
-        "OBLIGATION_CREATED": "Obligation created",
-        "OBLIGATION_UPDATED": "Obligation updated",
-        "TASK_CREATED": "Task created",
-        "TASK_UPDATED": "Task updated",
-        "ADVISOR_REVIEW_REQUESTED": "Advisor review requested",
-        "EVIDENCE_MISSING_DETECTED": "Evidence missing detected",
-      };
-      const eventTitle = eventTypeLabels[event.eventType] || "Operational event";
+      // Use API-provided event label for consistency
+      const eventTitle = event.eventLabel;
       
       items.push({
         id: `${system.id}-event-${event.id}`,

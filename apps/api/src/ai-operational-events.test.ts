@@ -15,10 +15,19 @@ describe("AI Operational Events", () => {
   beforeAll(async () => {
     app = buildApp();
     
+    // Generate unique slug to avoid conflicts on repeated runs
+    const uniqueSuffix = Date.now().toString(36);
+    const tenantSlug = `test-ai-events-${uniqueSuffix}`;
+    
+    // Clean up any existing test data with this slug first
+    await prisma.tenant.deleteMany({
+      where: { slug: { startsWith: "test-ai-events" } }
+    });
+    
     // Create test tenant and user
     testTenant = await prisma.tenant.create({
       data: {
-        slug: "test-ai-events",
+        slug: tenantSlug,
         name: "Test AI Events Tenant",
         type: "BUSINESS",
       },
@@ -80,25 +89,30 @@ describe("AI Operational Events", () => {
   });
 
   afterAll(async () => {
-    // Clean up test data
-    await prisma.aiOperationalEvent.deleteMany({
-      where: { tenantId: testTenant.id },
-    });
-    await prisma.aiSystem.deleteMany({
-      where: { tenantId: testTenant.id },
-    });
-    await prisma.tenantModule.deleteMany({
-      where: { tenantId: testTenant.id },
-    });
-    await prisma.tenantMembership.deleteMany({
-      where: { tenantId: testTenant.id },
-    });
-    await prisma.user.delete({
-      where: { id: testUser.id },
-    });
-    await prisma.tenant.delete({
-      where: { id: testTenant.id },
-    });
+    // Guard against setup failures - only cleanup if objects exist
+    if (testTenant?.id) {
+      await prisma.aiOperationalEvent.deleteMany({
+        where: { tenantId: testTenant.id },
+      });
+      await prisma.aiSystem.deleteMany({
+        where: { tenantId: testTenant.id },
+      });
+      await prisma.tenantModule.deleteMany({
+        where: { tenantId: testTenant.id },
+      });
+      await prisma.tenantMembership.deleteMany({
+        where: { tenantId: testTenant.id },
+      });
+      await prisma.tenant.delete({
+        where: { id: testTenant.id },
+      });
+    }
+    
+    if (testUser?.id) {
+      await prisma.user.delete({
+        where: { id: testUser.id },
+      });
+    }
   });
 
   it("should record operational event successfully", async () => {
@@ -456,5 +470,126 @@ describe("AI Operational Events", () => {
 
     // Clean up
     await prisma.user.delete({ where: { id: platformAdminUser.id } });
+  });
+
+  it("should persist concrete obligationId on obligation events", async () => {
+    // Create test obligation
+    const obligation = await prisma.aiObligation.create({
+      data: {
+        tenantId: testTenant.id,
+        aiSystemId: testSystem.id,
+        obligationType: "TEST_OBLIGATION",
+        status: "OPEN",
+        source: "TEST",
+      },
+    });
+
+    // Record event with concrete obligationId
+    await recordAiOperationalEvent({
+      tenantId: testTenant.id,
+      aiSystemId: testSystem.id,
+      obligationId: obligation.id,
+      actorUserId: testUser.id,
+      eventType: "OBLIGATION_CREATED",
+      severity: "INFO",
+      source: "test",
+      message: "Test obligation event with concrete ID",
+    });
+
+    // Verify event was recorded with concrete obligationId
+    const events = await prisma.aiOperationalEvent.findMany({
+      where: { 
+        tenantId: testTenant.id,
+        eventType: "OBLIGATION_CREATED",
+        message: "Test obligation event with concrete ID",
+      },
+      orderBy: { createdAt: "desc" },
+      take: 1,
+    });
+
+    expect(events).toHaveLength(1);
+    expect(events[0].obligationId).toBe(obligation.id);
+    expect(events[0].assessmentId).toBeUndefined();
+    expect(events[0].taskId).toBeUndefined();
+  });
+
+  it("should persist concrete taskId on task events", async () => {
+    // Create test task
+    const task = await prisma.aiTask.create({
+      data: {
+        tenantId: testTenant.id,
+        aiSystemId: testSystem.id,
+        obligationId: "test-obligation-id",
+        obligationType: "TEST_OBLIGATION",
+        title: "Test Task",
+        priority: "HIGH",
+        status: "OPEN",
+      },
+    });
+
+    // Record event with concrete taskId
+    await recordAiOperationalEvent({
+      tenantId: testTenant.id,
+      aiSystemId: testSystem.id,
+      taskId: task.id,
+      actorUserId: testUser.id,
+      eventType: "TASK_CREATED",
+      severity: "INFO",
+      source: "test",
+      message: "Test task event with concrete ID",
+    });
+
+    // Verify event was recorded with concrete taskId
+    const events = await prisma.aiOperationalEvent.findMany({
+      where: { 
+        tenantId: testTenant.id,
+        eventType: "TASK_CREATED",
+        message: "Test task event with concrete ID",
+      },
+      orderBy: { createdAt: "desc" },
+      take: 1,
+    });
+
+    expect(events).toHaveLength(1);
+    expect(events[0].taskId).toBe(task.id);
+    expect(events[0].assessmentId).toBeUndefined();
+    expect(events[0].obligationId).toBeUndefined();
+  });
+
+  it("should include eventLabel in endpoint DTO response", async () => {
+    // Record an event
+    await recordAiOperationalEvent({
+      tenantId: testTenant.id,
+      aiSystemId: testSystem.id,
+      actorUserId: testUser.id,
+      eventType: "SYSTEM_CREATED",
+      severity: "INFO",
+      source: "test",
+      message: "Test event for DTO validation",
+    });
+
+    // Get AI Compliance operations endpoint response
+    const response = await app.inject({
+      method: "GET",
+      url: "/admin/products/ai-compliance/operations",
+      headers: {
+        authorization: `Bearer ${testSession.token}`,
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const data = response.json();
+    
+    // Find the operational events in the response
+    const system = data.systems.find((s: any) => s.id === testSystem.id);
+    expect(system).toBeDefined();
+    expect(system.operationalEvents).toBeDefined();
+    
+    const testEvent = system.operationalEvents.find((e: any) => 
+      e.message === "Test event for DTO validation"
+    );
+    expect(testEvent).toBeDefined();
+    expect(testEvent.eventLabel).toBe("AI system created"); // Should have human-readable label
+    expect(testEvent.sourceLabel).toBeDefined(); // Should have sanitized source label
   });
 });
