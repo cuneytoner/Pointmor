@@ -30,6 +30,7 @@ describe("AI Operational Events", () => {
         name: "Test AI Events User",
         passwordHash: "dummy-hash",
         platformAdmin: false,
+        role: "MEMBER",
       },
     });
 
@@ -192,6 +193,7 @@ describe("AI Operational Events", () => {
         name: "Isolated User",
         passwordHash: "dummy-hash",
         platformAdmin: false,
+        role: "MEMBER",
       },
     });
 

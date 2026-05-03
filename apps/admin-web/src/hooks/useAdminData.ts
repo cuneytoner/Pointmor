@@ -187,6 +187,11 @@ export type AiComplianceOperationsFullDto = {
       createdAt: string;
       actor: { id: string; name: string | null; email: string } | null;
       relatedObjectType?: "assessment" | "obligation" | "task" | "ai_system";
+      // Include concrete IDs for dedupe purposes only
+      assessmentId?: string;
+      obligationId?: string;
+      taskId?: string;
+      aiSystemId?: string;
     }>;
   }>;
 };

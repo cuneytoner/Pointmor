@@ -469,6 +469,18 @@ export function buildTodayActionQueue(
     .slice(0, 12);
 }
 
+// Helper function to generate consistent dedupe keys for timeline items
+function getTimelineDedupeKey(eventType: string, assessmentId?: string, obligationId?: string, taskId?: string, aiSystemId?: string, fallbackId?: string): string {
+  // Use concrete related IDs when available
+  if (assessmentId) return `${eventType}:${assessmentId}`;
+  if (obligationId) return `${eventType}:${obligationId}`;
+  if (taskId) return `${eventType}:${taskId}`;
+  if (aiSystemId) return `${eventType}:${aiSystemId}`;
+  
+  // Fallback for unknown or system-level events
+  return `${eventType}:${fallbackId || 'unknown'}`;
+}
+
 export function buildSystemTimeline(
   system: AiComplianceSystemDto,
   users: UserDto[],
@@ -505,33 +517,48 @@ export function buildSystemTimeline(
         relatedObjectLabel = system.name;
     }
     
-    // Create dedupe key based on event type and related object type
+    // Create dedupe key using concrete related IDs from event
     let dedupeKey: string;
     switch (event.eventType) {
       case "ASSESSMENT_SUBMITTED":
-        dedupeKey = `ASSESSMENT_SUBMITTED-${event.relatedObjectType || 'unknown'}`;
+        dedupeKey = getTimelineDedupeKey(event.eventType, event.assessmentId);
         break;
       case "OBLIGATION_CREATED":
       case "OBLIGATION_UPDATED":
-        dedupeKey = `${event.eventType}-${event.relatedObjectType || 'unknown'}`;
+        dedupeKey = getTimelineDedupeKey(event.eventType, undefined, event.obligationId);
         break;
       case "TASK_CREATED":
       case "TASK_UPDATED":
-        dedupeKey = `${event.eventType}-${event.relatedObjectType || 'unknown'}`;
+        dedupeKey = getTimelineDedupeKey(event.eventType, undefined, undefined, event.taskId);
         break;
       case "SYSTEM_CREATED":
       case "SYSTEM_UPDATED":
-        dedupeKey = `${event.eventType}-${event.relatedObjectType || 'unknown'}-${new Date(event.createdAt).toISOString().slice(0, 10)}`;
+        dedupeKey = getTimelineDedupeKey(event.eventType, undefined, undefined, undefined, event.aiSystemId);
         break;
       default:
-        dedupeKey = `${event.eventType}-${event.id}`;
+        dedupeKey = getTimelineDedupeKey(event.eventType, undefined, undefined, undefined, undefined, event.id);
     }
 
     if (!dedupeKeys.has(dedupeKey)) {
       dedupeKeys.add(dedupeKey);
+      
+      // Map event types to human-readable labels
+      const eventTypeLabels: Record<string, string> = {
+        "AI_SYSTEM_CREATED": "AI system created",
+        "ASSESSMENT_SUBMITTED": "Assessment submitted",
+        "ASSESSMENT_UPDATED": "Assessment updated",
+        "OBLIGATION_CREATED": "Obligation created",
+        "OBLIGATION_UPDATED": "Obligation updated",
+        "TASK_CREATED": "Task created",
+        "TASK_UPDATED": "Task updated",
+        "ADVISOR_REVIEW_REQUESTED": "Advisor review requested",
+        "EVIDENCE_MISSING_DETECTED": "Evidence missing detected",
+      };
+      const eventTitle = eventTypeLabels[event.eventType] || "Operational event";
+      
       items.push({
         id: `${system.id}-event-${event.id}`,
-        title: `${event.eventType.replace(/_/g, ' ').toLowerCase()}${event.actor ? ` by ${actor}` : ''}`,
+        title: `${eventTitle}${event.actor ? ` by ${actor}` : ''}`,
         when: formatOperationalTime(event.createdAt),
         type: "compliance",
         severity: event.severity.toLowerCase() as ActivitySeverity,
@@ -547,7 +574,7 @@ export function buildSystemTimeline(
   }
 
   if (assessment) {
-    const dedupeKey = `ASSESSMENT_SUBMITTED-${assessment.id}`;
+    const dedupeKey = getTimelineDedupeKey("ASSESSMENT_SUBMITTED", assessment.id);
     if (!dedupeKeys.has(dedupeKey)) {
       dedupeKeys.add(dedupeKey);
       const actor = displayActor(assessment.createdBy) ?? people.complianceOwner ?? "Unknown operator";
@@ -560,7 +587,7 @@ export function buildSystemTimeline(
         organization: system.tenant.name,
         actor,
         source: "Assessment record",
-        relatedObject: `Assessment ${assessment.id.slice(0, 8)}`,
+        relatedObject: "Current assessment",
         reason: `${presentRiskLabel(assessment.riskLevel)} risk assessment is ${deriveReviewStatus(system).toLowerCase()}.`,
         aging: formatOperationalAge(assessment.updatedAt),
         sortAt: new Date(assessment.updatedAt).getTime(),
@@ -584,7 +611,7 @@ export function buildSystemTimeline(
   }
 
   for (const obligation of system.obligations.slice(0, 4)) {
-    const dedupeKey = `OBLIGATION_CREATED-${obligation.id}`;
+    const dedupeKey = getTimelineDedupeKey("OBLIGATION_CREATED", undefined, obligation.id);
     if (!dedupeKeys.has(dedupeKey)) {
       dedupeKeys.add(dedupeKey);
       const state = deriveObligationWorkflowState({

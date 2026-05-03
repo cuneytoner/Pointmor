@@ -15,7 +15,7 @@ import {
   systemScopedWhere,
   type AiActQuestionKey,
 } from "../lib/ai-act-assessment.js";
-import { recordAiOperationalEventBestEffort } from "../lib/ai-operational-events.js";
+import { recordAiOperationalEventBestEffort, recordAiOperationalEvent } from "../lib/ai-operational-events.js";
 
 const createAiSystemBodySchema = z.object({
   name: z.string().trim().min(1, "Sistem adi gerekli."),
@@ -158,6 +158,9 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
       const classification = classifyRisk(normalized.answers);
 
       let result;
+      // Collect post-commit events to execute after transaction
+      const postCommitEvents: Array<() => Promise<void>> = [];
+      
       try {
         result = await prisma.$transaction(async (tx) => {
           const lockKey = `${tenantId}:${system.id}`;
@@ -272,37 +275,42 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
           }
 
           // Record operational events for obligations and tasks if they were created
+          
           if (obligations.length > 0) {
-            await recordAiOperationalEventBestEffort({
-              tenantId,
-              aiSystemId: system.id,
-              assessmentId: assessment.id,
-              actorUserId: s.user.id,
-              eventType: "OBLIGATION_CREATED",
-              severity: "INFO",
-              source: "ai_act_api",
-              message: `${obligations.length} obligations generated from risk assessment`,
-              metadata: { 
-                riskLevel: classification.riskLevel,
-                obligationCount: obligations.length,
-              },
+            postCommitEvents.push(async () => {
+              await recordAiOperationalEvent({
+                tenantId,
+                aiSystemId: system.id,
+                assessmentId: assessment.id,
+                actorUserId: s.user.id,
+                eventType: "OBLIGATION_CREATED",
+                severity: "INFO",
+                source: "ai_act_api",
+                message: `${obligations.length} obligations generated from risk assessment`,
+                metadata: { 
+                  riskLevel: classification.riskLevel,
+                  obligationCount: obligations.length,
+                },
+              });
             });
           }
 
           if (obligations.some(o => o.title)) {
-            await recordAiOperationalEventBestEffort({
-              tenantId,
-              aiSystemId: system.id,
-              assessmentId: assessment.id,
-              actorUserId: s.user.id,
-              eventType: "TASK_CREATED",
-              severity: "INFO",
-              source: "ai_act_api",
-              message: `Compliance tasks generated for obligations`,
-              metadata: { 
-                riskLevel: classification.riskLevel,
-                taskCount: obligations.filter(o => o.title).length,
-              },
+            postCommitEvents.push(async () => {
+              await recordAiOperationalEvent({
+                tenantId,
+                aiSystemId: system.id,
+                assessmentId: assessment.id,
+                actorUserId: s.user.id,
+                eventType: "TASK_CREATED",
+                severity: "INFO",
+                source: "ai_act_api",
+                message: `Compliance tasks generated for obligations`,
+                metadata: { 
+                  riskLevel: classification.riskLevel,
+                  taskCount: obligations.filter(o => o.title).length,
+                },
+              });
             });
           }
 
@@ -341,7 +349,6 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
         tenantId,
         aiSystemId: system.id,
         assessmentId: result.id,
-        actorUserId: s.user.id,
         eventType: "ASSESSMENT_SUBMITTED",
         severity: "INFO",
         source: "ai_act_api",
@@ -352,12 +359,12 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
         },
       });
 
-      return {
-        assessmentId: result.id,
-        riskLevel: result.riskLevel,
-        confidence: result.confidence,
-        suggested: true,
-      };
+      // Execute post-commit events for obligations and tasks
+      for (const eventFn of postCommitEvents) {
+        await eventFn();
+      }
+
+      return { assessmentId: result.id, riskLevel: result.riskLevel, confidence: result.confidence, suggested: true };
     },
   );
 

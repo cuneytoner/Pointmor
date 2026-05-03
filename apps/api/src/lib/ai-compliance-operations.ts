@@ -64,6 +64,11 @@ export type AiComplianceTenantOperations = {
       createdAt: Date;
       actor: { id: string; name: string | null; email: string } | null;
       relatedObjectType?: "assessment" | "obligation" | "task" | "ai_system";
+      // Include concrete IDs for dedupe purposes only
+      assessmentId?: string;
+      obligationId?: string;
+      taskId?: string;
+      aiSystemId?: string;
     }>;
   }>;
 };
@@ -291,7 +296,21 @@ export async function loadAiComplianceOperationsForScope(
           "system": "System generated",
           "migration": "Migration",
         };
-        const sourceLabel = sourceLabels[event.source] || event.source;
+        const sourceLabel = sourceLabels[event.source] || "System generated";
+
+        // Map event types to human-readable labels
+        const eventTypeLabels: Record<string, string> = {
+          "AI_SYSTEM_CREATED": "AI system created",
+          "ASSESSMENT_SUBMITTED": "Assessment submitted",
+          "ASSESSMENT_UPDATED": "Assessment updated",
+          "OBLIGATION_CREATED": "Obligation created",
+          "OBLIGATION_UPDATED": "Obligation updated",
+          "TASK_CREATED": "Task created",
+          "TASK_UPDATED": "Task updated",
+          "ADVISOR_REVIEW_REQUESTED": "Advisor review requested",
+          "EVIDENCE_MISSING_DETECTED": "Evidence missing detected",
+        };
+        const eventLabel = eventTypeLabels[event.eventType] || "Operational event";
         
         // Determine related object type
         let relatedObjectType: "assessment" | "obligation" | "task" | "ai_system" | undefined;
@@ -314,6 +333,12 @@ export async function loadAiComplianceOperationsForScope(
           createdAt: event.createdAt,
           actor: event.actorUser,
           relatedObjectType,
+          // Include concrete IDs for dedupe purposes only
+          assessmentId: event.assessmentId || undefined,
+          obligationId: event.obligationId || undefined,
+          taskId: event.taskId || undefined,
+          aiSystemId: event.aiSystemId || undefined,
+          eventLabel: eventLabel,
         };
       }),
     })),

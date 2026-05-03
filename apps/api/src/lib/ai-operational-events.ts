@@ -1,39 +1,41 @@
 import { prisma } from "./prisma.js";
-import type { 
-  AiOperationalEventType, 
-  AiOperationalEventSeverity 
-} from "../generated/prisma/client.js";
+import type { AiOperationalEvent } from "../generated/prisma/client.js";
 
-export interface RecordAiOperationalEventInput {
+export type RecordAiOperationalEventInput = {
   tenantId: string;
   aiSystemId?: string;
   assessmentId?: string;
   obligationId?: string;
   taskId?: string;
   actorUserId?: string;
-  eventType: AiOperationalEventType;
-  severity: AiOperationalEventSeverity;
+  eventType: string;
+  severity: string;
   source: string;
   message: string;
   metadata?: any;
-}
+};
 
 /**
- * Records an AI Compliance operational event.
+ * Records an AI Compliance operational event with full validation.
  * 
- * This is an append-only operation that creates a durable audit trail
- * for AI Compliance operations. It validates tenant ownership where
- * practical and keeps metadata bounded.
+ * This version throws errors for validation failures, making it
+ * suitable for use in critical paths where event recording
+ * should succeed or fail the main operation.
  * 
  * @param input The event data to record
+ * @param tx Optional transaction client for transaction-aware writes
  * @returns Promise that resolves when the event is recorded
+ * @throws Error if validation fails
  */
 export async function recordAiOperationalEvent(
-  input: RecordAiOperationalEventInput
-): Promise<void> {
+  input: RecordAiOperationalEventInput,
+  tx?: { aiOperationalEvent: any }
+): Promise<AiOperationalEvent> {
+  const prismaClient = tx?.aiOperationalEvent || prisma;
+
   // Validate tenant ownership of related objects where practical
   if (input.aiSystemId) {
-    const aiSystem = await prisma.aiSystem.findFirst({
+    const aiSystem = await prismaClient.aiSystem.findFirst({
       where: {
         id: input.aiSystemId,
         tenantId: input.tenantId,
@@ -48,7 +50,7 @@ export async function recordAiOperationalEvent(
 
   // Validate actor membership if actorUserId is provided
   if (input.actorUserId) {
-    const actorMembership = await prisma.tenantMembership.findFirst({
+    const actorMembership = await prismaClient.tenantMembership.findFirst({
       where: {
         userId: input.actorUserId,
         tenantId: input.tenantId,
@@ -56,7 +58,7 @@ export async function recordAiOperationalEvent(
       select: { id: true },
     });
 
-    const actorUser = await prisma.user.findFirst({
+    const actorUser = await prismaClient.user.findFirst({
       where: { id: input.actorUserId },
       select: { platformAdmin: true },
     });
@@ -68,7 +70,7 @@ export async function recordAiOperationalEvent(
   }
 
   if (input.assessmentId) {
-    const assessment = await prisma.aiAssessment.findFirst({
+    const assessment = await prismaClient.aiAssessment.findFirst({
       where: {
         id: input.assessmentId,
         tenantId: input.tenantId,
@@ -82,7 +84,7 @@ export async function recordAiOperationalEvent(
   }
 
   if (input.obligationId) {
-    const obligation = await prisma.aiObligation.findFirst({
+    const obligation = await prismaClient.aiObligation.findFirst({
       where: {
         id: input.obligationId,
         tenantId: input.tenantId,
@@ -96,7 +98,7 @@ export async function recordAiOperationalEvent(
   }
 
   if (input.taskId) {
-    const task = await prisma.aiTask.findFirst({
+    const task = await prismaClient.aiTask.findFirst({
       where: {
         id: input.taskId,
         tenantId: input.tenantId,
@@ -126,8 +128,8 @@ export async function recordAiOperationalEvent(
     }
   }
 
-  // Record the event
-  await prisma.aiOperationalEvent.create({
+  // Record event
+  const event = await prismaClient.aiOperationalEvent.create({
     data: {
       tenantId: input.tenantId,
       aiSystemId: input.aiSystemId,
@@ -142,6 +144,8 @@ export async function recordAiOperationalEvent(
       metadata: validatedMetadata,
     },
   });
+
+  return event;
 }
 
 /**
