@@ -61,6 +61,7 @@ export type AiComplianceTenantOperations = {
       severity: string;
       sourceLabel: string;
       message: string;
+      eventLabel: string;
       createdAt: Date;
       actor: { id: string; name: string | null; email: string } | null;
       relatedObjectType?: "assessment" | "obligation" | "task" | "ai_system";
@@ -300,7 +301,7 @@ export async function loadAiComplianceOperationsForScope(
 
         // Map event types to human-readable labels
         const eventTypeLabels: Record<string, string> = {
-          "AI_SYSTEM_CREATED": "AI system created",
+          "SYSTEM_CREATED": "AI system created",
           "ASSESSMENT_SUBMITTED": "Assessment submitted",
           "ASSESSMENT_UPDATED": "Assessment updated",
           "OBLIGATION_CREATED": "Obligation created",
@@ -314,12 +315,12 @@ export async function loadAiComplianceOperationsForScope(
         
         // Determine related object type
         let relatedObjectType: "assessment" | "obligation" | "task" | "ai_system" | undefined;
-        if (event.assessmentId) {
-          relatedObjectType = "assessment";
+        if (event.taskId) {
+          relatedObjectType = "task";
         } else if (event.obligationId) {
           relatedObjectType = "obligation";
-        } else if (event.taskId) {
-          relatedObjectType = "task";
+        } else if (event.assessmentId) {
+          relatedObjectType = "assessment";
         } else if (event.aiSystemId) {
           relatedObjectType = "ai_system";
         }

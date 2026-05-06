@@ -13,15 +13,20 @@ describe("AI Operational Events", () => {
   let testSystem: any;
 
   beforeAll(async () => {
-    app = buildApp();
+    app = await buildApp();
     
-    // Generate unique slug to avoid conflicts on repeated runs
-    const uniqueSuffix = Date.now().toString(36);
-    const tenantSlug = `test-ai-events-${uniqueSuffix}`;
+    // Generate unique run ID to avoid conflicts on repeated runs
+    const runId = Date.now().toString(36);
+    const tenantSlug = `test-ai-events-${runId}`;
     
     // Clean up any existing test data with this slug first
     await prisma.tenant.deleteMany({
       where: { slug: { startsWith: "test-ai-events" } }
+    });
+    
+    // Clean up any existing test users with this email pattern
+    await prisma.user.deleteMany({
+      where: { email: { startsWith: "test-ai-events-" } }
     });
     
     // Create test tenant and user
@@ -35,7 +40,7 @@ describe("AI Operational Events", () => {
 
     testUser = await prisma.user.create({
       data: {
-        email: "test-ai-events@example.com",
+        email: `test-ai-events-${runId}@example.com`,
         name: "Test AI Events User",
         passwordHash: "dummy-hash",
         platformAdmin: false,
@@ -293,15 +298,20 @@ describe("AI Operational Events", () => {
     expect(data.aiCompliance.systems).toHaveLength(1);
     
     const system = data.aiCompliance.systems[0];
-    expect(system.operationalEvents).toHaveLength(3);
+    
+    // Filter for events created in this test to avoid dependencies on previous tests
+    const testEvents = system.operationalEvents.filter((e: any) => 
+      ["System created event", "Assessment submitted event", "Obligation created event"].includes(e.message)
+    );
+    expect(testEvents).toHaveLength(3);
     
     // Verify events are sorted by createdAt (newest first)
-    expect(system.operationalEvents[0].eventType).toBe("OBLIGATION_CREATED");
-    expect(system.operationalEvents[1].eventType).toBe("ASSESSMENT_SUBMITTED");
-    expect(system.operationalEvents[2].eventType).toBe("SYSTEM_CREATED");
+    expect(testEvents[0].eventType).toBe("OBLIGATION_CREATED");
+    expect(testEvents[1].eventType).toBe("ASSESSMENT_SUBMITTED");
+    expect(testEvents[2].eventType).toBe("SYSTEM_CREATED");
     
     // Verify event structure
-    const event = system.operationalEvents[0];
+    const event = testEvents[0];
     expect(event).toHaveProperty("id");
     expect(event).toHaveProperty("eventType");
     expect(event).toHaveProperty("severity");
@@ -509,17 +519,28 @@ describe("AI Operational Events", () => {
 
     expect(events).toHaveLength(1);
     expect(events[0].obligationId).toBe(obligation.id);
-    expect(events[0].assessmentId).toBeUndefined();
-    expect(events[0].taskId).toBeUndefined();
+    expect(events[0].assessmentId).toBeNull();
+    expect(events[0].taskId).toBeNull();
   });
 
   it("should persist concrete taskId on task events", async () => {
+    // Create test obligation first for FK constraint
+    const obligation = await prisma.aiObligation.create({
+      data: {
+        tenantId: testTenant.id,
+        aiSystemId: testSystem.id,
+        obligationType: "TEST_OBLIGATION",
+        status: "OPEN",
+        source: "TEST",
+      },
+    });
+
     // Create test task
     const task = await prisma.aiTask.create({
       data: {
         tenantId: testTenant.id,
         aiSystemId: testSystem.id,
-        obligationId: "test-obligation-id",
+        obligationId: obligation.id,
         obligationType: "TEST_OBLIGATION",
         title: "Test Task",
         priority: "HIGH",
@@ -552,8 +573,8 @@ describe("AI Operational Events", () => {
 
     expect(events).toHaveLength(1);
     expect(events[0].taskId).toBe(task.id);
-    expect(events[0].assessmentId).toBeUndefined();
-    expect(events[0].obligationId).toBeUndefined();
+    expect(events[0].assessmentId).toBeNull();
+    expect(events[0].obligationId).toBeNull();
   });
 
   it("should include eventLabel in endpoint DTO response", async () => {
@@ -581,7 +602,7 @@ describe("AI Operational Events", () => {
     const data = response.json();
     
     // Find the operational events in the response
-    const system = data.systems.find((s: any) => s.id === testSystem.id);
+    const system = data.aiCompliance.systems.find((s: any) => s.id === testSystem.id);
     expect(system).toBeDefined();
     expect(system.operationalEvents).toBeDefined();
     
@@ -591,5 +612,143 @@ describe("AI Operational Events", () => {
     expect(testEvent).toBeDefined();
     expect(testEvent.eventLabel).toBe("AI system created"); // Should have human-readable label
     expect(testEvent.sourceLabel).toBeDefined(); // Should have sanitized source label
+  });
+
+  it("should prove ASSESSMENT_UPDATED carries concrete assessmentId", async () => {
+    // Create assessment
+    const assessment = await prisma.aiAssessment.create({
+      data: {
+        tenantId: testTenant.id,
+        aiSystemId: testSystem.id,
+        version: 1,
+        status: "DRAFT",
+        riskLevel: "LOW",
+        createdByUserId: testUser.id,
+        isCurrent: true,
+      },
+    });
+
+    // Record ASSESSMENT_UPDATED event with concrete assessmentId
+    await recordAiOperationalEvent({
+      tenantId: testTenant.id,
+      aiSystemId: testSystem.id,
+      assessmentId: assessment.id,
+      actorUserId: testUser.id,
+      eventType: "ASSESSMENT_UPDATED",
+      severity: "INFO",
+      source: "test",
+      message: "Assessment updated with concrete ID",
+    });
+
+    // Verify event was recorded with concrete assessmentId
+    const events = await prisma.aiOperationalEvent.findMany({
+      where: { 
+        tenantId: testTenant.id,
+        eventType: "ASSESSMENT_UPDATED",
+        message: "Assessment updated with concrete ID",
+      },
+      orderBy: { createdAt: "desc" },
+      take: 1,
+    });
+
+    expect(events).toHaveLength(1);
+    expect(events[0].assessmentId).toBe(assessment.id);
+    expect(events[0].obligationId).toBeNull();
+    expect(events[0].taskId).toBeNull();
+  });
+
+  it("should prove OBLIGATION_UPDATED carries concrete obligationId", async () => {
+    // Create obligation
+    const obligation = await prisma.aiObligation.create({
+      data: {
+        tenantId: testTenant.id,
+        aiSystemId: testSystem.id,
+        obligationType: "TEST_OBLIGATION",
+        status: "OPEN",
+        source: "TEST",
+      },
+    });
+
+    // Record OBLIGATION_UPDATED event with concrete obligationId
+    await recordAiOperationalEvent({
+      tenantId: testTenant.id,
+      aiSystemId: testSystem.id,
+      obligationId: obligation.id,
+      actorUserId: testUser.id,
+      eventType: "OBLIGATION_UPDATED",
+      severity: "INFO",
+      source: "test",
+      message: "Obligation updated with concrete ID",
+    });
+
+    // Verify event was recorded with concrete obligationId
+    const events = await prisma.aiOperationalEvent.findMany({
+      where: { 
+        tenantId: testTenant.id,
+        eventType: "OBLIGATION_UPDATED",
+        message: "Obligation updated with concrete ID",
+      },
+      orderBy: { createdAt: "desc" },
+      take: 1,
+    });
+
+    expect(events).toHaveLength(1);
+    expect(events[0].obligationId).toBe(obligation.id);
+    expect(events[0].assessmentId).toBeNull();
+    expect(events[0].taskId).toBeNull();
+  });
+
+  it("should prove TASK_UPDATED carries concrete taskId", async () => {
+    // Create obligation first for FK constraint
+    const obligation = await prisma.aiObligation.create({
+      data: {
+        tenantId: testTenant.id,
+        aiSystemId: testSystem.id,
+        obligationType: "TEST_OBLIGATION",
+        status: "OPEN",
+        source: "TEST",
+      },
+    });
+
+    // Create task
+    const task = await prisma.aiTask.create({
+      data: {
+        tenantId: testTenant.id,
+        aiSystemId: testSystem.id,
+        obligationId: obligation.id,
+        obligationType: "TEST_OBLIGATION",
+        title: "Test Task",
+        priority: "HIGH",
+        status: "OPEN",
+      },
+    });
+
+    // Record TASK_UPDATED event with concrete taskId
+    await recordAiOperationalEvent({
+      tenantId: testTenant.id,
+      aiSystemId: testSystem.id,
+      taskId: task.id,
+      actorUserId: testUser.id,
+      eventType: "TASK_UPDATED",
+      severity: "INFO",
+      source: "test",
+      message: "Task updated with concrete ID",
+    });
+
+    // Verify event was recorded with concrete taskId
+    const events = await prisma.aiOperationalEvent.findMany({
+      where: { 
+        tenantId: testTenant.id,
+        eventType: "TASK_UPDATED",
+        message: "Task updated with concrete ID",
+      },
+      orderBy: { createdAt: "desc" },
+      take: 1,
+    });
+
+    expect(events).toHaveLength(1);
+    expect(events[0].taskId).toBe(task.id);
+    expect(events[0].assessmentId).toBeNull();
+    expect(events[0].obligationId).toBeNull();
   });
 });

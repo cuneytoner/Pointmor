@@ -283,45 +283,43 @@ export async function registerAiActRoutes(app: FastifyInstance): Promise<void> {
             }
           }
 
-          // Record operational events for obligations and tasks if they were created
+          // Record operational events for obligations and tasks - one event per record
           
-          if (createdObligationIds.length > 0) {
+          for (const obligationId of createdObligationIds) {
             postCommitEvents.push(async () => {
               await recordAiOperationalEvent({
                 tenantId,
                 aiSystemId: system.id,
                 assessmentId: assessment.id,
-                obligationId: createdObligationIds[0], // Use first concrete obligation ID
+                obligationId: obligationId, // Use concrete obligation ID
                 actorUserId: s.user.id,
                 eventType: "OBLIGATION_CREATED",
                 severity: "INFO",
                 source: "ai_act_api",
-                message: `${createdObligationIds.length} obligations generated from risk assessment`,
+                message: `Obligation generated from risk assessment`,
                 metadata: { 
                   riskLevel: classification.riskLevel,
-                  obligationCount: createdObligationIds.length,
-                  obligationIds: createdObligationIds,
+                  totalObligations: createdObligationIds.length,
                 },
               });
             });
           }
 
-          if (createdTaskIds.length > 0) {
+          for (const taskId of createdTaskIds) {
             postCommitEvents.push(async () => {
               await recordAiOperationalEvent({
                 tenantId,
                 aiSystemId: system.id,
                 assessmentId: assessment.id,
-                taskId: createdTaskIds[0], // Use first concrete task ID
+                taskId: taskId, // Use concrete task ID
                 actorUserId: s.user.id,
                 eventType: "TASK_CREATED",
                 severity: "INFO",
                 source: "ai_act_api",
-                message: `Compliance tasks generated for obligations`,
+                message: `Compliance task generated for obligation`,
                 metadata: { 
                   riskLevel: classification.riskLevel,
-                  taskCount: createdTaskIds.length,
-                  taskIds: createdTaskIds,
+                  totalTasks: createdTaskIds.length,
                 },
               });
             });
