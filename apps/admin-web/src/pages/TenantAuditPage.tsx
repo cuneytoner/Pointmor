@@ -16,6 +16,8 @@ import {
 export function TenantAuditPage() {
   const { t, locale } = useTranslation();
   const { token } = useAuth();
+  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
+  const tokenValue = token?.trim() ?? "";
   const { hasPermission } = usePermissions();
   const { bootstrap } = useAdminDataContext();
   const ent = bootstrap?.entitlements;
@@ -27,7 +29,8 @@ export function TenantAuditPage() {
   const fullPack = complianceLevel === "full";
 
   useEffect(() => {
-    if (!token?.trim() || !featureOk) return;
+    if (!cookiesOnly && !tokenValue) return;
+    if (!featureOk) return;
     let c = false;
     setError(null);
     fetchManagerAuditEvents(token, { limit: 50 })

@@ -6,7 +6,7 @@ import { PageShell } from "../components/PageShell";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
-import { getApiBaseUrl } from "../lib/api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "../lib/api-base";
 import { downloadComplianceExport } from "../lib/compliance-api";
 import { formatCurrencyValue, formatDateTimeLabel, formatPoints } from "../lib/formatters";
 import { getCustomerDetail, type CustomerDetail } from "../lib/tenant-loyalty-api";
@@ -15,6 +15,8 @@ export function TenantCustomerDetailPage() {
   const { customerId } = useParams<{ customerId: string }>();
   const { t, locale } = useTranslation();
   const { token } = useAuth();
+  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
+  const tokenValue = token?.trim() ?? "";
   const { bootstrap } = useAdminDataContext();
   const { hasPermission } = usePermissions();
   const complianceFull = bootstrap?.entitlements?.compliance?.level === "full";
@@ -24,7 +26,8 @@ export function TenantCustomerDetailPage() {
   const [complianceBusy, setComplianceBusy] = useState(false);
 
   useEffect(() => {
-    if (!token?.trim() || !customerId) return;
+    if (!cookiesOnly && !tokenValue) return;
+    if (!customerId) return;
     let c = false;
     setError(false);
     getCustomerDetail(token, customerId)
@@ -192,7 +195,7 @@ export function TenantCustomerDetailPage() {
                       setComplianceBusy(true);
                       setComplianceMsg(null);
                       downloadComplianceExport(
-                        token,
+                        tokenValue,
                         `/tenant/customers/${customerId}/gdpr-export`,
                         `customer-${customerId}-export.json`,
                         locale,
@@ -219,12 +222,12 @@ export function TenantCustomerDetailPage() {
                         const base = getApiBaseUrl().replace(/\/$/, "");
                         const res = await fetch(`${base}/tenant/customers/${customerId}/anonymize`, {
                           method: "POST",
-                          headers: { Authorization: `Bearer ${token}` },
+                          headers: { ...(buildAuthHeaders(tokenValue) ?? {}) },
                           credentials: "include",
                         });
                         if (!res.ok) throw new Error("fail");
                         setComplianceMsg(t("compliance.anonymizeDone"));
-                        const refreshed = await getCustomerDetail(token, customerId);
+                        const refreshed = await getCustomerDetail(tokenValue, customerId);
                         setData(refreshed);
                       } catch {
                         setComplianceMsg(t("compliance.exportFailed"));

@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
 
 export type HqAiInsightRow = {
   id: string;
@@ -21,7 +21,7 @@ async function hqInsightsFetch<T>(
   const res = await fetch(`${base}${path}`, {
     ...init,
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(buildAuthHeaders(token) ?? {}),
       ...(init?.headers ?? {}),
     },
     credentials: "include",

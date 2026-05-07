@@ -17,6 +17,8 @@ import {
 export function AiActSystemResultPage() {
   const { t, locale } = useTranslation();
   const { token } = useAuth();
+  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
+  const tokenValue = token?.trim() ?? "";
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const [system, setSystem] = useState<AiSystem | null>(null);
@@ -28,17 +30,18 @@ export function AiActSystemResultPage() {
   const errorLabel = errorKey ? t(`aiAct.errors.${errorKey}`) : null;
 
   useEffect(() => {
-    if (!token?.trim() || !id) return;
+    if (!cookiesOnly && !tokenValue) return;
+    if (!id) return;
     let cancelled = false;
     setLoading(true);
     setErrorKey(null);
     (async () => {
       try {
-        const systemRow = await getAiSystem(token, id);
-        const assessmentRow = await getAiAssessment(token, id);
+        const systemRow = await getAiSystem(tokenValue, id);
+        const assessmentRow = await getAiAssessment(tokenValue, id);
         const [obligationsRow, tasksRow] = await Promise.all([
-          getAiObligations(token, id),
-          getAiTasks(token, id),
+          getAiObligations(tokenValue, id),
+          getAiTasks(tokenValue, id),
         ]);
         if (cancelled) return;
         setSystem(systemRow);

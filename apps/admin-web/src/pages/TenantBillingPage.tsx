@@ -98,6 +98,7 @@ export function TenantBillingPage({ embedded }: TenantBillingPageProps = {}) {
   const locale = useLocale();
   const { auth, bootstrap } = useAdminDataContext();
   const { token, bumpRefresh } = useAuth();
+  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
   const { hasPermission } = usePermissions();
   const canManageBilling = hasPermission("billing.manage");
   const tenantId = auth?.tenant?.id ?? null;
@@ -131,7 +132,7 @@ export function TenantBillingPage({ embedded }: TenantBillingPageProps = {}) {
 
   const runDemoUpgrade = async () => {
     const slug = pickSlug.trim();
-    if (!token?.trim() || !slug || !canManageBilling) return;
+    if ((!cookiesOnly && !token?.trim()) || !slug || !canManageBilling) return;
     setBusy(true);
     setErr(null);
     setMsg(null);

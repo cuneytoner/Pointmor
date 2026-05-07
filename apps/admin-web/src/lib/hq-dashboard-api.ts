@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
 
 export type HqDashboardTier = "basic" | "full";
 
@@ -75,7 +75,7 @@ export type HqLocationDetailPayload = {
 async function hqFetch<T>(token: string, path: string): Promise<T> {
   const base = getApiBaseUrl();
   const res = await fetch(`${base}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { ...(buildAuthHeaders(token) ?? {}) },
     credentials: "include",
   });
   if (res.status === 401 || res.status === 403) {

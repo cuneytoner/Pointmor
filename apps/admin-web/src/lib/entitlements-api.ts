@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
 
 export type CompliancePackLevel = "none" | "limited" | "full";
 
@@ -50,7 +50,7 @@ export type EntitlementsPayload = {
 export async function fetchEntitlements(token: string): Promise<EntitlementsPayload> {
   const base = getApiBaseUrl();
   const res = await fetch(`${base}/tenant/entitlements`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { ...(buildAuthHeaders(token) ?? {}) },
     credentials: "include",
   });
   if (!res.ok) {
@@ -69,7 +69,7 @@ export async function postDemoPlanSwitch(
   const res = await fetch(`${base}/tenant/billing/demo-plan-switch`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(buildAuthHeaders(token) ?? {}),
       "Content-Type": "application/json",
     },
     credentials: "include",

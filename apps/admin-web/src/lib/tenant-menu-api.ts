@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
 
 export type MenuCategoryDto = {
   id: string;

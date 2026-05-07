@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
 
 export type ManagerAuditEventItem = {
   id: string;
@@ -30,7 +30,7 @@ export async function fetchManagerAuditEvents(
   const qs = q.toString();
   const url = `${base}/manager/audit-events${qs ? `?${qs}` : ""}`;
   const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { ...(buildAuthHeaders(token) ?? {}) },
     credentials: "include",
   });
   if (res.status === 403) {

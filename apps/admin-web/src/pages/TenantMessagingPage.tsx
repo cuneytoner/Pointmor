@@ -28,6 +28,7 @@ export type TenantMessagingPageProps = {
 export function TenantMessagingPage({ embedded }: TenantMessagingPageProps = {}) {
   const { t } = useTranslation();
   const { token } = useAuth();
+  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
   const { hasPermission } = usePermissions();
   const canEditMessaging = hasPermission("messaging.manage");
   const dlg = useRef<HTMLDialogElement>(null);
@@ -40,7 +41,7 @@ export function TenantMessagingPage({ embedded }: TenantMessagingPageProps = {})
   const [editEnabled, setEditEnabled] = useState(true);
 
   const load = useCallback(() => {
-    if (!token) return;
+    if (!cookiesOnly && !token) return;
     setError(false);
     Promise.all([getMessagingSettings(token), getMessageTemplates(token)])
       .then(([s, tpl]) => {
@@ -56,7 +57,7 @@ export function TenantMessagingPage({ embedded }: TenantMessagingPageProps = {})
 
   const onSaveSettings = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token || !settings || !canEditMessaging) return;
+    if ((!cookiesOnly && !token) || !settings || !canEditMessaging) return;
     setSaving(true);
     try {
       const next = await putMessagingSettings(token, {
@@ -87,7 +88,7 @@ export function TenantMessagingPage({ embedded }: TenantMessagingPageProps = {})
 
   const saveOverride = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token || !editing || !canEditMessaging) return;
+    if ((!cookiesOnly && !token) || !editing || !canEditMessaging) return;
     const c = editContent.trim();
     if (!c) return;
     setSaving(true);

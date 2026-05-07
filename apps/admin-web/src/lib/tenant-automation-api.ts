@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
 
 export type TenantAutomationSettingsDto = {
   id: string;
@@ -35,7 +35,7 @@ async function autFetch<T>(token: string, path: string, init?: RequestInit): Pro
   const res = await fetch(`${base}${path}`, {
     ...init,
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(buildAuthHeaders(token) ?? {}),
       ...(init?.headers ?? {}),
     },
     credentials: "include",

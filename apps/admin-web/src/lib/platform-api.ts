@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
 import type { SubscriptionDto } from "../hooks/useAdminData";
 
 export async function patchSubscription(
@@ -10,7 +10,7 @@ export async function patchSubscription(
   const res = await fetch(`${base}/subscriptions/${encodeURIComponent(subscriptionId)}`, {
     method: "PATCH",
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(buildAuthHeaders(token) ?? {}),
       "Content-Type": "application/json",
     },
     credentials: "include",

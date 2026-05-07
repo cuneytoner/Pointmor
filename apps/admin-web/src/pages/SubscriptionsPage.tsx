@@ -12,6 +12,8 @@ import { presentSubscriptionHealth } from "../lib/platformPresentation";
 export function SubscriptionsPage() {
   const { t, locale } = useTranslation();
   const { token, bumpRefresh } = useAuth();
+  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
+  const tokenValue = token?.trim() ?? "";
   const { bootstrap } = useAdminDataContext();
   const rows = bootstrap?.subscriptions ?? [];
   const plans = bootstrap?.plans ?? [];

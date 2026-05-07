@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
 import type { LocaleCode } from "../i18n/locale";
 
 export async function downloadComplianceExport(
@@ -12,7 +12,7 @@ export async function downloadComplianceExport(
   const requestUrl = new URL(`${base}${path}`);
   if (locale) requestUrl.searchParams.set("lang", locale);
   const res = await fetch(requestUrl.toString(), {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { ...(buildAuthHeaders(token) ?? {}) },
     credentials: "include",
   });
   if (!res.ok) throw new Error("export_failed");

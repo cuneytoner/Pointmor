@@ -143,6 +143,8 @@ export function TenantCampaignsPage() {
   const { t } = useTranslation();
   const locale = useLocale();
   const { token } = useAuth();
+  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
+  const tokenValue = token?.trim() ?? "";
   const { bootstrap } = useAdminDataContext();
   const { hasPermission } = usePermissions();
   const canManageCampaigns = hasPermission("campaigns.manage");
@@ -169,9 +171,9 @@ export function TenantCampaignsPage() {
   const fieldBag = { pointsBonus, thresholdMinor, thresholdBonusPts, firstVisitBonus };
 
   const load = useCallback(() => {
-    if (!token) return;
+    if (!cookiesOnly && !tokenValue) return;
     setError(false);
-    getCampaigns(token)
+    getCampaigns(tokenValue)
       .then(setRows)
       .catch(() => setError(true));
   }, [token]);
@@ -224,7 +226,8 @@ export function TenantCampaignsPage() {
 
   const onSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token || !name.trim()) return;
+    if (!cookiesOnly && !tokenValue) return;
+    if (!name.trim()) return;
     const config = buildConfig(type, fieldBag);
     if (!config) return;
     const body: Record<string, unknown> = {
@@ -240,9 +243,9 @@ export function TenantCampaignsPage() {
     setSaving(true);
     try {
       if (editing) {
-        await patchCampaign(token, editing.id, body);
+        await patchCampaign(tokenValue, editing.id, body);
       } else {
-        await postCampaign(token, body);
+        await postCampaign(tokenValue, body);
       }
       close();
       load();

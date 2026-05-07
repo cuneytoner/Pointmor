@@ -27,6 +27,7 @@ function addressToText(a: unknown): string {
 export function TenantLocationsPage() {
   const { t, locale } = useTranslation();
   const { token } = useAuth();
+  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
   const { auth, bootstrap } = useAdminDataContext();
   const { hasPermission } = usePermissions();
   const canManage = hasPermission("settings.manage");
@@ -46,7 +47,7 @@ export function TenantLocationsPage() {
   const [editAddress, setEditAddress] = useState("");
 
   const refresh = useCallback(async () => {
-    if (!token?.trim() || !loyaltyActive) return;
+    if ((!cookiesOnly && !token?.trim()) || !loyaltyActive) return;
     setLoading(true);
     setLoadError(false);
     try {
@@ -69,7 +70,7 @@ export function TenantLocationsPage() {
   }, [refresh]);
 
   const onCreate = async () => {
-    if (!token?.trim() || !canManage) return;
+    if ((!cookiesOnly && !token?.trim()) || !canManage) return;
     const name = newName.trim();
     if (!name) return;
     setSaving(true);
@@ -94,7 +95,7 @@ export function TenantLocationsPage() {
   };
 
   const saveEdit = async (b: TenantBranchDto) => {
-    if (!token?.trim() || !canManage) return;
+    if ((!cookiesOnly && !token?.trim()) || !canManage) return;
     let addr: unknown = null;
     const raw = editAddress.trim();
     if (raw) {
@@ -117,7 +118,7 @@ export function TenantLocationsPage() {
   };
 
   const toggleActive = async (b: TenantBranchDto) => {
-    if (!token?.trim() || !canManage) return;
+    if ((!cookiesOnly && !token?.trim()) || !canManage) return;
     setSaving(true);
     try {
       await patchTenantBranch(token, b.id, { isActive: !b.isActive });
