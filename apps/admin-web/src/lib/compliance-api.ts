@@ -1,8 +1,8 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 import type { LocaleCode } from "../i18n/locale";
 
 export async function downloadComplianceExport(
-  token: string,
+  token: ApiAuthToken,
   pathWithQuery: string,
   filename: string,
   locale?: LocaleCode,

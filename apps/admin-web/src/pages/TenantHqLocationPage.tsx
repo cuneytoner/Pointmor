@@ -17,7 +17,7 @@ export function TenantHqLocationPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (!token?.trim() || !branchId) return;
+    if (!branchId) return;
     let c = false;
     setError(false);
     fetchHqLocationDetail(token, branchId, 28)

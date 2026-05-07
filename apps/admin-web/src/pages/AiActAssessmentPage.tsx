@@ -17,8 +17,6 @@ type FormState = Partial<Record<AiActQuestionKey, boolean | AiActPurposeValue>>;
 export function AiActAssessmentPage() {
   const { t } = useTranslation();
   const { token } = useAuth();
-  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
-  const tokenValue = token?.trim() ?? "";
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const [systemName, setSystemName] = useState("");
@@ -29,7 +27,6 @@ export function AiActAssessmentPage() {
   const errorLabel = errorKey ? t(`aiAct.errors.${errorKey}`) : null;
 
   useEffect(() => {
-    if (!cookiesOnly && !tokenValue) return;
     if (!id) return;
     let cancelled = false;
     setLoading(true);
@@ -64,7 +61,7 @@ export function AiActAssessmentPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token?.trim() || !id || submitting) return;
+    if (!id || submitting) return;
     if (!allAnswered) {
       setErrorKey("missing_answers");
       return;
@@ -72,7 +69,7 @@ export function AiActAssessmentPage() {
     setSubmitting(true);
     setErrorKey(null);
     try {
-      await submitAiAssessment(tokenValue, id, formState as Record<string, boolean | AiActPurposeValue>);
+      await submitAiAssessment(token, id, formState as Record<string, boolean | AiActPurposeValue>);
       navigate(`/app/ai-act/${id}`, { replace: true });
     } catch (err) {
       setErrorKey((err as { code?: string })?.code ?? "unknown");

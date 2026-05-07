@@ -1,4 +1,4 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 
 export type HqAiInsightRow = {
   id: string;
@@ -13,7 +13,7 @@ export type HqAiInsightRow = {
 };
 
 async function hqInsightsFetch<T>(
-  token: string,
+  token: ApiAuthToken,
   path: string,
   init?: RequestInit,
 ): Promise<T> {
@@ -41,11 +41,11 @@ async function hqInsightsFetch<T>(
   return res.json() as Promise<T>;
 }
 
-export function fetchHqAiInsights(token: string) {
+export function fetchHqAiInsights(token: ApiAuthToken) {
   return hqInsightsFetch<HqAiInsightRow[]>(token, "/tenant/hq-insights");
 }
 
-export function dismissHqAiInsight(token: string, id: string) {
+export function dismissHqAiInsight(token: ApiAuthToken, id: string) {
   return hqInsightsFetch<{ ok: true }>(token, `/tenant/hq-insights/${encodeURIComponent(id)}/dismiss`, {
     method: "POST",
   });
@@ -55,7 +55,7 @@ export type HqInsightExecuteResult =
   | { result: "campaign_created"; campaignId: string }
   | { result: "navigate"; path: string };
 
-export function executeHqAiInsight(token: string, id: string) {
+export function executeHqAiInsight(token: ApiAuthToken, id: string) {
   return hqInsightsFetch<HqInsightExecuteResult>(
     token,
     `/tenant/hq-insights/${encodeURIComponent(id)}/execute`,

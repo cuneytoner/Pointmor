@@ -1,4 +1,4 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 
 export type MenuCategoryDto = {
   id: string;
@@ -27,7 +27,7 @@ export type MenuItemDto = {
 };
 
 async function tenantApiFetch<T>(
-  token: string,
+  token: ApiAuthToken,
   path: string,
   init?: RequestInit,
 ): Promise<T> {
@@ -35,7 +35,7 @@ async function tenantApiFetch<T>(
   const res = await fetch(`${base}${path}`, {
     ...init,
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(buildAuthHeaders(token) ?? {}),
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
       ...init?.headers,
     },
@@ -57,12 +57,12 @@ async function tenantApiFetch<T>(
   return res.json() as Promise<T>;
 }
 
-export function getMenuCategories(token: string) {
+export function getMenuCategories(token: ApiAuthToken) {
   return tenantApiFetch<MenuCategoryDto[]>(token, "/tenant/menu/categories");
 }
 
 export function postMenuCategory(
-  token: string,
+  token: ApiAuthToken,
   body: {
     name: string;
     description?: string | null;
@@ -77,7 +77,7 @@ export function postMenuCategory(
 }
 
 export function putMenuCategory(
-  token: string,
+  token: ApiAuthToken,
   categoryId: string,
   body: Record<string, unknown>,
 ) {
@@ -88,7 +88,7 @@ export function putMenuCategory(
   );
 }
 
-export function deleteMenuCategory(token: string, categoryId: string) {
+export function deleteMenuCategory(token: ApiAuthToken, categoryId: string) {
   return tenantApiFetch<void>(
     token,
     `/tenant/menu/categories/${encodeURIComponent(categoryId)}`,
@@ -96,7 +96,7 @@ export function deleteMenuCategory(token: string, categoryId: string) {
   );
 }
 
-export function getMenuItems(token: string, categoryId?: string) {
+export function getMenuItems(token: ApiAuthToken, categoryId?: string) {
   const q = categoryId
     ? `?categoryId=${encodeURIComponent(categoryId)}`
     : "";
@@ -104,7 +104,7 @@ export function getMenuItems(token: string, categoryId?: string) {
 }
 
 export function postMenuItem(
-  token: string,
+  token: ApiAuthToken,
   body: {
     categoryId: string;
     name: string;
@@ -122,7 +122,7 @@ export function postMenuItem(
   });
 }
 
-export function putMenuItem(token: string, itemId: string, body: Record<string, unknown>) {
+export function putMenuItem(token: ApiAuthToken, itemId: string, body: Record<string, unknown>) {
   return tenantApiFetch<MenuItemDto>(
     token,
     `/tenant/menu/items/${encodeURIComponent(itemId)}`,
@@ -130,7 +130,7 @@ export function putMenuItem(token: string, itemId: string, body: Record<string, 
   );
 }
 
-export function deleteMenuItem(token: string, itemId: string) {
+export function deleteMenuItem(token: ApiAuthToken, itemId: string) {
   return tenantApiFetch<void>(
     token,
     `/tenant/menu/items/${encodeURIComponent(itemId)}`,

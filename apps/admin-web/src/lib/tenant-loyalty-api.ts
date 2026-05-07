@@ -1,4 +1,4 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 
 export type LoyaltySummary = {
   totalCustomers: number;
@@ -142,7 +142,7 @@ function cashierHeaders(
 }
 
 async function loyaltyFetch<T>(
-  token: string,
+  token: ApiAuthToken,
   path: string,
   init?: RequestInit,
 ): Promise<T> {
@@ -175,48 +175,48 @@ async function loyaltyFetch<T>(
   return res.json() as Promise<T>;
 }
 
-export function getLoyaltySummary(token: string) {
+export function getLoyaltySummary(token: ApiAuthToken) {
   return loyaltyFetch<LoyaltySummary>(token, "/summary");
 }
 
-export function getCustomers(token: string) {
+export function getCustomers(token: ApiAuthToken) {
   return loyaltyFetch<CustomerWithBalance[]>(token, "/customers");
 }
 
-export function getCustomerDetail(token: string, customerId: string) {
+export function getCustomerDetail(token: ApiAuthToken, customerId: string) {
   return loyaltyFetch<CustomerDetail>(
     token,
     `/customers/${encodeURIComponent(customerId)}/detail`,
   );
 }
 
-export function getPendingClaims(token: string, customerId: string) {
+export function getPendingClaims(token: ApiAuthToken, customerId: string) {
   return loyaltyFetch<PendingClaimRow[]>(
     token,
     `/customers/${encodeURIComponent(customerId)}/pending-claims`,
   );
 }
 
-export function getVisits(token: string, limit = 100) {
+export function getVisits(token: ApiAuthToken, limit = 100) {
   return loyaltyFetch<VisitRow[]>(token, `/visits?limit=${limit}`);
 }
 
-export function getRedemptions(token: string, limit = 100) {
+export function getRedemptions(token: ApiAuthToken, limit = 100) {
   return loyaltyFetch<RedemptionRow[]>(token, `/redemptions?limit=${limit}`);
 }
 
 /** Varsayılan API: yalnız aktif ödüller; tümü için `activeOnly: false`. */
-export function getRewards(token: string, activeOnly = true) {
+export function getRewards(token: ApiAuthToken, activeOnly = true) {
   const q = activeOnly ? "" : "?active=false";
   return loyaltyFetch<RewardDto[]>(token, `/rewards${q}`);
 }
 
-export function getCampaigns(token: string) {
+export function getCampaigns(token: ApiAuthToken) {
   return loyaltyFetch<CampaignDto[]>(token, "/campaigns");
 }
 
 export function postVisit(
-  token: string,
+  token: ApiAuthToken,
   body: { customerId: string; amount: number },
   cashierCtx?: CashierOperationIds | null,
 ) {
@@ -230,7 +230,7 @@ export function postVisit(
 const ACTIVE_BRANCH_STORAGE = "pointmor.activeBranchId";
 
 export function postVisitPreview(
-  token: string,
+  token: ApiAuthToken,
   body: { customerId: string; amount: number },
   cashierCtx?: CashierOperationIds | null,
 ) {
@@ -257,7 +257,7 @@ export function postVisitPreview(
 }
 
 export function postCustomer(
-  token: string,
+  token: ApiAuthToken,
   body: { name: string; phone: string; email?: string | null },
 ) {
   return loyaltyFetch<{ id: string; name: string; phone: string }>(token, "/customers", {
@@ -267,7 +267,7 @@ export function postCustomer(
 }
 
 export function postReward(
-  token: string,
+  token: ApiAuthToken,
   body: Record<string, unknown>,
 ) {
   return loyaltyFetch<RewardDto>(token, "/rewards", {
@@ -276,7 +276,7 @@ export function postReward(
   });
 }
 
-export function patchReward(token: string, rewardId: string, body: Record<string, unknown>) {
+export function patchReward(token: ApiAuthToken, rewardId: string, body: Record<string, unknown>) {
   return loyaltyFetch<RewardDto>(
     token,
     `/rewards/${encodeURIComponent(rewardId)}`,
@@ -287,7 +287,7 @@ export function patchReward(token: string, rewardId: string, body: Record<string
   );
 }
 
-export function postCampaign(token: string, body: Record<string, unknown>) {
+export function postCampaign(token: ApiAuthToken, body: Record<string, unknown>) {
   return loyaltyFetch<CampaignDto>(token, "/campaigns", {
     method: "POST",
     body: JSON.stringify(body),
@@ -295,7 +295,7 @@ export function postCampaign(token: string, body: Record<string, unknown>) {
 }
 
 export function patchCampaign(
-  token: string,
+  token: ApiAuthToken,
   campaignId: string,
   body: Record<string, unknown>,
 ) {
@@ -310,7 +310,7 @@ export function patchCampaign(
 }
 
 export function postRedemption(
-  token: string,
+  token: ApiAuthToken,
   body: { customerId: string; rewardId: string },
   cashierCtx?: CashierOperationIds | null,
 ) {
@@ -322,7 +322,7 @@ export function postRedemption(
 }
 
 export function postRedemptionApprove(
-  token: string,
+  token: ApiAuthToken,
   redemptionId: string,
   cashierCtx?: CashierOperationIds | null,
 ) {
@@ -350,12 +350,12 @@ export type CashierBootstrap = {
   };
 };
 
-export function getCashierBootstrap(token: string) {
+export function getCashierBootstrap(token: ApiAuthToken) {
   return loyaltyFetch<CashierBootstrap>(token, "/cashier/bootstrap");
 }
 
 export function postCashierDeviceSession(
-  token: string,
+  token: ApiAuthToken,
   body: { deviceLabel: string; branchId?: string | null },
 ) {
   return loyaltyFetch<{
@@ -370,7 +370,7 @@ export function postCashierDeviceSession(
   });
 }
 
-export function postCashierDeviceSessionClose(token: string, deviceSessionId: string) {
+export function postCashierDeviceSessionClose(token: ApiAuthToken, deviceSessionId: string) {
   return loyaltyFetch<{ ok: boolean; closedShifts: number }>(
     token,
     `/cashier/device-sessions/${encodeURIComponent(deviceSessionId)}/close`,
@@ -379,7 +379,7 @@ export function postCashierDeviceSessionClose(token: string, deviceSessionId: st
 }
 
 export function postCashierShiftStart(
-  token: string,
+  token: ApiAuthToken,
   body: { deviceSessionId: string },
 ) {
   return loyaltyFetch<unknown>(token, "/cashier/shifts", {
@@ -388,7 +388,7 @@ export function postCashierShiftStart(
   });
 }
 
-export function postCashierShiftClose(token: string, shiftId: string) {
+export function postCashierShiftClose(token: ApiAuthToken, shiftId: string) {
   return loyaltyFetch<unknown>(
     token,
     `/cashier/shifts/${encodeURIComponent(shiftId)}/close`,
@@ -415,14 +415,14 @@ export type CashierShiftSummary = {
   totalPointsRedeemed: number;
 };
 
-export function getCashierShiftSummary(token: string, shiftId: string) {
+export function getCashierShiftSummary(token: ApiAuthToken, shiftId: string) {
   return loyaltyFetch<CashierShiftSummary>(
     token,
     `/cashier/shifts/${encodeURIComponent(shiftId)}/summary`,
   );
 }
 
-export function postRedemptionReject(token: string, redemptionId: string) {
+export function postRedemptionReject(token: ApiAuthToken, redemptionId: string) {
   return loyaltyFetch<RedemptionRow>(
     token,
     `/redemptions/${encodeURIComponent(redemptionId)}/reject`,

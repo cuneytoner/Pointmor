@@ -1,8 +1,8 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 import type { SubscriptionDto } from "../hooks/useAdminData";
 
 export async function patchSubscription(
-  token: string,
+  token: ApiAuthToken,
   subscriptionId: string,
   body: { planId?: string; status?: string; renewsAt?: string | null },
 ): Promise<SubscriptionDto> {

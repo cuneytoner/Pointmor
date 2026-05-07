@@ -23,7 +23,6 @@ export function TenantGrowthPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (!token?.trim()) return;
     if (
       bootstrap?.entitlements &&
       !bootstrap.entitlements.features.includes("product_analytics")
@@ -97,7 +96,7 @@ export function TenantGrowthPage() {
         <p className="admin-app__card-text">{t("tenantLoyalty.growth.loadError")}</p>
       ) : (
         <>
-          {token?.trim() && hasPermission("summary.export") ? (
+          {hasPermission("summary.export") ? (
             <div className="admin-app__card admin-app__card--wide" style={{ marginBottom: "1rem" }}>
               <p className="admin-app__card-title">{t("compliance.growthSummaryPdfTitle")}</p>
               <p className="admin-app__card-text data-table__muted" style={{ marginBottom: "0.75rem" }}>
@@ -108,7 +107,6 @@ export function TenantGrowthPage() {
                   type="button"
                   className="admin-secondary-btn"
                   onClick={() => {
-                    if (!token?.trim()) return;
                     if (!window.confirm(t("compliance.exportConfirmSummaryPdf"))) return;
                     downloadComplianceExport(
                       token,
@@ -124,7 +122,6 @@ export function TenantGrowthPage() {
                   type="button"
                   className="admin-secondary-btn"
                   onClick={() => {
-                    if (!token?.trim()) return;
                     if (!window.confirm(t("compliance.exportConfirmSummaryPdf"))) return;
                     downloadComplianceExport(
                       token,

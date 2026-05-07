@@ -1,4 +1,4 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 
 export type StoreSettingsDto = {
   id: string;
@@ -20,7 +20,7 @@ export type StoreSettingsDto = {
 };
 
 async function tenantApiFetch<T>(
-  token: string,
+  token: ApiAuthToken,
   path: string,
   init?: RequestInit,
 ): Promise<T> {
@@ -49,11 +49,11 @@ async function tenantApiFetch<T>(
   return res.json() as Promise<T>;
 }
 
-export function getStoreSettings(token: string) {
+export function getStoreSettings(token: ApiAuthToken) {
   return tenantApiFetch<StoreSettingsDto>(token, "/tenant/store-settings");
 }
 
-export function putStoreSettings(token: string, body: Record<string, unknown>) {
+export function putStoreSettings(token: ApiAuthToken, body: Record<string, unknown>) {
   return tenantApiFetch<StoreSettingsDto>(token, "/tenant/store-settings", {
     method: "PUT",
     body: JSON.stringify(body),

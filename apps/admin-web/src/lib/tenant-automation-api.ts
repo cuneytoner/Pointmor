@@ -1,4 +1,4 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 
 export type TenantAutomationSettingsDto = {
   id: string;
@@ -30,7 +30,7 @@ export type AutomationSummaryPayload = {
   recent: AutomationActionSummary[];
 };
 
-async function autFetch<T>(token: string, path: string, init?: RequestInit): Promise<T> {
+async function autFetch<T>(token: ApiAuthToken, path: string, init?: RequestInit): Promise<T> {
   const base = getApiBaseUrl();
   const res = await fetch(`${base}${path}`, {
     ...init,
@@ -55,11 +55,11 @@ async function autFetch<T>(token: string, path: string, init?: RequestInit): Pro
   return res.json() as Promise<T>;
 }
 
-export function fetchAutomationSummary(token: string) {
+export function fetchAutomationSummary(token: ApiAuthToken) {
   return autFetch<AutomationSummaryPayload>(token, "/tenant/automation/summary");
 }
 
-export function approveAutomationAction(token: string, id: string) {
+export function approveAutomationAction(token: ApiAuthToken, id: string) {
   return autFetch<{ ok: true }>(
     token,
     `/tenant/automation/actions/${encodeURIComponent(id)}/approve`,
@@ -67,7 +67,7 @@ export function approveAutomationAction(token: string, id: string) {
   );
 }
 
-export function rejectAutomationAction(token: string, id: string) {
+export function rejectAutomationAction(token: ApiAuthToken, id: string) {
   return autFetch<{ ok: true }>(
     token,
     `/tenant/automation/actions/${encodeURIComponent(id)}/reject`,

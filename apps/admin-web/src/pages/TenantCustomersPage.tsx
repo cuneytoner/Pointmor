@@ -11,19 +11,12 @@ import { usePermissions } from "../hooks/usePermissions";
 export function TenantCustomersPage() {
   const { t, locale } = useTranslation();
   const { token } = useAuth();
-  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
-  const tokenValue = token?.trim() ?? "";
   const { hasPermission } = usePermissions();
   const [rows, setRows] = useState<CustomerWithBalance[] | null>(null);
   const [error, setError] = useState(false);
   const canViewCustomers = hasPermission("customers.view");
 
   useEffect(() => {
-    if (!cookiesOnly && !tokenValue) {
-      setRows([]);
-      setError(false);
-      return;
-    }
     if (!canViewCustomers) {
       setRows([]);
       setError(false);
@@ -31,7 +24,7 @@ export function TenantCustomersPage() {
     }
     let c = false;
     setError(false);
-    getCustomers(tokenValue)
+    getCustomers(token)
       .then((r) => {
         if (!c) setRows(r);
       })

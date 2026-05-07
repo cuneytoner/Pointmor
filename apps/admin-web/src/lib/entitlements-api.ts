@@ -1,4 +1,4 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 
 export type CompliancePackLevel = "none" | "limited" | "full";
 
@@ -47,7 +47,7 @@ export type EntitlementsPayload = {
   upgradeSuggested: boolean;
 };
 
-export async function fetchEntitlements(token: string): Promise<EntitlementsPayload> {
+export async function fetchEntitlements(token: ApiAuthToken): Promise<EntitlementsPayload> {
   const base = getApiBaseUrl();
   const res = await fetch(`${base}/tenant/entitlements`, {
     headers: { ...(buildAuthHeaders(token) ?? {}) },
@@ -62,7 +62,7 @@ export async function fetchEntitlements(token: string): Promise<EntitlementsPayl
 }
 
 export async function postDemoPlanSwitch(
-  token: string,
+  token: ApiAuthToken,
   planSlug: string,
 ): Promise<{ ok: boolean; subscription: unknown }> {
   const base = getApiBaseUrl();

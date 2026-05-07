@@ -1,4 +1,4 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 
 export type ProductAnalyticsEventType =
   | "qr_opened"
@@ -58,7 +58,7 @@ export type GrowthOverview = {
 };
 
 async function analyticsFetch<T>(
-  token: string,
+  token: ApiAuthToken,
   path: string,
 ): Promise<T> {
   const base = getApiBaseUrl();
@@ -85,7 +85,7 @@ async function analyticsFetch<T>(
 }
 
 export function getGrowthOverview(
-  token: string,
+  token: ApiAuthToken,
   opts?: { funnelDays?: number; cohortDays?: number; rewardDays?: number },
 ) {
   const q = new URLSearchParams();

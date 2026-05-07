@@ -116,7 +116,6 @@ export function CashierPage() {
     auth?.tenant?.name?.trim() || t("tenantLoyalty.cashier.fallbackTenant");
 
   const refreshCustomers = useCallback((): Promise<void> => {
-    if (!token) return Promise.resolve();
     return getCustomers(token)
       .then((rows) => {
         dispatch({ type: "SET_CUSTOMERS", payload: rows });
@@ -128,7 +127,6 @@ export function CashierPage() {
   }, [token]);
 
   const loadRewards = useCallback((): Promise<void> => {
-    if (!token) return Promise.resolve();
     return getRewards(token, true)
       .then((rows) => {
         dispatch({ type: "SET_REWARDS", payload: rows });
@@ -139,7 +137,7 @@ export function CashierPage() {
 
   const syncCashierSelection = useCallback(
     async (mode: "full" | "silent", customerId: string) => {
-      if (!token?.trim() || !customerId.trim()) return;
+      if (!customerId.trim()) return;
       if (typeof navigator !== "undefined" && !navigator.onLine) {
         if (mode === "full") {
           dispatch({ type: "SET_CLAIMS_LOADING", payload: false });
@@ -190,7 +188,6 @@ export function CashierPage() {
   );
 
   const recoverFromNetwork = useCallback(async () => {
-    if (!token?.trim()) return;
     await Promise.all([refreshCustomers(), loadRewards()]);
     const cid = selectedCustomerIdRef.current;
     if (cid.trim()) await syncCashierSelection("silent", cid);
@@ -206,13 +203,11 @@ export function CashierPage() {
     useCashierNetworkResilience(recoverFromNetwork);
 
   useEffect(() => {
-    if (!token?.trim()) return;
     refreshCustomers();
     loadRewards();
   }, [token, refreshCustomers, loadRewards]);
 
   useEffect(() => {
-    if (!token?.trim()) return;
     void getCashierBootstrap(token)
       .then((b) => {
         setCashierBranchName(b.myOpenShift?.deviceSession?.branch?.name ?? null);
@@ -231,7 +226,7 @@ export function CashierPage() {
   }, [token]);
 
   useEffect(() => {
-    if (!token?.trim() || !state.selectedCustomerId) {
+    if (!state.selectedCustomerId) {
       dispatch({ type: "SET_PENDING_CLAIMS", payload: null });
       dispatch({ type: "SET_CLAIMS_ERROR", payload: null });
       dispatch({ type: "SET_CLAIMS_LOADING", payload: false });
@@ -321,7 +316,7 @@ export function CashierPage() {
   }, [eligibleRewards, state.selectedRewardId]);
 
   useEffect(() => {
-    if (!token?.trim() || !state.selectedCustomerId) {
+    if (!state.selectedCustomerId) {
       dispatch({ type: "SET_PREVIEW", payload: null });
       dispatch({ type: "SET_PREVIEW_ERROR", payload: null });
       dispatch({ type: "SET_PREVIEW_LOADING", payload: false });
@@ -449,9 +444,8 @@ export function CashierPage() {
 
   useCashierSyncPolling({
     enabled: Boolean(
-      token?.trim() && state.customers !== null && !state.customersLoadError,
+      state.customers !== null && !state.customersLoadError,
     ),
-    token,
     selectedCustomerId: state.selectedCustomerId,
     pendingClaimCount: state.pendingClaims?.length ?? 0,
     documentHidden,
@@ -528,7 +522,7 @@ export function CashierPage() {
   }, [draftRestoredVisible]);
 
   const onCompleteVisit = useCallback(async () => {
-    if (!token || !permVisit || !canCompleteVisit || networkPhase !== "online") return;
+    if (!permVisit || !canCompleteVisit || networkPhase !== "online") return;
     const now = Date.now();
     if (now - lastVisitTap.current < 650) return;
     lastVisitTap.current = now;
@@ -581,7 +575,7 @@ export function CashierPage() {
   ]);
 
   const onUseReward = useCallback(async () => {
-    if (!token || !permRedeem || !canUseReward || !state.selectedRewardId || networkPhase !== "online")
+    if (!permRedeem || !canUseReward || !state.selectedRewardId || networkPhase !== "online")
       return;
     const now = Date.now();
     if (now - lastRedeemTap.current < 650) return;
@@ -637,7 +631,7 @@ export function CashierPage() {
 
   const onApproveClaim = useCallback(
     async (redemptionId: string) => {
-      if (!token || !permApprove || !state.selectedCustomerId || networkPhase !== "online") return;
+      if (!permApprove || !state.selectedCustomerId || networkPhase !== "online") return;
       const now = Date.now();
       if (now - lastClaimTap.current < 550) return;
       lastClaimTap.current = now;
@@ -689,7 +683,7 @@ export function CashierPage() {
 
   const onRejectClaim = useCallback(
     async (redemptionId: string) => {
-      if (!token || !permReject || !state.selectedCustomerId || networkPhase !== "online") return;
+      if (!permReject || !state.selectedCustomerId || networkPhase !== "online") return;
       const now = Date.now();
       if (now - lastClaimTap.current < 550) return;
       lastClaimTap.current = now;
@@ -758,7 +752,7 @@ export function CashierPage() {
   };
 
   const onQuickCreate = async () => {
-    if (!token || !permCreateCustomer || !state.qcName.trim() || !state.qcPhone.trim()) return;
+    if (!permCreateCustomer || !state.qcName.trim() || !state.qcPhone.trim()) return;
     if (networkPhase !== "online") {
       dispatch({
         type: "SET_INLINE_ERROR",

@@ -1,4 +1,4 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 
 export type MessagingSettingsDto = {
   tenantId: string;
@@ -26,7 +26,7 @@ export type MessageTemplateRow = {
 };
 
 async function tenantApiFetch<T>(
-  token: string,
+  token: ApiAuthToken,
   path: string,
   init?: RequestInit,
 ): Promise<T> {
@@ -55,18 +55,18 @@ async function tenantApiFetch<T>(
   return res.json() as Promise<T>;
 }
 
-export function getMessagingSettings(token: string) {
+export function getMessagingSettings(token: ApiAuthToken) {
   return tenantApiFetch<MessagingSettingsDto>(token, "/tenant/messaging/settings");
 }
 
-export function putMessagingSettings(token: string, body: Record<string, unknown>) {
+export function putMessagingSettings(token: ApiAuthToken, body: Record<string, unknown>) {
   return tenantApiFetch<MessagingSettingsDto>(token, "/tenant/messaging/settings", {
     method: "PUT",
     body: JSON.stringify(body),
   });
 }
 
-export function getMessageTemplates(token: string) {
+export function getMessageTemplates(token: ApiAuthToken) {
   return tenantApiFetch<{ items: MessageTemplateRow[] }>(
     token,
     "/tenant/message-templates",
@@ -74,7 +74,7 @@ export function getMessageTemplates(token: string) {
 }
 
 export function putTemplateOverride(
-  token: string,
+  token: ApiAuthToken,
   body: {
     templateKey: string;
     channel: "sms" | "whatsapp";

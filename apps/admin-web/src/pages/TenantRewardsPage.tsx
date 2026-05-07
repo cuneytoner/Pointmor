@@ -69,7 +69,6 @@ export function TenantRewardsPage() {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(() => {
-    if (!token) return;
     setError(false);
     getRewards(token, false)
       .then(setRows)
@@ -119,7 +118,6 @@ export function TenantRewardsPage() {
 
   const onSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
     const cost = Number(pointsCost);
     if (!name.trim() || !Number.isFinite(cost) || cost <= 0) return;
 
@@ -166,7 +164,6 @@ export function TenantRewardsPage() {
   };
 
   const toggle = async (r: RewardDto) => {
-    if (!token) return;
     try {
       await patchReward(token, r.id, { isActive: !r.isActive });
       load();

@@ -281,7 +281,6 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
   const { auth, bootstrap } = useAdminDataContext();
   const complianceLevel = bootstrap?.entitlements?.compliance?.level ?? "none";
   const { token } = useAuth();
-  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
   const { hasPermission } = usePermissions();
   const canSaveSettings = hasPermission("settings.manage");
   const loyaltyActive = canAccessLoyaltySurface(auth, bootstrap);
@@ -321,7 +320,6 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
   }, [menuUrl]);
 
   const load = useCallback(() => {
-    if (!cookiesOnly && !token?.trim()) return;
     setLoading(true);
     setLoadError(false);
     setRetentionLoadError(false);
@@ -378,7 +376,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
   };
 
   const save = async () => {
-    if ((!cookiesOnly && !token?.trim()) || !form || !canSaveSettings) return;
+    if (!form || !canSaveSettings) return;
     setSaving(true);
     setGeneralSaveMessage(null);
     try {
@@ -421,7 +419,7 @@ export function TenantSettingsPage({ embedded }: TenantSettingsPageProps = {}) {
   const canEditRetention =
     Boolean(retention?.canCustomize && canSaveSettings && retentionDraft);
   const saveRetention = async () => {
-    if ((!cookiesOnly && !token?.trim()) || !retentionDraft || !canEditRetention) return;
+    if (!retentionDraft || !canEditRetention) return;
     setRetentionSaving(true);
     try {
       const next = await putTenantRetentionSettings(token, retentionDraft);

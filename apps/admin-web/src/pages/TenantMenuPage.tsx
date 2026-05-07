@@ -63,7 +63,6 @@ export function TenantMenuPage() {
   const intlLocale = toIntlLocale(locale);
 
   const load = useCallback(() => {
-    if (!token) return;
     setError(false);
     Promise.all([
       getMenuCategories(token),
@@ -104,7 +103,7 @@ export function TenantMenuPage() {
 
   const submitCat = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token || !canManageMenu) return;
+    if (!canManageMenu) return;
     setSavingCat(true);
     try {
       const body = {
@@ -128,7 +127,7 @@ export function TenantMenuPage() {
   };
 
   const deactivateCat = async (c: MenuCategoryDto) => {
-    if (!token || !canManageMenu) return;
+    if (!canManageMenu) return;
     if (!window.confirm(`${c.name} — ${t("tenantMenu.deactivate")}?`)) return;
     try {
       await deleteMenuCategory(token, c.id);
@@ -173,7 +172,7 @@ export function TenantMenuPage() {
 
   const submitItem = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token || !canManageMenu) return;
+    if (!canManageMenu) return;
     const minor = parseMajorToMinor(itemPrice);
     if (minor === null) return;
     setSavingItem(true);
@@ -203,7 +202,7 @@ export function TenantMenuPage() {
   };
 
   const deactivateItem = async (it: MenuItemDto) => {
-    if (!token || !canManageMenu) return;
+    if (!canManageMenu) return;
     if (!window.confirm(`${it.name} — ${t("tenantMenu.deactivate")}?`)) return;
     try {
       await deleteMenuItem(token, it.id);

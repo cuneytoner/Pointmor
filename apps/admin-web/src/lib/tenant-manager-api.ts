@@ -1,4 +1,4 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 
 export type ManagerAuditEventItem = {
   id: string;
@@ -20,7 +20,7 @@ export type ManagerAuditEventsResponse = {
 };
 
 export async function fetchManagerAuditEvents(
-  token: string,
+  token: ApiAuthToken,
   opts?: { limit?: number; cursor?: string },
 ): Promise<ManagerAuditEventsResponse> {
   const base = getApiBaseUrl().replace(/\/$/, "");

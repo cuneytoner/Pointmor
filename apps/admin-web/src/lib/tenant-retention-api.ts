@@ -1,4 +1,4 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 
 export type RetentionFieldLimit =
   | { kind: "fixed"; value: number }
@@ -28,7 +28,7 @@ export type TenantRetentionPutBody = {
 };
 
 async function tenantApiFetch<T>(
-  token: string,
+  token: ApiAuthToken,
   path: string,
   init?: RequestInit,
 ): Promise<T> {
@@ -57,11 +57,11 @@ async function tenantApiFetch<T>(
   return res.json() as Promise<T>;
 }
 
-export function getTenantRetentionSettings(token: string) {
+export function getTenantRetentionSettings(token: ApiAuthToken) {
   return tenantApiFetch<TenantRetentionSettingsDto>(token, "/tenant/retention-settings");
 }
 
-export function putTenantRetentionSettings(token: string, body: TenantRetentionPutBody) {
+export function putTenantRetentionSettings(token: ApiAuthToken, body: TenantRetentionPutBody) {
   return tenantApiFetch<TenantRetentionSettingsDto>(token, "/tenant/retention-settings", {
     method: "PUT",
     body: JSON.stringify(body),

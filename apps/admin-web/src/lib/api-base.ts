@@ -20,3 +20,5 @@ export function buildAuthHeaders(token?: string | null): Record<string, string> 
   if (!tok) return undefined;
   return { Authorization: `Bearer ${tok}` };
 }
+
+export type ApiAuthToken = string | null | undefined;

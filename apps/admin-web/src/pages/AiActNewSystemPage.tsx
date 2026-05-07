@@ -10,7 +10,6 @@ import { createAiSystem } from "../lib/ai-act-api";
 export function AiActNewSystemPage() {
   const { t } = useTranslation();
   const { token } = useAuth();
-  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
   const { auth } = useAdminDataContext();
   const { hasPermission } = usePermissions();
   const navigate = useNavigate();
@@ -33,7 +32,7 @@ export function AiActNewSystemPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canManageAiAct) return;
-    if ((!cookiesOnly && !token?.trim()) || submitting) return;
+    if (submitting) return;
     setErrorKey(null);
     setSubmitting(true);
     try {

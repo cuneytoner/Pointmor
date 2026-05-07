@@ -40,13 +40,11 @@ export function TenantRedemptionsPage() {
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
-    if (!token?.trim()) return;
     const r = await getRedemptions(token);
     setRows(r);
   }, [token]);
 
   useEffect(() => {
-    if (!token?.trim()) return;
     let c = false;
     setError(false);
     getRedemptions(token)
@@ -84,7 +82,6 @@ export function TenantRedemptionsPage() {
   );
 
   const onApprove = async (id: string) => {
-    if (!token?.trim()) return;
     setActing(id);
     setActionMessage(null);
     try {
@@ -104,7 +101,6 @@ export function TenantRedemptionsPage() {
   };
 
   const onReject = async (id: string) => {
-    if (!token?.trim()) return;
     setActing(id);
     setActionMessage(null);
     try {

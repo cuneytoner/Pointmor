@@ -16,8 +16,6 @@ import {
 export function TenantAuditPage() {
   const { t, locale } = useTranslation();
   const { token } = useAuth();
-  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
-  const tokenValue = token?.trim() ?? "";
   const { hasPermission } = usePermissions();
   const { bootstrap } = useAdminDataContext();
   const ent = bootstrap?.entitlements;
@@ -29,7 +27,6 @@ export function TenantAuditPage() {
   const fullPack = complianceLevel === "full";
 
   useEffect(() => {
-    if (!cookiesOnly && !tokenValue) return;
     if (!featureOk) return;
     let c = false;
     setError(null);
@@ -102,7 +99,6 @@ export function TenantAuditPage() {
                 type="button"
                 className="admin-primary-btn"
                 onClick={() => {
-                  if (!token?.trim()) return;
                   if (!window.confirm(t("compliance.exportConfirmAuditCsv"))) return;
                   downloadComplianceExport(token, "/audit/export/csv", "audit-export.csv", locale).catch(
                     () => undefined,

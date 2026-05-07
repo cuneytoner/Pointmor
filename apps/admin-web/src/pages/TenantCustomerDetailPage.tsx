@@ -15,8 +15,6 @@ export function TenantCustomerDetailPage() {
   const { customerId } = useParams<{ customerId: string }>();
   const { t, locale } = useTranslation();
   const { token } = useAuth();
-  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
-  const tokenValue = token?.trim() ?? "";
   const { bootstrap } = useAdminDataContext();
   const { hasPermission } = usePermissions();
   const complianceFull = bootstrap?.entitlements?.compliance?.level === "full";
@@ -26,7 +24,6 @@ export function TenantCustomerDetailPage() {
   const [complianceBusy, setComplianceBusy] = useState(false);
 
   useEffect(() => {
-    if (!cookiesOnly && !tokenValue) return;
     if (!customerId) return;
     let c = false;
     setError(false);
@@ -191,11 +188,10 @@ export function TenantCustomerDetailPage() {
                     title={!complianceFull ? t("compliance.upgradeUnlockFullPack") : undefined}
                     onClick={() => {
                       if (!window.confirm(t("compliance.exportConfirmGdprJson"))) return;
-                      if (!token?.trim()) return;
                       setComplianceBusy(true);
                       setComplianceMsg(null);
                       downloadComplianceExport(
-                        tokenValue,
+                        token,
                         `/tenant/customers/${customerId}/gdpr-export`,
                         `customer-${customerId}-export.json`,
                         locale,
@@ -215,19 +211,18 @@ export function TenantCustomerDetailPage() {
                     title={!complianceFull ? t("compliance.upgradeUnlockFullPack") : undefined}
                     onClick={async () => {
                       if (!window.confirm(t("compliance.anonymizeConfirm"))) return;
-                      if (!token?.trim()) return;
                       setComplianceBusy(true);
                       setComplianceMsg(null);
                       try {
                         const base = getApiBaseUrl().replace(/\/$/, "");
                         const res = await fetch(`${base}/tenant/customers/${customerId}/anonymize`, {
                           method: "POST",
-                          headers: { ...(buildAuthHeaders(tokenValue) ?? {}) },
+                          headers: { ...(buildAuthHeaders(token) ?? {}) },
                           credentials: "include",
                         });
                         if (!res.ok) throw new Error("fail");
                         setComplianceMsg(t("compliance.anonymizeDone"));
-                        const refreshed = await getCustomerDetail(tokenValue, customerId);
+                        const refreshed = await getCustomerDetail(token, customerId);
                         setData(refreshed);
                       } catch {
                         setComplianceMsg(t("compliance.exportFailed"));

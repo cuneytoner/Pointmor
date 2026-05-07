@@ -93,7 +93,7 @@ export function TenantDashboardPage() {
         : "Review active modules and operational status.";
 
   useEffect(() => {
-    if (!token?.trim() || !canViewLoyaltySummary) {
+    if (!canViewLoyaltySummary) {
       setLoading(false);
       setLoadError(false);
       setSummary(null);
@@ -283,10 +283,9 @@ export function TenantDashboardPage() {
         </div>
       ) : null}
 
-      {token?.trim() &&
-      (hasPermission("summary.export") ||
+      {hasPermission("summary.export") ||
         hasPermission("audit.export") ||
-        hasPermission("anomaly.export")) ? (
+        hasPermission("anomaly.export") ? (
         <div className="admin-app__card admin-app__card--wide" style={{ marginTop: "1.5rem" }}>
           <p className="admin-app__card-title">{t("tenantDashboard.complianceExports")}</p>
           <p className="admin-app__card-text data-table__muted" style={{ marginBottom: "0.75rem" }}>
@@ -309,7 +308,7 @@ export function TenantDashboardPage() {
                   disabled={!canComplianceSummary}
                   title={!canComplianceSummary ? t("compliance.upgradeUnlockFullPack") : undefined}
                   onClick={() => {
-                    if (!token?.trim() || !canComplianceSummary) return;
+                    if (!canComplianceSummary) return;
                     if (!window.confirm(t("compliance.exportConfirmSummaryPdf"))) return;
                     downloadComplianceExport(
                       token,
@@ -329,7 +328,7 @@ export function TenantDashboardPage() {
                   disabled={!canComplianceSummary}
                   title={!canComplianceSummary ? t("compliance.upgradeUnlockFullPack") : undefined}
                   onClick={() => {
-                    if (!token?.trim() || !canComplianceSummary) return;
+                    if (!canComplianceSummary) return;
                     if (!window.confirm(t("compliance.exportConfirmSummaryPdf"))) return;
                     downloadComplianceExport(
                       token,
@@ -351,7 +350,7 @@ export function TenantDashboardPage() {
                   disabled={!canComplianceFull}
                   title={!canComplianceFull ? t("compliance.upgradeUnlockFullPack") : undefined}
                   onClick={() => {
-                    if (!token?.trim() || !canComplianceFull) return;
+                    if (!canComplianceFull) return;
                     if (!window.confirm(t("compliance.exportConfirmAuditCsv"))) return;
                     downloadComplianceExport(
                       token,
@@ -371,7 +370,7 @@ export function TenantDashboardPage() {
                   disabled={!canComplianceFull}
                   title={!canComplianceFull ? t("compliance.upgradeUnlockFullPack") : undefined}
                   onClick={() => {
-                    if (!token?.trim() || !canComplianceFull) return;
+                    if (!canComplianceFull) return;
                     if (!window.confirm(t("compliance.exportConfirmAuditPdf"))) return;
                     downloadComplianceExport(
                       token,
@@ -394,7 +393,7 @@ export function TenantDashboardPage() {
                 disabled={!canComplianceFull}
                 title={!canComplianceFull ? t("compliance.upgradeUnlockFullPack") : undefined}
                 onClick={() => {
-                  if (!token?.trim() || !canComplianceFull) return;
+                  if (!canComplianceFull) return;
                   if (!window.confirm(t("compliance.exportConfirmAnomalyPdf"))) return;
                   downloadComplianceExport(
                     token,

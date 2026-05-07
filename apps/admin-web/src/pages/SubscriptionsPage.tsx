@@ -12,8 +12,6 @@ import { presentSubscriptionHealth } from "../lib/platformPresentation";
 export function SubscriptionsPage() {
   const { t, locale } = useTranslation();
   const { token, bumpRefresh } = useAuth();
-  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
-  const tokenValue = token?.trim() ?? "";
   const { bootstrap } = useAdminDataContext();
   const rows = bootstrap?.subscriptions ?? [];
   const plans = bootstrap?.plans ?? [];
@@ -47,15 +45,13 @@ export function SubscriptionsPage() {
   };
 
   const applyPlan = async (row: SubscriptionDto) => {
-    const tok = token?.trim();
-    if (!tok) return;
     const nextPlanId = draftBySub[row.id] ?? row.plan.id;
     if (nextPlanId === row.plan.id) return;
     setBusyId(row.id);
     setFlashOk(null);
     setFlashErr(null);
     try {
-      await patchSubscription(tok, row.id, { planId: nextPlanId });
+      await patchSubscription(token, row.id, { planId: nextPlanId });
       setFlashOk(t("subscriptions.applySuccess"));
       bumpRefresh();
     } catch {

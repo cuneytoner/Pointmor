@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { getApiBaseUrl } from "../lib/api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "../lib/api-base";
 import type { AiComplianceOperationsFullDto } from "./useAdminData";
 
 export type AiComplianceOperationsPayload = {
@@ -42,21 +42,10 @@ export function useAiComplianceOperations(
   });
 
   const refetch = useCallback(() => {
-    const t = token?.trim() ?? "";
-    if (!t) {
-      setState({
-        loading: false,
-        error: "unauthorized",
-        data: null,
-        lastFetchedAt: null,
-      });
-      return;
-    }
-
     setState((s) => ({ ...s, loading: true, error: null }));
 
     const base = getApiBaseUrl();
-    const headers = { Authorization: `Bearer ${t}` } as const;
+    const headers = buildAuthHeaders(token);
 
     fetch(`${base}/admin/products/ai-compliance/operations`, {
       headers,

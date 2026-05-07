@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { LocaleCode } from "../i18n/locale";
-import { getApiBaseUrl } from "../lib/api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "../lib/api-base";
 import type { EntitlementsPayload } from "../lib/entitlements-api";
 
 const cookiesOnlyAdminSession =
@@ -258,7 +258,7 @@ export function useAdminData(
     }));
 
     const base = getApiBaseUrl();
-    const headers = t ? ({ Authorization: `Bearer ${t}` } as const) : undefined;
+    const headers = buildAuthHeaders(t);
 
     (async () => {
       try {

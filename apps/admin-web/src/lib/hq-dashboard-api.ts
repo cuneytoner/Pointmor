@@ -1,4 +1,4 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 
 export type HqDashboardTier = "basic" | "full";
 
@@ -72,7 +72,7 @@ export type HqLocationDetailPayload = {
   };
 };
 
-async function hqFetch<T>(token: string, path: string): Promise<T> {
+async function hqFetch<T>(token: ApiAuthToken, path: string): Promise<T> {
   const base = getApiBaseUrl();
   const res = await fetch(`${base}${path}`, {
     headers: { ...(buildAuthHeaders(token) ?? {}) },
@@ -93,12 +93,12 @@ async function hqFetch<T>(token: string, path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export function fetchHqDashboard(token: string, days = 28) {
+export function fetchHqDashboard(token: ApiAuthToken, days = 28) {
   const q = new URLSearchParams({ days: String(days) });
   return hqFetch<HqDashboardPayload>(token, `/tenant/hq-dashboard?${q.toString()}`);
 }
 
-export function fetchHqLocationDetail(token: string, branchId: string, days = 28) {
+export function fetchHqLocationDetail(token: ApiAuthToken, branchId: string, days = 28) {
   const q = new URLSearchParams({ days: String(days) });
   return hqFetch<HqLocationDetailPayload>(
     token,

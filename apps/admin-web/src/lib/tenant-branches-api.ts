@@ -1,4 +1,4 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 
 export type TenantBranchDto = {
   id: string;
@@ -12,7 +12,7 @@ export type TenantBranchDto = {
 };
 
 async function tenantApiFetch<T>(
-  token: string,
+  token: ApiAuthToken,
   path: string,
   init?: RequestInit,
 ): Promise<T> {
@@ -41,12 +41,12 @@ async function tenantApiFetch<T>(
   return res.json() as Promise<T>;
 }
 
-export function fetchTenantBranches(token: string) {
+export function fetchTenantBranches(token: ApiAuthToken) {
   return tenantApiFetch<TenantBranchDto[]>(token, "/cashier/branches");
 }
 
 export function createTenantBranch(
-  token: string,
+  token: ApiAuthToken,
   body: { name: string; slug?: string | null },
 ) {
   return tenantApiFetch<TenantBranchDto>(token, "/cashier/branches", {
@@ -56,7 +56,7 @@ export function createTenantBranch(
 }
 
 export function patchTenantBranch(
-  token: string,
+  token: ApiAuthToken,
   branchId: string,
   body: Partial<{
     name: string;

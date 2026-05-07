@@ -1,4 +1,4 @@
-import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 
 export type TenantBranchMetricsResponse = {
   periodDays: number;
@@ -12,7 +12,7 @@ export type TenantBranchMetricsResponse = {
 };
 
 export async function fetchTenantBranchMetrics(
-  token: string,
+  token: ApiAuthToken,
 ): Promise<TenantBranchMetricsResponse> {
   const base = getApiBaseUrl();
   const res = await fetch(`${base}/tenant/branches/metrics`, {

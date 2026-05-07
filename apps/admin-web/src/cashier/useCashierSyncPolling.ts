@@ -15,7 +15,6 @@ export function useDocumentHidden(): boolean {
 
 type UseCashierSyncPollingOpts = {
   enabled: boolean;
-  token: string | null | undefined;
   /** Seçili müşteri yokken yavaş liste yenilemesi */
   onPollList: () => void | Promise<void>;
   /** Seçili müşteri için sessiz senkron */
@@ -46,7 +45,6 @@ function computeIntervalMs(opts: {
 export function useCashierSyncPolling(opts: UseCashierSyncPollingOpts) {
   const {
     enabled,
-    token,
     onPollList,
     onPollSelection,
     selectedCustomerId,
@@ -62,7 +60,7 @@ export function useCashierSyncPolling(opts: UseCashierSyncPollingOpts) {
   selRef.current = onPollSelection;
 
   useEffect(() => {
-    if (!enabled || !token?.trim() || backgroundPollingDisabled || !networkOnline)
+    if (!enabled || backgroundPollingDisabled || !networkOnline)
       return;
 
     let cancelled = false;
@@ -100,7 +98,6 @@ export function useCashierSyncPolling(opts: UseCashierSyncPollingOpts) {
     };
   }, [
     enabled,
-    token,
     selectedCustomerId,
     pendingClaimCount,
     documentHidden,

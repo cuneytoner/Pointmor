@@ -4,7 +4,7 @@ import { LanguageSelector } from "./LanguageSelector";
 import type { AdminAuth } from "../hooks/useAdminData";
 import { useAuth } from "../contexts/AuthContext";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
-import { getApiBaseUrl } from "../lib/api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "../lib/api-base";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
 import type { NavItemConfig } from "../navigation/nav-config";
@@ -92,7 +92,7 @@ export function AdminShell({ auth }: AdminShellProps) {
     try {
       await fetch(`${base}/auth/logout`, {
         method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: buildAuthHeaders(token),
         credentials: "include",
       });
     } catch {

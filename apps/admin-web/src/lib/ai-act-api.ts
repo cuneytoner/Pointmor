@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl, type ApiAuthToken } from "./api-base";
 import type { AiActPurposeValue } from "./ai-act-contract";
 
 export type AiSystem = {
@@ -54,12 +54,10 @@ export type AiTask = {
 
 type ApiError = Error & { status?: number; code?: string };
 
-async function aiActFetch<T>(token: string, path: string, init?: RequestInit): Promise<T> {
+async function aiActFetch<T>(token: ApiAuthToken, path: string, init?: RequestInit): Promise<T> {
   const base = getApiBaseUrl().replace(/\/$/, "");
   const headers = new Headers(init?.headers ?? undefined);
-  if (token?.trim()) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
+  Object.entries(buildAuthHeaders(token) ?? {}).forEach(([key, value]) => headers.set(key, value));
   if (init?.body) {
     headers.set("Content-Type", "application/json");
   }
@@ -83,16 +81,16 @@ async function aiActFetch<T>(token: string, path: string, init?: RequestInit): P
   return (await res.json()) as T;
 }
 
-export function getAiSystems(token: string) {
+export function getAiSystems(token: ApiAuthToken) {
   return aiActFetch<AiSystem[]>(token, "/ai-act/systems");
 }
 
-export function getAiSystem(token: string, id: string) {
+export function getAiSystem(token: ApiAuthToken, id: string) {
   return aiActFetch<AiSystem>(token, `/ai-act/systems/${encodeURIComponent(id)}`);
 }
 
 export function createAiSystem(
-  token: string,
+  token: ApiAuthToken,
   body: { name: string; purpose?: string; providerType: "INTERNAL" | "EXTERNAL" | "HYBRID" },
 ) {
   return aiActFetch<AiSystem>(token, "/ai-act/systems", {
@@ -102,7 +100,7 @@ export function createAiSystem(
 }
 
 export function submitAiAssessment(
-  token: string,
+  token: ApiAuthToken,
   systemId: string,
   answers: Record<string, boolean | AiActPurposeValue>,
 ) {
@@ -116,14 +114,14 @@ export function submitAiAssessment(
   );
 }
 
-export function getAiAssessment(token: string, systemId: string) {
+export function getAiAssessment(token: ApiAuthToken, systemId: string) {
   return aiActFetch<AiAssessmentPayload>(token, `/ai-act/systems/${encodeURIComponent(systemId)}/assessment`);
 }
 
-export function getAiObligations(token: string, systemId: string) {
+export function getAiObligations(token: ApiAuthToken, systemId: string) {
   return aiActFetch<AiObligation[]>(token, `/ai-act/systems/${encodeURIComponent(systemId)}/obligations`);
 }
 
-export function getAiTasks(token: string, systemId: string) {
+export function getAiTasks(token: ApiAuthToken, systemId: string) {
   return aiActFetch<AiTask[]>(token, `/ai-act/systems/${encodeURIComponent(systemId)}/tasks`);
 }

@@ -30,14 +30,11 @@ export function AiActSystemsPage() {
     return riskLevel;
   };
 
-  const cookiesOnly = import.meta.env.VITE_ADMIN_SESSION_COOKIES_ONLY !== "false";
-
   useEffect(() => {
-    if (!cookiesOnly && !token?.trim()) return;
     let cancelled = false;
     setErrorKey(null);
     setRows(null);
-    getAiSystems(token ?? "")
+    getAiSystems(token)
       .then((systems) => {
         if (!cancelled) {
           setRows(

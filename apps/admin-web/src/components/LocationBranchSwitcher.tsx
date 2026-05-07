@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useAdminDataContext } from "../contexts/AdminDataContext";
-import { getApiBaseUrl } from "../lib/api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "../lib/api-base";
 import { useTranslation } from "../hooks/useTranslation";
 import { usePermissions } from "../hooks/usePermissions";
 import { canAccessLoyaltySurface } from "../lib/tenant-module-access";
@@ -22,7 +22,7 @@ export function LocationBranchSwitcher() {
   const canUseBranchSwitcher = hasPermission("customers.view") || hasPermission("visits.create");
 
   useEffect(() => {
-    if (!token?.trim() || !loyaltyActive || !canUseBranchSwitcher) {
+    if (!loyaltyActive || !canUseBranchSwitcher) {
       setBranches([]);
       setValue("");
       return;
@@ -30,7 +30,7 @@ export function LocationBranchSwitcher() {
     let cancelled = false;
     const base = getApiBaseUrl();
     void fetch(`${base}/cashier/branches`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: buildAuthHeaders(token),
       credentials: "include",
     })
       .then((r) => (r.ok ? r.json() : []))

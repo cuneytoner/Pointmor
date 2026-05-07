@@ -97,7 +97,6 @@ export function TenantHqDashboardPage() {
   const [autoBusyId, setAutoBusyId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token?.trim()) return;
     if (ent && !ent.features.includes("hq_dashboard")) return;
     let c = false;
     setError(false);
@@ -117,7 +116,6 @@ export function TenantHqDashboardPage() {
   }, [token, days, ent]);
 
   useEffect(() => {
-    if (!token?.trim()) return;
     if (!ent?.features.includes("hq_ai_insights")) return;
     let c = false;
     setAiError(false);
@@ -137,7 +135,6 @@ export function TenantHqDashboardPage() {
   }, [token, ent]);
 
   useEffect(() => {
-    if (!token?.trim()) return;
     if (!ent?.features.includes("hq_automation")) return;
     let c = false;
     setAutoError(false);
@@ -158,7 +155,6 @@ export function TenantHqDashboardPage() {
 
   const onApproveAuto = useCallback(
     async (id: string) => {
-      if (!token?.trim()) return;
       setAutoBusyId(id);
       try {
         await approveAutomationAction(token, id);
@@ -173,7 +169,6 @@ export function TenantHqDashboardPage() {
 
   const onRejectAuto = useCallback(
     async (id: string) => {
-      if (!token?.trim()) return;
       setAutoBusyId(id);
       try {
         await rejectAutomationAction(token, id);
@@ -188,7 +183,6 @@ export function TenantHqDashboardPage() {
 
   const onDismissAi = useCallback(
     async (id: string) => {
-      if (!token?.trim()) return;
       setAiBusyId(id);
       try {
         await dismissHqAiInsight(token, id);
@@ -202,7 +196,6 @@ export function TenantHqDashboardPage() {
 
   const onExecuteAi = useCallback(
     async (id: string) => {
-      if (!token?.trim()) return;
       setAiBusyId(id);
       try {
         const out = await executeHqAiInsight(token, id);
