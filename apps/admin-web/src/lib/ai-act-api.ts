@@ -56,14 +56,16 @@ type ApiError = Error & { status?: number; code?: string };
 
 async function aiActFetch<T>(token: string, path: string, init?: RequestInit): Promise<T> {
   const base = getApiBaseUrl().replace(/\/$/, "");
-  const authHeader = token?.trim() ? { Authorization: `Bearer ${token}` } : {};
+  const headers = new Headers(init?.headers ?? undefined);
+  if (token?.trim()) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  if (init?.body) {
+    headers.set("Content-Type", "application/json");
+  }
   const res = await fetch(`${base}${path}`, {
     ...init,
-    headers: {
-      ...authHeader,
-      ...(init?.body ? { "Content-Type": "application/json" } : {}),
-      ...init?.headers,
-    },
+    headers,
     credentials: "include",
   });
   if (!res.ok) {
