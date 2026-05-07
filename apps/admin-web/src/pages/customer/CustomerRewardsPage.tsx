@@ -14,8 +14,7 @@ export function CustomerRewardsPage() {
 
   useEffect(() => {
     if (!data) return;
-    const tok = token?.trim();
-    if (!tok) return;
+    const tok = token?.trim() || null;
     const mark = `${tenantSlug}:${data.customer.id}`;
     if (viewedMark.current === mark) return;
     viewedMark.current = mark;

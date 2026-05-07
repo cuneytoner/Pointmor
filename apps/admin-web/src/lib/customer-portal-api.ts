@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from "./api-base";
+import { buildAuthHeaders, getApiBaseUrl } from "./api-base";
 
 /**
  * Müşteri API çağrıları cookie-first (VITE_CUSTOMER_SESSION_COOKIES_ONLY).
@@ -99,8 +99,8 @@ function publicFetch<T>(
     ...(init?.body ? { "Content-Type": "application/json" } : {}),
     ...((init?.headers as Record<string, string>) ?? {}),
   };
-  if (init?.token && !customerCookiesOnlySession) {
-    headers.Authorization = `Bearer ${init.token}`;
+  if (!customerCookiesOnlySession) {
+    Object.assign(headers, buildAuthHeaders(init?.token) ?? {});
   }
   return fetch(`${base}${path}`, {
     method: init?.method,
