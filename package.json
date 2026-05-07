@@ -23,5 +23,8 @@
   },
   "devDependencies": {
     "ssh2": "^1.17.0"
+  },
+  "dependencies": {
+    "crypto-js": "^4.2.0"
   }
 }

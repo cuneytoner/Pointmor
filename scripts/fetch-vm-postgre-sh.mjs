@@ -5,7 +5,7 @@
 import { Client } from "ssh2";
 
 const config = {
-  host: process.env.VM_HOST ?? "192.168.1.20",
+  host: process.env.VM_HOST ?? "192.168.122.50",
   username: process.env.VM_USER ?? "cc",
   password: process.env.VM_PASSWORD ?? "cc",
 };
