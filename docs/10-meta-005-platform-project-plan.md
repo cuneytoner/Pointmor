@@ -185,7 +185,14 @@ Related documents:
   - Frontend timeline: persisted olayları önceliklendiriyor, dedupe stratejisi ile duplicate'leri engelliyor, readable source labels ve object types gösteriyor.
   - Seed verisi: sentetik operational events (system_created, assessment_submitted, obligation_created, advisor_review_requested, evidence_missing_detected).
   - Testler: tenant-scope doğrulaması, çapraz tenant sızıntısı önleme, metadata sanitization, actor membership validasyonu, payload limit kontrolü.
-  - Kalan backlog: assignment/actions, notifications, SLA engine, pagination.
+  - Kalan backlog: notifications, SLA engine, automation engine, pagination.
+- **AI Compliance Workflow Actions Foundation (Step 17) - DONE**
+  - Minimal manuel aksiyonlar eklendi: `POST /admin/products/ai-compliance/tasks/:id/complete`, `/obligations/:id/review`, `/assessments/:id/reopen`, `/assessments/:id/assign-reviewer`.
+  - Aksiyon endpoint'leri `authPreHandler`, tenant scope, `ai_act` module activation ve mevcut `ai_act.assess` / `ai_act.manage` izin sınırlarını korur; platform admin cross-organization aksiyonları yalnızca ai_act-aktif tenant kayıtlarında çalışır.
+  - Her başarılı aksiyon aynı transaction veya aynı mutation akışı içinde kalıcı operational event üretir; event'ler actor user, concrete entity ID ve sanitized presentation label ile operational timeline'a düşer.
+  - Frontend system detail yüzeyinde küçük aksiyonlar eklendi: assessment reopen, reviewer assignment, obligation review ve task complete. Başarı sonrası endpoint refetch yapılır; optimistic fake state yoktur.
+  - `/admin/bootstrap` operasyonel sistem/event taşımamaya devam eder; sadece minimal cross-product context ve sayaçlar kalır.
+  - Bildirim motoru, SLA motoru, background job, websocket/live update ve automation/escalation engine hâlâ backlog kapsamındadır.
 
 ---
 
@@ -428,7 +435,7 @@ MVP kapsamı:
 - Obligations & Tasks UX improvement (prioritization + clarity)
 - i18n polish (Turkish-first cleanup)
 - AI Act result explanation improvements
-- Persistent audit/event source model for AI Compliance operational timelines
+- Notification/SLA/automation engine for AI Compliance workflows
 
 ---
 

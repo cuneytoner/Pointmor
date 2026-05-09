@@ -85,11 +85,37 @@ describe("AI Operational Events", () => {
     });
 
     // Create session
-    testSession = await issueSession({
-      userId: testUser.id,
-      tenantId: testTenant.id,
-      role: "ADMIN",
-      membershipId: "test-membership-id",
+    testSession = issueSession({
+      user: {
+        id: testUser.id,
+        email: testUser.email,
+        name: testUser.name,
+        platformAdmin: false,
+      },
+      tenant: {
+        id: testTenant.id,
+        slug: testTenant.slug,
+        name: testTenant.name,
+      },
+      membership: {
+        tenantId: testTenant.id,
+        role: "ADMIN",
+        isExternal: false,
+      },
+      memberships: [
+        {
+          tenant: {
+            id: testTenant.id,
+            slug: testTenant.slug,
+            name: testTenant.name,
+          },
+          membership: {
+            tenantId: testTenant.id,
+            role: "ADMIN",
+            isExternal: false,
+          },
+        },
+      ],
     });
   });
 
@@ -200,7 +226,7 @@ describe("AI Operational Events", () => {
     // Create another tenant and verify they can't see test tenant's events
     const otherTenant = await prisma.tenant.create({
       data: {
-        slug: "isolated-tenant",
+        slug: `isolated-tenant-${Date.now().toString(36)}`,
         name: "Isolated Tenant",
         type: "BUSINESS",
       },
@@ -208,7 +234,7 @@ describe("AI Operational Events", () => {
 
     const otherUser = await prisma.user.create({
       data: {
-        email: "isolated@example.com",
+        email: `isolated-${Date.now().toString(36)}@example.com`,
         name: "Isolated User",
         passwordHash: "dummy-hash",
         platformAdmin: false,
@@ -224,11 +250,37 @@ describe("AI Operational Events", () => {
       },
     });
 
-    const otherSession = await issueSession({
-      userId: otherUser.id,
-      tenantId: otherTenant.id,
-      role: "ADMIN",
-      membershipId: "other-membership-id",
+    const otherSession = issueSession({
+      user: {
+        id: otherUser.id,
+        email: otherUser.email,
+        name: otherUser.name,
+        platformAdmin: false,
+      },
+      tenant: {
+        id: otherTenant.id,
+        slug: otherTenant.slug,
+        name: otherTenant.name,
+      },
+      membership: {
+        tenantId: otherTenant.id,
+        role: "ADMIN",
+        isExternal: false,
+      },
+      memberships: [
+        {
+          tenant: {
+            id: otherTenant.id,
+            slug: otherTenant.slug,
+            name: otherTenant.name,
+          },
+          membership: {
+            tenantId: otherTenant.id,
+            role: "ADMIN",
+            isExternal: false,
+          },
+        },
+      ],
     });
 
     // Query AI Compliance operations for other tenant should return module_not_active
@@ -236,7 +288,7 @@ describe("AI Operational Events", () => {
       method: "GET",
       url: "/admin/products/ai-compliance/operations",
       headers: {
-        cookie: `session=${otherSession.token}`,
+        authorization: `Bearer ${otherSession}`,
       },
     });
 
@@ -289,7 +341,7 @@ describe("AI Operational Events", () => {
       method: "GET",
       url: "/admin/products/ai-compliance/operations",
       headers: {
-        cookie: `session=${testSession.token}`,
+        authorization: `Bearer ${testSession}`,
       },
     });
 
@@ -315,9 +367,9 @@ describe("AI Operational Events", () => {
     expect(event).toHaveProperty("id");
     expect(event).toHaveProperty("eventType");
     expect(event).toHaveProperty("severity");
-    expect(event).toHaveProperty("source");
+    expect(event).toHaveProperty("sourceLabel");
     expect(event).toHaveProperty("message");
-    expect(event).toHaveProperty("metadata");
+    expect(event).not.toHaveProperty("metadata");
     expect(event).toHaveProperty("createdAt");
     expect(event).toHaveProperty("actor");
     expect(event.actor).toHaveProperty("id");
@@ -348,7 +400,7 @@ describe("AI Operational Events", () => {
       method: "GET",
       url: "/admin/products/ai-compliance/operations",
       headers: {
-        cookie: `session=${testSession.token}`,
+        authorization: `Bearer ${testSession}`,
       },
     });
 
@@ -378,7 +430,7 @@ describe("AI Operational Events", () => {
       method: "GET",
       url: "/admin/products/ai-compliance/operations",
       headers: {
-        cookie: `session=${testSession.token}`,
+        authorization: `Bearer ${testSession}`,
       },
     });
 
@@ -488,9 +540,9 @@ describe("AI Operational Events", () => {
       data: {
         tenantId: testTenant.id,
         aiSystemId: testSystem.id,
-        obligationType: "TEST_OBLIGATION",
-        status: "OPEN",
-        source: "TEST",
+        obligationType: "TEST_OBLIGATION_CREATED",
+        status: "PENDING",
+        source: "MANUAL",
       },
     });
 
@@ -529,9 +581,9 @@ describe("AI Operational Events", () => {
       data: {
         tenantId: testTenant.id,
         aiSystemId: testSystem.id,
-        obligationType: "TEST_OBLIGATION",
-        status: "OPEN",
-        source: "TEST",
+        obligationType: "TEST_TASK_OBLIGATION",
+        status: "PENDING",
+        source: "MANUAL",
       },
     });
 
@@ -541,7 +593,7 @@ describe("AI Operational Events", () => {
         tenantId: testTenant.id,
         aiSystemId: testSystem.id,
         obligationId: obligation.id,
-        obligationType: "TEST_OBLIGATION",
+        obligationType: "TEST_TASK_OBLIGATION",
         title: "Test Task",
         priority: "HIGH",
         status: "OPEN",
@@ -594,7 +646,7 @@ describe("AI Operational Events", () => {
       method: "GET",
       url: "/admin/products/ai-compliance/operations",
       headers: {
-        authorization: `Bearer ${testSession.token}`,
+        authorization: `Bearer ${testSession}`,
       },
     });
 
@@ -663,9 +715,9 @@ describe("AI Operational Events", () => {
       data: {
         tenantId: testTenant.id,
         aiSystemId: testSystem.id,
-        obligationType: "TEST_OBLIGATION",
-        status: "OPEN",
-        source: "TEST",
+        obligationType: "TEST_OBLIGATION_UPDATED",
+        status: "PENDING",
+        source: "MANUAL",
       },
     });
 
@@ -704,9 +756,9 @@ describe("AI Operational Events", () => {
       data: {
         tenantId: testTenant.id,
         aiSystemId: testSystem.id,
-        obligationType: "TEST_OBLIGATION",
-        status: "OPEN",
-        source: "TEST",
+        obligationType: "TEST_TASK_UPDATED_OBLIGATION",
+        status: "PENDING",
+        source: "MANUAL",
       },
     });
 
@@ -716,7 +768,7 @@ describe("AI Operational Events", () => {
         tenantId: testTenant.id,
         aiSystemId: testSystem.id,
         obligationId: obligation.id,
-        obligationType: "TEST_OBLIGATION",
+        obligationType: "TEST_TASK_UPDATED_OBLIGATION",
         title: "Test Task",
         priority: "HIGH",
         status: "OPEN",

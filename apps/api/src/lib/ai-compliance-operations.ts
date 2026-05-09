@@ -245,6 +245,7 @@ export async function loadAiComplianceOperationsForScope(
             severity: true,
             source: true,
             message: true,
+            metadata: true,
             createdAt: true,
             aiSystemId: true,
             assessmentId: true,
@@ -293,23 +294,34 @@ export async function loadAiComplianceOperationsForScope(
         // Map source codes to readable labels
         const sourceLabels: Record<string, string> = {
           "ai_act_api": "AI Act assessment flow",
+          "ai_compliance_workflow": "AI Compliance workflow action",
           "ai_act_seed": "Demo setup",
           "system": "System generated",
           "migration": "Migration",
         };
         const sourceLabel = sourceLabels[event.source] || "System generated";
 
+        const metadata =
+          event.metadata && typeof event.metadata === "object" && !Array.isArray(event.metadata)
+            ? (event.metadata as Record<string, unknown>)
+            : {};
+        const action = typeof metadata.action === "string" ? metadata.action : "";
+
         // Map event types to human-readable labels
         const eventTypeLabels: Record<string, string> = {
           "SYSTEM_CREATED": "AI system created",
           "ASSESSMENT_SUBMITTED": "Assessment submitted",
-          "ASSESSMENT_UPDATED": "Assessment updated",
+          "ASSESSMENT_UPDATED":
+            action === "assessment_reopened" ? "Assessment reopened" : "Assessment updated",
           "OBLIGATION_CREATED": "Obligation created",
-          "OBLIGATION_UPDATED": "Obligation updated",
+          "OBLIGATION_UPDATED":
+            action === "obligation_reviewed" ? "Obligation reviewed" : "Obligation updated",
           "TASK_CREATED": "Task created",
           "TASK_UPDATED": "Task updated",
-          "ADVISOR_REVIEW_REQUESTED": "Advisor review requested",
+          "ADVISOR_REVIEW_REQUESTED":
+            action === "reviewer_assigned" ? "Reviewer assigned" : "Advisor review requested",
           "EVIDENCE_MISSING_DETECTED": "Evidence missing detected",
+          "TASK_COMPLETED": "Task completed",
         };
         const eventLabel = eventTypeLabels[event.eventType] || "Operational event";
         

@@ -140,6 +140,28 @@ const { data, loading, error } = useAiComplianceOperations(token, refreshKey);
 - Bootstrap contract hardened: TypeScript gelecekteki regressions'ları yakalar
 - Bootstrap contract testi eklendi: regressions'ları önler
 - **Persisted operational events (Step 15):** `AiOperationalEvent` modeli ile kalıcı olay kaydı eklendi. Timeline render'ı persisted olayları önceliklendiriyor, dedupe stratejisi ile duplicate'leri engelliyor. UI'da raw metadata/internal IDs gösterilmiyor, readable source labels ve object types kullanılıyor. Actor membership validasyonu ile güvenlik sağlanıyor.
+- **Minimal workflow actions (Step 17):** AI Compliance artık küçük manuel aksiyonları destekler: task complete, obligation review, assessment reopen ve reviewer assignment. Aksiyonlar operational endpoint ailesinde authenticated mutation olarak çalışır, tenant scope ve `ai_act` module activation korunur, her başarılı aksiyon kalıcı operational event üretir. `/admin/bootstrap` operasyonel sistem veya event taşımaya devam etmez.
+
+## AI Compliance Workflow Actions (Step 17)
+
+**Endpoint'ler:**
+- `POST /admin/products/ai-compliance/tasks/:id/complete`
+- `POST /admin/products/ai-compliance/obligations/:id/review`
+- `POST /admin/products/ai-compliance/assessments/:id/reopen`
+- `POST /admin/products/ai-compliance/assessments/:id/assign-reviewer`
+
+**Kapsam:**
+- Bu adım workflow engine değildir; sadece explicit manuel aksiyon temelidir.
+- Tenant kullanıcıları için membership-first scope, `ai_act` module activation ve mevcut izinler korunur.
+- Platform admin cross-organization görünürlük ve aksiyon davranışı korunur; inactive `ai_act` tenant kayıtlarında mutation reddedilir.
+- Başarılı aksiyonlar `AiOperationalEvent` kaydı üretir; timeline'da sanitized label, actor ve concrete entity ilişkisi görünür.
+- Raw metadata, internal enum/source string'leri ve sliced internal ID kopyaları UI metnine sızdırılmaz.
+
+**Kapsam dışı:**
+- Notification engine yok.
+- SLA engine yok.
+- Background job, websocket/live update, automation veya escalation rules yok.
+- Frontend optimistic fake success kullanmaz; mutation sonrası authoritative endpoint refetch edilir.
 
 ## Operational realism layer (Step 8)
 
@@ -160,7 +182,7 @@ AI Compliance operasyon yüzeyleri, backend workflow persistence eklemeden daha 
 - **Action queue actionability:** Today's Action Queue satırları category, primary action, secondary context, target route ve yalnızca navigational `Open` / `Review` aksiyonu gösterir; fake mutation veya resolve davranışı ima edilmez.
 - **Controlled operational friction:** Unassigned owner, Awaiting advisor, Evidence missing, Review overdue, Vendor documentation missing ve Open obligations require owner sinyalleri yalnızca mevcut kayıtlardan türetilir.
 - **Timeline clarity:** Timeline satırları actor, source, related object, reason, readable timestamp ve `Derived signal` / record-backed ayrımını korur.
-- **Persistence boundary:** Bu adım gerçek audit event, workflow engine, notification veya persisted state eklemez; kalıcı provenance gereksinimi ayrı backend fazı olarak kalır.
+- **Persistence boundary:** Step 15 ve Step 17 ile kalıcı operational event temeli ve minimal manuel aksiyonlar eklendi. Full workflow engine, notification engine, SLA engine ve automation engine hâlâ ayrı backlog kapsamındadır.
 
 Questionnaire keys (v1, 10 soru):
 

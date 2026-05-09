@@ -523,13 +523,35 @@ export function buildSystemTimeline(
       case "ASSESSMENT_SUBMITTED":
         dedupeKey = getTimelineDedupeKey(event.eventType, event.assessmentId);
         break;
+      case "ASSESSMENT_UPDATED":
+        dedupeKey = getTimelineDedupeKey(`${event.eventType}:${event.eventLabel}`, event.assessmentId);
+        break;
       case "OBLIGATION_CREATED":
       case "OBLIGATION_UPDATED":
-        dedupeKey = getTimelineDedupeKey(event.eventType, undefined, event.obligationId);
+        dedupeKey = getTimelineDedupeKey(
+          `${event.eventType}:${event.eventLabel}`,
+          undefined,
+          event.obligationId,
+        );
         break;
       case "TASK_CREATED":
       case "TASK_UPDATED":
-        dedupeKey = getTimelineDedupeKey(event.eventType, undefined, undefined, event.taskId);
+      case "TASK_COMPLETED":
+        dedupeKey = getTimelineDedupeKey(
+          `${event.eventType}:${event.eventLabel}`,
+          undefined,
+          undefined,
+          event.taskId,
+        );
+        break;
+      case "ADVISOR_REVIEW_REQUESTED":
+        dedupeKey = getTimelineDedupeKey(
+          `${event.eventType}:${event.eventLabel}`,
+          event.assessmentId,
+          undefined,
+          undefined,
+          event.aiSystemId,
+        );
         break;
       case "SYSTEM_CREATED":
       case "SYSTEM_UPDATED":

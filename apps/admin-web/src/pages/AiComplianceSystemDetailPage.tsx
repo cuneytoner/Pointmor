@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { PageShell } from "../components/PageShell";
 import { Badge } from "../components/ui/Badge";
@@ -25,6 +26,12 @@ import {
   presentSlaTone,
 } from "../lib/aiCompliancePresentation";
 import {
+  assignAiComplianceReviewer,
+  completeAiComplianceTask,
+  reopenAiComplianceAssessment,
+  reviewAiComplianceObligation,
+} from "../lib/ai-compliance-workflow-api";
+import {
   deriveObligationWorkflowState,
   presentHealthTone,
   presentRoleLabel,
@@ -34,7 +41,11 @@ export function AiComplianceSystemDetailPage() {
   const { systemId = "" } = useParams();
   const { bootstrap } = useAdminDataContext();
   const { token } = useAuth();
-  const { loading, error, data } = useAiComplianceOperations(token, 0);
+  const { loading, error, data, refetch } = useAiComplianceOperations(token, 0);
+  const [actionBusy, setActionBusy] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [reviewerId, setReviewerId] = useState("");
 
   let systems: AiComplianceOperationsFullDto["systems"] = [];
   let showEmptyState = false;
@@ -105,6 +116,9 @@ export function AiComplianceSystemDetailPage() {
   const membershipUsers = (bootstrap?.users ?? []).filter((user) =>
     user.memberships?.some((m) => m.tenant.slug === system.tenant.slug),
   );
+  const reviewerOptions = membershipUsers.filter((user) =>
+    user.memberships?.some((m) => m.tenant.slug === system.tenant.slug && m.role === "ADVISOR"),
+  );
   const complianceOwner = membershipUsers.find((u) =>
     u.memberships?.some((m) => m.tenant.slug === system.tenant.slug && m.role === "ADMIN"),
   );
@@ -121,6 +135,22 @@ export function AiComplianceSystemDetailPage() {
   const slaState = deriveSlaState(system);
   const now = Date.now();
   const timelineItems = buildSystemTimeline(system, bootstrap?.users ?? []);
+  const currentAssessmentId = system.currentAssessment?.id ?? null;
+
+  const runWorkflowAction = async (key: string, action: () => Promise<unknown>, success: string) => {
+    setActionBusy(key);
+    setActionError(null);
+    setActionMessage(null);
+    try {
+      await action();
+      setActionMessage(success);
+      refetch();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "workflow_action_failed");
+    } finally {
+      setActionBusy(null);
+    }
+  };
 
   return (
     <PageShell
@@ -155,6 +185,66 @@ export function AiComplianceSystemDetailPage() {
         <p className="admin-app__card-text">{`SLA reason: ${presentSlaReason(system)}`}</p>
       </div>
 
+      {actionError || actionMessage ? (
+        <div className="admin-app__card admin-app__card--wide">
+          {actionError ? (
+            <p className="admin-app__card-text">{`Action failed: ${actionError}`}</p>
+          ) : (
+            <p className="admin-app__card-text">{actionMessage}</p>
+          )}
+        </div>
+      ) : null}
+
+      <div className="admin-app__card admin-app__card--wide">
+        <p className="admin-app__card-title">Workflow actions</p>
+        <div className="chip-row">
+          <button
+            type="button"
+            className="admin-secondary-btn"
+            disabled={!currentAssessmentId || actionBusy === "assessment-reopen"}
+            onClick={() => {
+              if (!currentAssessmentId) return;
+              void runWorkflowAction(
+                "assessment-reopen",
+                () => reopenAiComplianceAssessment(token, currentAssessmentId),
+                "Assessment reopened.",
+              );
+            }}
+          >
+            {actionBusy === "assessment-reopen" ? "Reopening..." : "Reopen assessment"}
+          </button>
+          <select
+            className="loyalty-form-control"
+            value={reviewerId}
+            disabled={!currentAssessmentId || actionBusy === "assign-reviewer"}
+            onChange={(event) => setReviewerId(event.target.value)}
+            aria-label="Reviewer"
+          >
+            <option value="">Select reviewer</option>
+            {reviewerOptions.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name ?? user.email}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="admin-primary-btn"
+            disabled={!currentAssessmentId || !reviewerId || actionBusy === "assign-reviewer"}
+            onClick={() => {
+              if (!currentAssessmentId || !reviewerId) return;
+              void runWorkflowAction(
+                "assign-reviewer",
+                () => assignAiComplianceReviewer(token, currentAssessmentId, reviewerId),
+                "Reviewer assigned.",
+              );
+            }}
+          >
+            {actionBusy === "assign-reviewer" ? "Assigning..." : "Assign reviewer"}
+          </button>
+        </div>
+      </div>
+
       <PlatformActivityTimeline
         title="Assessment timeline"
         items={timelineItems}
@@ -172,6 +262,7 @@ export function AiComplianceSystemDetailPage() {
                 <th>Due date</th>
                 <th>Status</th>
                 <th>Severity</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -201,9 +292,82 @@ export function AiComplianceSystemDetailPage() {
                             : "operational"}
                       </Badge>
                     </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="admin-secondary-btn"
+                        disabled={
+                          obligation.status === "COMPLETED" ||
+                          obligation.status === "NOT_APPLICABLE" ||
+                          actionBusy === `obligation-${obligation.id}`
+                        }
+                        onClick={() =>
+                          void runWorkflowAction(
+                            `obligation-${obligation.id}`,
+                            () => reviewAiComplianceObligation(token, obligation.id),
+                            "Obligation reviewed.",
+                          )
+                        }
+                      >
+                        {actionBusy === `obligation-${obligation.id}` ? "Reviewing..." : "Review"}
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="admin-app__card admin-app__card--wide">
+        <p className="admin-app__card-title">Tasks</p>
+        <div className="table-wrap">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Assigned to</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {system.tasks.map((task) => (
+                <tr key={task.id}>
+                  <td>{task.title}</td>
+                  <td className="data-table__muted">
+                    {task.assignedTo?.name ?? task.assignedTo?.email ?? "Unassigned"}
+                  </td>
+                  <td>
+                    <Badge tone={task.priority === "HIGH" ? "danger" : "info"}>
+                      {presentTaskPriority(task.priority)}
+                    </Badge>
+                  </td>
+                  <td>{presentTaskStatus(task.status)}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="admin-secondary-btn"
+                      disabled={
+                        task.status === "DONE" ||
+                        task.status === "CANCELLED" ||
+                        actionBusy === `task-${task.id}`
+                      }
+                      onClick={() =>
+                        void runWorkflowAction(
+                          `task-${task.id}`,
+                          () => completeAiComplianceTask(token, task.id),
+                          "Task completed.",
+                        )
+                      }
+                    >
+                      {actionBusy === `task-${task.id}` ? "Completing..." : "Complete"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -236,4 +400,17 @@ export function AiComplianceSystemDetailPage() {
       </Link>
     </PageShell>
   );
+}
+
+function presentTaskPriority(priority: string): string {
+  if (priority === "HIGH") return "High";
+  if (priority === "LOW") return "Low";
+  return "Medium";
+}
+
+function presentTaskStatus(status: string): string {
+  if (status === "DONE") return "Done";
+  if (status === "CANCELLED") return "Cancelled";
+  if (status === "IN_PROGRESS") return "In progress";
+  return "Open";
 }
