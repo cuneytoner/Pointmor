@@ -58,3 +58,6 @@ infra/docker/.last-demo-deployed-at
 .windsurf/cache/
 .windsurf/logs/
 .windsurf/tmp/
+.aider*
+
+src/api/routes/ai-compliance.js
